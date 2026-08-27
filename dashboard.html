@@ -17,64 +17,64 @@
 <body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen transition-colors duration-300">
 
   <!-- Header Navbar -->
-  <header class="bg-white dark:bg-zinc-900 border-b dark:border-zinc-800 sticky top-0 z-40 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-[#cf1717] flex items-center justify-center text-white font-black text-lg">
+  <header class="bg-white dark:bg-zinc-900 border-b dark:border-zinc-800 sticky top-0 z-40 shadow-sm px-4">
+    <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#cf1717] flex items-center justify-center text-white font-black text-base sm:text-lg">
           📖
         </div>
-        <span class="font-extrabold text-xl text-[#cf1717] tracking-wide">IELTS MASTER</span>
+        <span class="font-extrabold text-lg sm:text-xl text-[#cf1717] tracking-wide">IELTS MASTER</span>
       </div>
 
-      <div class="flex items-center gap-3">
-        <span id="welcomeUser" class="text-sm font-semibold text-gray-700 dark:text-gray-200 hidden sm:inline">👋 Chào mừng sinh viên</span>
-        <button onclick="togglePasswordModal(true)" class="px-3 py-1.5 text-xs font-bold border border-[#cf1717] text-[#cf1717] hover:bg-[#cf1717] hover:text-white rounded-lg transition">🔒 Đổi mật khẩu</button>
-        <button onclick="handleLogout()" class="px-3 py-1.5 text-xs font-bold bg-gray-200 dark:bg-zinc-800 hover:bg-red-100 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] rounded-lg transition">Đăng xuất</button>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <span id="welcomeUser" class="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200 hidden sm:inline">👋 Chào mừng sinh viên</span>
+        <button onclick="togglePasswordModal(true)" class="px-2.5 sm:px-3 py-1.5 text-xs font-bold border border-[#cf1717] text-[#cf1717] hover:bg-[#cf1717] hover:text-white rounded-lg transition">🔒 Đổi mật khẩu</button>
+        <button onclick="handleLogout()" class="px-2.5 sm:px-3 py-1.5 text-xs font-bold bg-gray-200 dark:bg-zinc-800 hover:bg-red-100 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] rounded-lg transition">Đăng xuất</button>
         <button onclick="toggleDarkMode()" class="p-2 rounded-full bg-gray-100 dark:bg-zinc-800 text-sm">🌙 / ☀️</button>
       </div>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8 sm:space-y-10">
 
     <!-- PHẦN 1: TIN TỨC & THÔNG BÁO -->
-    <section class="space-y-4">
+    <section class="space-y-3 sm:space-y-4">
       <div class="flex items-center gap-2 border-l-4 border-[#cf1717] pl-3">
-        <h2 class="text-xl font-extrabold text-gray-900 dark:text-white">📰 Tin Tức & Thông Báo Mới</h2>
+        <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">📰 Tin Tức & Thông Báo Mới</h2>
       </div>
-      <div id="newsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <p class="text-gray-500 text-sm col-span-full">⏳ Đang tải thông báo...</p>
+      <div id="newsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <p class="text-gray-500 text-xs sm:text-sm col-span-full">⏳ Đang tải thông báo...</p>
       </div>
     </section>
 
     <!-- PHẦN 2: DANH SÁCH BÀI THI READING -->
-    <section class="space-y-4">
+    <section class="space-y-3 sm:space-y-4">
       <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
-        <h2 class="text-xl font-extrabold text-gray-900 dark:text-white">📚 Danh Sách Bài Thi Reading</h2>
+        <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">📚 Danh Sách Bài Thi Reading</h2>
         <span id="examCount" class="text-xs font-bold px-2.5 py-1 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">0 bài làm</span>
       </div>
-      <div id="examsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <p class="text-gray-500 text-sm col-span-full">⏳ Đang tải bài thi...</p>
+      <div id="examsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <p class="text-gray-500 text-xs sm:text-sm col-span-full">⏳ Đang tải bài thi...</p>
       </div>
     </section>
 
     <!-- PHẦN 3: LỊCH SỬ VÀ KẾT QUẢ BÀI LÀM CỦA HỌC SINH -->
-    <section class="space-y-4">
+    <section class="space-y-3 sm:space-y-4">
       <div class="flex items-center border-l-4 border-[#cf1717] pl-3">
-        <h2 class="text-xl font-extrabold text-gray-900 dark:text-white">📜 Lịch Sử & Kết Quả Bài Làm</h2>
+        <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">📜 Lịch Sử & Kết Quả Bài Làm</h2>
       </div>
       <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl shadow-sm overflow-x-auto">
-        <table class="w-full text-left text-sm">
-          <thead class="bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 uppercase text-xs">
+        <table class="w-full text-left text-xs sm:text-sm">
+          <thead class="bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 uppercase text-[10px] sm:text-xs">
             <tr>
-              <th class="p-4">Tên bài thi</th>
-              <th class="p-4">Điểm số</th>
-              <th class="p-4">Thời gian làm</th>
-              <th class="p-4">Ngày hoàn thành</th>
+              <th class="p-3 sm:p-4">Tên bài thi</th>
+              <th class="p-3 sm:p-4">Điểm số</th>
+              <th class="p-3 sm:p-4">Thời gian làm</th>
+              <th class="p-3 sm:p-4">Ngày hoàn thành</th>
             </tr>
           </thead>
           <tbody id="studentHistoryBody" class="divide-y divide-gray-100 dark:divide-zinc-800">
-            <tr><td colspan="4" class="p-4 text-center text-gray-400">Đang tải lịch sử...</td></tr>
+            <tr><td colspan="4" class="p-3 sm:p-4 text-center text-gray-400">Đang tải lịch sử...</td></tr>
           </tbody>
         </table>
       </div>
@@ -130,18 +130,18 @@
       const { data: newsList } = await sbClient.from('news').select('*').order('created_at', { ascending: false });
 
       if (!newsList || newsList.length === 0) {
-        newsBox.innerHTML = `<div class="col-span-full bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-xl p-6 text-center text-gray-400 text-sm">Chưa có thông báo nào.</div>`;
+        newsBox.innerHTML = `<div class="col-span-full bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-xl p-6 text-center text-gray-400 text-xs sm:text-sm">Chưa có thông báo nào.</div>`;
         return;
       }
 
       newsBox.innerHTML = newsList.map(item => `
-        <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm flex flex-col">
-          ${item.image_url ? `<img src="${item.image_url}" class="h-44 w-full object-cover">` : ''}
-          <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+        <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between p-4 sm:p-5 space-y-3">
+          ${item.image_url ? `<img src="${item.image_url}" class="h-32 sm:h-44 w-full object-cover rounded-lg sm:rounded-xl">` : ''}
+          <div class="flex-1 flex flex-col justify-between space-y-2">
             <div>
               <span class="text-[10px] font-bold uppercase text-[#cf1717] bg-red-50 dark:bg-red-950 px-2 py-0.5 rounded">${new Date(item.created_at).toLocaleDateString('vi-VN')}</span>
-              <h3 class="font-bold text-base text-gray-900 dark:text-white mt-1">${item.title}</h3>
-              <p class="text-xs text-gray-600 dark:text-gray-400 mt-2 leading-relaxed">${item.content}</p>
+              <h3 class="font-bold text-sm sm:text-base text-gray-900 dark:text-white mt-1">${item.title}</h3>
+              <p class="text-xs text-gray-600 dark:text-gray-400 mt-2 leading-relaxed line-clamp-3">${item.content}</p>
             </div>
           </div>
         </div>
@@ -153,25 +153,28 @@
       const { data: examList } = await sbClient.from('exams').select('*').order('created_at', { ascending: false });
 
       if (!examList || examList.length === 0) {
-        examBox.innerHTML = `<div class="col-span-full bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-xl p-6 text-center text-gray-400 text-sm">Chưa có bài thi nào.</div>`;
-        document.getElementById('examCount').innerText = '0 bài làm';
+        examBox.innerHTML = `<div class="col-span-full bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-xl p-6 text-center text-gray-400 text-xs sm:text-sm">Chưa có bài thi nào.</div>`;
+        const countElem = document.getElementById('examCount');
+        if (countElem) countElem.innerText = '0 bài làm';
         return;
       }
 
-      document.getElementById('examCount').innerText = `${examList.length} bài làm`;
+      const countElem = document.getElementById('examCount');
+      if (countElem) countElem.innerText = `${examList.length} bài làm`;
+
       examBox.innerHTML = examList.map(exam => `
-        <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-5 shadow-sm space-y-4 flex flex-col justify-between">
+        <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4 flex flex-col justify-between">
           <div class="space-y-2">
             <div class="flex justify-between items-center">
               <span class="text-xs font-bold text-[#cf1717] bg-red-50 dark:bg-red-950/80 px-2.5 py-1 rounded-full">📌 ${exam.topic || 'General'}</span>
               <span class="text-xs text-gray-400">⏱️ ${exam.time_limit || 60} phút</span>
             </div>
-            <h3 class="font-bold text-lg text-gray-900 dark:text-white">${exam.title}</h3>
+            <h3 class="font-bold text-base sm:text-lg text-gray-900 dark:text-white">${exam.title}</h3>
             <p class="text-xs text-gray-500 line-clamp-2">${exam.notes || 'Không có ghi chú'}</p>
           </div>
           <div class="pt-3 border-t border-gray-100 dark:border-zinc-800 flex justify-between items-center">
             <span class="text-[11px] text-gray-400">📅 ${new Date(exam.created_at).toLocaleDateString('vi-VN')}</span>
-            <button onclick="window.location.href='exam.html?token=${exam.token}'" class="px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs rounded-lg shadow transition">Vào làm bài ➔</button>
+            <button onclick="window.location.href='exam.html?token=${exam.token}'" class="px-3 sm:px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs rounded-lg shadow transition">Vào làm bài ➔</button>
           </div>
         </div>
       `).join('');
@@ -179,23 +182,34 @@
 
     async function loadStudentHistory() {
       const tbody = document.getElementById('studentHistoryBody');
-      const { data: history } = await sbClient
+
+      // Tự động tương thích cả 2 tên cột student_id và user_id
+      let { data: history } = await sbClient
         .from('exam_results')
         .select('*, exams(title)')
         .eq('student_id', currentUser.id)
         .order('submitted_at', { ascending: false });
 
       if (!history || history.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400">Bạn chưa thực hiện bài thi nào.</td></tr>`;
+        const { data: historyAlt } = await sbClient
+          .from('exam_results')
+          .select('*, exams(title)')
+          .eq('user_id', currentUser.id)
+          .order('submitted_at', { ascending: false });
+        if (historyAlt) history = historyAlt;
+      }
+
+      if (!history || history.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="p-3 sm:p-4 text-center text-gray-400">Bạn chưa thực hiện bài thi nào.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = history.map(h => `
         <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800/50">
-          <td class="p-4 font-bold text-gray-900 dark:text-white">${h.exams?.title || 'Bài thi Reading'}</td>
-          <td class="p-4 font-extrabold text-[#cf1717]">${h.score} điểm</td>
-          <td class="p-4 text-xs text-gray-500">${Math.floor(h.time_spent / 60)} phút ${h.time_spent % 60} giây</td>
-          <td class="p-4 text-xs text-gray-400">${new Date(h.submitted_at).toLocaleString('vi-VN')}</td>
+          <td class="p-3 sm:p-4 font-bold text-gray-900 dark:text-white">${h.exams?.title || 'Bài thi Reading'}</td>
+          <td class="p-3 sm:p-4 font-extrabold text-[#cf1717]">${h.score} điểm</td>
+          <td class="p-3 sm:p-4 text-xs text-gray-500">${Math.floor(h.time_spent / 60)}m ${h.time_spent % 60}s</td>
+          <td class="p-3 sm:p-4 text-xs text-gray-400">${new Date(h.submitted_at).toLocaleString('vi-VN')}</td>
         </tr>
       `).join('');
     }
