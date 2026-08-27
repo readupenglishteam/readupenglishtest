@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IELTS Master - Làm Bài Thi</title>
+  <title>IELTS Master - Phòng Thi Reading</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
@@ -17,61 +17,55 @@
 <body class="bg-gray-100 dark:bg-zinc-950 dark:text-gray-100 h-screen flex flex-col overflow-hidden transition-colors duration-300">
 
   <!-- Header -->
-  <header class="bg-white dark:bg-zinc-900 border-b dark:border-zinc-800 h-16 flex-none z-40 shadow-sm px-4">
-    <div class="max-w-7xl mx-auto h-full flex justify-between items-center">
-      <div class="flex items-center gap-2">
-        <a href="dashboard.html" class="text-xs font-bold text-gray-500 hover:text-[#cf1717] transition">← Thoát</a>
-        <h1 id="examHeaderTitle" class="font-extrabold text-sm sm:text-base text-gray-900 dark:text-white truncate max-w-[150px] sm:max-w-md">Đang tải...</h1>
+  <header class="bg-white dark:bg-zinc-900 border-b dark:border-zinc-800 h-16 flex-none z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 h-full flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <a href="dashboard.html" class="text-xs font-bold text-gray-500 hover:text-[#cf1717] transition">← Quay lại</a>
+        <h1 id="examHeaderTitle" class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white truncate max-w-xs sm:max-w-md">Đang tải đề thi...</h1>
       </div>
 
-      <div class="flex items-center gap-2 sm:gap-4">
-        <button onclick="highlightSelectedText()" class="px-2.5 py-1.5 bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 font-bold text-xs rounded-lg border border-amber-300 dark:border-amber-700">
-          🖍️ <span class="hidden sm:inline">Highlight</span>
+      <div class="flex items-center gap-4">
+        <!-- Nút Highlight -->
+        <button onclick="highlightSelectedText()" class="px-3 py-1.5 bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 font-bold text-xs rounded-lg border border-amber-300 dark:border-amber-700 hover:opacity-80 transition flex items-center gap-1">
+          🖍️ Highlight văn bản
         </button>
 
-        <div class="flex items-center gap-1 px-2.5 py-1.5 bg-red-50 dark:bg-red-950/80 rounded-lg border border-red-200 dark:border-red-900">
+        <div class="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 dark:bg-red-950/80 rounded-lg border border-red-200 dark:border-red-900">
           <span class="text-xs font-bold text-[#cf1717]">⏱️</span>
-          <span id="timerDisplay" class="font-mono font-extrabold text-xs sm:text-base text-[#cf1717]">00:00</span>
+          <span id="timerDisplay" class="font-mono font-extrabold text-sm sm:text-base text-[#cf1717]">00:00</span>
         </div>
 
-        <button onclick="confirmSubmitExam()" class="px-3 py-1.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs rounded-lg shadow transition">Nộp Bài</button>
+        <button onclick="confirmSubmitExam()" class="px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-lg shadow transition">Nộp Bài Thi</button>
+        <button onclick="toggleDarkMode()" class="p-2 rounded-full bg-gray-100 dark:bg-zinc-800 text-sm">🌙 / ☀️</button>
       </div>
     </div>
   </header>
 
-  <!-- THANH CHUYỂN TAB TRÊN ĐIỆN THOẠI (HIỂN THỊ KHI MÀN HÌNH NHỎ) -->
-  <div class="lg:hidden flex border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-    <button id="mobileTabReading" onclick="switchMobileTab('reading')" class="w-1/2 py-2.5 text-center font-bold text-xs text-[#cf1717] border-b-2 border-[#cf1717]">
-      📖 Bài Đọc (Passage)
-    </button>
-    <button id="mobileTabQuestions" onclick="switchMobileTab('questions')" class="w-1/2 py-2.5 text-center font-bold text-xs text-gray-400">
-      ✍️ Câu Hỏi (Questions)
-    </button>
-  </div>
-
-  <!-- NỘI DUNG LÀM BÀI -->
-  <main class="flex-1 max-w-7xl w-full mx-auto p-2 sm:p-4 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 overflow-hidden">
+  <!-- MÀN HÌNH CHIA 2 CỘT TÁCH BIỆT KHÔNG BỊ TRÔI BÀI -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-2 gap-6 overflow-hidden">
     
-    <!-- CỘT BÀI ĐỌC -->
-    <section id="readingSection" class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 h-full overflow-y-auto shadow-sm space-y-4">
+    <!-- CỘT BÊN TRÁI: READING PASSAGE (CUỘN ĐỘC LẬP) -->
+    <section class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 h-full overflow-y-auto shadow-sm space-y-4">
       <div class="flex items-center justify-between border-b dark:border-zinc-800 pb-3 sticky top-0 bg-white dark:bg-zinc-900 z-10">
-        <h2 class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white">📖 Reading Passage</h2>
-        <span id="examTopicTag" class="text-xs font-bold px-2 py-0.5 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-full">General</span>
+        <h2 class="font-extrabold text-lg text-gray-900 dark:text-white flex items-center gap-2">📖 Reading Passage</h2>
+        <span id="examTopicTag" class="text-xs font-bold px-2.5 py-1 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-full">General</span>
       </div>
-      <div id="passageContent" class="prose dark:prose-invert max-w-none text-xs sm:text-sm leading-relaxed text-gray-700 dark:text-gray-300 select-text">
-        <p class="text-gray-400">⏳ Đang tải bài đọc...</p>
+      
+      <div id="passageContent" class="prose dark:prose-invert max-w-none text-sm leading-relaxed text-gray-700 dark:text-gray-300 select-text">
+        <p class="text-gray-400">⏳ Đang tải nội dung đoạn văn...</p>
       </div>
     </section>
 
-    <!-- CỘT CÂU HỎI -->
-    <section id="questionsSection" class="hidden lg:block bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 h-full overflow-y-auto shadow-sm">
+    <!-- CỘT BÊN PHẢI: QUESTIONS (CUỘN ĐỘC LẬP) -->
+    <section class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 h-full overflow-y-auto shadow-sm">
       <div class="space-y-6">
         <div class="flex items-center justify-between border-b dark:border-zinc-800 pb-3 sticky top-0 bg-white dark:bg-zinc-900 z-10">
-          <h2 class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white">✍️ Questions</h2>
-          <span id="questionCountTag" class="text-xs font-bold text-gray-500">0 câu</span>
+          <h2 class="font-extrabold text-lg text-gray-900 dark:text-white flex items-center gap-2">✍️ Questions</h2>
+          <span id="questionCountTag" class="text-xs font-bold text-gray-500">0 câu hỏi</span>
         </div>
+
         <form id="questionsForm" class="space-y-6">
-          <p class="text-gray-400 text-sm">⏳ Đang tải câu hỏi...</p>
+          <p class="text-gray-400 text-sm">⏳ Đang tải danh sách câu hỏi...</p>
         </form>
       </div>
     </section>
@@ -80,23 +74,23 @@
 
   <!-- MODAL KẾT QUẢ -->
   <div id="resultModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl text-center space-y-5">
-      <div class="w-14 h-14 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-full flex items-center justify-center text-2xl mx-auto">🏆</div>
+    <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-8 w-full max-w-md shadow-2xl text-center space-y-6">
+      <div class="w-16 h-16 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-full flex items-center justify-center text-3xl mx-auto">🏆</div>
       <div>
-        <h3 class="text-xl font-extrabold text-gray-900 dark:text-white">Hoàn Thành Bài Thi!</h3>
-        <p class="text-xs text-gray-500 mt-1">Kết quả đã lưu vào hệ thống thành công.</p>
+        <h3 class="text-2xl font-extrabold text-gray-900 dark:text-white">Hoàn Thành Bài Thi!</h3>
+        <p class="text-xs text-gray-500 mt-1">Kết quả của bạn đã được ghi nhận thành công.</p>
       </div>
-      <div class="bg-gray-50 dark:bg-zinc-800 p-4 rounded-xl grid grid-cols-2 gap-2">
+      <div class="bg-gray-50 dark:bg-zinc-800 p-4 rounded-xl grid grid-cols-2 gap-4">
         <div>
-          <span class="block text-[10px] font-bold text-gray-400 uppercase">Điểm Số</span>
-          <span id="finalScore" class="text-xl font-black text-[#cf1717]">0/0</span>
+          <span class="block text-xs font-bold text-gray-400 uppercase">Điểm Số</span>
+          <span id="finalScore" class="text-2xl font-black text-[#cf1717]">0/0</span>
         </div>
         <div>
-          <span class="block text-[10px] font-bold text-gray-400 uppercase">Thời Gian</span>
-          <span id="finalTime" class="text-xl font-black text-gray-700 dark:text-gray-200">00:00</span>
+          <span class="block text-xs font-bold text-gray-400 uppercase">Thời Gian Làm</span>
+          <span id="finalTime" class="text-2xl font-black text-gray-700 dark:text-gray-200">00:00</span>
         </div>
       </div>
-      <button onclick="window.location.href='dashboard.html'" class="w-full py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-lg transition text-sm shadow">Về Dashboard</button>
+      <button onclick="window.location.href='dashboard.html'" class="w-full py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-lg transition shadow">Trở Về Trang Chủ Dashboard</button>
     </div>
   </div>
 
@@ -133,19 +127,20 @@
       document.getElementById('passageContent').innerHTML = currentExam.passage_html || '<p>Không có nội dung bài đọc.</p>';
 
       const questions = currentExam.questions || [];
-      document.getElementById('questionCountTag').innerText = `${questions.length} câu`;
+      document.getElementById('questionCountTag').innerText = `${questions.length} câu hỏi`;
 
       const form = document.getElementById('questionsForm');
       form.innerHTML = questions.map((q, idx) => {
         const qNum = idx + 1;
+        const qId = q.id || qNum;
         if (q.options && Array.isArray(q.options) && q.options.length > 0) {
           return `
-            <div class="p-3 sm:p-4 rounded-xl border border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/40 space-y-2">
-              <p class="font-bold text-xs sm:text-sm text-gray-900 dark:text-white">Câu ${qNum}: ${q.question}</p>
-              <div class="space-y-1.5">
-                ${q.options.map((opt, optIdx) => `
-                  <label class="flex items-center gap-2 text-xs p-2 rounded-lg border border-gray-200 dark:border-zinc-700 hover:bg-white dark:hover:bg-zinc-800 cursor-pointer">
-                    <input type="radio" name="q_idx_${idx}" value="${opt}" class="accent-[#cf1717]">
+            <div class="p-4 rounded-xl border border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/40 space-y-3">
+              <p class="font-bold text-sm text-gray-900 dark:text-white">Câu ${qNum}: ${q.question}</p>
+              <div class="space-y-2">
+                ${q.options.map(opt => `
+                  <label class="flex items-center gap-3 text-xs sm:text-sm p-2.5 rounded-lg border border-gray-200 dark:border-zinc-700 hover:bg-white dark:hover:bg-zinc-800 cursor-pointer transition">
+                    <input type="radio" name="q_${qId}" value="${opt}" class="accent-[#cf1717]">
                     <span>${opt}</span>
                   </label>
                 `).join('')}
@@ -153,75 +148,21 @@
             </div>`;
         } else {
           return `
-            <div class="p-3 sm:p-4 rounded-xl border border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/40 space-y-2">
-              <p class="font-bold text-xs sm:text-sm text-gray-900 dark:text-white">Câu ${qNum}: ${q.question}</p>
-              <input type="text" name="q_idx_${idx}" placeholder="Nhập câu trả lời..." class="w-full p-2 text-xs rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
+            <div class="p-4 rounded-xl border border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/40 space-y-3">
+              <p class="font-bold text-sm text-gray-900 dark:text-white">Câu ${qNum}: ${q.question}</p>
+              <input type="text" name="q_${qId}" placeholder="Nhập câu trả lời..." class="w-full p-2.5 text-xs sm:text-sm rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
             </div>`;
         }
       }).join('');
     }
 
-    // TÍNH ĐIỂM VÀ LƯU VÀO SUPABASE (ĐÃ SỬA CỘT user_id)
-    async function submitExam() {
-      clearInterval(timerInterval);
-      const questions = currentExam.questions || [];
-      let score = 0;
-
-      questions.forEach((q, idx) => {
-        const radio = document.querySelector(`input[name="q_idx_${idx}"]:checked`);
-        const textInput = document.querySelector(`input[name="q_idx_${idx}"][type="text"]`);
-        
-        let userAns = (radio ? radio.value : (textInput ? textInput.value : '')).trim().toLowerCase();
-        let correctAns = (q.answer || '').toString().trim().toLowerCase();
-
-        if (userAns && correctAns) {
-          // Chuẩn hóa so sánh đáp án (Ví dụ "A" khớp với "A. True" hoặc trùng chính xác)
-          if (userAns === correctAns || userAns.startsWith(correctAns + '.') || userAns.startsWith(correctAns + ' ')) {
-            score++;
-          }
-        }
-      });
-
-      // Ghi đúng tên cột user_id trong bảng exam_results
-      const { error } = await sbClient.from('exam_results').insert([{
-        exam_id: currentExam.id,
-        user_id: currentUser.id,
-        score: score,
-        time_spent: timeSpentSeconds,
-        submitted_at: new Date().toISOString()
-      }]);
-
-      if (error) console.error("Lỗi lưu điểm:", error.message);
-
-      document.getElementById('finalScore').innerText = `${score}/${questions.length}`;
-      document.getElementById('finalTime').innerText = `${Math.floor(timeSpentSeconds / 60)}m ${timeSpentSeconds % 60}s`;
-      document.getElementById('resultModal').classList.remove('hidden');
-    }
-
-    // CHUYỂN TAB TRÊN MÀN HÌNH ĐIỆN THOẠI
-    function switchMobileTab(tab) {
-      const reading = document.getElementById('readingSection');
-      const questions = document.getElementById('questionsSection');
-      const btnR = document.getElementById('mobileTabReading');
-      const btnQ = document.getElementById('mobileTabQuestions');
-
-      if (tab === 'reading') {
-        reading.classList.remove('hidden');
-        questions.classList.add('hidden');
-        btnR.className = "w-1/2 py-2.5 text-center font-bold text-xs text-[#cf1717] border-b-2 border-[#cf1717]";
-        btnQ.className = "w-1/2 py-2.5 text-center font-bold text-xs text-gray-400";
-      } else {
-        reading.classList.add('hidden');
-        questions.classList.remove('hidden');
-        questions.classList.add('block');
-        btnQ.className = "w-1/2 py-2.5 text-center font-bold text-xs text-[#cf1717] border-b-2 border-[#cf1717]";
-        btnR.className = "w-1/2 py-2.5 text-center font-bold text-xs text-gray-400";
-      }
-    }
-
+    // TÍNH NĂNG HIGHLIGHT VĂN BẢN
     function highlightSelectedText() {
       const selection = window.getSelection();
-      if (!selection.rangeCount || selection.isCollapsed) return;
+      if (!selection.rangeCount || selection.isCollapsed) {
+        alert("Vui lòng bôi đen một đoạn văn bản trong bài đọc trước khi bấm Highlight!");
+        return;
+      }
       const range = selection.getRangeAt(0);
       const mark = document.createElement('mark');
       mark.className = 'bg-yellow-300 dark:bg-yellow-500 text-black px-1 rounded';
@@ -238,12 +179,52 @@
         const m = Math.floor(remaining / 60).toString().padStart(2, '0');
         const s = (remaining % 60).toString().padStart(2, '0');
         document.getElementById('timerDisplay').innerText = `${m}:${s}`;
-        if (remaining <= 0) submitExam();
+        if (remaining <= 0) {
+          clearInterval(timerInterval);
+          submitExam();
+        }
       }, 1000);
     }
 
     function confirmSubmitExam() {
-      if (confirm("Nộp bài thi ngay bây giờ?")) submitExam();
+      if (confirm("Bạn có chắc chắn muốn nộp bài thi?")) submitExam();
+    }
+
+    async function submitExam() {
+      clearInterval(timerInterval);
+      const questions = currentExam.questions || [];
+      let score = 0;
+
+      questions.forEach((q, idx) => {
+        const qId = q.id || (idx + 1);
+        const selected = document.querySelector(`[name="q_${qId}"]:checked`)?.value 
+                      || document.querySelector(`input[name="q_${qId}"]`)?.value?.trim();
+        if (selected && selected.toLowerCase() === (q.answer || '').toString().toLowerCase()) {
+          score++;
+        }
+      });
+
+      await sbClient.from('exam_results').insert([{
+        exam_id: currentExam.id,
+        student_id: currentUser.id,
+        score: score,
+        time_spent: timeSpentSeconds,
+        submitted_at: new Date().toISOString()
+      }]);
+
+      document.getElementById('finalScore').innerText = `${score}/${questions.length}`;
+      document.getElementById('finalTime').innerText = `${Math.floor(timeSpentSeconds / 60)}m ${timeSpentSeconds % 60}s`;
+      document.getElementById('resultModal').classList.remove('hidden');
+    }
+
+    function toggleDarkMode() {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        localStorage.theme = 'light';
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.theme = 'dark';
+      }
     }
 
     window.onload = initExam;
