@@ -188,10 +188,12 @@
   }
     // 1. ĐĂNG NHẬP BẰNG GOOGLE
 async function loginWithGoogle() {
+  // Mã này tự lấy URL hiện tại của trang web (tự kèm tên repo nếu có)
+  const redirectUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/dashboard.html');
   const { data, error } = await sbClient.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: 'https://readupenglishteam.github.io/dashboard.html' // Chuyển thẳng về Dashboard sau khi đăng nhập
+      redirectTo: redirectUrl
     }
   });
   if (error) alert("❌ Lỗi đăng nhập Google: " + error.message);
@@ -199,10 +201,11 @@ async function loginWithGoogle() {
 
 // 2. ĐĂNG NHẬP BẰNG FACEBOOK / GITHUB / APPLE
 async function loginWithSocial(providerName) { // providerName = 'facebook' hoặc 'github'
+  const redirectUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/dashboard.html');
   const { data, error } = await sbClient.auth.signInWithOAuth({
     provider: providerName,
     options: {
-      redirectTo: 'https://readupenglishteam.github.io/dashboard.html'
+      redirectTo: redirectUrl
     }
   });
   if (error) alert(`❌ Lỗi đăng nhập ${providerName}: ` + error.message);
