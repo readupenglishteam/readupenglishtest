@@ -285,6 +285,53 @@ async function submitExam() {
     }
 
     window.onload = initExam;
+async function loadStudentHistory() {
+  const historyContainer = document.getElementById('historyList');
+  if (!historyContainer) return;
+
+  // Lấy lịch sử làm bài từ Supabase kèm tên đề thi
+  const { data: results, error } = await sbClient
+    .from('exam_results')
+    .select(`
+      id,
+      score,
+      answers,
+      submitted_at,
+      exams ( title )
+    `)
+    .eq('user_id', currentUser.id)
+    .order('submitted_at', { ascending: false });
+
+  if (error) {
+    console.error("Lỗi lấy lịch sử:", error);
+    historyContainer.innerHTML = "<p class='text-red-500'>Không thể tải lịch sử làm bài.</p>";
+    return;
+  }
+
+  if (results.length === 0) {
+    historyContainer.innerHTML = "<p class='text-gray-500'>Bạn chưa làm bài thi nào.</p>";
+    return;
+  }
+
+  // Render ra danh sách lịch sử
+  historyContainer.innerHTML = results.map(item => {
+    const date = new Date(item.submitted_at).toLocaleString('vi-VN');
+    const totalAns = item.answers ? Object.keys(item.answers).length : 0;
+
+    return `
+      <div class="p-4 bg-white rounded-xl shadow-sm border border-gray-100 mb-3 flex justify-between items-center">
+        <div>
+          <h4 class="font-bold text-gray-800 text-base">${item.exams?.title || 'Bài thi'}</h4>
+          <p class="text-xs text-gray-400 mt-1">Nộp lúc: ${date}</p>
+        </div>
+        <div class="text-right">
+          <span class="text-lg font-extrabold text-red-600">${item.score} / 10 điểm</span>
+          <p class="text-xs text-gray-500 font-medium">Tổng số câu: ${totalAns}</p>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
   </script>
 </body>
 </html>
