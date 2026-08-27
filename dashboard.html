@@ -77,6 +77,15 @@
           </tbody>
         </table>
       </div>
+      <!-- Khối hiển thị Lịch sử làm bài -->
+<div class="mt-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+  <h3 class="text-xl font-bold text-gray-800 mb-4">📜 Lịch Sử Làm Bài</h3>
+  
+  <!-- Dữ liệu sẽ được tự động đổ vào thẻ div này -->
+  <div id="historyList">
+    <p class="text-gray-400 text-sm">Đang tải dữ liệu...</p>
+  </div>
+</div>
     </section>
 
   </main>
@@ -113,6 +122,7 @@
         return;
       }
       currentUser = user;
+      
 
       const { data: profile } = await sbClient.from('profiles').select('full_name').eq('id', user.id).single();
       if (profile?.full_name) {
@@ -179,39 +189,60 @@
       `).join('');
     }
 
-    async function loadStudentHistory() {
-      const tbody = document.getElementById('studentHistoryBody');
+   async function loadStudentHistory() {
+  const historyContainer = document.getElementById('historyList');
+  if (!historyContainer) return;
 
-      // Tự động tương thích cả 2 tên cột student_id và user_id
-      let { data: history } = await sbClient
-        .from('exam_results')
-        .select('*, exams(title)')
-        .eq('student_id', currentUser.id)
-        .order('submitted_at', { ascending: false });
+  if (!currentUser) {
+    historyContainer.innerHTML = "<p class='text-red-500 text-sm'>Vui lòng đăng nhập để xem lịch sử.</p>";
+    return;
+  }
 
-      if (!history || history.length === 0) {
-        const { data: historyAlt } = await sbClient
-          .from('exam_results')
-          .select('*, exams(title)')
-          .eq('user_id', currentUser.id)
-          .order('submitted_at', { ascending: false });
-        if (historyAlt) history = historyAlt;
-      }
+  // 1. Tải dữ liệu từ Supabase
+  const { data: results, error } = await sbClient
+    .from('exam_results')
+    .select(`
+      id,
+      score,
+      answers,
+      submitted_at,
+      exams ( title )
+    `)
+    .eq('user_id', currentUser.id)
+    .order('submitted_at', { ascending: false });
 
-      if (!history || history.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="p-3 sm:p-4 text-center text-gray-400">Bạn chưa thực hiện bài thi nào.</td></tr>`;
-        return;
-      }
+  // 2. Xử lý khi lỗi hoặc không có dữ liệu
+  if (error) {
+    console.error("Lỗi lấy lịch sử:", error);
+    historyContainer.innerHTML = "<p class='text-red-500 text-sm'>Không thể tải lịch sử làm bài.</p>";
+    return;
+  }
 
-      tbody.innerHTML = history.map(h => `
-        <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800/50">
-          <td class="p-3 sm:p-4 font-bold text-gray-900 dark:text-white">${h.exams?.title || 'Bài thi Reading'}</td>
-          <td class="p-3 sm:p-4 font-extrabold text-[#cf1717]">${h.score} điểm</td>
-          <td class="p-3 sm:p-4 text-xs text-gray-500">${Math.floor(h.time_spent / 60)}m ${h.time_spent % 60}s</td>
-          <td class="p-3 sm:p-4 text-xs text-gray-400">${new Date(h.submitted_at).toLocaleString('vi-VN')}</td>
-        </tr>
-      `).join('');
-    }
+  if (!results || results.length === 0) {
+    historyContainer.innerHTML = "<p class='text-gray-400 text-sm'>Bạn chưa thực hiện bài thi nào.</p>";
+    return;
+  }
+
+  // 3. Render giao diện ra màn hình
+  historyContainer.innerHTML = results.map(item => {
+    const date = new Date(item.submitted_at).toLocaleString('vi-VN');
+    const totalAns = item.answers ? Object.keys(item.answers).length : 0;
+    const examTitle = item.exams?.title || 'Bài thi Tiếng Anh';
+
+    return `
+      <div class="p-4 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 mb-3 flex justify-between items-center transition-all">
+        <div>
+          <h4 class="font-bold text-gray-800 text-base">${examTitle}</h4>
+          <p class="text-xs text-gray-400 mt-1">🕒 Nộp lúc: ${date}</p>
+        </div>
+        <div class="text-right">
+          <span class="text-lg font-extrabold text-red-600">${item.score} / 10 điểm</span>
+          <p class="text-xs text-gray-500 font-medium">Số câu đã làm: ${totalAns}</p>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
 
     function toggleDarkMode() {
       if (document.documentElement.classList.contains('dark')) {
