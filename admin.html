@@ -3,219 +3,330 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Trị Hệ Thống | Admin Dashboard</title>
+    <title>SmartReading - Trang Quản Lý Hệ Thống Bài Thi</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
-                    colors: { primary: { DEFAULT: '#cf1717', hover: '#b01212' } },
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: {
+                        navy: {
+                            900: '#0b1329',
+                            800: '#111c3a',
+                            700: '#1c2951'
+                        }
+                    }
                 }
             }
         }
     </script>
 </head>
-<body class="font-sans antialiased bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen">
+<body class="bg-[#f0f4f8] text-slate-800 font-sans min-h-screen flex flex-col">
 
-    <!-- Header / Navbar -->
-    <header class="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <img src="https://ibb.co/Zz0KkyYf" alt="Logo" class="h-9 w-auto object-contain" onerror="this.onerror=null; this.src='https://placehold.co/120x40/cf1717/white?text=LOGO';">
-                <span class="font-bold text-lg text-slate-900 dark:text-white">ADMIN<span class="text-[#cf1717]">PANEL</span></span>
+    <!-- 1. HEADER CHÍNH -->
+    <header class="bg-navy-900 text-white px-6 py-3.5 flex justify-between items-center shadow-lg">
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-600 p-2 rounded-xl text-white">
+                <i class="fa-solid fa-book-open text-xl"></i>
             </div>
-            
-            <div class="flex items-center gap-4">
-                <button id="theme-toggle" class="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-amber-400 hover:scale-105 transition-all">
-                    <i id="theme-toggle-dark-icon" class="fa-solid fa-moon hidden"></i>
-                    <i id="theme-toggle-light-icon" class="fa-solid fa-sun hidden"></i>
-                </button>
-                <button onclick="handleLogout()" class="text-xs font-semibold px-3 py-2 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-red-50 hover:text-[#cf1717] transition-all">
-                    <i class="fa-solid fa-right-from-bracket mr-1"></i> Đăng xuất
-                </button>
+            <div>
+                <h1 class="font-extrabold text-xl tracking-tight leading-none">SmartReading</h1>
+                <p class="text-[11px] text-slate-400 font-medium">Nền Tảng Thi & Luyện Đọc Virtual</p>
             </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <!-- Admin User Pill -->
+            <div class="flex items-center gap-3 bg-navy-800 px-4 py-1.5 rounded-full border border-slate-700/50">
+                <div class="w-8 h-8 rounded-full bg-indigo-500/30 text-indigo-300 font-bold flex items-center justify-center text-sm border border-indigo-400/30">
+                    N
+                </div>
+                <div class="text-xs">
+                    <p class="font-bold text-white leading-tight" id="adminEmailDisplay">Nguyễn Văn A</p>
+                    <p class="text-[10px] text-indigo-300 font-semibold uppercase tracking-wider">ADMIN / GIÁO VIÊN</p>
+                </div>
+            </div>
+
+            <!-- Nút Đăng Xuất -->
+            <button onclick="handleLogout()" class="flex items-center gap-2 bg-navy-800 hover:bg-slate-800 text-slate-300 px-4 py-2 rounded-xl text-xs font-semibold border border-slate-700 transition-all">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Đăng Xuất</span>
+            </button>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- 2. MAIN CONTAINER -->
+    <main class="max-w-7xl w-full mx-auto px-6 py-6 flex-grow">
         
-        <!-- Form Tạo Bài Viết / Tin Tức -->
-        <section class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm h-fit">
-            <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-[#cf1717]">
-                <i class="fa-solid fa-pen-to-square"></i> Tạo Nội Dung Mới
-            </h2>
+        <!-- BANNER QUẢN LÝ -->
+        <div class="bg-navy-900 text-white rounded-2xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-xl mb-8 relative overflow-hidden">
+            <div class="relative z-10">
+                <h2 class="text-2xl font-extrabold flex items-center gap-3">
+                    <i class="fa-solid fa-wrench text-indigo-400"></i>
+                    Trang Quản Lý Hệ Thống Bài Thi
+                </h2>
+                <p class="text-xs md:text-sm text-slate-400 mt-1">
+                    Tạo bài Reading mới, cấu trúc đáp án, quản lý thời gian và theo dõi bảng điểm học sinh.
+                </p>
+            </div>
+            
+            <button onclick="openModal()" class="relative z-10 flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-3 rounded-xl font-bold text-sm shadow-lg shadow-emerald-900/40 transition-all hover:scale-[1.02] active:scale-95">
+                <i class="fa-solid fa-plus text-base"></i>
+                <span>Tạo Bài Reading Mới</span>
+            </button>
+        </div>
 
-            <form id="articleForm" onsubmit="saveArticle(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Tiêu đề bài viết</label>
-                    <input type="text" id="title" required placeholder="Nhập tiêu đề bài đọc..." 
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:ring-2 focus:ring-[#cf1717] focus:outline-none text-sm">
-                </div>
+        <!-- TABS ĐIỀU HƯỚNG -->
+        <div class="border-b border-slate-200 mb-6 flex gap-8">
+            <button id="tabExamsBtn" onclick="switchTab('exams')" class="pb-3 text-sm font-bold border-b-2 border-indigo-600 text-indigo-600 flex items-center gap-2 transition-all">
+                <i class="fa-solid fa-books"></i>
+                <span>Danh Sách Bài Thi (<span id="examCount">0</span>)</span>
+            </button>
+            <button id="tabScoresBtn" onclick="switchTab('scores')" class="pb-3 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2 transition-all">
+                <i class="fa-solid fa-chart-column"></i>
+                <span>Bảng Điểm & Phổ Điểm Thí Sinh</span>
+            </button>
+        </div>
 
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Loại nội dung</label>
-                    <select id="contentType" onchange="toggleTokenInput()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:ring-2 focus:ring-[#cf1717] focus:outline-none text-sm">
-                        <option value="token">Bài đọc có Token riêng</option>
-                        <option value="news">Tin tức chung (Công khai)</option>
-                    </select>
-                </div>
-
-                <div id="tokenGroup">
-                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Mã Token liên kết</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="tokenInput" readonly class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 font-mono text-xs text-[#cf1717] font-bold">
-                        <button type="button" onclick="generateNewToken()" class="px-3 py-2 bg-slate-200 dark:bg-slate-700 rounded-xl hover:bg-slate-300 text-xs font-semibold">Tạo mã</button>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Link Ảnh ImgBB (Nút chèn ảnh)</label>
-                    <input type="url" id="imageUrl" placeholder="https://i.ibb.co/..." 
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:ring-2 focus:ring-[#cf1717] focus:outline-none text-sm">
-                    <p class="text-[11px] text-slate-400 mt-1">Upload ảnh lên <a href="https://imgbb.com" target="_blank" class="text-[#cf1717] underline">imgbb.com</a> rồi dán URL ảnh vào đây.</p>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Nội dung bài viết</label>
-                    <textarea id="content" rows="6" required placeholder="Soạn thảo nội dung..." 
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:ring-2 focus:ring-[#cf1717] focus:outline-none text-sm"></textarea>
-                </div>
-
-                <button type="submit" id="submitBtn" class="w-full py-3 bg-[#cf1717] hover:bg-[#b01212] text-white font-semibold rounded-xl transition-all shadow-md shadow-red-600/20 text-sm">
-                    <i class="fa-solid fa-plus mr-1"></i> Xuất Bản Nội Dung
-                </button>
-            </form>
+        <!-- TAB 1: DANH SÁCH BÀI THI -->
+        <section id="tabExamsContent" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <p class="text-slate-400 text-sm col-span-2">Đang tải danh sách bài thi...</p>
         </section>
 
-        <!-- Danh Sách Bài Đã Đăng -->
-        <section class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
-            <h2 class="text-lg font-bold mb-4 flex items-center justify-between">
-                <span>Danh Sách Nội Dung</span>
-                <button onclick="loadArticles()" class="text-xs text-[#cf1717] hover:underline"><i class="fa-solid fa-rotate-right"></i> Làm mới</button>
-            </h2>
-
-            <div id="articlesList" class="space-y-3 max-h-[600px] overflow-y-auto pr-1">
-                <!-- Data render via JS -->
+        <!-- TAB 2: BẢNG ĐIỂM HỌC SINH -->
+        <section id="tabScoresContent" class="hidden bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+            <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-graduation-cap text-indigo-600"></i> Lịch Sử Làm Bài Của Học Sinh
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-semibold">
+                            <th class="p-3">Mã Học Viên</th>
+                            <th class="p-3">Hành Động</th>
+                            <th class="p-3">Chi Tiết</th>
+                            <th class="p-3">Thời Gian</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scoresTableBody">
+                        <tr><td colspan="4" class="p-3 text-slate-400 text-center">Đang tải lịch sử...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </section>
 
     </main>
 
+    <!-- MODAL TẠO BÀI READING MỚI -->
+    <div id="createModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                <h3 class="font-bold text-lg text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-file-circle-plus text-emerald-600"></i> Tạo Đề Reading Mới
+                </h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form id="createForm" onsubmit="handleCreateExam(event)" class="space-y-4 text-xs">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Chủ đề / Danh mục</label>
+                        <input type="text" id="categoryInput" required placeholder="VD: Tâm lý học, Môi trường..." class="w-full p-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Thời gian làm bài (phút)</label>
+                        <input type="number" id="durationInput" defaultValue="20" required class="w-full p-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Tên bài đọc (Tiêu đề)</label>
+                    <input type="text" id="titleInput" required placeholder="VD: IELTS Reading Passage 1 - How the Mind Ages" class="w-full p-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Mô tả ngắn</label>
+                    <input type="text" id="descInput" placeholder="VD: Đề bài tập trung về tư duy người cao tuổi" class="w-full p-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Link ảnh minh họa (ImgBB URL)</label>
+                    <input type="url" id="imageInput" placeholder="https://i.ibb.co/..." class="w-full p-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nội dung bài đọc & Câu hỏi</label>
+                    <textarea id="contentInput" rows="6" required placeholder="Nhập nội dung bài đọc tại đây..." class="w-full p-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none font-sans"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200">Hủy</button>
+                    <button type="submit" id="saveBtn" class="px-5 py-2.5 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-500 shadow-md">Lưu & Xuất Bản</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPT XỬ LÝ DỮ LIỆU & GIAO DIỆN -->
     <script>
-        // Cấu hình Supabase & Key (Đã đổi tên biến tránh xung đột)
         const SUPABASE_URL = 'https://ozivvxbjomxbasgcbwbo.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_ERGNPjpoyMZzqmAP98V2VQ_k238r8Ax';
-        const IMGBB_API_KEY = 'db7c3dd769cc772e9b9b1df33d114bd1';
-
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // --- DARK MODE TOGGLE ---
-        const themeBtn = document.getElementById('theme-toggle');
-        const darkIcon = document.getElementById('theme-toggle-dark-icon');
-        const lightIcon = document.getElementById('theme-toggle-light-icon');
+        // Chuyển Tab
+        function switchTab(tab) {
+            const examsContent = document.getElementById('tabExamsContent');
+            const scoresContent = document.getElementById('tabScoresContent');
+            const tabExamsBtn = document.getElementById('tabExamsBtn');
+            const tabScoresBtn = document.getElementById('tabScoresBtn');
 
-        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-            lightIcon.classList.remove('hidden');
-        } else {
-            document.documentElement.classList.remove('dark');
-            darkIcon.classList.remove('hidden');
-        }
-
-        themeBtn.addEventListener('click', () => {
-            darkIcon.classList.toggle('hidden');
-            lightIcon.classList.toggle('hidden');
-            if (document.documentElement.classList.contains('dark')) {
-                document.documentElement.classList.remove('dark');
-                localStorage.setItem('color-theme', 'light');
+            if (tab === 'exams') {
+                examsContent.classList.remove('hidden');
+                scoresContent.classList.add('hidden');
+                tabExamsBtn.className = "pb-3 text-sm font-bold border-b-2 border-indigo-600 text-indigo-600 flex items-center gap-2 transition-all";
+                tabScoresBtn.className = "pb-3 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2 transition-all";
             } else {
-                document.documentElement.classList.add('dark');
-                localStorage.setItem('color-theme', 'dark');
-            }
-        });
-
-        // --- TẠO TOKEN NGẪU NHIÊN ---
-        function generateNewToken() {
-            const rand = Math.random().toString(36).substring(2, 10).toUpperCase();
-            document.getElementById('tokenInput').value = `READ_${rand}`;
-        }
-        generateNewToken();
-
-        function toggleTokenInput() {
-            const isNews = document.getElementById('contentType').value === 'news';
-            document.getElementById('tokenGroup').style.display = isNews ? 'none' : 'block';
-        }
-
-        // --- XỬ LÝ LƯU BÀI VIẾT VÀO SUPABASE ---
-        async function saveArticle(e) {
-            e.preventDefault();
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang lưu...';
-
-            const title = document.getElementById('title').value;
-            const content = document.getElementById('content').value;
-            const image_url = document.getElementById('imageUrl').value;
-            const is_news = document.getElementById('contentType').value === 'news';
-            const token = is_news ? `NEWS_${Date.now()}` : document.getElementById('tokenInput').value;
-
-            const { data, error } = await supabaseClient.from('articles').insert([{
-                title, content, image_url, token, is_news
-            }]);
-
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fa-solid fa-plus mr-1"></i> Xuất Bản Nội Dung';
-
-            if (error) {
-                alert('Lỗi khi lưu bài: ' + error.message);
-            } else {
-                alert('Tạo bài viết thành công!');
-                document.getElementById('articleForm').reset();
-                generateNewToken();
-                loadArticles();
+                examsContent.classList.add('hidden');
+                scoresContent.classList.remove('hidden');
+                tabScoresBtn.className = "pb-3 text-sm font-bold border-b-2 border-indigo-600 text-indigo-600 flex items-center gap-2 transition-all";
+                tabExamsBtn.className = "pb-3 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2 transition-all";
+                loadStudentScores();
             }
         }
 
-        // --- HIỂN THỊ DANH SÁCH BÀI VIẾT ---
-        async function loadArticles() {
-            const listEl = document.getElementById('articlesList');
-            listEl.innerHTML = '<p class="text-xs text-slate-400">Đang tải dữ liệu...</p>';
+        // Modal Controls
+        function openModal() { document.getElementById('createModal').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('createModal').classList.add('hidden'); }
 
+        // Tải danh sách bài thi từ Supabase
+        async function fetchExams() {
+            const container = document.getElementById('tabExamsContent');
             const { data, error } = await supabaseClient.from('articles').select('*').order('created_at', { ascending: false });
 
-            if (error || !data || !data.length) {
-                listEl.innerHTML = '<p class="text-xs text-slate-400">Chưa có bài viết nào.</p>';
+            if (error || !data) {
+                container.innerHTML = `<p class="text-red-500 text-xs col-span-2">Không thể tải bài thi: ${error?.message || ''}</p>`;
                 return;
             }
 
-            const currentDomain = window.location.origin;
+            document.getElementById('examCount').innerText = data.length;
 
-            listEl.innerHTML = data.map(item => `
-                <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 flex flex-col gap-2">
-                    <div class="flex justify-between items-start gap-2">
-                        <span class="text-xs font-bold px-2 py-0.5 rounded ${item.is_news ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/40' : 'bg-red-100 text-[#cf1717] dark:bg-red-950/50'}">
-                            ${item.is_news ? 'Tin tức' : 'Bài đọc Token'}
-                        </span>
-                        <span class="text-[10px] text-slate-400">${new Date(item.created_at).toLocaleDateString('vi-VN')}</span>
+            if (data.length === 0) {
+                container.innerHTML = `<p class="text-slate-400 text-xs col-span-2">Chưa có bài thi nào. Nhấn "+ Tạo Bài Reading Mới" để thêm bài đầu tiên.</p>`;
+                return;
+            }
+
+            container.innerHTML = data.map(item => {
+                const dateStr = item.created_at ? new Date(item.created_at).toISOString().split('T')[0] : '2026-08-26';
+                const category = item.token ? item.token.split('_')[0] : 'Tâm lý học';
+
+                return `
+                <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+                    <div>
+                        <!-- Tag & Ngày -->
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="bg-purple-100 text-purple-700 font-bold px-3 py-1 rounded-full text-[11px]">
+                                ${category}
+                            </span>
+                            <span class="text-[11px] text-slate-400 font-medium">
+                                Ngày up: ${dateStr}
+                            </span>
+                        </div>
+
+                        <!-- Tiêu đề & Mô tả -->
+                        <h3 class="font-extrabold text-slate-900 text-base mb-1 line-clamp-1">
+                            ${item.title}
+                        </h3>
+                        <p class="text-slate-500 text-xs mb-4 line-clamp-2">
+                            ${item.content ? item.content.substring(0, 90) + '...' : 'Đề bài tập trung luyện tập kỹ năng Reading.'}
+                        </p>
                     </div>
-                    <h3 class="font-bold text-sm text-slate-900 dark:text-white line-clamp-1">${item.title}</h3>
-                    
-                    ${!item.is_news ? `
-                        <div class="flex items-center gap-2 bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-700 mt-1">
-                            <span class="font-mono text-xs text-[#cf1717] truncate flex-grow">${currentDomain}/reader.html?token=${item.token}</span>
-                            <button onclick="navigator.clipboard.writeText('${currentDomain}/reader.html?token=${item.token}'); alert('Đã sao chép Link Token!')" class="text-xs text-slate-500 hover:text-[#cf1717]">
-                                <i class="fa-regular fa-copy"></i>
+
+                    <div>
+                        <!-- Info Thời gian & Câu hỏi -->
+                        <div class="text-xs text-slate-500 font-medium mb-4 flex items-center gap-1">
+                            <i class="fa-regular fa-clock text-slate-400"></i>
+                            <span>Thời gian: 20 phút • 2 câu hỏi</span>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex justify-end items-center gap-2 pt-3 border-t border-slate-100">
+                            <button onclick="alert('Tính năng sửa bài đang phát triển')" class="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-1.5 rounded-xl font-bold text-xs transition-all">
+                                <i class="fa-solid fa-pen text-amber-600 text-[10px]"></i> Sửa Đề
+                            </button>
+                            <button onclick="deleteExam('${item.id}')" class="flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 px-3.5 py-1.5 rounded-xl font-bold text-xs transition-all">
+                                <i class="fa-solid fa-trash text-[10px]"></i> Xóa
                             </button>
                         </div>
-                    ` : ''}
+                    </div>
                 </div>
+                `;
+            }).join('');
+        }
+
+        // Tạo Bài Thi Mới
+        async function handleCreateExam(e) {
+            e.preventDefault();
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = true;
+            saveBtn.innerText = 'Đang lưu...';
+
+            const category = document.getElementById('categoryInput').value;
+            const title = document.getElementById('titleInput').value;
+            const content = document.getElementById('contentInput').value;
+            const image_url = document.getElementById('imageInput').value;
+            const token = `${category}_${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+
+            const { error } = await supabaseClient.from('articles').insert([{
+                title, content, image_url, token, is_news: false
+            }]);
+
+            saveBtn.disabled = false;
+            saveBtn.innerText = 'Lưu & Xuất Bản';
+
+            if (error) {
+                alert('Lỗi tạo bài: ' + error.message);
+            } else {
+                closeModal();
+                document.getElementById('createForm').reset();
+                fetchExams();
+            }
+        }
+
+        // Xóa bài thi
+        async function deleteExam(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa bài thi này?')) {
+                const { error } = await supabaseClient.from('articles').delete().eq('id', id);
+                if (error) alert('Lỗi xóa bài: ' + error.message);
+                else fetchExams();
+            }
+        }
+
+        // Lấy lịch sử/bảng điểm thí sinh
+        async function loadStudentScores() {
+            const tbody = document.getElementById('scoresTableBody');
+            const { data, error } = await supabaseClient.from('student_history').select('*').order('created_at', { ascending: false });
+
+            if (error || !data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-slate-400 text-center">Chưa có lượt làm bài nào recorded.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.map(item => `
+                <tr class="border-b border-slate-100 hover:bg-slate-50/80">
+                    <td class="p-3 font-mono font-semibold text-indigo-600">${item.user_id.substring(0, 8)}...</td>
+                    <td class="p-3 font-bold">${item.action_type}</td>
+                    <td class="p-3 text-slate-600">${item.details || 'Đã hoàn thành lượt thi'}</td>
+                    <td class="p-3 text-slate-400">${new Date(item.created_at).toLocaleString('vi-VN')}</td>
+                </tr>
             `).join('');
         }
 
@@ -224,7 +335,8 @@
             window.location.href = 'index.html';
         }
 
-        loadArticles();
+        // Tải dữ liệu khi mở trang
+        fetchExams();
     </script>
 </body>
 </html>
