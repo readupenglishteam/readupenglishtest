@@ -37,6 +37,19 @@
         <button id="tabRegister" type="button" onclick="switchTab('register')" class="w-1/2 py-2.5 text-center font-bold text-gray-400 hover:text-gray-600 transition">
           Đăng Ký
         </button>
+        <div class="space-y-3 max-w-sm mx-auto">
+  <!-- Nút Google -->
+  <button onclick="loginWithGoogle()" class="w-full flex items-center justify-center gap-3 py-2.5 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-xl font-bold text-xs hover:bg-gray-50 transition shadow-sm">
+    <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-4 h-4" alt="Google">
+    Đăng nhập bằng Google
+  </button>
+
+  <!-- Nút Facebook -->
+  <button onclick="loginWithSocial('facebook')" class="w-full flex items-center justify-center gap-3 py-2.5 bg-[#1877F2] text-white rounded-xl font-bold text-xs hover:opacity-90 transition shadow-sm">
+    <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" class="w-4 h-4 bg-white rounded-full" alt="Facebook">
+    Đăng nhập bằng Facebook
+  </button>
+</div>
       </div>
 
       <!-- Form Nhập Dữ Liệu -->
@@ -173,6 +186,49 @@
       }
     }
   }
+    // 1. ĐĂNG NHẬP BẰNG GOOGLE
+async function loginWithGoogle() {
+  const { data, error } = await sbClient.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin + '/dashboard.html' // Chuyển thẳng về Dashboard sau khi đăng nhập
+    }
+  });
+  if (error) alert("❌ Lỗi đăng nhập Google: " + error.message);
+}
+
+// 2. ĐĂNG NHẬP BẰNG FACEBOOK / GITHUB / APPLE
+async function loginWithSocial(providerName) { // providerName = 'facebook' hoặc 'github'
+  const { data, error } = await sbClient.auth.signInWithOAuth({
+    provider: providerName,
+    options: {
+      redirectTo: window.location.origin + '/dashboard.html'
+    }
+  });
+  if (error) alert(`❌ Lỗi đăng nhập ${providerName}: ` + error.message);
+}
+
+// 3. ĐĂNG NHẬP BẰNG EMAIL & MẬT KHẨU TRUYỀN THỐNG
+async function loginWithEmail(email, password) {
+  const { data, error } = await sbClient.auth.signInWithPassword({
+    email: email,
+    password: password
+  });
+  if (error) alert("❌ Sai email hoặc mật khẩu!");
+  else window.location.href = 'dashboard.html';
+}
+
+// 4. ĐĂNG NHẬP KHÔNG CẦN MẬT KHẨU (MAGIC LINK GỬI VỀ EMAIL)
+async function loginWithMagicLink(email) {
+  const { data, error } = await sbClient.auth.signInWithOtp({
+    email: email,
+    options: {
+      emailRedirectTo: window.location.origin + '/dashboard.html'
+    }
+  });
+  if (error) alert("❌ Lỗi gửi liên kết: " + error.message);
+  else alert("✉️ Đã gửi link đăng nhập vào Email của bạn!");
+}
 </script>
 </body>
 </html>
