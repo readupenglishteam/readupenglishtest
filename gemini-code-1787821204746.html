@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="vi" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Đọc - Learning Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: { primary: { DEFAULT: '#cf1717', hover: '#b01212' } },
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="font-sans antialiased bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col justify-between">
+
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-3">
+                <img src="https://ibb.co/Zz0KkyYf" alt="Logo" class="h-9 w-auto object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/120x40?text=LOGO';">
+                <span class="font-bold text-lg text-slate-900 dark:text-white">LEARNING<span class="text-[#cf1717]">PORTAL</span></span>
+            </a>
+            
+            <div class="flex items-center gap-3">
+                <button id="theme-toggle" class="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-amber-400 hover:scale-105 transition-all">
+                    <i id="theme-toggle-dark-icon" class="fa-solid fa-moon hidden"></i>
+                    <i id="theme-toggle-light-icon" class="fa-solid fa-sun hidden"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="max-w-5xl mx-auto px-4 py-8 flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Nội dung bài đọc (Token) -->
+        <article class="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-sm">
+            <div id="articleContainer">
+                <div class="animate-pulse space-y-4">
+                    <div class="h-6 bg-slate-200 dark:bg-slate-800 rounded w-3/4"></div>
+                    <div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/4"></div>
+                    <div class="h-64 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+                    <div class="h-20 bg-slate-200 dark:bg-slate-800 rounded"></div>
+                </div>
+            </div>
+        </article>
+
+        <!-- Sidebar: Tin tức cập nhật từ Admin -->
+        <aside class="lg:col-span-4 space-y-6">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+                <h2 class="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-newspaper text-[#cf1717]"></i> Tin Tức & Thông Báo
+                </h2>
+                <div id="newsContainer" class="space-y-4">
+                    <!-- News items render via JS -->
+                </div>
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full text-center py-6 text-xs text-slate-400 border-t border-slate-200 dark:border-slate-800 mt-12">
+        &copy; 2026 Learning Portal. All rights reserved.
+    </footer>
+
+    <script>
+        // Cấu hình Supabase
+        const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co'; // ⚠️ Thay URL Supabase của bạn
+        const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';                // ⚠️ Thay Key Supabase của bạn
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // --- DARK MODE CONTROLLER ---
+        const themeBtn = document.getElementById('theme-toggle');
+        const darkIcon = document.getElementById('theme-toggle-dark-icon');
+        const lightIcon = document.getElementById('theme-toggle-light-icon');
+
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            lightIcon.classList.remove('hidden');
+        } else {
+            document.documentElement.classList.remove('dark');
+            darkIcon.classList.remove('hidden');
+        }
+
+        themeBtn.addEventListener('click', () => {
+            darkIcon.classList.toggle('hidden');
+            lightIcon.classList.toggle('hidden');
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('color-theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('color-theme', 'dark');
+            }
+        });
+
+        // --- LẤY BÀI VIẾT THEO TOKEN TRÊN URL ---
+        async function loadArticleByToken() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            const container = document.getElementById('articleContainer');
+
+            if (!token) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <i class="fa-solid fa-key text-4xl text-slate-300 mb-3"></i>
+                        <h2 class="text-lg font-bold text-slate-700 dark:text-slate-300">Không tìm thấy mã Token</h2>
+                        <p class="text-xs text-slate-400 mt-1">Vui lòng kiểm tra lại liên kết bài đọc của bạn.</p>
+                    </div>`;
+                return;
+            }
+
+            const { data, error } = await supabase
+                .from('articles')
+                .select('*')
+                .eq('token', token)
+                .single();
+
+            if (error || !data) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <i class="fa-solid fa-file-circle-xmark text-4xl text-[#cf1717] mb-3"></i>
+                        <h2 class="text-lg font-bold text-slate-700 dark:text-slate-300">Bài đọc không tồn tại hoặc đã bị khóa</h2>
+                        <p class="text-xs text-slate-400 mt-1">Mã Token <span class="font-mono text-[#cf1717]">${token}</span> không hợp lệ.</p>
+                    </div>`;
+                return;
+            }
+
+            // Hiển thị nội dung bài đọc
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="border-b border-slate-100 dark:border-slate-800 pb-4">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-[#cf1717] bg-red-50 dark:bg-red-950/40 px-2.5 py-1 rounded-md">
+                            Bài Đọc Riêng
+                        </span>
+                        <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mt-3">${data.title}</h1>
+                        <p class="text-xs text-slate-400 mt-2">
+                            <i class="fa-regular fa-clock mr-1"></i> Ngày đăng: ${new Date(data.created_at).toLocaleDateString('vi-VN')}
+                        </p>
+                    </div>
+
+                    ${data.image_url ? `
+                        <div class="rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm max-h-[400px]">
+                            <img src="${data.image_url}" alt="${data.title}" class="w-full h-full object-cover">
+                        </div>
+                    ` : ''}
+
+                    <div class="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line text-sm sm:text-base">
+                        ${data.content}
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- LẤY TIN TỨC CHUNG ---
+        async function loadNews() {
+            const newsContainer = document.getElementById('newsContainer');
+            const { data, error } = await supabase
+                .from('articles')
+                .select('*')
+                .eq('is_news', true)
+                .order('created_at', { ascending: false })
+                .limit(5);
+
+            if (error || !data || data.length === 0) {
+                newsContainer.innerHTML = '<p class="text-xs text-slate-400">Chưa có tin tức mới.</p>';
+                return;
+            }
+
+            newsContainer.innerHTML = data.map(item => `
+                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                    <h3 class="font-bold text-xs text-slate-900 dark:text-white line-clamp-2">${item.title}</h3>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">${item.content}</p>
+                    <span class="text-[10px] text-slate-400 block mt-2">${new Date(item.created_at).toLocaleDateString('vi-VN')}</span>
+                </div>
+            `).join('');
+        }
+
+        // Chạy khi trang tải xong
+        loadArticleByToken();
+        loadNews();
+    </script>
+</body>
+</html>
