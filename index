@@ -31,7 +31,7 @@
             }
         }
     </script>
-
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         /* Custom Background Gradients */
         .bg-gradient-light {
@@ -190,21 +190,45 @@
             }
         }
 
-        // --- 3. HANDLE LOGIN DEMO & ROUTING TOKEN ---
-        function handleLogin(event) {
-            event.preventDefault();
-            const username = document.getElementById('username').value;
-            
-            // Giả lập lưu phiên đăng nhập
-            localStorage.setItem('user_session', JSON.stringify({
-                user: username,
-                role: username.toLowerCase().includes('admin') ? 'admin' : 'user',
-                token: 'tok_' + Math.random().toString(36).substring(2, 10)
-            }));
+    // ⚠️ Thay 2 giá trị này bằng thông tin lấy ở: Supabase -> Project Settings -> API
+    const SUPABASE_URL = 'https://ozivvxbjomxbasgcbwbo.supabase.co/rest/v1/';
+    const SUPABASE_ANON_KEY = 'sb_publishable_ERGNPjpoyMZzqmAP98V2VQ_k238r8Ax';
+    
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            alert('Đăng nhập thành công với tài khoản: ' + username);
-            // Sẵn sàng để chuyển sang Bước 2 (Giao diện bài đọc/Admin)
+    // --- XỬ LÝ ĐĂNG NHẬP THẬT ---
+    async function handleLogin(event) {
+        event.preventDefault();
+        const email = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        // Gọi API Supabase kiểm tra tài khoản
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password,
+        });
+
+        if (error) {
+            alert('Đăng nhập thất bại: ' + error.message);
+            return;
         }
+
+        // Lấy thông tin vai trò (Admin hay Học viên)
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', data.user.id)
+            .single();
+
+        alert('Đăng nhập thành công!');
+        
+        // Điều hướng theo quyền
+        if (profile && profile.role === 'admin') {
+            window.location.href = 'admin.html'; // Trang Admin đăng bài & tin tức
+        } else {
+            window.location.href = 'dashboard.html'; // Trang Học viên
+        }
+    }
     </script>
 </body>
 </html>
