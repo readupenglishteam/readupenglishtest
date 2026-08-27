@@ -64,9 +64,10 @@
   </main>
 
   <script>
-    const SUPABASE_URL = "YOUR_SUPABASE_URL";
-    const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY";
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // Thay thế đoạn cấu hình cũ trong tất cả các file HTML:
+const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co"; 
+const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let timeLeft = 3600; // 60 phút tính bằng giây
     let timerInterval = null;
