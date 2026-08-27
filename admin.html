@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IELTS Master - Quản Trị Admin</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>// BẮT BUỘC: Bảo Tailwind lắng nghe class "dark" ở thẻ <html> 
+    tailwind.config = {
+    darkMode: 'class'}
+</script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -14,7 +18,9 @@
       document.documentElement.classList.remove('dark');
     }
   </script>
+  
   <link rel="icon" type="image/png" href="https://i.ibb.co/G4bb6CM1/READ.png">
+
 </head>
 <body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen transition-colors duration-300">
 
