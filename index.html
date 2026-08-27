@@ -191,7 +191,7 @@ async function loginWithGoogle() {
   const { data, error } = await sbClient.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.origin + '/dashboard.html' // Chuyển thẳng về Dashboard sau khi đăng nhập
+      redirectTo: 'https://readupenglishteam.github.io/dashboard.html' // Chuyển thẳng về Dashboard sau khi đăng nhập
     }
   });
   if (error) alert("❌ Lỗi đăng nhập Google: " + error.message);
@@ -202,7 +202,7 @@ async function loginWithSocial(providerName) { // providerName = 'facebook' ho�
   const { data, error } = await sbClient.auth.signInWithOAuth({
     provider: providerName,
     options: {
-      redirectTo: window.location.origin + '/dashboard.html'
+      redirectTo: 'https://readupenglishteam.github.io/dashboard.html'
     }
   });
   if (error) alert(`❌ Lỗi đăng nhập ${providerName}: ` + error.message);
