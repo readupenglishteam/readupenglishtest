@@ -27,7 +27,7 @@
     <header class="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
         <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <img src="https://ibb.co/Zz0KkyYf" alt="Logo" class="h-9 w-auto object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/120x40?text=LOGO';">
+                <img src="https://ibb.co/Zz0KkyYf" alt="Logo" class="h-9 w-auto object-contain" onerror="this.onerror=null; this.src='https://placehold.co/120x40/cf1717/white?text=LOGO';">
                 <span class="font-bold text-lg text-slate-900 dark:text-white">ADMIN<span class="text-[#cf1717]">PANEL</span></span>
             </div>
             
@@ -88,7 +88,7 @@
                         class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:ring-2 focus:ring-[#cf1717] focus:outline-none text-sm"></textarea>
                 </div>
 
-                <button type="submit" class="w-full py-3 bg-[#cf1717] hover:bg-[#b01212] text-white font-semibold rounded-xl transition-all shadow-md shadow-red-600/20 text-sm">
+                <button type="submit" id="submitBtn" class="w-full py-3 bg-[#cf1717] hover:bg-[#b01212] text-white font-semibold rounded-xl transition-all shadow-md shadow-red-600/20 text-sm">
                     <i class="fa-solid fa-plus mr-1"></i> Xuất Bản Nội Dung
                 </button>
             </form>
@@ -109,10 +109,12 @@
     </main>
 
     <script>
-        // Cấu hình Supabase
-        const SUPABASE_URL = 'https://ozivvxbjomxbasgcbwbo.supabase.co/rest/v1/'; // ⚠️ Thay URL Supabase của bạn
-        const SUPABASE_ANON_KEY = 'sb_publishable_ERGNPjpoyMZzqmAP98V2VQ_k238r8Ax';                // ⚠️ Thay Key Supabase của bạn
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Cấu hình Supabase & Key (Đã đổi tên biến tránh xung đột)
+        const SUPABASE_URL = 'https://ozivvxbjomxbasgcbwbo.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_ERGNPjpoyMZzqmAP98V2VQ_k238r8Ax';
+        const IMGBB_API_KEY = 'db7c3dd769cc772e9b9b1df33d114bd1';
+
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // --- DARK MODE TOGGLE ---
         const themeBtn = document.getElementById('theme-toggle');
@@ -154,15 +156,22 @@
         // --- XỬ LÝ LƯU BÀI VIẾT VÀO SUPABASE ---
         async function saveArticle(e) {
             e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang lưu...';
+
             const title = document.getElementById('title').value;
             const content = document.getElementById('content').value;
             const image_url = document.getElementById('imageUrl').value;
             const is_news = document.getElementById('contentType').value === 'news';
             const token = is_news ? `NEWS_${Date.now()}` : document.getElementById('tokenInput').value;
 
-            const { data, error } = await supabase.from('articles').insert([{
+            const { data, error } = await supabaseClient.from('articles').insert([{
                 title, content, image_url, token, is_news
             }]);
+
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-solid fa-plus mr-1"></i> Xuất Bản Nội Dung';
 
             if (error) {
                 alert('Lỗi khi lưu bài: ' + error.message);
@@ -179,9 +188,9 @@
             const listEl = document.getElementById('articlesList');
             listEl.innerHTML = '<p class="text-xs text-slate-400">Đang tải dữ liệu...</p>';
 
-            const { data, error } = await supabase.from('articles').select('*').order('created_at', { ascending: false });
+            const { data, error } = await supabaseClient.from('articles').select('*').order('created_at', { ascending: false });
 
-            if (error || !data.length) {
+            if (error || !data || !data.length) {
                 listEl.innerHTML = '<p class="text-xs text-slate-400">Chưa có bài viết nào.</p>';
                 return;
             }
@@ -210,8 +219,8 @@
             `).join('');
         }
 
-        function handleLogout() {
-            supabase.auth.signOut();
+        async function handleLogout() {
+            await supabaseClient.auth.signOut();
             window.location.href = 'index.html';
         }
 
