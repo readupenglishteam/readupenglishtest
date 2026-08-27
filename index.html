@@ -1,74 +1,112 @@
 <!DOCTYPE html>
-<html lang="vi" class="dark">
+<html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IELTS Reading - Trang Chủ</title>
+  <title>IELTS Reading - Đăng nhập / Đăng ký</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script> tailwind.config = { darkMode: 'class' } </script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-300">
-
-  <!-- Header -->
-  <header class="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">
-        <i class="fa-solid fa-book-open"></i>
-      </div>
-      <span class="font-extrabold text-xl tracking-tight">IELTS <span class="text-red-600">READING</span></span>
+<body class="bg-gradient-to-br from-red-50 via-white to-gray-100 dark:bg-zinc-950 dark:text-white min-h-screen transition-colors duration-300">
+  
+  <header class="flex justify-between items-center p-4 max-w-6xl mx-auto">
+    <div class="flex items-center gap-2">
+      <img src="https://ibb.co/Zz0KkyYf" alt="Logo" class="h-10">
+      <span class="font-bold text-xl text-[#cf1717]">IELTS MASTER</span>
     </div>
-
-    <div class="flex items-center gap-4">
-      <a href="admin.html" class="text-xs font-semibold hover:text-red-600 transition">Trang Quản Trị</a>
-      <!-- Dark mode toggle -->
-      <button onclick="toggleTheme()" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:ring-2 ring-red-500 transition">
-        <i class="fa-solid fa-sun hidden dark:block"></i>
-        <i class="fa-solid fa-moon block dark:hidden"></i>
-      </button>
-    </div>
+    <button id="toggleThemeBtn" class="p-2 rounded-full bg-gray-200 dark:bg-zinc-800">🌙</button>
   </header>
 
-  <!-- Main Content -->
-  <main class="max-w-6xl mx-auto p-6 space-y-8">
-    <div class="bg-gradient-to-r from-red-600 to-red-800 text-white p-8 rounded-3xl shadow-lg flex justify-between items-center">
-      <div>
-        <h1 class="text-3xl font-black mb-2">Thư Viện Đề Thi Reading</h1>
-        <p class="text-red-100 text-sm">Luyện tập cấu trúc đề thi IELTS thực tế với giao diện tối ưu.</p>
-      </div>
-    </div>
-
-    <!-- Exam Cards Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition space-y-4">
-        <span class="bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 text-xs font-bold px-3 py-1 rounded-full">Passage 1</span>
-        <h3 class="font-bold text-lg">The History of Modern Architecture</h3>
-        <p class="text-xs text-slate-500 dark:text-slate-400">Thời gian: 20 phút • 13 câu hỏi</p>
-        <a href="exam.html" class="block text-center w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl transition">Vào Làm Bài</a>
+  <main class="flex justify-center items-center py-10 px-4">
+    <div class="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-zinc-800">
+      
+      <!-- Tab Switcher -->
+      <div class="flex border-b border-gray-200 dark:border-zinc-700 mb-6">
+        <button id="tabLogin" onclick="switchTab('login')" class="w-1/2 py-2 text-center font-bold text-[#cf1717] border-b-2 border-[#cf1717]">Đăng Nhập</button>
+        <button id="tabRegister" onclick="switchTab('register')" class="w-1/2 py-2 text-center font-bold text-gray-400">Đăng Ký</button>
       </div>
 
-      <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition space-y-4">
-        <span class="bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 text-xs font-bold px-3 py-1 rounded-full">Passage 2</span>
-        <h3 class="font-bold text-lg">Climate Change and Biodiversity</h3>
-        <p class="text-xs text-slate-500 dark:text-slate-400">Thời gian: 20 phút • 13 câu hỏi</p>
-        <a href="exam.html" class="block text-center w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl transition">Vào Làm Bài</a>
-      </div>
+      <!-- Form Auth -->
+      <form id="authForm" onsubmit="handleAuth(event)" class="space-y-4">
+        <div id="fullNameGroup" class="hidden">
+          <label class="block text-xs font-bold uppercase mb-1">Họ và Tên</label>
+          <input type="text" id="fullName" placeholder="Nguyễn Văn A" class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase mb-1">Email</label>
+          <input type="email" id="email" required placeholder="student@example.com" class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase mb-1">Mật khẩu</label>
+          <input type="password" id="password" required placeholder="••••••••" class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
+        </div>
+
+        <button type="submit" id="submitBtn" class="w-full py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-lg transition">
+          Đăng Nhập
+        </button>
+      </form>
+
+      <p id="authMsg" class="mt-4 text-center text-sm font-semibold"></p>
     </div>
   </main>
 
   <script>
-    function initTheme() {
-      if (localStorage.getItem('theme') === 'light') {
-        document.documentElement.classList.remove('dark');
+    // Điền URL và Anon Key dự án Supabase của bạn tại đây
+    const SUPABASE_URL = "YOUR_SUPABASE_URL";
+    const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY";
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let mode = 'login';
+
+    function switchTab(newMode) {
+      mode = newMode;
+      const isReg = mode === 'register';
+      document.getElementById('fullNameGroup').classList.toggle('hidden', !isReg);
+      document.getElementById('submitBtn').innerText = isReg ? 'Đăng Ký Tài Khoản' : 'Đăng Nhập';
+      
+      document.getElementById('tabLogin').className = isReg ? 'w-1/2 py-2 text-center font-bold text-gray-400' : 'w-1/2 py-2 text-center font-bold text-[#cf1717] border-b-2 border-[#cf1717]';
+      document.getElementById('tabRegister').className = isReg ? 'w-1/2 py-2 text-center font-bold text-[#cf1717] border-b-2 border-[#cf1717]' : 'w-1/2 py-2 text-center font-bold text-gray-400';
+    }
+
+    async function handleAuth(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const fullName = document.getElementById('fullName').value;
+      const msg = document.getElementById('authMsg');
+
+      msg.innerText = "Đang xử lý...";
+      msg.className = "mt-4 text-center text-sm font-semibold text-gray-500";
+
+      if (mode === 'register') {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: fullName, role: 'student' } }
+        });
+
+        if (error) {
+          msg.innerText = "Lỗi đăng ký: " + error.message;
+          msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
+        } else {
+          // Lưu profile vào bảng profiles
+          await supabase.from('profiles').insert([{ id: data.user.id, full_name: fullName, role: 'student' }]);
+          msg.innerText = "Đăng ký thành công! Đang chuyển hướng...";
+          msg.className = "mt-4 text-center text-sm font-semibold text-green-500";
+          setTimeout(() => window.location.href = 'dashboard.html', 1500);
+        }
       } else {
-        document.documentElement.classList.add('dark');
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          msg.innerText = "Đăng nhập thất bại: " + error.message;
+          msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
+        } else {
+          window.location.href = 'dashboard.html';
+        }
       }
     }
-    function toggleTheme() {
-      document.documentElement.classList.toggle('dark');
-      localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-    }
-    initTheme();
   </script>
 </body>
 </html>
