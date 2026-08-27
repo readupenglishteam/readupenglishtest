@@ -7,53 +7,98 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen">
+<body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen transition-colors duration-300">
 
-  <!-- Header -->
-  <header class="bg-white dark:bg-zinc-900 border-b dark:border-zinc-800 px-6 py-4 flex justify-between items-center sticky top-0 z-40">
-    <div class="flex items-center gap-3">
-      <img src="https://ibb.co/Zz0KkyYf" alt="Logo" class="h-9">
-      <span class="font-extrabold text-xl text-[#cf1717]">ADMIN DASHBOARD</span>
-    </div>
-    <div class="flex items-center gap-4">
-      <button onclick="openModal('createExamModal')" class="flex items-center gap-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold px-4 py-2 rounded-lg text-sm shadow transition">
-        <span class="text-lg font-black">+</span> Tạo bài reading mới
-      </button>
-      <button onclick="document.documentElement.classList.toggle('dark')" class="p-2 rounded-full bg-gray-100 dark:bg-zinc-800">🌙</button>
+  <!-- Header Admin -->
+  <header class="bg-white dark:bg-zinc-900 border-b dark:border-zinc-800 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <img src="https://ibb.co/Zz0KkyYf" alt="Logo" class="h-9 w-auto rounded">
+        <span class="font-extrabold text-xl text-[#cf1717] tracking-wide">ADMIN DASHBOARD</span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Nút Tạo bài thi mới -->
+        <button onclick="toggleModal('examModal', true)" class="flex items-center gap-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold px-4 py-2 rounded-lg text-xs sm:text-sm shadow transition">
+          <span class="text-lg font-black">+</span> Tạo bài reading mới
+        </button>
+
+        <button onclick="handleLogout()" class="px-3 py-2 text-xs font-bold bg-gray-200 dark:bg-zinc-800 hover:bg-red-100 dark:hover:bg-red-950 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] rounded-lg transition">
+          Đăng xuất
+        </button>
+
+        <button onclick="document.documentElement.classList.toggle('dark')" class="p-2 rounded-full bg-gray-100 dark:bg-zinc-800 text-sm">
+          🌙 / ☀️
+        </button>
+      </div>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto p-6 space-y-8">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
     
-    <!-- Danh sách bài đọc Reading -->
-    <section>
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Danh Sách Bài Thi Reading</h2>
+    <!-- PHẦN 1: QUẢN LÝ DANH SÁCH BÀI READING -->
+    <section class="space-y-4">
+      <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
+        <h2 class="text-xl font-extrabold text-gray-900 dark:text-white">📚 Danh Sách Bài Thi Đã Tạo</h2>
+        <span id="adminExamCount" class="text-xs font-bold px-2.5 py-1 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">0 bài</span>
       </div>
-      <div id="examList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- JS render dữ liệu ở đây -->
+
+      <div id="adminExamList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <p class="text-gray-500 text-sm col-span-full">⏳ Đang tải bài thi...</p>
       </div>
     </section>
 
-    <!-- Quản lý Tin tức / Thông báo -->
-    <section class="bg-white dark:bg-zinc-900 p-6 rounded-2xl border dark:border-zinc-800 shadow-sm">
-      <h2 class="text-xl font-bold mb-4 text-[#cf1717]">Đăng Tin Tức / Thông Báo Mới</h2>
+    <!-- PHẦN 2: BẢNG XEM ĐIỂM SỐ CỦA HỌC SINH -->
+    <section class="space-y-4">
+      <div class="flex items-center border-l-4 border-[#cf1717] pl-3">
+        <h2 class="text-xl font-extrabold text-gray-900 dark:text-white">📊 Kết Quả Làm Bài Của Sinh Viên</h2>
+      </div>
+
+      <div class="bg-white dark:bg-zinc-900 rounded-2xl border dark:border-zinc-800 shadow-sm overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 uppercase text-xs">
+            <tr>
+              <th class="p-4">Sinh viên</th>
+              <th class="p-4">Tên bài thi</th>
+              <th class="p-4">Điểm số</th>
+              <th class="p-4">Thời gian</th>
+              <th class="p-4">Ngày nộp</th>
+            </tr>
+          </thead>
+          <tbody id="resultsTableBody" class="divide-y divide-gray-100 dark:divide-zinc-800">
+            <tr><td colspan="5" class="p-4 text-center text-gray-400">Chưa có kết quả làm bài nào.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PHẦN 3: ĐĂNG TIN TỨC & THÔNG BÁO -->
+    <section class="bg-white dark:bg-zinc-900 p-6 rounded-2xl border dark:border-zinc-800 shadow-sm space-y-4">
+      <div class="flex items-center border-l-4 border-[#cf1717] pl-3">
+        <h2 class="text-xl font-extrabold text-gray-900 dark:text-white">📢 Đăng Thông Báo Mới</h2>
+      </div>
+
       <form onsubmit="handleCreateNews(event)" class="space-y-4">
-        <div>
-          <label class="block text-xs font-bold uppercase mb-1">Tiêu đề tin tức</label>
-          <input type="text" id="newsTitle" required class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase mb-1">Tiêu đề thông báo</label>
+            <input type="text" id="newsTitle" required placeholder="Lịch bảo trì hệ thống..." class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase mb-1">Tải ảnh lên (Tự động qua ImgBB)</label>
+            <input type="file" accept="image/*" onchange="uploadImageToImgBB(this, 'newsImageUrl', 'newsImgStatus')" class="w-full p-2 text-xs border rounded-lg dark:bg-zinc-800 dark:border-zinc-700">
+            <input type="hidden" id="newsImageUrl">
+            <p id="newsImgStatus" class="text-xs font-semibold mt-1 text-gray-500"></p>
+          </div>
         </div>
+
         <div>
-  <label class="block text-xs font-bold uppercase mb-1">Tải ảnh lên (Tự động qua ImgBB)</label>
-  <input type="file" id="imageFileInput" accept="image/*" onchange="uploadToImgBB(this)" class="w-full p-2 rounded border dark:bg-zinc-800">
-  <input type="hidden" id="uploadedImageUrl">
-  <p id="uploadStatus" class="text-xs text-gray-500 mt-1"></p>
-</div>
-        <div>
-          <label class="block text-xs font-bold uppercase mb-1">Nội dung</label>
-          <textarea id="newsContent" rows="3" required class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700"></textarea>
+          <label class="block text-xs font-bold uppercase mb-1">Nội dung thông báo</label>
+          <textarea id="newsContent" rows="3" required placeholder="Nhập chi tiết nội dung thông báo..." class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700"></textarea>
         </div>
-        <button type="submit" class="bg-zinc-800 hover:bg-black text-white dark:bg-zinc-700 font-bold px-5 py-2.5 rounded-lg text-sm transition">
+
+        <button type="submit" class="bg-[#cf1717] hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm transition shadow">
           Đăng Thông Báo
         </button>
       </form>
@@ -61,192 +106,248 @@
 
   </main>
 
-  <!-- MODAL TẠO BÀI THI MỚI -->
-  <div id="createExamModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+  <!-- MODAL TẠO BÀI THI READING MỚI -->
+  <div id="examModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
     <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 w-full max-w-2xl my-8 shadow-2xl">
       <h3 class="text-2xl font-extrabold text-[#cf1717] mb-4">Tạo Bài Reading Mới</h3>
-      
+
       <form onsubmit="handleCreateExam(event)" class="space-y-4">
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-bold uppercase mb-1">Tên Bài Thi</label>
-            <input type="text" id="examTitleInput" required placeholder="IELTS Reading Test 1" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
+            <input type="text" id="examTitle" required placeholder="IELTS Reading Test 1" class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
           </div>
           <div>
             <label class="block text-xs font-bold uppercase mb-1">Chủ đề (Topic)</label>
-            <input type="text" id="examTopic" required placeholder="Environment, Science..." class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
+            <input type="text" id="examTopic" required placeholder="Education, Science..." class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-bold uppercase mb-1">Thời gian (Phút)</label>
-            <input type="number" id="examTime" value="60" required class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
+            <input type="number" id="examTime" value="60" required class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
           </div>
           <div>
             <label class="block text-xs font-bold uppercase mb-1">Ghi chú (Notes)</label>
-            <input type="text" id="examNotes" placeholder="Dành cho lớp Chuyên Anh..." class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
+            <input type="text" id="examNotes" placeholder="Bài luyện tập tuần 1..." class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
           </div>
         </div>
 
         <div>
-  <label class="block text-xs font-bold uppercase mb-1">Tải ảnh lên (Tự động qua ImgBB)</label>
-  <input type="file" id="imageFileInput" accept="image/*" onchange="uploadToImgBB(this)" class="w-full p-2 rounded border dark:bg-zinc-800">
-  <input type="hidden" id="uploadedImageUrl">
-  <p id="uploadStatus" class="text-xs text-gray-500 mt-1"></p>
-</div>
-
-        <div>
-          <label class="block text-xs font-bold uppercase mb-1">Danh sách câu hỏi & Đáp án (JSON Format)</label>
-          <textarea id="examQuestions" rows="5" required placeholder='[{"id":1, "question": "Question text...", "options": ["A", "B", "C", "D"], "answer": "A"}]' class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 font-mono text-xs"></textarea>
+          <label class="block text-xs font-bold uppercase mb-1">Nội dung đoạn văn Reading (HTML/Văn bản)</label>
+          <textarea id="examPassage" rows="5" required placeholder="<p>Dán đoạn văn bản ở đây...</p>" class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 font-mono text-sm"></textarea>
         </div>
 
-        <div class="flex gap-3 pt-4">
-          <button type="button" onclick="closeModal('createExamModal')" class="w-1/2 py-3 bg-gray-200 dark:bg-zinc-800 font-bold rounded-lg">Hủy</button>
-          <button type="submit" class="w-1/2 py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-lg transition">Tạo & Phát Hành Token Link</button>
+        <div>
+          <label class="block text-xs font-bold uppercase mb-1">Danh sách câu hỏi & Đáp án (Định dạng JSON)</label>
+          <textarea id="examQuestions" rows="4" required placeholder='[{"id": 1, "question": "Question 1 text...", "options": ["A", "B", "C", "D"], "answer": "A"}]' class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 font-mono text-xs"></textarea>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button type="button" onclick="toggleModal('examModal', false)" class="w-1/2 py-3 bg-gray-200 dark:bg-zinc-700 font-bold rounded-lg text-sm">Hủy</button>
+          <button type="submit" class="w-1/2 py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-lg transition text-sm shadow">Tạo Bài Thi & Phát Mã Token</button>
         </div>
       </form>
     </div>
   </div>
 
   <script>
-    // Thay thế đoạn cấu hình cũ trong tất cả các file HTML:
-const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co"; 
-const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
+    const IMGBB_API_KEY = "db7c3dd769cc772e9b9b1df33d114bd1";
 
-    // Tạo mã Token ngẫu nhiên cho link bài thi
-    function generateToken() {
-      return 'ielts-' + Math.random().toString(36).substring(2, 9);
-    }
+    const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Xử lý tạo bài thi
-    async function handleCreateExam(e) {
-      e.preventDefault();
-      const token = generateToken();
-      
-      const newExam = {
-        title: document.getElementById('examTitleInput').value,
-        topic: document.getElementById('examTopic').value,
-        time_limit: parseInt(document.getElementById('examTime').value),
-        notes: document.getElementById('examNotes').value,
-        passage_html: document.getElementById('examPassage').value,
-        questions: JSON.parse(document.getElementById('examQuestions').value),
-        token: token
-      };
+    // 1. Kiểm tra phân quyền Admin
+    async function checkAdminRole() {
+      const { data: { user } } = await sbClient.auth.getUser();
 
-      const { error } = await supabase.from('exams').insert([newExam]);
-
-      if (error) {
-        alert("Lỗi khi tạo bài thi: " + error.message);
-      } else {
-        alert("Tạo bài thi thành công!\nLink Token: exam.html?token=" + token);
-        closeModal('createExamModal');
-        fetchExams();
+      if (!user) {
+        alert("Bạn chưa đăng nhập!");
+        window.location.href = 'index.html';
+        return;
       }
+
+      const { data: profile } = await sbClient
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile || profile.role !== 'admin') {
+        alert("⚠️ Cảnh báo: Bạn không có quyền truy cập trang Quản trị!");
+        window.location.href = 'dashboard.html';
+        return;
+      }
+
+      loadAdminExams();
+      loadStudentResults();
     }
 
-    // Đăng tin tức
-    async function handleCreateNews(e) {
-      e.preventDefault();
-      const newsData = {
-        title: document.getElementById('newsTitle').value,
-        image_url: document.getElementById('newsImg').value,
-        content: document.getElementById('newsContent').value
-      };
+    // 2. Tải bài thi của Admin
+    async function loadAdminExams() {
+      const container = document.getElementById('adminExamList');
+      const { data: exams, error } = await sbClient.from('exams').select('*').order('created_at', { ascending: false });
 
-      const { error } = await supabase.from('news').insert([newsData]);
-      if (error) alert("Lỗi: " + error.message);
-      else { alert("Đăng tin tức thành công!"); e.target.reset(); }
-    }
+      if (error || !exams || exams.length === 0) {
+        container.innerHTML = `<p class="text-gray-400 text-sm col-span-full">Chưa có bài thi nào.</p>`;
+        document.getElementById('adminExamCount').innerText = '0 bài';
+        return;
+      }
 
-    // Tải danh sách bài thi
-    async function fetchExams() {
-      const { data: exams, error } = await supabase.from('exams').select('*').order('created_at', { ascending: false });
-      const container = document.getElementById('examList');
-      if (error || !exams) return;
+      document.getElementById('adminExamCount').innerText = `${exams.length} bài`;
 
       container.innerHTML = exams.map(exam => `
-        <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-xl p-5 shadow-sm space-y-3">
-          <div class="flex justify-between items-start">
-            <span class="text-xs font-bold px-2.5 py-1 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">${exam.topic}</span>
+        <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-5 shadow-sm space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-[#cf1717] bg-red-50 dark:bg-red-950 px-2.5 py-1 rounded-full">${exam.topic}</span>
             <span class="text-xs text-gray-400">${new Date(exam.created_at).toLocaleDateString('vi-VN')}</span>
           </div>
-          <h3 class="font-bold text-lg text-gray-800 dark:text-white">${exam.title}</h3>
+          <h3 class="font-bold text-lg text-gray-900 dark:text-white">${exam.title}</h3>
           <p class="text-xs text-gray-500 line-clamp-2">${exam.notes || 'Không có ghi chú'}</p>
+          
           <div class="pt-2 flex flex-col gap-2">
-            <button onclick="navigator.clipboard.writeText(window.location.origin + '/exam.html?token=${exam.token}'); alert('Đã sao chép Link Token bài thi!');" class="w-full py-2 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 text-xs font-bold rounded">
-              🔗 Sao chép Link Token
+            <button onclick="copyTokenLink('${exam.token}')" class="w-full py-2 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs font-bold rounded-lg transition">
+              🔗 Sao chép Link Token bài làm
+            </button>
+            <button onclick="deleteExam('${exam.id}')" class="w-full py-1.5 text-xs text-red-500 hover:underline">
+              Xóa bài thi
             </button>
           </div>
         </div>
       `).join('');
     }
 
-    window.onload = fetchExams;
-    const IMGBB_API_KEY = "db7c3dd769cc772e9b9b1df33d114bd1";
+    // 3. Tải danh sách kết quả làm bài của học sinh
+    async function loadStudentResults() {
+      const tbody = document.getElementById('resultsTableBody');
+      const { data: results, error } = await sbClient
+        .from('exam_results')
+        .select('*, profiles(full_name), exams(title)')
+        .order('submitted_at', { ascending: false });
 
-  // Hàm tự động tải ảnh lên ImgBB và lấy link URL
-  async function uploadToImgBB(fileInput) {
-    const file = fileInput.files[0];
-    if (!file) return;
-
-    const statusText = document.getElementById('uploadStatus');
-    statusText.innerText = "⏳ Đang tải ảnh lên ImgBB...";
-
-    const formData = new FormData();
-    formData.append("image", file);
-
-    try {
-      const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-        method: "POST",
-        body: formData
-      });
-      const data = await response.json();
-
-      if (data.success) {
-        const imageUrl = data.data.url;
-        document.getElementById('uploadedImageUrl').value = imageUrl;
-        statusText.innerText = "✅ Tải ảnh thành công!";
-        console.log("Link ảnh ImgBB:", imageUrl);
-      } else {
-        statusText.innerText = "❌ Lỗi tải ảnh lên ImgBB!";
+      if (error || !results || results.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-400">Chưa có kết quả làm bài nào.</td></tr>`;
+        return;
       }
-    } catch (err) {
-      console.error(err);
-      statusText.innerText = "❌ Lỗi kết nối API ImgBB.";
+
+      tbody.innerHTML = results.map(r => `
+        <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800/50">
+          <td class="p-4 font-semibold">${r.profiles?.full_name || 'Học sinh'}</td>
+          <td class="p-4">${r.exams?.title || 'Bài thi'}</td>
+          <td class="p-4 font-bold text-[#cf1717]">${r.score} điểm</td>
+          <td class="p-4 text-xs text-gray-500">${Math.floor(r.time_spent / 60)} phút ${r.time_spent % 60} giây</td>
+          <td class="p-4 text-xs text-gray-400">${new Date(r.submitted_at).toLocaleDateString('vi-VN')}</td>
+        </tr>
+      `).join('');
     }
-  }
-    async function checkAdminRole() {
-  const { data: { user } } = await supabase.auth.getUser();
-  
-  // 1. Chưa đăng nhập -> Đẩy về trang Login
-  if (!user) {
-    window.location.href = 'index.html';
-    return;
-  }
-  
-  // 2. Kiểm tra role trong bảng profiles
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
 
-  // 3. Nếu không phải admin -> Đẩy về Dashboard học sinh
-  if (error || !profile || profile.role !== 'admin') {
-    alert("Cảnh báo: Bạn không có quyền truy cập trang Admin!");
-    window.location.href = 'dashboard.html';
-  }
-}
+    // 4. Upload ảnh qua API ImgBB
+    async function uploadImageToImgBB(fileInput, hiddenInputId, statusId) {
+      const file = fileInput.files[0];
+      const status = document.getElementById(statusId);
+      if (!file) return;
 
-// Gọi hàm ngay khi tải trang admin.html
-window.addEventListener('DOMContentLoaded', () => {
-  checkAdminRole();
-  fetchExams();
-});
+      status.innerText = "⏳ Đang tải ảnh lên ImgBB...";
+
+      const formData = new FormData();
+      formData.append("image", file);
+
+      try {
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          document.getElementById(hiddenInputId).value = data.data.url;
+          status.innerText = "✅ Tải ảnh lên ImgBB thành công!";
+          status.className = "text-xs font-semibold mt-1 text-green-600";
+        } else {
+          status.innerText = "❌ Lỗi upload ảnh!";
+          status.className = "text-xs font-semibold mt-1 text-red-500";
+        }
+      } catch (err) {
+        status.innerText = "❌ Lỗi kết nối ImgBB!";
+        status.className = "text-xs font-semibold mt-1 text-red-500";
+      }
+    }
+
+    // 5. Tạo bài thi Reading mới
+    async function handleCreateExam(e) {
+      e.preventDefault();
+      const token = 'ielts-' + Math.random().toString(36).substring(2, 9);
+      
+      try {
+        const questionsJson = JSON.parse(document.getElementById('examQuestions').value);
+        const newExam = {
+          title: document.getElementById('examTitle').value,
+          topic: document.getElementById('examTopic').value,
+          time_limit: parseInt(document.getElementById('examTime').value),
+          notes: document.getElementById('examNotes').value,
+          passage_html: document.getElementById('examPassage').value,
+          questions: questionsJson,
+          token: token
+        };
+
+        const { error } = await sbClient.from('exams').insert([newExam]);
+
+        if (error) {
+          alert("Lỗi tạo bài thi: " + error.message);
+        } else {
+          alert("✅ Tạo bài thi thành công!");
+          toggleModal('examModal', false);
+          loadAdminExams();
+        }
+      } catch (err) {
+        alert("❌ Định dạng JSON của câu hỏi bị sai syntax! Vui lòng kiểm tra lại.");
+      }
+    }
+
+    // 6. Đăng thông báo
+    async function handleCreateNews(e) {
+      e.preventDefault();
+      const newsData = {
+        title: document.getElementById('newsTitle').value,
+        image_url: document.getElementById('newsImageUrl').value,
+        content: document.getElementById('newsContent').value
+      };
+
+      const { error } = await sbClient.from('news').insert([newsData]);
+      if (error) alert("Lỗi đăng tin: " + error.message);
+      else {
+        alert("✅ Đăng thông báo thành công!");
+        e.target.reset();
+        document.getElementById('newsImgStatus').innerText = '';
+      }
+    }
+
+    // 7. Utility Functions
+    function toggleModal(id, show) {
+      document.getElementById(id).classList.toggle('hidden', !show);
+    }
+
+    function copyTokenLink(token) {
+      const link = `${window.location.origin}/exam.html?token=${token}`;
+      navigator.clipboard.writeText(link);
+      alert("Đã sao chép link làm bài:\n" + link);
+    }
+
+    async function deleteExam(id) {
+      if (confirm("Bạn có chắc chắn muốn xóa bài thi này?")) {
+        await sbClient.from('exams').delete().eq('id', id);
+        loadAdminExams();
+      }
+    }
+
+    async function handleLogout() {
+      await sbClient.auth.signOut();
+      window.location.href = 'index.html';
+    }
+
+    window.onload = checkAdminRole;
   </script>
 </body>
 </html>
