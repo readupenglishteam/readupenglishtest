@@ -1,55 +1,258 @@
-<!-- Nút mở Modal Đổi Mật Khẩu trong Dashboard Header -->
-<button onclick="togglePasswordModal(true)" class="px-4 py-2 border border-[#cf1717] text-[#cf1717] hover:bg-[#cf1717] hover:text-white rounded-lg text-sm font-bold transition">
-  🔒 Đổi mật khẩu
-</button>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IELTS Master - Trang Sinh Viên</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen transition-colors duration-300">
 
-<!-- Modal Đổi Mật Khẩu -->
-<div id="passwordModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-  <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 w-full max-w-md shadow-2xl">
-    <h3 class="text-xl font-bold text-[#cf1717] mb-4">Đổi Mật Khẩu Mới</h3>
-    
-    <form onsubmit="handleChangePassword(event)" class="space-y-4">
-      <div>
-        <label class="block text-xs font-bold uppercase mb-1">Mật khẩu mới</label>
-        <input type="password" id="newPassword" required minlength="6" placeholder="Ít nhất 6 ký tự" class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
+  <!-- Header Thanh Điều Hướng -->
+  <header class="bg-white dark:bg-zinc-900 border-b dark:border-zinc-800 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
+      
+      <!-- Logo & Thương hiệu -->
+      <div class="flex items-center gap-3">
+        <img src="https://ibb.co/Zz0KkyYf" alt="Logo" class="h-9 w-auto rounded">
+        <span class="font-extrabold text-xl text-[#cf1717] tracking-wide">IELTS MASTER</span>
       </div>
 
-      <div class="flex gap-3 pt-2">
-        <button type="button" onclick="togglePasswordModal(false)" class="w-1/2 py-2.5 bg-gray-200 dark:bg-zinc-700 font-bold rounded-lg">
-          Hủy
+      <!-- Khu vực người dùng & Công cụ -->
+      <div class="flex items-center gap-3">
+        <span id="welcomeUser" class="text-sm font-semibold text-gray-700 dark:text-gray-200 hidden sm:inline">
+          👋 Chào mừng sinh viên
+        </span>
+
+        <!-- Nút Đổi mật khẩu -->
+        <button onclick="togglePasswordModal(true)" class="px-3 py-1.5 text-xs font-bold border border-[#cf1717] text-[#cf1717] hover:bg-[#cf1717] hover:text-white rounded-lg transition">
+          🔒 Đổi mật khẩu
         </button>
-        <button type="submit" class="w-1/2 py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-lg transition">
-          Cập nhật
+
+        <!-- Nút Đăng xuất -->
+        <button onclick="handleLogout()" class="px-3 py-1.5 text-xs font-bold bg-gray-200 dark:bg-zinc-800 hover:bg-red-100 dark:hover:bg-red-950 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] rounded-lg transition">
+          Đăng xuất
+        </button>
+
+        <!-- Nút Đổi Dark/Light mode -->
+        <button onclick="document.documentElement.classList.toggle('dark')" class="p-2 rounded-full bg-gray-100 dark:bg-zinc-800 text-sm">
+          🌙 / ☀️
         </button>
       </div>
-    </form>
-    
-    <p id="pwdMsg" class="mt-3 text-center text-xs font-semibold"></p>
+
+    </div>
+  </header>
+
+  <!-- Nội Dung Chính -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+
+    <!-- PHẦN 1: TIN TỨC & THÔNG BÁO TỪ ADMIN -->
+    <section class="space-y-4">
+      <div class="flex items-center gap-2 border-l-4 border-[#cf1717] pl-3">
+        <h2 class="text-xl font-extrabold text-gray-900 dark:text-white">📰 Tin Tức & Thông Báo Mới</h2>
+      </div>
+
+      <div id="newsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <p class="text-gray-500 text-sm col-span-full">⏳ Đang tải thông báo...</p>
+      </div>
+    </section>
+
+    <!-- PHẦN 2: DANH SÁCH BÀI TẬP READING -->
+    <section class="space-y-4">
+      <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
+        <h2 class="text-xl font-extrabold text-gray-900 dark:text-white">📚 Danh Sách Bài Thi Reading</h2>
+        <span id="examCount" class="text-xs font-bold px-2.5 py-1 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">
+          0 bài làm
+        </span>
+      </div>
+
+      <!-- Danh sách thẻ bài đọc -->
+      <div id="examsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <p class="text-gray-500 text-sm col-span-full">⏳ Đang tải danh sách bài thi...</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL ĐỔI MẬT KHẨU -->
+  <div id="passwordModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+      <h3 class="text-xl font-bold text-[#cf1717] mb-4">Đổi Mật Khẩu Tải Khoản</h3>
+      
+      <form onsubmit="handleChangePassword(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Mật khẩu mới</label>
+          <input type="password" id="newPassword" required minlength="6" placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)" class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button type="button" onclick="togglePasswordModal(false)" class="w-1/2 py-2.5 bg-gray-200 dark:bg-zinc-700 font-bold rounded-lg text-sm">
+            Hủy
+          </button>
+          <button type="submit" class="w-1/2 py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-lg transition text-sm">
+            Cập nhật
+          </button>
+        </div>
+      </form>
+      
+      <p id="pwdMsg" class="mt-3 text-center text-xs font-semibold break-words"></p>
+    </div>
   </div>
-</div>
 
-<script>
-  function togglePasswordModal(show) {
-    document.getElementById('passwordModal').classList.toggle('hidden', !show);
-  }
+  <!-- Script xử lý kết nối dữ liệu -->
+  <script>
+    const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
+    const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  async function handleChangePassword(e) {
-    e.preventDefault();
-    const newPassword = document.getElementById('newPassword').value;
-    const msg = document.getElementById('pwdMsg');
+    let currentUser = null;
 
-    msg.innerText = "Đang cập nhật...";
-    msg.className = "mt-3 text-center text-xs font-semibold text-gray-500";
+    // 1. Kiểm tra trạng thái đăng nhập khi vào trang
+    async function initDashboard() {
+      const { data: { user } } = await sbClient.auth.getUser();
 
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (!user) {
+        alert("Bạn chưa đăng nhập. Vui lòng đăng nhập trước!");
+        window.location.href = 'index.html';
+        return;
+      }
 
-    if (error) {
-      msg.innerText = "Lỗi: " + error.message;
-      msg.className = "mt-3 text-center text-xs font-semibold text-red-500";
-    } else {
-      msg.innerText = "Cập nhật mật khẩu thành công!";
-      msg.className = "mt-3 text-center text-xs font-semibold text-green-500";
-      setTimeout(() => togglePasswordModal(false), 1500);
+      currentUser = user;
+
+      // Lấy họ tên sinh viên
+      const { data: profile } = await sbClient
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+
+      if (profile && profile.full_name) {
+        document.getElementById('welcomeUser').innerText = `👋 Chào, ${profile.full_name}`;
+      }
+
+      // Tải tin tức và bài thi
+      loadNews();
+      loadExams();
     }
-  }
-</script>
+
+    // 2. Tải danh sách tin tức từ Admin
+    async function loadNews() {
+      const newsBox = document.getElementById('newsContainer');
+      const { data: newsList, error } = await sbClient
+        .from('news')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error || !newsList || newsList.length === 0) {
+        newsBox.innerHTML = `
+          <div class="col-span-full bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-xl p-6 text-center text-gray-400 text-sm">
+            Chưa có tin tức hoặc thông báo mới nào từ Admin.
+          </div>`;
+        return;
+      }
+
+      newsBox.innerHTML = newsList.map(item => `
+        <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col">
+          ${item.image_url ? `<img src="${item.image_url}" alt="Tin tức" class="h-44 w-full object-cover">` : ''}
+          <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-[#cf1717] bg-red-50 dark:bg-red-950 px-2 py-0.5 rounded">
+                ${new Date(item.created_at).toLocaleDateString('vi-VN')}
+              </span>
+              <h3 class="font-bold text-base text-gray-900 dark:text-white mt-1 line-clamp-2">${item.title}</h3>
+              <p class="text-xs text-gray-600 dark:text-gray-400 mt-2 line-clamp-3 leading-relaxed">${item.content}</p>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // 3. Tải danh sách bài đọc cho Sinh Viên
+    async function loadExams() {
+      const examBox = document.getElementById('examsContainer');
+      const { data: examList, error } = await sbClient
+        .from('exams')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error || !examList || examList.length === 0) {
+        examBox.innerHTML = `
+          <div class="col-span-full bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-xl p-6 text-center text-gray-400 text-sm">
+            Chưa có bài thi Reading nào được đăng.
+          </div>`;
+        document.getElementById('examCount').innerText = '0 bài làm';
+        return;
+      }
+
+      document.getElementById('examCount').innerText = `${examList.length} bài làm`;
+
+      examBox.innerHTML = examList.map(exam => `
+        <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between space-y-4">
+          <div class="space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-bold text-[#cf1717] bg-red-50 dark:bg-red-950/80 px-2.5 py-1 rounded-full">
+                📌 ${exam.topic || 'General'}
+              </span>
+              <span class="text-xs text-gray-400">
+                ⏱️ ${exam.time_limit || 60} phút
+              </span>
+            </div>
+
+            <h3 class="font-bold text-lg text-gray-900 dark:text-white">${exam.title}</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">${exam.notes || 'Không có ghi chú thêm.'}</p>
+          </div>
+
+          <div class="pt-3 border-t border-gray-100 dark:border-zinc-800 flex justify-between items-center">
+            <span class="text-[11px] text-gray-400">
+              📅 ${new Date(exam.created_at).toLocaleDateString('vi-VN')}
+            </span>
+            <button onclick="startExam('${exam.token}')" class="px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs rounded-lg shadow transition">
+              Vào làm bài ➔
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // 4. Chuyển sang phòng thi bài reading tương ứng
+    function startExam(token) {
+      window.location.href = `exam.html?token=${token}`;
+    }
+
+    // 5. Đăng xuất
+    async function handleLogout() {
+      await sbClient.auth.signOut();
+      window.location.href = 'index.html';
+    }
+
+    // 6. Đổi mật khẩu
+    function togglePasswordModal(show) {
+      document.getElementById('passwordModal').classList.toggle('hidden', !show);
+    }
+
+    async function handleChangePassword(e) {
+      e.preventDefault();
+      const newPassword = document.getElementById('newPassword').value;
+      const msg = document.getElementById('pwdMsg');
+
+      msg.innerText = "⏳ Đang cập nhật...";
+      msg.className = "mt-3 text-center text-xs font-semibold text-gray-500";
+
+      const { error } = await sbClient.auth.updateUser({ password: newPassword });
+
+      if (error) {
+        msg.innerText = "❌ Lỗi: " + error.message;
+        msg.className = "mt-3 text-center text-xs font-semibold text-red-500";
+      } else {
+        msg.innerText = "✅ Cập nhật mật khẩu thành công!";
+        msg.className = "mt-3 text-center text-xs font-semibold text-green-600";
+        setTimeout(() => togglePasswordModal(false), 1500);
+      }
+    }
+
+    // Khởi chạy
+    window.onload = initDashboard;
+  </script>
+</body>
+</html>
