@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IELTS Reading Test Room</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .highlight-yellow { background-color: #fef08a; color: #000; }
+    .highlight-red { background-color: #fca5a5; color: #000; }
+  </style>
+</head>
+<body class="bg-gray-100 dark:bg-zinc-950 dark:text-gray-100 h-screen flex flex-col overflow-hidden">
+
+  <!-- Header Phòng Thi -->
+  <header class="h-14 bg-white dark:bg-zinc-900 border-b dark:border-zinc-800 flex justify-between items-center px-6 shrink-0 shadow-sm">
+    <div class="flex items-center gap-3">
+      <img src="https://ibb.co/Zz0KkyYf" alt="Logo" class="h-8">
+      <h1 id="examTitle" class="font-bold text-lg text-[#cf1717]">Bài thi IELTS Reading</h1>
+    </div>
+
+    <!-- Công cụ Toolbar & Đồng hồ -->
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2 bg-red-50 dark:bg-zinc-800 px-3 py-1.5 rounded-lg border border-red-200 dark:border-zinc-700">
+        <span class="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Thời gian:</span>
+        <span id="timerDisplay" class="font-mono text-lg font-bold text-[#cf1717]">60:00</span>
+      </div>
+
+      <button onclick="highlightSelection('yellow')" class="px-3 py-1.5 text-xs font-bold bg-yellow-200 text-yellow-900 rounded hover:bg-yellow-300">
+        ✍️ Highlight Vàng
+      </button>
+      <button onclick="highlightSelection('red')" class="px-3 py-1.5 text-xs font-bold bg-red-200 text-red-900 rounded hover:bg-red-300">
+        ✍️ Highlight Đỏ
+      </button>
+
+      <button onclick="submitExam()" class="px-5 py-1.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-sm rounded-lg transition shadow">
+        Nộp Bài
+      </button>
+    </div>
+  </header>
+
+  <!-- Màn hình Split-Screen (Chia đôi) -->
+  <main class="flex-1 flex overflow-hidden">
+    
+    <!-- Cột Bài Đọc (Bên trái) -->
+    <section id="passageContainer" class="w-1/2 p-6 overflow-y-auto border-r dark:border-zinc-800 bg-white dark:bg-zinc-900 leading-relaxed text-justify">
+      <h2 class="text-xl font-bold mb-4 text-[#cf1717]" id="passageHeading">Reading Passage</h2>
+      <div id="passageContent" class="space-y-4 text-gray-700 dark:text-gray-300">
+        <p>Đang tải bài đọc...</p>
+      </div>
+    </section>
+
+    <!-- Cột Câu Hỏi (Bên phải) -->
+    <section id="questionsContainer" class="w-1/2 p-6 overflow-y-auto bg-gray-50 dark:bg-zinc-950">
+      <h2 class="text-xl font-bold mb-4">Questions</h2>
+      <form id="quizForm" class="space-y-6">
+        <div id="questionsContent">
+          <p class="text-gray-500">Đang tải danh sách câu hỏi...</p>
+        </div>
+      </form>
+    </section>
+
+  </main>
+
+  <script>
+    const SUPABASE_URL = "YOUR_SUPABASE_URL";
+    const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY";
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let timeLeft = 3600; // 60 phút tính bằng giây
+    let timerInterval = null;
+
+    // 1. Khởi chạy đếm ngược thời gian
+    function startTimer(minutes) {
+      timeLeft = minutes * 60;
+      const display = document.getElementById('timerDisplay');
+      
+      timerInterval = setInterval(() => {
+        const min = Math.floor(timeLeft / 60);
+        const sec = timeLeft % 60;
+        display.innerText = `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          alert("Hết giờ làm bài! Hệ thống đang tự động nộp bài.");
+          submitExam();
+        }
+        timeLeft--;
+      }, 1000);
+    }
+
+    // 2. Tính năng Tô đậm / Highlight văn bản khi quét chuột
+    function highlightSelection(colorClass) {
+      const selection = window.getSelection();
+      if (!selection.rangeCount || selection.isCollapsed) return;
+
+      const range = selection.getRangeAt(0);
+      const span = document.createElement('span');
+      span.className = colorClass === 'yellow' ? 'highlight-yellow' : 'highlight-red';
+
+      try {
+        range.surroundContents(span);
+      } catch (e) {
+        console.warn("Chỉ chọn trong cùng một thẻ đoạn văn.");
+      }
+      selection.removeAllRanges();
+    }
+
+    // 3. Nộp bài và lưu điểm lên Supabase
+    async function submitExam() {
+      clearInterval(timerInterval);
+      const formData = new FormData(document.getElementById('quizForm'));
+      const userAnswers = {};
+      
+      formData.forEach((value, key) => {
+        userAnswers[key] = value;
+      });
+
+      console.log("Đáp án học sinh đã chọn:", userAnswers);
+      alert("Đã hoàn thành bài thi! Kết quả của bạn đang được lưu.");
+      // Đoạn này tiếp tục lưu vào bảng exam_results trên Supabase
+    }
+
+    // Khởi tạo giao diện thi ban đầu
+    window.onload = () => {
+      startTimer(60);
+    };
+  </script>
+</body>
+</html>
