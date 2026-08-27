@@ -172,47 +172,49 @@
 async function submitExam() {
   clearInterval(timerInterval);
   const questions = currentExam.questions || [];
-  let score = 0;
-  let userAnswers = {}; // Thu thập đáp án của người dùng
+  let correctCount = 0;
+  let userAnswers = {};
 
-  // 1. Lặp qua từng câu hỏi để chấm điểm và lưu đáp án
+  // 1. Chấm điểm từng câu
   questions.forEach((q, idx) => {
     const radio = document.querySelector(`input[name="q_idx_${idx}"]:checked`);
     const textInput = document.querySelector(`input[name="q_idx_${idx}"][type="text"]`);
     
     let selectedVal = (radio ? radio.value : (textInput ? textInput.value : '')).trim();
-    userAnswers[`câu_${idx + 1}`] = selectedVal; // Lưu đáp án dạng {"câu_1": "A", "câu_2": "B"}
+    userAnswers[`câu_${idx + 1}`] = selectedVal;
 
     let userAns = selectedVal.toLowerCase();
     let correctAns = (q.answer || '').toString().trim().toLowerCase();
 
     if (userAns && correctAns) {
       if (userAns === correctAns || userAns.startsWith(correctAns + '.') || userAns.startsWith(correctAns + ' ')) {
-        score++;
+        correctCount++;
       }
     }
   });
 
-  // 2. Gửi đầy đủ thông tin bao gồm cả cột answers
+  // 2. Tính điểm thang 10 (Làm tròn 2 chữ số thập phân)
+  const totalQuestions = questions.length;
+  const score10 = totalQuestions > 0 ? Number(((10 / totalQuestions) * correctCount).toFixed(2)) : 0;
+
+  // 3. Gửi điểm thang 10 lên Supabase
   const payload = {
     exam_id: currentExam.id,
     user_id: currentUser.id,
-    score: score,
-    answers: userAnswers // Thêm dữ liệu câu trả lời để tránh lỗi NOT NULL
+    score: score10,
+    answers: userAnswers
   };
 
-  // 3. Gửi lên Supabase
   const { data, error } = await sbClient.from('exam_results').insert([payload]);
 
   if (error) {
-    alert("❌ Không thể lưu kết quả: " + error.message);
-    console.error("Chi tiết lỗi Supabase:", error);
+    alert("❌ Lỗi lưu kết quả: " + error.message);
   } else {
-    console.log("✅ Lưu kết quả thành công!", data);
+    console.log("✅ Lưu thành công!", data);
   }
 
-  // 4. Hiển thị bảng kết quả
-  document.getElementById('finalScore').innerText = `${score}/${questions.length}`;
+  // 4. Hiển thị kết quả chi tiết lên Modal
+  document.getElementById('finalScore').innerText = `${score10}/10 điểm (${correctCount}/${totalQuestions} câu đúng)`;
   document.getElementById('finalTime').innerText = `${Math.floor(timeSpentSeconds / 60)}m ${timeSpentSeconds % 60}s`;
   document.getElementById('resultModal').classList.remove('hidden');
 }
