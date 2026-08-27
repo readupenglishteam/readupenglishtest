@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="vi" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Trị Hệ Thống | Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: { primary: { DEFAULT: '#cf1717', hover: '#b01212' } },
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="font-sans antialiased bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen">
+
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <img src="https://ibb.co/Zz0KkyYf" alt="Logo" class="h-9 w-auto object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/120x40?text=LOGO';">
+                <span class="font-bold text-lg text-slate-900 dark:text-white">ADMIN<span class="text-[#cf1717]">PANEL</span></span>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <button id="theme-toggle" class="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-amber-400 hover:scale-105 transition-all">
+                    <i id="theme-toggle-dark-icon" class="fa-solid fa-moon hidden"></i>
+                    <i id="theme-toggle-light-icon" class="fa-solid fa-sun hidden"></i>
+                </button>
+                <button onclick="handleLogout()" class="text-xs font-semibold px-3 py-2 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-red-50 hover:text-[#cf1717] transition-all">
+                    <i class="fa-solid fa-right-from-bracket mr-1"></i> Đăng xuất
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Form Tạo Bài Viết / Tin Tức -->
+        <section class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm h-fit">
+            <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-[#cf1717]">
+                <i class="fa-solid fa-pen-to-square"></i> Tạo Nội Dung Mới
+            </h2>
+
+            <form id="articleForm" onsubmit="saveArticle(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Tiêu đề bài viết</label>
+                    <input type="text" id="title" required placeholder="Nhập tiêu đề bài đọc..." 
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:ring-2 focus:ring-[#cf1717] focus:outline-none text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Loại nội dung</label>
+                    <select id="contentType" onchange="toggleTokenInput()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:ring-2 focus:ring-[#cf1717] focus:outline-none text-sm">
+                        <option value="token">Bài đọc có Token riêng</option>
+                        <option value="news">Tin tức chung (Công khai)</option>
+                    </select>
+                </div>
+
+                <div id="tokenGroup">
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Mã Token liên kết</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="tokenInput" readonly class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 font-mono text-xs text-[#cf1717] font-bold">
+                        <button type="button" onclick="generateNewToken()" class="px-3 py-2 bg-slate-200 dark:bg-slate-700 rounded-xl hover:bg-slate-300 text-xs font-semibold">Tạo mã</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Link Ảnh ImgBB (Nút chèn ảnh)</label>
+                    <input type="url" id="imageUrl" placeholder="https://i.ibb.co/..." 
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:ring-2 focus:ring-[#cf1717] focus:outline-none text-sm">
+                    <p class="text-[11px] text-slate-400 mt-1">Upload ảnh lên <a href="https://imgbb.com" target="_blank" class="text-[#cf1717] underline">imgbb.com</a> rồi dán URL ảnh vào đây.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Nội dung bài viết</label>
+                    <textarea id="content" rows="6" required placeholder="Soạn thảo nội dung..." 
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:ring-2 focus:ring-[#cf1717] focus:outline-none text-sm"></textarea>
+                </div>
+
+                <button type="submit" class="w-full py-3 bg-[#cf1717] hover:bg-[#b01212] text-white font-semibold rounded-xl transition-all shadow-md shadow-red-600/20 text-sm">
+                    <i class="fa-solid fa-plus mr-1"></i> Xuất Bản Nội Dung
+                </button>
+            </form>
+        </section>
+
+        <!-- Danh Sách Bài Đã Đăng -->
+        <section class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+            <h2 class="text-lg font-bold mb-4 flex items-center justify-between">
+                <span>Danh Sách Nội Dung</span>
+                <button onclick="loadArticles()" class="text-xs text-[#cf1717] hover:underline"><i class="fa-solid fa-rotate-right"></i> Làm mới</button>
+            </h2>
+
+            <div id="articlesList" class="space-y-3 max-h-[600px] overflow-y-auto pr-1">
+                <!-- Data render via JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // Cấu hình Supabase
+        const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co'; // ⚠️ Thay URL Supabase của bạn
+        const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';                // ⚠️ Thay Key Supabase của bạn
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // --- DARK MODE TOGGLE ---
+        const themeBtn = document.getElementById('theme-toggle');
+        const darkIcon = document.getElementById('theme-toggle-dark-icon');
+        const lightIcon = document.getElementById('theme-toggle-light-icon');
+
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            lightIcon.classList.remove('hidden');
+        } else {
+            document.documentElement.classList.remove('dark');
+            darkIcon.classList.remove('hidden');
+        }
+
+        themeBtn.addEventListener('click', () => {
+            darkIcon.classList.toggle('hidden');
+            lightIcon.classList.toggle('hidden');
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('color-theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('color-theme', 'dark');
+            }
+        });
+
+        // --- TẠO TOKEN NGẪU NHIÊN ---
+        function generateNewToken() {
+            const rand = Math.random().toString(36).substring(2, 10).toUpperCase();
+            document.getElementById('tokenInput').value = `READ_${rand}`;
+        }
+        generateNewToken();
+
+        function toggleTokenInput() {
+            const isNews = document.getElementById('contentType').value === 'news';
+            document.getElementById('tokenGroup').style.display = isNews ? 'none' : 'block';
+        }
+
+        // --- XỬ LÝ LƯU BÀI VIẾT VÀO SUPABASE ---
+        async function saveArticle(e) {
+            e.preventDefault();
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+            const image_url = document.getElementById('imageUrl').value;
+            const is_news = document.getElementById('contentType').value === 'news';
+            const token = is_news ? `NEWS_${Date.now()}` : document.getElementById('tokenInput').value;
+
+            const { data, error } = await supabase.from('articles').insert([{
+                title, content, image_url, token, is_news
+            }]);
+
+            if (error) {
+                alert('Lỗi khi lưu bài: ' + error.message);
+            } else {
+                alert('Tạo bài viết thành công!');
+                document.getElementById('articleForm').reset();
+                generateNewToken();
+                loadArticles();
+            }
+        }
+
+        // --- HIỂN THỊ DANH SÁCH BÀI VIẾT ---
+        async function loadArticles() {
+            const listEl = document.getElementById('articlesList');
+            listEl.innerHTML = '<p class="text-xs text-slate-400">Đang tải dữ liệu...</p>';
+
+            const { data, error } = await supabase.from('articles').select('*').order('created_at', { ascending: false });
+
+            if (error || !data.length) {
+                listEl.innerHTML = '<p class="text-xs text-slate-400">Chưa có bài viết nào.</p>';
+                return;
+            }
+
+            const currentDomain = window.location.origin;
+
+            listEl.innerHTML = data.map(item => `
+                <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 flex flex-col gap-2">
+                    <div class="flex justify-between items-start gap-2">
+                        <span class="text-xs font-bold px-2 py-0.5 rounded ${item.is_news ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/40' : 'bg-red-100 text-[#cf1717] dark:bg-red-950/50'}">
+                            ${item.is_news ? 'Tin tức' : 'Bài đọc Token'}
+                        </span>
+                        <span class="text-[10px] text-slate-400">${new Date(item.created_at).toLocaleDateString('vi-VN')}</span>
+                    </div>
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-white line-clamp-1">${item.title}</h3>
+                    
+                    ${!item.is_news ? `
+                        <div class="flex items-center gap-2 bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-700 mt-1">
+                            <span class="font-mono text-xs text-[#cf1717] truncate flex-grow">${currentDomain}/reader.html?token=${item.token}</span>
+                            <button onclick="navigator.clipboard.writeText('${currentDomain}/reader.html?token=${item.token}'); alert('Đã sao chép Link Token!')" class="text-xs text-slate-500 hover:text-[#cf1717]">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        function handleLogout() {
+            supabase.auth.signOut();
+            window.location.href = 'index.html';
+        }
+
+        loadArticles();
+    </script>
+</body>
+</html>
