@@ -168,48 +168,49 @@
     }
 
     // TÍNH ĐIỂM CHUẨN XÁC TỪ V1 VÀ LƯU VÀO SUPABASE
-    async function submitExam() {
-      clearInterval(timerInterval);
-      const questions = currentExam.questions || [];
-      let score = 0;
+async function submitExam() {
+  clearInterval(timerInterval);
+  const questions = currentExam.questions || [];
+  let score = 0;
 
-      questions.forEach((q, idx) => {
-        const radio = document.querySelector(`input[name="q_idx_${idx}"]:checked`);
-        const textInput = document.querySelector(`input[name="q_idx_${idx}"][type="text"]`);
-        
-        let userAns = (radio ? radio.value : (textInput ? textInput.value : '')).trim().toLowerCase();
-        let correctAns = (q.answer || '').toString().trim().toLowerCase();
+  // 1. Tính điểm bài làm
+  questions.forEach((q, idx) => {
+    const radio = document.querySelector(`input[name="q_idx_${idx}"]:checked`);
+    const textInput = document.querySelector(`input[name="q_idx_${idx}"][type="text"]`);
+    
+    let userAns = (radio ? radio.value : (textInput ? textInput.value : '')).trim().toLowerCase();
+    let correctAns = (q.answer || '').toString().trim().toLowerCase();
 
-        if (userAns && correctAns) {
-          // Chuẩn hóa so sánh đáp án (Ví dụ "A" khớp với "A. True" hoặc trùng chính xác)
-          if (userAns === correctAns || userAns.startsWith(correctAns + '.') || userAns.startsWith(correctAns + ' ')) {
-            score++;
-          }
-        }
-      });
-
-      // Tự động tương thích với cả 2 tên cột user_id và student_id
-      const record = {
-        exam_id: currentExam.id,
-        user_id: currentUser.id,
-        student_id: currentUser.id,
-        score: score,
-        time_spent: timeSpentSeconds,
-        submitted_at: new Date().toISOString()
-      };
-
-      const { error } = await sbClient.from('exam_results').insert([record]);
-      if (error) {
-        // Trường hợp DB chỉ cho phép 1 trong 2 cột
-        delete record.student_id;
-        await sbClient.from('exam_results').insert([record]);
+    if (userAns && correctAns) {
+      if (userAns === correctAns || userAns.startsWith(correctAns + '.') || userAns.startsWith(correctAns + ' ')) {
+        score++;
       }
-
-      document.getElementById('finalScore').innerText = `${score}/${questions.length}`;
-      document.getElementById('finalTime').innerText = `${Math.floor(timeSpentSeconds / 60)}m ${timeSpentSeconds % 60}s`;
-      document.getElementById('resultModal').classList.remove('hidden');
     }
+  });
 
+  // 2. CHỈ GỬI 3 CỘT ĐÃ CÓ TRÊN SUPABASE (Tránh lỗi 400 Bad Request)
+  const payload = {
+    exam_id: currentExam.id,
+    user_id: currentUser.id,
+    score: score
+  };
+
+  // 3. Thực hiện Insert và hiển thị thông báo nếu có lỗi
+  const { data, error } = await sbClient.from('exam_results').insert([payload]);
+
+  if (error) {
+    alert("❌ Không thể lưu kết quả: " + error.message);
+    console.error("Chi tiết lỗi Supabase:", error);
+  } else {
+    console.log("✅ Lưu kết quả thành công!", data);
+  }
+
+  // 4. Bật Modal kết quả
+  document.getElementById('finalScore').innerText = `${score}/${questions.length}`;
+  document.getElementById('finalTime').innerText = `${Math.floor(timeSpentSeconds / 60)}m ${timeSpentSeconds % 60}s`;
+  document.getElementById('resultModal').classList.remove('hidden');
+}
+    
     // CHUYỂN TAB TRÊN MÀN HÌNH ĐIỆN THOẠI
     function switchMobileTab(tab) {
       const reading = document.getElementById('readingSection');
