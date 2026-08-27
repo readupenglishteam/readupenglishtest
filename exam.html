@@ -3,130 +3,275 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IELTS Reading Test Room</title>
+  <title>IELTS Master - Phòng Thi Reading</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    .highlight-yellow { background-color: #fef08a; color: #000; }
-    .highlight-red { background-color: #fca5a5; color: #000; }
-  </style>
 </head>
-<body class="bg-gray-100 dark:bg-zinc-950 dark:text-gray-100 h-screen flex flex-col overflow-hidden">
+<body class="bg-gray-100 dark:bg-zinc-950 dark:text-gray-100 min-h-screen flex flex-col transition-colors duration-300">
 
-  <!-- Header Phòng Thi -->
-  <header class="h-14 bg-white dark:bg-zinc-900 border-b dark:border-zinc-800 flex justify-between items-center px-6 shrink-0 shadow-sm">
-    <div class="flex items-center gap-3">
-      <img src="https://ibb.co/Zz0KkyYf" alt="Logo" class="h-8">
-      <h1 id="examTitle" class="font-bold text-lg text-[#cf1717]">Bài thi IELTS Reading</h1>
-    </div>
-
-    <!-- Công cụ Toolbar & Đồng hồ -->
-    <div class="flex items-center gap-4">
-      <div class="flex items-center gap-2 bg-red-50 dark:bg-zinc-800 px-3 py-1.5 rounded-lg border border-red-200 dark:border-zinc-700">
-        <span class="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Thời gian:</span>
-        <span id="timerDisplay" class="font-mono text-lg font-bold text-[#cf1717]">60:00</span>
+  <!-- Header Thanh Đếm Thời Gian & Thao Tác -->
+  <header class="bg-white dark:bg-zinc-900 border-b dark:border-zinc-800 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
+      
+      <div class="flex items-center gap-3">
+        <a href="dashboard.html" class="text-xs font-bold text-gray-500 hover:text-[#cf1717] transition">
+          ← Quay lại
+        </a>
+        <h1 id="examHeaderTitle" class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white truncate max-w-xs sm:max-w-md">
+          Đang tải đề thi...
+        </h1>
       </div>
 
-      <button onclick="highlightSelection('yellow')" class="px-3 py-1.5 text-xs font-bold bg-yellow-200 text-yellow-900 rounded hover:bg-yellow-300">
-        ✍️ Highlight Vàng
-      </button>
-      <button onclick="highlightSelection('red')" class="px-3 py-1.5 text-xs font-bold bg-red-200 text-red-900 rounded hover:bg-red-300">
-        ✍️ Highlight Đỏ
-      </button>
+      <div class="flex items-center gap-4">
+        <!-- Đồng hồ đếm ngược -->
+        <div class="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 dark:bg-red-950/80 rounded-lg border border-red-200 dark:border-red-900">
+          <span class="text-xs font-bold text-[#cf1717]">⏱️</span>
+          <span id="timerDisplay" class="font-mono font-extrabold text-sm sm:text-base text-[#cf1717]">00:00</span>
+        </div>
 
-      <button onclick="submitExam()" class="px-5 py-1.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-sm rounded-lg transition shadow">
-        Nộp Bài
-      </button>
+        <!-- Nút Nộp bài -->
+        <button onclick="confirmSubmitExam()" class="px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-lg shadow transition">
+          Nộp Bài Thi
+        </button>
+
+        <button onclick="document.documentElement.classList.toggle('dark')" class="p-2 rounded-full bg-gray-100 dark:bg-zinc-800 text-sm">
+          🌙 / ☀️
+        </button>
+      </div>
+
     </div>
   </header>
 
-  <!-- Màn hình Split-Screen (Chia đôi) -->
-  <main class="flex-1 flex overflow-hidden">
+  <!-- Khu Vực Làm Bài Chia 2 Cột -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-5rem)]">
     
-    <!-- Cột Bài Đọc (Bên trái) -->
-    <section id="passageContainer" class="w-1/2 p-6 overflow-y-auto border-r dark:border-zinc-800 bg-white dark:bg-zinc-900 leading-relaxed text-justify">
-      <h2 class="text-xl font-bold mb-4 text-[#cf1717]" id="passageHeading">Reading Passage</h2>
-      <div id="passageContent" class="space-y-4 text-gray-700 dark:text-gray-300">
-        <p>Đang tải bài đọc...</p>
+    <!-- CỘT BÊN TRÁI: ĐOẠN VĂN READING -->
+    <section class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 overflow-y-auto shadow-sm space-y-4">
+      <div class="flex items-center justify-between border-b dark:border-zinc-800 pb-3">
+        <h2 class="font-extrabold text-lg text-gray-900 dark:text-white flex items-center gap-2">
+          📖 Reading Passage
+        </h2>
+        <span id="examTopicTag" class="text-xs font-bold px-2.5 py-1 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-full">
+          General
+        </span>
+      </div>
+      
+      <div id="passageContent" class="prose dark:prose-invert max-w-none text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+        <p class="text-gray-400">⏳ Đang tải nội dung đoạn văn...</p>
       </div>
     </section>
 
-    <!-- Cột Câu Hỏi (Bên phải) -->
-    <section id="questionsContainer" class="w-1/2 p-6 overflow-y-auto bg-gray-50 dark:bg-zinc-950">
-      <h2 class="text-xl font-bold mb-4">Questions</h2>
-      <form id="quizForm" class="space-y-6">
-        <div id="questionsContent">
-          <p class="text-gray-500">Đang tải danh sách câu hỏi...</p>
+    <!-- CỘT BÊN PHẢI: CÂU HỎI VÀ ĐÁP ÁN -->
+    <section class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 overflow-y-auto shadow-sm flex flex-col justify-between">
+      <div class="space-y-6">
+        <div class="flex items-center justify-between border-b dark:border-zinc-800 pb-3">
+          <h2 class="font-extrabold text-lg text-gray-900 dark:text-white flex items-center gap-2">
+            ✍️ Questions
+          </h2>
+          <span id="questionCountTag" class="text-xs font-bold text-gray-500">
+            0 câu hỏi
+          </span>
         </div>
-      </form>
+
+        <form id="questionsForm" class="space-y-6">
+          <p class="text-gray-400 text-sm">⏳ Đang tải danh sách câu hỏi...</p>
+        </form>
+      </div>
     </section>
 
   </main>
 
+  <!-- MODAL KẾT QUẢ NỘP BÀI -->
+  <div id="resultModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-8 w-full max-w-md shadow-2xl text-center space-y-6">
+      <div class="w-16 h-16 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-full flex items-center justify-center text-3xl mx-auto">
+        🏆
+      </div>
+
+      <div>
+        <h3 class="text-2xl font-extrabold text-gray-900 dark:text-white">Hoàn Thành Bài Thi!</h3>
+        <p class="text-xs text-gray-500 mt-1">Kết quả của bạn đã được ghi nhận vào hệ thống.</p>
+      </div>
+
+      <div class="bg-gray-50 dark:bg-zinc-800 p-4 rounded-xl grid grid-cols-2 gap-4">
+        <div>
+          <span class="block text-xs font-bold text-gray-400 uppercase">Điểm Số</span>
+          <span id="finalScore" class="text-2xl font-black text-[#cf1717]">0/0</span>
+        </div>
+        <div>
+          <span class="block text-xs font-bold text-gray-400 uppercase">Thời Gian Làm</span>
+          <span id="finalTime" class="text-2xl font-black text-gray-700 dark:text-gray-200">00:00</span>
+        </div>
+      </div>
+
+      <button onclick="window.location.href='dashboard.html'" class="w-full py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-lg transition shadow">
+        Trở Về Trang Chủ Dashboard
+      </button>
+    </div>
+  </div>
+
   <script>
-    // Thay thế đoạn cấu hình cũ trong tất cả các file HTML:
-const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co"; 
-const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
+    const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let timeLeft = 3600; // 60 phút tính bằng giây
+    let currentExam = null;
+    let currentUser = null;
     let timerInterval = null;
+    let totalTimeSeconds = 0;
+    let timeSpentSeconds = 0;
 
-    // 1. Khởi chạy đếm ngược thời gian
+    // 1. Kiểm tra đăng nhập và tải dữ liệu bài thi từ Token
+    async function initExam() {
+      const { data: { user } } = await sbClient.auth.getUser();
+      if (!user) {
+        alert("Vui lòng đăng nhập để làm bài thi!");
+        window.location.href = 'index.html';
+        return;
+      }
+      currentUser = user;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+
+      if (!token) {
+        alert("Không tìm thấy mã Token bài thi!");
+        window.location.href = 'dashboard.html';
+        return;
+      }
+
+      // Lấy dữ liệu bài thi theo token
+      const { data: exam, error } = await sbClient
+        .from('exams')
+        .select('*')
+        .eq('token', token)
+        .single();
+
+      if (error || !exam) {
+        alert("Bài thi không tồn tại hoặc link bị hỏng!");
+        window.location.href = 'dashboard.html';
+        return;
+      }
+
+      currentExam = exam;
+      renderExamData();
+      startTimer(exam.time_limit || 60);
+    }
+
+    // 2. Hiển thị thông tin bài thi lên màn hình
+    function renderExamData() {
+      document.getElementById('examHeaderTitle').innerText = currentExam.title;
+      document.getElementById('examTopicTag').innerText = currentExam.topic || 'General';
+      document.getElementById('passageContent').innerHTML = currentExam.passage_html || '<p>Không có nội dung bài đọc.</p>';
+
+      const questions = currentExam.questions || [];
+      document.getElementById('questionCountTag').innerText = `${questions.length} câu hỏi`;
+
+      const form = document.getElementById('questionsForm');
+      if (questions.length === 0) {
+        form.innerHTML = '<p class="text-gray-400">Không có câu hỏi nào trong đề thi này.</p>';
+        return;
+      }
+
+      form.innerHTML = questions.map((q, idx) => {
+        const qNum = idx + 1;
+        const qId = q.id || qNum;
+
+        if (q.options && Array.isArray(q.options) && q.options.length > 0) {
+          // Trắc nghiệm
+          return `
+            <div class="p-4 rounded-xl border border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/40 space-y-3">
+              <p class="font-bold text-sm text-gray-900 dark:text-white">Câu ${qNum}: ${q.question}</p>
+              <div class="space-y-2">
+                ${q.options.map(opt => `
+                  <label class="flex items-center gap-3 text-xs sm:text-sm p-2.5 rounded-lg border border-gray-200 dark:border-zinc-700 hover:bg-white dark:hover:bg-zinc-800 cursor-pointer transition">
+                    <input type="radio" name="q_${qId}" value="${opt}" class="accent-[#cf1717]">
+                    <span>${opt}</span>
+                  </label>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        } else {
+          // Tự luận / Điền từ
+          return `
+            <div class="p-4 rounded-xl border border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/40 space-y-3">
+              <p class="font-bold text-sm text-gray-900 dark:text-white">Câu ${qNum}: ${q.question}</p>
+              <input type="text" name="q_${qId}" placeholder="Nhập câu trả lời..." class="w-full p-2.5 text-xs sm:text-sm rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
+            </div>
+          `;
+        }
+      }).join('');
+    }
+
+    // 3. Quản lý thời gian đếm ngược
     function startTimer(minutes) {
-      timeLeft = minutes * 60;
-      const display = document.getElementById('timerDisplay');
-      
-      timerInterval = setInterval(() => {
-        const min = Math.floor(timeLeft / 60);
-        const sec = timeLeft % 60;
-        display.innerText = `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+      totalTimeSeconds = minutes * 60;
+      let remaining = totalTimeSeconds;
 
-        if (timeLeft <= 0) {
+      timerInterval = setInterval(() => {
+        remaining--;
+        timeSpentSeconds++;
+
+        const m = Math.floor(remaining / 60).toString().padStart(2, '0');
+        const s = (remaining % 60).toString().padStart(2, '0');
+        document.getElementById('timerDisplay').innerText = `${m}:${s}`;
+
+        if (remaining <= 0) {
           clearInterval(timerInterval);
-          alert("Hết giờ làm bài! Hệ thống đang tự động nộp bài.");
+          alert("⏰ Đã hết thời gian làm bài! Hệ thống sẽ tự động nộp bài.");
           submitExam();
         }
-        timeLeft--;
       }, 1000);
     }
 
-    // 2. Tính năng Tô đậm / Highlight văn bản khi quét chuột
-    function highlightSelection(colorClass) {
-      const selection = window.getSelection();
-      if (!selection.rangeCount || selection.isCollapsed) return;
-
-      const range = selection.getRangeAt(0);
-      const span = document.createElement('span');
-      span.className = colorClass === 'yellow' ? 'highlight-yellow' : 'highlight-red';
-
-      try {
-        range.surroundContents(span);
-      } catch (e) {
-        console.warn("Chỉ chọn trong cùng một thẻ đoạn văn.");
+    // 4. Xác nhận trước khi nộp
+    function confirmSubmitExam() {
+      if (confirm("Bạn có chắc chắn muốn nộp bài thi ngay bây giờ?")) {
+        submitExam();
       }
-      selection.removeAllRanges();
     }
 
-    // 3. Nộp bài và lưu điểm lên Supabase
+    // 5. Chấm điểm và nộp bài
     async function submitExam() {
       clearInterval(timerInterval);
-      const formData = new FormData(document.getElementById('quizForm'));
-      const userAnswers = {};
-      
-      formData.forEach((value, key) => {
-        userAnswers[key] = value;
+
+      const questions = currentExam.questions || [];
+      let score = 0;
+
+      questions.forEach((q, idx) => {
+        const qId = q.id || (idx + 1);
+        const selected = document.querySelector(`[name="q_${qId}"]:checked`)?.value 
+                      || document.querySelector(`input[name="q_${qId}"]`)?.value?.trim();
+
+        if (selected && selected.toLowerCase() === (q.answer || '').toString().toLowerCase()) {
+          score++;
+        }
       });
 
-      console.log("Đáp án học sinh đã chọn:", userAnswers);
-      alert("Đã hoàn thành bài thi! Kết quả của bạn đang được lưu.");
-      // Đoạn này tiếp tục lưu vào bảng exam_results trên Supabase
+      // Lưu kết quả bài làm vào Supabase
+      const { error } = await sbClient.from('exam_results').insert([{
+        exam_id: currentExam.id,
+        student_id: currentUser.id,
+        score: score,
+        time_spent: timeSpentSeconds,
+        submitted_at: new Date().toISOString()
+      }]);
+
+      if (error) {
+        console.error("Lỗi lưu kết quả:", error.message);
+      }
+
+      // Hiển thị Popup kết quả
+      const minSpent = Math.floor(timeSpentSeconds / 60);
+      const secSpent = timeSpentSeconds % 60;
+
+      document.getElementById('finalScore').innerText = `${score}/${questions.length}`;
+      document.getElementById('finalTime').innerText = `${minSpent}m ${secSpent}s`;
+      document.getElementById('resultModal').classList.remove('hidden');
     }
 
-    // Khởi tạo giao diện thi ban đầu
-    window.onload = () => {
-      startTimer(60);
-    };
+    window.onload = initExam;
   </script>
 </body>
 </html>
