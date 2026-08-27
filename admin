@@ -110,8 +110,8 @@
 
     <script>
         // Cấu hình Supabase
-        const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co'; // ⚠️ Thay URL Supabase của bạn
-        const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';                // ⚠️ Thay Key Supabase của bạn
+        const SUPABASE_URL = 'https://ozivvxbjomxbasgcbwbo.supabase.co/rest/v1/'; // ⚠️ Thay URL Supabase của bạn
+        const SUPABASE_ANON_KEY = 'sb_publishable_ERGNPjpoyMZzqmAP98V2VQ_k238r8Ax';                // ⚠️ Thay Key Supabase của bạn
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // --- DARK MODE TOGGLE ---
