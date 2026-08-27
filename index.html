@@ -80,77 +80,94 @@
   </main>
 
   <script>
-    const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
-    const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
+  const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let currentMode = 'login';
+  let currentMode = 'login';
 
-    function switchTab(mode) {
-      currentMode = mode;
-      const isReg = currentMode === 'register';
+  function switchTab(mode) {
+    currentMode = mode;
+    const isReg = currentMode === 'register';
 
-      document.getElementById('fullNameGroup').classList.toggle('hidden', !isReg);
-      document.getElementById('dobGroup').classList.toggle('hidden', !isReg);
-      document.getElementById('submitBtn').innerText = isReg ? 'Tạo Tài Khoản Đăng Ký' : 'Đăng Nhập';
+    document.getElementById('fullNameGroup').classList.toggle('hidden', !isReg);
+    document.getElementById('dobGroup').classList.toggle('hidden', !isReg);
+    document.getElementById('submitBtn').innerText = isReg ? 'Tạo Tài Khoản Đăng Ký' : 'Đăng Nhập';
 
-      document.getElementById('tabLogin').className = isReg 
-        ? 'w-1/2 py-2.5 text-center font-bold text-gray-400 hover:text-gray-600 transition' 
-        : 'w-1/2 py-2.5 text-center font-bold text-[#cf1717] border-b-2 border-[#cf1717] transition';
-      
-      document.getElementById('tabRegister').className = isReg 
-        ? 'w-1/2 py-2.5 text-center font-bold text-[#cf1717] border-b-2 border-[#cf1717] transition' 
-        : 'w-1/2 py-2.5 text-center font-bold text-gray-400 hover:text-gray-600 transition';
-    }
+    document.getElementById('tabLogin').className = isReg 
+      ? 'w-1/2 py-2.5 text-center font-bold text-gray-400 hover:text-gray-600 transition' 
+      : 'w-1/2 py-2.5 text-center font-bold text-[#cf1717] border-b-2 border-[#cf1717] transition';
+    
+    document.getElementById('tabRegister').className = isReg 
+      ? 'w-1/2 py-2.5 text-center font-bold text-[#cf1717] border-b-2 border-[#cf1717] transition' 
+      : 'w-1/2 py-2.5 text-center font-bold text-gray-400 hover:text-gray-600 transition';
+  }
 
-    async function handleAuth(e) {
-      e.preventDefault();
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      const fullName = document.getElementById('fullName').value.trim();
-      const dob = document.getElementById('dob').value;
-      const msg = document.getElementById('authMsg');
+  async function handleAuth(e) {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const fullName = document.getElementById('fullName').value.trim();
+    const dob = document.getElementById('dob').value;
+    const msg = document.getElementById('authMsg');
 
-      msg.innerText = "⏳ Đang xử lý kết nối...";
-      msg.className = "mt-4 text-center text-sm font-semibold text-gray-500";
+    msg.innerText = "⏳ Đang xử lý...";
+    msg.className = "mt-4 text-center text-sm font-semibold text-gray-500";
 
-      if (currentMode === 'register') {
-        if (!fullName || !dob) {
-          msg.innerText = "⚠️ Vui lòng nhập đầy đủ Họ tên và Ngày sinh!";
-          msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
-          return;
+    if (currentMode === 'register') {
+      if (!fullName || !dob) {
+        msg.innerText = "⚠️ Vui lòng nhập đầy đủ Họ tên và Ngày sinh!";
+        msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
+        return;
+      }
+
+      const { data, error } = await sbClient.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName, dob: dob, role: 'student' }
         }
+      });
 
-        // Đăng ký tài khoản (Lưu thông tin vào Metadata để Supabase Trigger tự động nạp sang profiles)
-        const { data, error } = await sbClient.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: fullName, dob: dob, role: 'student' }
-          }
-        });
-
-        if (error) {
-          msg.innerText = "❌ Lỗi đăng ký: " + error.message;
-          msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
-        } else {
-          msg.innerText = "✅ Đăng ký thành công! Đang chuyển hướng...";
-          msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
-          setTimeout(() => window.location.href = 'dashboard.html', 1500);
-        }
+      if (error) {
+        msg.innerText = "❌ Lỗi đăng ký: " + error.message;
+        msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
       } else {
-        // Đăng nhập
-        const { error } = await sbClient.auth.signInWithPassword({ email, password });
-        if (error) {
-          msg.innerText = "❌ Đăng nhập thất bại: " + error.message;
-          msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
-        } else {
-          msg.innerText = "✅ Đăng nhập thành công!";
-          msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
-          setTimeout(() => window.location.href = 'dashboard.html', 1000);
-        }
+        msg.innerText = "✅ Đăng ký thành công! Đang chuyển hướng...";
+        msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
+        setTimeout(() => window.location.href = 'dashboard.html', 1500);
+      }
+    } else {
+      // 1. Thực hiện Đăng nhập
+      const { data: authData, error: authError } = await sbClient.auth.signInWithPassword({ email, password });
+      
+      if (authError) {
+        msg.innerText = "❌ Đăng nhập thất bại: " + authError.message;
+        msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
+        return;
+      }
+
+      // 2. Kiểm tra Vai trò (Role) trong bảng profiles
+      const { data: profile } = await sbClient
+        .from('profiles')
+        .select('role')
+        .eq('id', authData.user.id)
+        .single();
+
+      const role = profile?.role?.trim().toLowerCase();
+
+      // 3. Phân luồng trang chuyển hướng
+      if (role === 'admin') {
+        msg.innerText = "👑 Đăng nhập Admin thành công! Đang chuyển trang...";
+        msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
+        setTimeout(() => window.location.href = 'admin.html', 1000);
+      } else {
+        msg.innerText = "✅ Đăng nhập thành công! Đang chuyển trang...";
+        msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
+        setTimeout(() => window.location.href = 'dashboard.html', 1000);
       }
     }
-  </script>
+  }
+</script>
 </body>
 </html>
