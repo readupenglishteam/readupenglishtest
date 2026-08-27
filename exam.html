@@ -172,13 +172,17 @@ async function submitExam() {
   clearInterval(timerInterval);
   const questions = currentExam.questions || [];
   let score = 0;
+  let userAnswers = {}; // Thu thập đáp án của người dùng
 
-  // 1. Tính điểm bài làm
+  // 1. Lặp qua từng câu hỏi để chấm điểm và lưu đáp án
   questions.forEach((q, idx) => {
     const radio = document.querySelector(`input[name="q_idx_${idx}"]:checked`);
     const textInput = document.querySelector(`input[name="q_idx_${idx}"][type="text"]`);
     
-    let userAns = (radio ? radio.value : (textInput ? textInput.value : '')).trim().toLowerCase();
+    let selectedVal = (radio ? radio.value : (textInput ? textInput.value : '')).trim();
+    userAnswers[`câu_${idx + 1}`] = selectedVal; // Lưu đáp án dạng {"câu_1": "A", "câu_2": "B"}
+
+    let userAns = selectedVal.toLowerCase();
     let correctAns = (q.answer || '').toString().trim().toLowerCase();
 
     if (userAns && correctAns) {
@@ -188,14 +192,15 @@ async function submitExam() {
     }
   });
 
-  // 2. CHỈ GỬI 3 CỘT ĐÃ CÓ TRÊN SUPABASE (Tránh lỗi 400 Bad Request)
+  // 2. Gửi đầy đủ thông tin bao gồm cả cột answers
   const payload = {
     exam_id: currentExam.id,
     user_id: currentUser.id,
-    score: score
+    score: score,
+    answers: userAnswers // Thêm dữ liệu câu trả lời để tránh lỗi NOT NULL
   };
 
-  // 3. Thực hiện Insert và hiển thị thông báo nếu có lỗi
+  // 3. Gửi lên Supabase
   const { data, error } = await sbClient.from('exam_results').insert([payload]);
 
   if (error) {
@@ -205,7 +210,7 @@ async function submitExam() {
     console.log("✅ Lưu kết quả thành công!", data);
   }
 
-  // 4. Bật Modal kết quả
+  // 4. Hiển thị bảng kết quả
   document.getElementById('finalScore').innerText = `${score}/${questions.length}`;
   document.getElementById('finalTime').innerText = `${Math.floor(timeSpentSeconds / 60)}m ${timeSpentSeconds % 60}s`;
   document.getElementById('resultModal').classList.remove('hidden');
