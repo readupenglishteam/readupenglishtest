@@ -43,20 +43,45 @@
   .animation-delay-2000 { animation-delay: 2s; }
   .animation-delay-4000 { animation-delay: 4s; }
 </style>
-  <header class="bg-white dark:bg-zinc-900 border-b dark:border-zinc-800 sticky top-0 z-40 shadow-sm px-4">
-    <div class="max-w-7xl mx-auto h-16 flex justify-between items-center">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-xl bg-[#cf1717] flex items-center justify-center overflow-hidden"><img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain"></div>
-        <span class="font-extrabold text-lg sm:text-xl text-[#cf1717] tracking-wide">ADMIN READUP ENGLISH</span>
-      </div>
-
-      <div class="flex items-center gap-2 sm:gap-3">
-        <button onclick="openExamModal()" class="bg-[#cf1717] hover:bg-red-700 text-white font-bold px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm shadow transition">+ Tạo Bài Thi</button>
-        <button onclick="handleLogout()" class="px-3 py-1.5 sm:py-2 text-xs font-bold bg-gray-200 dark:bg-zinc-800 hover:bg-red-100 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] rounded-lg transition">Đăng xuất</button>
-        <button onclick="toggleDarkMode()" class="p-2 rounded-full bg-gray-100 dark:bg-zinc-800 text-sm">🌙 / ☀️</button>
-      </div>
+<!-- ================= HEADER ADMIN HIỆU ỨNG KÍNH MỜ (FROSTED GLASS) ================= -->
+<header class="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/60 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-950/60 transition px-4">
+  <div class="max-w-7xl mx-auto h-16 flex justify-between items-center">
+    
+    <!-- 1. KHU VỰC LOGO TRÒN & TIÊU ĐỀ -->
+    <div class="flex items-center gap-3">
+      <!-- Khung Logo Tròn Đỏ (Giữ kích thước w-12 h-12) -->
+      <a href="admin.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
+        <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
+      </a>
+      
+      <!-- Tên Thương Hiệu + Badge Admin -->
+      <a href="admin.html" class="flex items-center gap-2 hover:opacity-90 transition">
+        <span class="text-2xl font-black text-[#cf1717] tracking-tight">ReadUp</span>
+        <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full shadow-sm">English<sup>Admin</sup></span>
+      </a>
     </div>
-  </header>
+
+    <!-- 2. KHU VỰC NÚT THAO TÁC -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Nút Tạo Bài Thi -->
+      <button onclick="openExamModal()" class="bg-[#cf1717] hover:bg-red-700 text-white font-bold px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5 flex items-center gap-1">
+        <span>+</span>
+        <span>Tạo Bài Thi</span>
+      </button>
+
+      <!-- Nút Đăng Xuất -->
+      <button onclick="handleLogout()" class="px-3 py-2 text-xs font-bold bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-red-100 dark:hover:bg-red-950/50 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] dark:hover:text-red-400 rounded-xl transition border border-gray-200/50 dark:border-zinc-700/50">
+        Đăng xuất
+      </button>
+
+      <!-- Nút Chuyển Chế Độ Sáng / Tối -->
+      <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50">
+        <span id="themeIcon">🌙</span>
+      </button>
+    </div>
+
+  </div>
+</header>
 
   <main class="max-w-7xl mx-auto px-4 py-6 space-y-8">
     
