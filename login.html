@@ -107,10 +107,29 @@
         </div>
 
         <!-- Ô Mật Khẩu -->
-        <div>
-          <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Mật khẩu</label>
-          <input type="password" id="password" required placeholder="••••••••" class="w-full p-3 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
-        </div>
+<div>
+  <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Mật khẩu</label>
+  <div class="relative w-full">
+    <input 
+      type="password" 
+      id="password" 
+      required 
+      placeholder="••••••••" 
+      class="w-full p-3 pr-10 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]"
+    >
+    <button 
+      type="button" 
+      onclick="togglePasswordVisibility('password', this)" 
+      class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none p-1"
+    >
+      <!-- Icon con mắt -->
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+      </svg>
+    </button>
+  </div>
+</div>
 
         <!-- Nút Gửi -->
         <button type="submit" id="submitBtn" class="w-full py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-lg transition shadow-md hover:shadow-lg">
@@ -131,7 +150,7 @@
         <!-- Thông báo bảo mật -->
         <div class="pt-2 text-center">
           <span class="text-xs text-gray-400 dark:text-gray-500 flex items-center justify-center gap-1 font-medium">
-            🔒 Dữ liệu đã được bảo mật
+          Dữ liệu đã được bảo mật
           </span>
         </div>
       </form>
@@ -283,6 +302,26 @@ async function loginWithMagicLink(email) {
   } else {
     document.documentElement.classList.add('dark');
     localStorage.theme = 'dark';
+  }
+}
+    function togglePasswordVisibility(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const icon = btn.querySelector('svg');
+
+  if (input.type === 'password') {
+    input.type = 'text';
+    // Đổi sang Icon gạch chéo (Mở mật khẩu)
+    icon.innerHTML = `
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.04 10.04 0 013.122-.563c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18" />
+    `;
+  } else {
+    input.type = 'password';
+    // Đổi về Icon mắt thường (Ẩn mật khẩu)
+    icon.innerHTML = `
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+    `;
   }
 }
 </script>
