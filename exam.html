@@ -176,32 +176,23 @@
     }
 
     // TỰ ĐỘNG HIGHLIGHT TỪ VỰNG DẠNG GẠCH NẾT ĐỨT + TOOLTIP
-    // ================= HÀM XỬ LÝ HIGHLIGHT TỪ VỰNG AN TOÀN =================
+// 1. HÀM HIGHLIGHT TỪ VỰNG MỚI (Chỉ chèn thẻ span nhẹ, không chèn HTML tooltip trực tiếp)
     function renderPassageWithVocab(passageHTML, vocabData = []) {
       if (!passageHTML) return '';
 
-      // 1. Tự động chuyển đổi nếu Supabase trả về dạng String JSON
       let vocabList = vocabData;
       if (typeof vocabList === 'string') {
-        try {
-          vocabList = JSON.parse(vocabList);
-        } catch (e) {
-          vocabList = [];
-        }
+        try { vocabList = JSON.parse(vocabList); } catch (e) { vocabList = []; }
       }
 
-      if (!Array.isArray(vocabList) || vocabList.length === 0) {
-        return passageHTML;
-      }
+      if (!Array.isArray(vocabList) || vocabList.length === 0) return passageHTML;
 
-      // 2. Sắp xếp từ dài đến ngắn để tránh đè từ trùng nhau
       const sortedVocab = [...vocabList]
         .filter(v => v && (v.word || v.term))
         .sort((a, b) => ((b.word || b.term).length - (a.word || a.term).length));
 
       if (sortedVocab.length === 0) return passageHTML;
 
-      // 3. Sử dụng DOM Parser để chỉ gạch chân văn bản thuần, không làm hỏng thẻ HTML
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = passageHTML;
 
@@ -222,15 +213,9 @@
 
             if (regex.test(htmlResult)) {
               hasMatch = true;
-              const ipaText = item.ipa ? `${item.ipa}` : '';
-              const typeText = item.type ? `(${item.type})` : '';
-              const meaningText = item.meaning ? `<p class="font-bold text-gray-100 dark:text-gray-800">👉 ${item.meaning}</p>` : '';
-              const contextText = item.context ? `<p class="text-[11px] text-gray-300 dark:text-gray-600 italic">Context: ${item.context}</p>` : '';
-              const collocText = item.collocation ? `<p class="text-[11px] text-amber-300 dark:text-amber-700 font-medium">Collocation: ${item.collocation}</p>` : '';
-
-              const tooltipHTML = `<span class="relative inline-block group cursor-pointer border-b-2 border-dotted border-[#cf1717] dark:border-red-400 bg-red-500/10 dark:bg-red-500/20 px-0.5 rounded transition-colors"><span class="text-gray-900 dark:text-gray-100 font-semibold">$1</span><span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex flex-col w-64 p-3.5 bg-zinc-900/95 text-white dark:bg-white/95 dark:text-zinc-900 rounded-2xl shadow-2xl z-50 text-xs space-y-1.5 pointer-events-none transition border border-zinc-700 dark:border-gray-200 backdrop-blur-md"><span class="flex justify-between items-center border-b border-zinc-700/60 dark:border-gray-200/60 pb-1"><strong class="text-red-400 dark:text-[#cf1717] font-black text-sm">${wordStr}</strong><span class="text-[10px] text-gray-400 dark:text-gray-500 font-mono">${ipaText} ${typeText}</span></span>${meaningText}${contextText}${collocText}</span></span>`;
-
-              htmlResult = htmlResult.replace(regex, tooltipHTML);
+              const encodedData = encodeURIComponent(JSON.stringify(item));
+              const spanHTML = `<span class="vocab-item cursor-pointer border-b-2 border-dotted border-[#cf1717] dark:border-red-400 bg-red-500/10 dark:bg-red-500/20 px-0.5 rounded font-semibold text-gray-900 dark:text-gray-100 hover:bg-red-500/20" data-vocab="${encodedData}">$1</span>`;
+              htmlResult = htmlResult.replace(regex, spanHTML);
             }
           });
 
@@ -240,7 +225,7 @@
             node.parentNode.replaceChild(spanWrapper, node);
           }
         } else if (node.nodeType === Node.ELEMENT_NODE) {
-          if (node.tagName !== 'SCRIPT' && node.tagName !== 'STYLE' && !node.classList.contains('group')) {
+          if (node.tagName !== 'SCRIPT' && node.tagName !== 'STYLE' && !node.classList.contains('vocab-item')) {
             Array.from(node.childNodes).forEach(highlightTextNodes);
           }
         }
@@ -248,6 +233,68 @@
 
       Array.from(tempDiv.childNodes).forEach(highlightTextNodes);
       return tempDiv.innerHTML;
+    }
+
+    // 2. BẮT SỰ KIỆN DI CHUỘT ĐỂ ĐIỀU CHỈNH VỊ TRÍ TOOLTIP TỰ ĐỘNG
+    document.addEventListener('mouseover', function(e) {
+      const vocabTarget = e.target.closest('.vocab-item');
+      if (vocabTarget) {
+        try {
+          const item = JSON.parse(decodeURIComponent(vocabTarget.getAttribute('data-vocab')));
+          showVocabTooltip(vocabTarget, item);
+        } catch(err) {}
+      }
+    });
+
+    document.addEventListener('mouseout', function(e) {
+      if (e.target.closest('.vocab-item')) {
+        hideVocabTooltip();
+      }
+    });
+
+    function showVocabTooltip(target, item) {
+      const tooltip = document.getElementById('vocabTooltip');
+      if (!tooltip) return;
+
+      document.getElementById('tooltipWord').innerText = item.word || item.term || '';
+      document.getElementById('tooltipIpaType').innerText = `${item.ipa || ''} ${item.type ? `(${item.type})` : ''}`.trim();
+      
+      const mElem = document.getElementById('tooltipMeaning');
+      mElem.innerHTML = item.meaning ? `👉 ${item.meaning}` : '';
+      mElem.style.display = item.meaning ? 'block' : 'none';
+
+      const cElem = document.getElementById('tooltipContext');
+      cElem.innerHTML = item.context ? `Context: ${item.context}` : '';
+      cElem.style.display = item.context ? 'block' : 'none';
+
+      const colElem = document.getElementById('tooltipColloc');
+      colElem.innerHTML = item.collocation ? `Collocation: ${item.collocation}` : '';
+      colElem.style.display = item.collocation ? 'block' : 'none';
+
+      tooltip.classList.remove('hidden');
+      tooltip.classList.remove('opacity-0');
+
+      const rect = target.getBoundingClientRect();
+      let top = rect.top - tooltip.offsetHeight - 8;
+      let left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2);
+
+      // Tự động căn chỉnh nếu chạm mép màn hình
+      if (top < 10) top = rect.bottom + 8;
+      if (left < 10) left = 10;
+      if (left + tooltip.offsetWidth > window.innerWidth - 10) {
+        left = window.innerWidth - tooltip.offsetWidth - 10;
+      }
+
+      tooltip.style.top = `${top}px`;
+      tooltip.style.left = `${left}px`;
+    }
+
+    function hideVocabTooltip() {
+      const tooltip = document.getElementById('vocabTooltip');
+      if (tooltip) {
+        tooltip.classList.add('opacity-0');
+        tooltip.classList.add('hidden');
+      }
     }
 
     function renderExamData() {
@@ -487,5 +534,15 @@
 
     window.onload = initExam;
   </script>
+  <!-- GLOBAL FIXED TOOLTIP -->
+  <div id="vocabTooltip" class="fixed hidden z-[9999] w-64 p-3.5 bg-zinc-900/95 text-white dark:bg-white/95 dark:text-zinc-900 rounded-2xl shadow-2xl text-xs space-y-1.5 border border-zinc-700 dark:border-gray-200 backdrop-blur-md pointer-events-none transition-opacity duration-150 opacity-0">
+    <div class="flex justify-between items-center border-b border-zinc-700/60 dark:border-gray-200/60 pb-1">
+      <strong id="tooltipWord" class="text-red-400 dark:text-[#cf1717] font-black text-sm"></strong>
+      <span id="tooltipIpaType" class="text-[10px] text-gray-400 dark:text-gray-500 font-mono"></span>
+    </div>
+    <p id="tooltipMeaning" class="font-bold text-gray-100 dark:text-gray-800"></p>
+    <p id="tooltipContext" class="text-[11px] text-gray-300 dark:text-gray-600 italic"></p>
+    <p id="tooltipColloc" class="text-[11px] text-amber-300 dark:text-amber-700 font-medium"></p>
+  </div>
 </body>
 </html>
