@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ReadUp English - Nền Tảng Luyện Thi IELTS Reading Thông Minh</title>
+  <title>ReadUp English - Nền Tảng Luyện Reading Thông Minh</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = { darkMode: 'class' };
@@ -66,12 +66,13 @@
       </div>
       
       <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
-        Làm Chủ Bài Thi <span class="bg-gradient-to-r from-[#cf1717] to-amber-500 bg-clip-text text-transparent">IELTS Reading</span><br>
-        Bằng Phương Pháp Đột Phá
+        ĐỌC TIN TỨC. LUYỆN <span class="bg-gradient-to-r from-[#cf1717] to-amber-500 bg-clip-text text-transparent">READING<sup>NEWS</sup>.</span><br>
+        MỞ RỘNG TỪ VỰNG
       </h1>
 
       <p class="max-w-2xl mx-auto text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
-        Trải nghiệm giao diện thi thật chuyên nghiệp, tra cứu từ vựng ngữ cảnh thông minh, chấm điểm tự động kèm giải thích chi tiết từng câu.
+        Đọc các bài báo thực tế được chọn lọc và biên soạn thành bài Reading ngắn gọn, giúp bạn luyện đọc và ghi nhớ từ vựng trong ngữ cảnh.
+        <br>Trải nghiệm giao diện thi thật chuyên nghiệp, tra cứu từ vựng ngữ cảnh thông minh, chấm điểm tự động kèm giải thích chi tiết từng câu.
       </p>
 
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
@@ -173,35 +174,113 @@
   </div>
 </section>
     
-    <section><!-- KHỐI BÀI HỌC READ - LEARN - GROW -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
-  <!-- Bước 1: READ -->
-  <div class="p-6 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] transition group">
-    <div class="w-10 h-10 rounded-2xl bg-red-100 dark:bg-red-950/60 text-[#cf1717] flex items-center justify-center font-black text-base mb-4 group-hover:scale-110 transition">01</div>
-    <h3 class="font-black text-xl text-gray-900 dark:text-white tracking-wide">READ</h3>
-    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">Đọc bài báo thực tế mỗi ngày được tinh chỉnh theo đúng chuẩn cấu trúc đề thi IELTS & TOEIC.</p>
+  <!-- KHỐI BÀI HỌC READ - LEARN - GROW -->
+    <section id="features" class="space-y-8 max-w-4xl mx-auto px-4 py-8">
+  <div class="text-center space-y-2">
+    <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white">Với phương châm</h2>
   </div>
 
-  <!-- Bước 2: LEARN -->
-  <div class="p-6 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-amber-500 transition group">
-    <div class="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-500 flex items-center justify-center font-black text-base mb-4 group-hover:scale-110 transition">02</div>
-    <h3 class="font-black text-xl text-gray-900 dark:text-white tracking-wide">LEARN</h3>
-    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">Tra từ trong ngữ cảnh bài đọc, lưu bộ Collocation chuẩn xác kèm giải thích đáp án chi tiết.</p>
-  </div>
+  <div class="relative flex flex-col items-center justify-center pt-8">
+    <!-- Khung vòng tròn chứa các Icon -->
+    <div class="relative w-64 h-64 flex items-center justify-center">
+      <!-- Vòng tròn viền trang trí -->
+      <div class="absolute inset-0 rounded-full border-2 border-dashed border-gray-200 dark:border-zinc-800 pointer-events-none"></div>
 
-  <!-- Bước 3: GROW -->
-  <div class="p-6 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-emerald-500 transition group">
-    <div class="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-500 flex items-center justify-center font-black text-base mb-4 group-hover:scale-110 transition">03</div>
-    <h3 class="font-black text-xl text-gray-900 dark:text-white tracking-wide">GROW</h3>
-    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">Theo dõi sự tăng trưởng tốc độ đọc hiểu và Band điểm qua hệ thống báo cáo trực quan.</p>
+      <!-- Icon 01: READ -->
+      <button onclick="setActiveStep(0)" id="step-node-0" class="absolute flex flex-col items-center justify-center transition-all duration-700 ease-in-out cursor-pointer focus:outline-none group">
+        <div class="w-14 h-14 rounded-2xl bg-red-100 dark:bg-red-950/60 text-[#cf1717] flex items-center justify-center font-black text-lg shadow-md group-hover:scale-110 transition-transform">01</div>
+        <span id="label-0" class="font-black text-sm mt-1 text-gray-900 dark:text-white tracking-wide">READ</span>
+      </button>
+
+      <!-- Icon 02: LEARN -->
+      <button onclick="setActiveStep(1)" id="step-node-1" class="absolute flex flex-col items-center justify-center transition-all duration-700 ease-in-out cursor-pointer focus:outline-none group">
+        <div class="w-14 h-14 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-500 flex items-center justify-center font-black text-lg shadow-md group-hover:scale-110 transition-transform">02</div>
+        <span id="label-1" class="font-black text-sm mt-1 text-gray-900 dark:text-white tracking-wide">LEARN</span>
+      </button>
+
+      <!-- Icon 03: GROW -->
+      <button onclick="setActiveStep(2)" id="step-node-2" class="absolute flex flex-col items-center justify-center transition-all duration-700 ease-in-out cursor-pointer focus:outline-none group">
+        <div class="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-500 flex items-center justify-center font-black text-lg shadow-md group-hover:scale-110 transition-transform">03</div>
+        <span id="label-2" class="font-black text-sm mt-1 text-gray-900 dark:text-white tracking-wide">GROW</span>
+      </button>
+    </div>
+
+    <!-- Khung hiển thị thông tin chi tiết phía dưới -->
+    <div class="mt-6 w-full max-w-md p-6 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 text-center transition-all duration-300 min-h-[120px] flex flex-col justify-center shadow-sm">
+      <h3 id="active-title" class="font-black text-xl text-gray-900 dark:text-white tracking-wide">READ</h3>
+      <p id="active-desc" class="text-xs text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">Đọc bài báo thực tế mỗi ngày được tinh chỉnh theo đúng chuẩn cấu trúc đề thi IELTS & TOEIC.</p>
+    </div>
   </div>
-</div>
-    </section>
+</section>
+
+<script>
+  const stepsData = [
+    {
+      title: "READ",
+      desc: "Đọc bài báo thực tế mỗi ngày được tinh chỉnh theo đúng chuẩn cấu trúc đề thi IELTS & TOEIC."
+    },
+    {
+      title: "LEARN",
+      desc: "Tra từ trong ngữ cảnh bài đọc, lưu bộ Collocation chuẩn xác kèm giải thích đáp án chi tiết."
+    },
+    {
+      title: "GROW",
+      desc: "Theo dõi sự tăng trưởng tốc độ đọc hiểu và Band điểm qua hệ thống báo cáo trực quan."
+    }
+  ];
+
+  // Tọa độ 3 vị trí trên đường tròn bán kính R = 95px
+  // Vị trí 0 (Đỉnh giữa), Vị trí 1 (Phải dưới), Vị trí 2 (Trái dưới)
+  const slots = [
+    { x: 0, y: -95, scale: 1.25, opacity: 1 },
+    { x: 82, y: 48, scale: 0.85, opacity: 0.5 },
+    { x: -82, y: 48, scale: 0.85, opacity: 0.5 }
+  ];
+
+  let currentActive = 0;
+
+  function updateCircleLayout() {
+    stepsData.forEach((_, index) => {
+      const node = document.getElementById(`step-node-${index}`);
+      // Tính toán vị trí tương đối của node dựa trên nút đang active
+      const slotIndex = (index - currentActive + 3) % 3;
+      const pos = slots[slotIndex];
+
+      // Áp dụng vị trí và hiệu ứng phóng to/thu nhỏ
+      node.style.transform = `translate(${pos.x}px, ${pos.y}px) scale(${pos.scale})`;
+      node.style.opacity = pos.opacity;
+
+      // Nút ở trên cùng sẽ ưu tiên hiển thị đè lên (z-index)
+      if (slotIndex === 0) {
+        node.classList.add("z-10");
+        node.classList.remove("z-0");
+      } else {
+        node.classList.add("z-0");
+        node.classList.remove("z-10");
+      }
+    });
+
+    // Cập nhật text nội dung ở hộp bên dưới
+    const titleEl = document.getElementById("active-title");
+    const descEl = document.getElementById("active-desc");
+    
+    titleEl.innerText = stepsData[currentActive].title;
+    descEl.innerText = stepsData[currentActive].desc;
+  }
+
+  function setActiveStep(index) {
+    currentActive = index;
+    updateCircleLayout();
+  }
+
+  // Khởi tạo vị trí ban đầu
+  updateCircleLayout();
+</script>
 
     <!-- KHOẢNG TỔNG QUAN / STATS -->
     <section class="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md rounded-3xl border border-gray-200/50 dark:border-zinc-800/50 text-center">
       <div class="space-y-1">
-        <div class="text-2xl sm:text-3xl font-black text-[#cf1717]">NEWS</div>
+        <div class="text-2xl sm:text-3xl font-black text-[#cf1717]">News</div>
         <div class="text-xs text-gray-500">Cập nhật tin tức mới</div>
       </div>
       <div class="space-y-1">
