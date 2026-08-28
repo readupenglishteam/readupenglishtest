@@ -111,7 +111,7 @@
     </div>
   </div>
 
-  <script>
+<script>
     const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
     const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
     const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -139,14 +139,23 @@
     }
 
     function renderExamData() {
-      document.getElementById('examHeaderTitle').innerText = currentExam.title;
-      document.getElementById('examTopicTag').innerText = currentExam.topic || 'General';
-      document.getElementById('passageContent').innerHTML = currentExam.passage_html || '<p>Không có nội dung bài đọc.</p>';
+      const headerTitle = document.getElementById('examHeaderTitle');
+      if (headerTitle) headerTitle.innerText = currentExam.title || '';
+
+      const topicTag = document.getElementById('examTopicTag');
+      if (topicTag) topicTag.innerText = currentExam.topic || 'General';
+
+      const passageBox = document.getElementById('passageContent');
+      if (passageBox) passageBox.innerHTML = currentExam.passage_html || '<p>Không có nội dung bài đọc.</p>';
 
       const questions = currentExam.questions || [];
-      document.getElementById('questionCountTag').innerText = `${questions.length} câu hỏi`;
+      const countTag = document.getElementById('questionCountTag');
+      if (countTag) countTag.innerText = `${questions.length} câu hỏi`;
 
-      const form = document.getElementById('questionsForm');
+      // Hỗ trợ tìm cả 2 ID questionsForm hoặc questionsContainer
+      const form = document.getElementById('questionsForm') || document.getElementById('questionsContainer');
+      if (!form) return;
+
       form.innerHTML = questions.map((q, idx) => {
         const qNum = idx + 1;
         if (q.options && Array.isArray(q.options) && q.options.length > 0) {
@@ -224,18 +233,26 @@ async function submitExam() {
   // 4. Render trạng thái Đúng/Sai & Giải thích chi tiết phía sau màn hình
   renderResultMode(questions);
 
-  // 5. Hiển thị kết quả chi tiết lên Pop-up Modal
-  document.getElementById('finalScore').innerText = `${score10}/10 điểm (${correctCount}/${totalQuestions} câu đúng)`;
-  document.getElementById('finalTime').innerText = `${Math.floor(timeSpentSeconds / 60)}m ${timeSpentSeconds % 60}s`;
-  document.getElementById('resultModal').classList.remove('hidden');
+  // 5. Hiển thị kết quả chi tiết lên Pop-up Modal (đã bổ sung kiểm tra an toàn)
+  const scoreElem = document.getElementById('finalScore');
+  if (scoreElem) scoreElem.innerText = `${score10}/10 điểm (${correctCount}/${totalQuestions} câu đúng)`;
+  
+  const timeElem = document.getElementById('finalTime');
+  if (timeElem) timeElem.innerText = `${Math.floor(timeSpentSeconds / 60)}m ${timeSpentSeconds % 60}s`;
+  
+  const resultModal = document.getElementById('resultModal');
+  if (resultModal) resultModal.classList.remove('hidden');
 }
+
 function closeResultModal() {
-  document.getElementById('resultModal').classList.add('hidden');
+  const resultModal = document.getElementById('resultModal');
+  if (resultModal) resultModal.classList.add('hidden');
 }
-    // Hàm hiển thị Giao diện Đúng/Sai + Giải thích chi tiết
+
+// Hàm hiển thị Giao diện Đúng/Sai + Giải thích chi tiết
 function renderResultMode(questions) {
-  // Thay 'questionsContainer' bằng ID khung chứa danh sách câu hỏi trong file HTML của bạn
-  const questionBox = document.getElementById('questionsContainer'); 
+  // SỬA LỖI: Tìm linh hoạt cả questionsForm và questionsContainer
+  const questionBox = document.getElementById('questionsForm') || document.getElementById('questionsContainer'); 
   if (!questionBox) return;
 
   questionBox.innerHTML = questions.map((q, idx) => {
@@ -302,6 +319,8 @@ function renderResultMode(questions) {
       const btnR = document.getElementById('mobileTabReading');
       const btnQ = document.getElementById('mobileTabQuestions');
 
+      if (!reading || !questions || !btnR || !btnQ) return;
+
       if (tab === 'reading') {
         reading.classList.remove('hidden');
         questions.classList.add('hidden');
@@ -338,7 +357,8 @@ function renderResultMode(questions) {
         timeSpentSeconds++;
         const m = Math.floor(remaining / 60).toString().padStart(2, '0');
         const s = (remaining % 60).toString().padStart(2, '0');
-        document.getElementById('timerDisplay').innerText = `${m}:${s}`;
+        const timerElem = document.getElementById('timerDisplay') || document.getElementById('timer');
+        if (timerElem) timerElem.innerText = `${m}:${s}`;
         if (remaining <= 0) {
           clearInterval(timerInterval);
           submitExam();
