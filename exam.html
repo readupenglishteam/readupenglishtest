@@ -295,12 +295,6 @@ function renderResultMode(questions) {
   }).join('');
 }
     
-  // 4. Hiển thị kết quả chi tiết lên Modal
-  document.getElementById('finalScore').innerText = `${score10}/10 điểm (${correctCount}/${totalQuestions} câu đúng)`;
-  document.getElementById('finalTime').innerText = `${Math.floor(timeSpentSeconds / 60)}m ${timeSpentSeconds % 60}s`;
-  document.getElementById('resultModal').classList.remove('hidden');
-}
-    
     // CHUYỂN TAB TRÊN MÀN HÌNH ĐIỆN THOẠI
     function switchMobileTab(tab) {
       const reading = document.getElementById('readingSection');
