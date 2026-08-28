@@ -131,7 +131,7 @@
     async function initDashboard() {
       const { data: { user } } = await sbClient.auth.getUser();
       if (!user) {
-        window.location.href = 'login.html';
+        window.location.href = 'index.html';
         return;
       }
       currentUser = user;
