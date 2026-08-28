@@ -158,7 +158,7 @@
   </div>
 
 <script>
-    const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
+const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
     const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
     const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -184,6 +184,39 @@
       startTimer(exam.time_limit || 60);
     }
 
+    // ================= HÀM TỰ ĐỘNG GẮN TOOLTIP TỪ VỰNG GẠCH NẾT ĐỨT =================
+    function renderPassageWithVocab(passageHTML, vocabList = []) {
+      if (!vocabList || !Array.isArray(vocabList) || vocabList.length === 0) {
+        return passageHTML || '';
+      }
+
+      let processedText = passageHTML || '';
+
+      vocabList.forEach(item => {
+        if (!item.word) return;
+        // Regex chỉ match từ nằm ngoài thẻ HTML để tránh hỏng code HTML
+        const regex = new RegExp(`\\b(${item.word})\\b(?![^<]*>|[^<>]*</)`, 'gi');
+
+        const tooltipHTML = `
+        <span class="relative inline-block group cursor-pointer border-b-2 border-dotted border-gray-400 dark:border-zinc-500 hover:border-[#cf1717] dark:hover:border-red-400 transition-colors">
+          <span class="text-gray-900 dark:text-gray-100 font-semibold">$1</span>
+          <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex flex-col w-64 p-3.5 bg-zinc-900/95 text-white dark:bg-white/95 dark:text-zinc-900 rounded-2xl shadow-2xl z-50 text-xs space-y-1.5 pointer-events-none transition border border-zinc-700 dark:border-gray-200 backdrop-blur-md">
+            <span class="flex justify-between items-center border-b border-zinc-700/60 dark:border-gray-200/60 pb-1">
+              <strong class="text-red-400 dark:text-[#cf1717] font-black text-sm">${item.word}</strong>
+              <span class="text-[10px] text-gray-400 dark:text-gray-500 font-mono">${item.ipa || ''} ${item.type ? `(${item.type})` : ''}</span>
+            </span>
+            ${item.meaning ? `<p class="font-bold text-gray-100 dark:text-gray-800">👉 ${item.meaning}</p>` : ''}
+            ${item.context ? `<p class="text-[11px] text-gray-300 dark:text-gray-600 italic">Context: ${item.context}</p>` : ''}
+            ${item.collocation ? `<p class="text-[11px] text-amber-300 dark:text-amber-700 font-medium">Collocation: ${item.collocation}</p>` : ''}
+          </span>
+        </span>`;
+
+        processedText = processedText.replace(regex, tooltipHTML);
+      });
+
+      return processedText;
+    }
+
     function renderExamData() {
       const headerTitle = document.getElementById('examHeaderTitle');
       if (headerTitle) headerTitle.innerText = currentExam.title || '';
@@ -191,14 +224,18 @@
       const topicTag = document.getElementById('examTopicTag');
       if (topicTag) topicTag.innerText = currentExam.topic || 'General';
 
+      // HIỂN THỊ BÀI ĐỌC ĐÃ TÍCH HỢP TỰ ĐỘNG HIGHLIGHT TỪ VỰNG
       const passageBox = document.getElementById('passageContent');
-      if (passageBox) passageBox.innerHTML = currentExam.passage_html || '<p>Không có nội dung bài đọc.</p>';
+      if (passageBox) {
+        const rawPassage = currentExam.passage_html || currentExam.passage || '<p>Không có nội dung bài đọc.</p>';
+        const vocabList = currentExam.vocab_list || currentExam.vocab || [];
+        passageBox.innerHTML = renderPassageWithVocab(rawPassage, vocabList);
+      }
 
       const questions = currentExam.questions || [];
       const countTag = document.getElementById('questionCountTag');
       if (countTag) countTag.innerText = `${questions.length} câu hỏi`;
 
-      // Hỗ trợ tìm cả 2 ID questionsForm hoặc questionsContainer
       const form = document.getElementById('questionsForm') || document.getElementById('questionsContainer');
       if (!form) return;
 
@@ -227,139 +264,126 @@
       }).join('');
     }
 
-async function submitExam() {
-  clearInterval(timerInterval);
-  const questions = currentExam.questions || [];
-  let correctCount = 0;
-  let userAnswers = {};
+    async function submitExam() {
+      clearInterval(timerInterval);
+      const questions = currentExam.questions || [];
+      let correctCount = 0;
+      let userAnswers = {};
 
-  // 1. Chấm điểm từng câu
-  questions.forEach((q, idx) => {
-    const radio = document.querySelector(`input[name="q_idx_${idx}"]:checked`);
-    const textInput = document.querySelector(`input[name="q_idx_${idx}"][type="text"]`);
-    
-    let selectedVal = (radio ? radio.value : (textInput ? textInput.value : '')).trim();
-    userAnswers[`câu_${idx + 1}`] = selectedVal;
+      questions.forEach((q, idx) => {
+        const radio = document.querySelector(`input[name="q_idx_${idx}"]:checked`);
+        const textInput = document.querySelector(`input[name="q_idx_${idx}"][type="text"]`);
+        
+        let selectedVal = (radio ? radio.value : (textInput ? textInput.value : '')).trim();
+        userAnswers[`câu_${idx + 1}`] = selectedVal;
 
-    let userAns = selectedVal.toLowerCase();
-    let correctAns = (q.answer || '').toString().trim().toLowerCase();
+        let userAns = selectedVal.toLowerCase();
+        let correctAns = (q.answer || '').toString().trim().toLowerCase();
 
-    let isCorrect = false;
-    if (userAns && correctAns) {
-      if (userAns === correctAns || userAns.startsWith(correctAns + '.') || userAns.startsWith(correctAns + ' ')) {
-        isCorrect = true;
-        correctCount++;
+        let isCorrect = false;
+        if (userAns && correctAns) {
+          if (userAns === correctAns || userAns.startsWith(correctAns + '.') || userAns.startsWith(correctAns + ' ')) {
+            isCorrect = true;
+            correctCount++;
+          }
+        }
+
+        q.userSelected = selectedVal;
+        q.isCorrect = isCorrect;
+      });
+
+      const totalQuestions = questions.length;
+      const score10 = totalQuestions > 0 ? Number(((10 / totalQuestions) * correctCount).toFixed(2)) : 0;
+
+      const payload = {
+        exam_id: currentExam.id,
+        user_id: currentUser.id,
+        score: score10,
+        answers: userAnswers,
+        time_spent: timeSpentSeconds
+      };
+
+      const { data, error } = await sbClient.from('exam_results').insert([payload]);
+
+      if (error) {
+        alert("❌ Lỗi lưu kết quả: " + error.message);
+        return;
       }
+
+      renderResultMode(questions);
+
+      const scoreElem = document.getElementById('finalScore');
+      if (scoreElem) scoreElem.innerText = `${score10}/10 điểm (${correctCount}/${totalQuestions} câu đúng)`;
+      
+      const timeElem = document.getElementById('finalTime');
+      if (timeElem) timeElem.innerText = `${Math.floor(timeSpentSeconds / 60)}m ${timeSpentSeconds % 60}s`;
+      
+      const resultModal = document.getElementById('resultModal');
+      if (resultModal) resultModal.classList.remove('hidden');
     }
 
-    // Đính kèm kết quả trực tiếp vào mảng câu hỏi để render giao diện
-    q.userSelected = selectedVal;
-    q.isCorrect = isCorrect;
-  });
+    function closeResultModal() {
+      const resultModal = document.getElementById('resultModal');
+      if (resultModal) resultModal.classList.add('hidden');
+    }
 
-  // 2. Tính điểm thang 10 (Làm tròn 2 chữ số thập phân)
-  const totalQuestions = questions.length;
-  const score10 = totalQuestions > 0 ? Number(((10 / totalQuestions) * correctCount).toFixed(2)) : 0;
+    function renderResultMode(questions) {
+      const questionBox = document.getElementById('questionsForm') || document.getElementById('questionsContainer'); 
+      if (!questionBox) return;
 
-  // 3. Gửi điểm lên Supabase
-  const payload = {
-    exam_id: currentExam.id,
-    user_id: currentUser.id,
-    score: score10,
-    answers: userAnswers,
-    time_spent: timeSpentSeconds
-  };
+      questionBox.innerHTML = questions.map((q, idx) => {
+        const isCorrect = q.isCorrect;
+        const userVal = q.userSelected || 'Chưa trả lời';
 
-  const { data, error } = await sbClient.from('exam_results').insert([payload]);
-
-  if (error) {
-    alert("❌ Lỗi lưu kết quả: " + error.message);
-    return;
-  }
-
-  // 4. Render trạng thái Đúng/Sai & Giải thích chi tiết phía sau màn hình
-  renderResultMode(questions);
-
-  // 5. Hiển thị kết quả chi tiết lên Pop-up Modal (đã bổ sung kiểm tra an toàn)
-  const scoreElem = document.getElementById('finalScore');
-  if (scoreElem) scoreElem.innerText = `${score10}/10 điểm (${correctCount}/${totalQuestions} câu đúng)`;
-  
-  const timeElem = document.getElementById('finalTime');
-  if (timeElem) timeElem.innerText = `${Math.floor(timeSpentSeconds / 60)}m ${timeSpentSeconds % 60}s`;
-  
-  const resultModal = document.getElementById('resultModal');
-  if (resultModal) resultModal.classList.remove('hidden');
-}
-
-function closeResultModal() {
-  const resultModal = document.getElementById('resultModal');
-  if (resultModal) resultModal.classList.add('hidden');
-}
-
-// Hàm hiển thị Giao diện Đúng/Sai + Giải thích chi tiết
-function renderResultMode(questions) {
-  // SỬA LỖI: Tìm linh hoạt cả questionsForm và questionsContainer
-  const questionBox = document.getElementById('questionsForm') || document.getElementById('questionsContainer'); 
-  if (!questionBox) return;
-
-  questionBox.innerHTML = questions.map((q, idx) => {
-    const isCorrect = q.isCorrect;
-    const userVal = q.userSelected || 'Chưa trả lời';
-
-    return `
-      <div class="p-4 sm:p-5 rounded-2xl border ${isCorrect ? 'bg-green-50/50 border-green-200 dark:bg-green-950/20 dark:border-green-900' : 'bg-red-50/50 border-red-200 dark:bg-red-950/20 dark:border-red-900'} space-y-3 mb-4">
-        
-        <!-- Tiêu đề câu hỏi + Badge Đúng/Sai -->
-        <div class="flex justify-between items-start gap-2">
-          <h4 class="font-bold text-sm text-gray-900 dark:text-white">Câu ${idx + 1}: ${q.question || q.title || ''}</h4>
-          <span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${isCorrect ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'}">
-            ${isCorrect ? '✓ Đúng' : '✕ Sai'}
-          </span>
-        </div>
-
-        <!-- Hiển thị các lựa chọn (Trắc nghiệm hoặc Tự luận) -->
-        <div class="space-y-1.5 text-xs">
-          ${q.options && Array.isArray(q.options) && q.options.length > 0 ? q.options.map(opt => {
-            const optKey = opt.trim().charAt(0).toLowerCase();
-            const correctKey = (q.answer || '').toString().trim().charAt(0).toLowerCase();
-            const userKey = (q.userSelected || '').trim().charAt(0).toLowerCase();
-
-            let style = "text-gray-600 dark:text-gray-400 p-1.5 rounded-lg";
-
-            if (optKey === correctKey) {
-              style = "font-bold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/50 p-1.5 rounded-lg";
-            } else if (optKey === userKey && !isCorrect) {
-              style = "font-bold text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/50 p-1.5 rounded-lg line-through";
-            }
-
-            return `<div class="${style}">${opt}</div>`;
-          }).join('') : `
-            <div class="p-2.5 bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 space-y-1">
-              <div><span class="text-gray-400">Bạn nhập:</span> <strong class="${isCorrect ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${userVal}</strong></div>
-              <div><span class="text-gray-400">Đáp án chuẩn:</span> <strong class="text-green-600 dark:text-green-400">${q.answer}</strong></div>
+        return `
+          <div class="p-4 sm:p-5 rounded-2xl border ${isCorrect ? 'bg-green-50/50 border-green-200 dark:bg-green-950/20 dark:border-green-900' : 'bg-red-50/50 border-red-200 dark:bg-red-950/20 dark:border-red-900'} space-y-3 mb-4">
+            <div class="flex justify-between items-start gap-2">
+              <h4 class="font-bold text-sm text-gray-900 dark:text-white">Câu ${idx + 1}: ${q.question || q.title || ''}</h4>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${isCorrect ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'}">
+                ${isCorrect ? '✓ Đúng' : '✕ Sai'}
+              </span>
             </div>
-          `}
-        </div>
 
-        <!-- Khung GIẢI THÍCH CHI TIẾT -->
-        ${q.explanation ? `
-          <div class="mt-3 pt-3 border-t border-gray-200/60 dark:border-zinc-700/60 text-xs">
-            <div class="flex items-center gap-1 text-[#cf1717] dark:text-red-400 font-bold mb-1">
-              <span>💡</span>
-              <span>Giải thích chi tiết:</span>
+            <div class="space-y-1.5 text-xs">
+              ${q.options && Array.isArray(q.options) && q.options.length > 0 ? q.options.map(opt => {
+                const optKey = opt.trim().charAt(0).toLowerCase();
+                const correctKey = (q.answer || '').toString().trim().charAt(0).toLowerCase();
+                const userKey = (q.userSelected || '').trim().charAt(0).toLowerCase();
+
+                let style = "text-gray-600 dark:text-gray-400 p-1.5 rounded-lg";
+
+                if (optKey === correctKey) {
+                  style = "font-bold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/50 p-1.5 rounded-lg";
+                } else if (optKey === userKey && !isCorrect) {
+                  style = "font-bold text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/50 p-1.5 rounded-lg line-through";
+                }
+
+                return `<div class="${style}">${opt}</div>`;
+              }).join('') : `
+                <div class="p-2.5 bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 space-y-1">
+                  <div><span class="text-gray-400">Bạn nhập:</span> <strong class="${isCorrect ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${userVal}</strong></div>
+                  <div><span class="text-gray-400">Đáp án chuẩn:</span> <strong class="text-green-600 dark:text-green-400">${q.answer}</strong></div>
+                </div>
+              `}
             </div>
-            <div class="text-gray-700 dark:text-gray-300 leading-relaxed bg-white dark:bg-zinc-800 p-3 rounded-xl border border-gray-100 dark:border-zinc-700">
-              ${q.explanation}
-            </div>
+
+            ${q.explanation ? `
+              <div class="mt-3 pt-3 border-t border-gray-200/60 dark:border-zinc-700/60 text-xs">
+                <div class="flex items-center gap-1 text-[#cf1717] dark:text-red-400 font-bold mb-1">
+                  <span>💡</span>
+                  <span>Giải thích chi tiết:</span>
+                </div>
+                <div class="text-gray-700 dark:text-gray-300 leading-relaxed bg-white dark:bg-zinc-800 p-3 rounded-xl border border-gray-100 dark:border-zinc-700">
+                  ${q.explanation}
+                </div>
+              </div>
+            ` : ''}
+
           </div>
-        ` : ''}
+        `;
+      }).join('');
+    }
 
-      </div>
-    `;
-  }).join('');
-}
-    
-    // CHUYỂN TAB TRÊN MÀN HÌNH ĐIỆN THOẠI
     function switchMobileTab(tab) {
       const reading = document.getElementById('readingSection');
       const questions = document.getElementById('questionsSection');
@@ -382,7 +406,6 @@ function renderResultMode(questions) {
       }
     }
 
-    // TÍNH NĂNG HIGHLIGHT VĂN BẢN
     function highlightSelectedText() {
       const selection = window.getSelection();
       if (!selection.rangeCount || selection.isCollapsed) {
@@ -428,6 +451,5 @@ function renderResultMode(questions) {
     }
 
     window.onload = initExam;
-  </script>
 </body>
 </html>
