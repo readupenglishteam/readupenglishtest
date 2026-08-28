@@ -176,32 +176,78 @@
     }
 
     // TỰ ĐỘNG HIGHLIGHT TỪ VỰNG DẠNG GẠCH NẾT ĐỨT + TOOLTIP
-    function renderPassageWithVocab(passageHTML, vocabList = []) {
+    // ================= HÀM XỬ LÝ HIGHLIGHT TỪ VỰNG AN TOÀN =================
+    function renderPassageWithVocab(passageHTML, vocabData = []) {
       if (!passageHTML) return '';
-      if (!vocabList || !Array.isArray(vocabList) || vocabList.length === 0) {
+
+      // 1. Tự động chuyển đổi nếu Supabase trả về dạng String JSON
+      let vocabList = vocabData;
+      if (typeof vocabList === 'string') {
+        try {
+          vocabList = JSON.parse(vocabList);
+        } catch (e) {
+          vocabList = [];
+        }
+      }
+
+      if (!Array.isArray(vocabList) || vocabList.length === 0) {
         return passageHTML;
       }
 
-      let processedText = passageHTML;
+      // 2. Sắp xếp từ dài đến ngắn để tránh đè từ trùng nhau
+      const sortedVocab = [...vocabList]
+        .filter(v => v && (v.word || v.term))
+        .sort((a, b) => ((b.word || b.term).length - (a.word || a.term).length));
 
-      vocabList.forEach(item => {
-        if (!item || !item.word) return;
+      if (sortedVocab.length === 0) return passageHTML;
 
-        const escapedWord = item.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const regex = new RegExp(`\\b(${escapedWord})\\b`, 'gi');
+      // 3. Sử dụng DOM Parser để chỉ gạch chân văn bản thuần, không làm hỏng thẻ HTML
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = passageHTML;
 
-        const ipaText = item.ipa ? `${item.ipa}` : '';
-        const typeText = item.type ? `(${item.type})` : '';
-        const meaningText = item.meaning ? `<p class="font-bold text-gray-100 dark:text-gray-800">👉 ${item.meaning}</p>` : '';
-        const contextText = item.context ? `<p class="text-[11px] text-gray-300 dark:text-gray-600 italic">Context: ${item.context}</p>` : '';
-        const collocText = item.collocation ? `<p class="text-[11px] text-amber-300 dark:text-amber-700 font-medium">Collocation: ${item.collocation}</p>` : '';
+      function highlightTextNodes(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          let text = node.nodeValue;
+          if (!text || !text.trim()) return;
 
-        const tooltipHTML = `<span class="relative inline-block group cursor-pointer border-b-2 border-dotted border-gray-400 dark:border-zinc-500 hover:border-[#cf1717] dark:hover:border-red-400 transition-colors"><span class="text-gray-900 dark:text-gray-100 font-semibold">$1</span><span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex flex-col w-64 p-3.5 bg-zinc-900/95 text-white dark:bg-white/95 dark:text-zinc-900 rounded-2xl shadow-2xl z-50 text-xs space-y-1.5 pointer-events-none transition border border-zinc-700 dark:border-gray-200 backdrop-blur-md"><span class="flex justify-between items-center border-b border-zinc-700/60 dark:border-gray-200/60 pb-1"><strong class="text-red-400 dark:text-[#cf1717] font-black text-sm">${item.word}</strong><span class="text-[10px] text-gray-400 dark:text-gray-500 font-mono">${ipaText} ${typeText}</span></span>${meaningText}${contextText}${collocText}</span></span>`;
+          let hasMatch = false;
+          let htmlResult = text;
 
-        processedText = processedText.replace(regex, tooltipHTML);
-      });
+          sortedVocab.forEach(item => {
+            const wordStr = item.word || item.term;
+            if (!wordStr) return;
 
-      return processedText;
+            const escapedWord = wordStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`\\b(${escapedWord})\\b`, 'gi');
+
+            if (regex.test(htmlResult)) {
+              hasMatch = true;
+              const ipaText = item.ipa ? `${item.ipa}` : '';
+              const typeText = item.type ? `(${item.type})` : '';
+              const meaningText = item.meaning ? `<p class="font-bold text-gray-100 dark:text-gray-800">👉 ${item.meaning}</p>` : '';
+              const contextText = item.context ? `<p class="text-[11px] text-gray-300 dark:text-gray-600 italic">Context: ${item.context}</p>` : '';
+              const collocText = item.collocation ? `<p class="text-[11px] text-amber-300 dark:text-amber-700 font-medium">Collocation: ${item.collocation}</p>` : '';
+
+              const tooltipHTML = `<span class="relative inline-block group cursor-pointer border-b-2 border-dotted border-[#cf1717] dark:border-red-400 bg-red-500/10 dark:bg-red-500/20 px-0.5 rounded transition-colors"><span class="text-gray-900 dark:text-gray-100 font-semibold">$1</span><span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex flex-col w-64 p-3.5 bg-zinc-900/95 text-white dark:bg-white/95 dark:text-zinc-900 rounded-2xl shadow-2xl z-50 text-xs space-y-1.5 pointer-events-none transition border border-zinc-700 dark:border-gray-200 backdrop-blur-md"><span class="flex justify-between items-center border-b border-zinc-700/60 dark:border-gray-200/60 pb-1"><strong class="text-red-400 dark:text-[#cf1717] font-black text-sm">${wordStr}</strong><span class="text-[10px] text-gray-400 dark:text-gray-500 font-mono">${ipaText} ${typeText}</span></span>${meaningText}${contextText}${collocText}</span></span>`;
+
+              htmlResult = htmlResult.replace(regex, tooltipHTML);
+            }
+          });
+
+          if (hasMatch) {
+            const spanWrapper = document.createElement('span');
+            spanWrapper.innerHTML = htmlResult;
+            node.parentNode.replaceChild(spanWrapper, node);
+          }
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          if (node.tagName !== 'SCRIPT' && node.tagName !== 'STYLE' && !node.classList.contains('group')) {
+            Array.from(node.childNodes).forEach(highlightTextNodes);
+          }
+        }
+      }
+
+      Array.from(tempDiv.childNodes).forEach(highlightTextNodes);
+      return tempDiv.innerHTML;
     }
 
     function renderExamData() {
@@ -214,7 +260,10 @@
       const passageBox = document.getElementById('passageContent');
       if (passageBox) {
         const rawPassage = currentExam.passage_html || currentExam.passage || '<p>Không có nội dung bài đọc.</p>';
-        const vocabList = currentExam.vocab_list || currentExam.vocab || [];
+        
+        // Quét tất cả các tên cột có thể dùng trong Database
+        const vocabList = currentExam.vocab_list || currentExam.vocab || currentExam.vocabularies || currentExam.vocabulary || [];
+        
         passageBox.innerHTML = renderPassageWithVocab(rawPassage, vocabList);
       }
 
