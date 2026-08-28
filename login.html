@@ -34,15 +34,40 @@
   .animation-delay-4000 { animation-delay: 4s; }
 </style> 
   <!-- Header Navbar -->
-  <header class="flex justify-between items-center p-4 max-w-6xl mx-auto">
+  <!-- ================= HEADER LOGIN HIỆU ỨNG KÍNH MỜ (FROSTED GLASS) ================= -->
+<header class="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/60 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-950/60 transition px-4">
+  <div class="max-w-7xl mx-auto h-16 flex justify-between items-center">
+    
+    <!-- 1. KHU VỰC LOGO TRÒN & TIÊU ĐỀ (Dẫn về Trang Chủ index.html) -->
     <div class="flex items-center gap-3">
-      <img src="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png" alt="ReadUp Logo" class="h-10 w-auto">
-      <span class="font-extrabold text-xl text-[#cf1717] tracking-wide">READUP ENGLISH</span>
+      <!-- Khung Logo Tròn Đỏ -->
+      <a href="index.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
+        <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
+      </a>
+      
+      <!-- Tên Thương Hiệu + Badge English -->
+      <a href="index.html" class="flex items-center gap-2 hover:opacity-90 transition">
+        <span class="text-2xl font-black text-[#cf1717] tracking-tight">ReadUp</span>
+        <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full shadow-sm">English</span>
+      </a>
     </div>
-    <button onclick="document.documentElement.classList.toggle('dark')" class="p-2.5 rounded-full bg-gray-200 dark:bg-zinc-800 text-sm hover:opacity-80 transition" title="Đổi giao diện">
-      🌙 / ☀️
-    </button>
-  </header>
+
+    <!-- 2. KHU VỰC THAO TÁC NẠP / ĐỔI GIAO DIỆN -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Nút Quay Lại Trang Chủ -->
+      <a href="index.html" class="px-3 py-2 text-xs font-bold bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300 rounded-xl transition border border-gray-200/50 dark:border-zinc-700/50 flex items-center gap-1">
+        <span>🏠</span>
+        <span class="hidden sm:inline">Trang chủ</span>
+      </a>
+
+      <!-- Nút Chuyển Chế Độ Sáng / Tối -->
+      <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50">
+        <span id="themeIcon">🌙</span>
+      </button>
+    </div>
+
+  </div>
+</header>
 
   <!-- Form Container -->
   <main class="flex justify-center items-center py-8 px-4">
