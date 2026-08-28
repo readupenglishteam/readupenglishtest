@@ -5,10 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ReadUp English - Phòng Thi Reading</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>// BẮT BUỘC: Bảo Tailwind lắng nghe class "dark" ở thẻ <html> 
-    tailwind.config = {
-    darkMode: 'class'}
-</script>
+  <script>
+    tailwind.config = { darkMode: 'class' };
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -20,78 +19,68 @@
   <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
 </head>
 <body class="bg-gray-100 dark:bg-zinc-950 dark:text-gray-100 h-screen flex flex-col overflow-hidden transition-colors duration-300">
-<!-- ================= NỀN ĐỘNG CHUYỂN ĐỘNG DÙNG CHUNG ================= -->
-<div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none select-none transition-colors duration-500 bg-slate-50 dark:bg-zinc-950">
-  <!-- Quầng sáng 1: Đỏ ReadUp (Trái trên) -->
-  <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#cf1717]/20 dark:bg-[#cf1717]/15 rounded-full blur-3xl animate-blob"></div>
-  <!-- Quầng sáng 2: Tím nhạt (Phải giữa) -->
-  <div class="absolute top-1/3 -right-24 w-[30rem] h-[30rem] bg-indigo-500/15 dark:bg-red-900/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-  <!-- Quầng sáng 3: Vàng cam ấm (Dưới) -->
-  <div class="absolute -bottom-24 left-1/3 w-96 h-96 bg-amber-500/15 dark:bg-amber-600/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
-</div>
 
-<style>
-  @keyframes blob {
-    0%, 100% { transform: translate(0px, 0px) scale(1); }
-    33% { transform: translate(30px, -50px) scale(1.1); }
-    66% { transform: translate(-20px, 20px) scale(0.95); }
-  }
-  .animate-blob { animation: blob 10s infinite ease-in-out; }
-  .animation-delay-2000 { animation-delay: 2s; }
-  .animation-delay-4000 { animation-delay: 4s; }
-</style>
-<!-- ================= HEADER EXAM HIỆU ỨNG KÍNH MỜ (FROSTED GLASS) ================= -->
-<header class="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/60 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-950/60 transition px-4">
-  <div class="max-w-7xl mx-auto h-16 flex justify-between items-center">
-    
-    <!-- 1. KHU VỰC QUAY LẠI, LOGO NHỎ & TIÊU ĐỀ BÀI THI -->
-    <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
-      <!-- Nút Quay lại Dashboard -->
-      <a href="dashboard.html" class="px-3 py-2 text-xs font-bold bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] dark:hover:text-red-400 rounded-xl transition border border-gray-200/50 dark:border-zinc-700/50 flex items-center gap-1 flex-shrink-0">
-        <span>←</span>
-        <span class="hidden sm:inline">Quay lại</span>
-      </a>
-
-      <!-- Logo Nhỏ Tạo Điểm Nhấn Thương Hiệu -->
-      <div class="w-9 h-9 rounded-full bg-[#cf1717] hidden md:flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm">
-        <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-6 w-auto object-contain">
-      </div>
-
-      <!-- Tiêu đề bài thi -->
-      <h1 id="examHeaderTitle" class="font-extrabold text-xs sm:text-base text-gray-900 dark:text-white truncate max-w-[130px] sm:max-w-xs md:max-w-md">
-        Đang tải đề thi...
-      </h1>
-    </div>
-
-    <!-- 2. CÔNG CỤ BÀI THI, ĐỒNG HỒ ĐẾM NGƯỢC & THAO TÁC -->
-    <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-      <!-- Nút Highlight Văn Bản -->
-      <button onclick="highlightSelectedText()" class="px-2.5 sm:px-3 py-2 bg-amber-500/10 dark:bg-amber-500/20 hover:bg-amber-500/30 text-amber-700 dark:text-amber-300 font-bold text-xs rounded-xl border border-amber-300/60 dark:border-amber-700/60 transition flex items-center gap-1.5 shadow-sm">
-        <span>🖍️</span>
-        <span class="hidden sm:inline">Highlight</span>
-      </button>
-
-      <!-- ĐỒNG HỒ ĐẾM NGƯỢC -->
-      <div class="flex items-center gap-1.5 px-3 py-2 bg-red-500/10 dark:bg-red-950/50 rounded-xl border border-red-200/60 dark:border-red-900/60 shadow-sm">
-        <span class="text-xs font-bold text-[#cf1717] dark:text-red-400">⏱️</span>
-        <span id="timerDisplay" class="font-mono font-black text-xs sm:text-sm text-[#cf1717] dark:text-red-400">00:00</span>
-      </div>
-
-      <!-- Nút Nộp Bài Thi -->
-      <button onclick="confirmSubmitExam()" class="px-3 sm:px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5">
-        Nộp Bài Thi
-      </button>
-
-      <!-- Nút Chuyển Chế Độ Sáng / Tối -->
-      <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50">
-        <span id="themeIcon">🌙</span>
-      </button>
-    </div>
-
+  <!-- BACKGROUND DECORATION -->
+  <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none select-none transition-colors duration-500 bg-slate-50 dark:bg-zinc-950">
+    <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#cf1717]/20 dark:bg-[#cf1717]/15 rounded-full blur-3xl animate-blob"></div>
+    <div class="absolute top-1/3 -right-24 w-[30rem] h-[30rem] bg-indigo-500/15 dark:bg-red-900/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+    <div class="absolute -bottom-24 left-1/3 w-96 h-96 bg-amber-500/15 dark:bg-amber-600/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
   </div>
-</header>
 
-  <!-- THANH CHUYỂN TAB TRÊN ĐIỆN THOẠI -->
+  <style>
+    @keyframes blob {
+      0%, 100% { transform: translate(0px, 0px) scale(1); }
+      33% { transform: translate(30px, -50px) scale(1.1); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+    .animate-blob { animation: blob 10s infinite ease-in-out; }
+    .animation-delay-2000 { animation-delay: 2s; }
+    .animation-delay-4000 { animation-delay: 4s; }
+  </style>
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/60 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-950/60 transition px-4">
+    <div class="max-w-7xl mx-auto h-16 flex justify-between items-center">
+      
+      <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+        <a href="dashboard.html" class="px-3 py-2 text-xs font-bold bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] dark:hover:text-red-400 rounded-xl transition border border-gray-200/50 dark:border-zinc-700/50 flex items-center gap-1 flex-shrink-0">
+          <span>←</span>
+          <span class="hidden sm:inline">Quay lại</span>
+        </a>
+
+        <div class="w-9 h-9 rounded-full bg-[#cf1717] hidden md:flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm">
+          <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-6 w-auto object-contain">
+        </div>
+
+        <h1 id="examHeaderTitle" class="font-extrabold text-xs sm:text-base text-gray-900 dark:text-white truncate max-w-[130px] sm:max-w-xs md:max-w-md">
+          Đang tải đề thi...
+        </h1>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+        <button onclick="highlightSelectedText()" class="px-2.5 sm:px-3 py-2 bg-amber-500/10 dark:bg-amber-500/20 hover:bg-amber-500/30 text-amber-700 dark:text-amber-300 font-bold text-xs rounded-xl border border-amber-300/60 dark:border-amber-700/60 transition flex items-center gap-1.5 shadow-sm">
+          <span>🖍️</span>
+          <span class="hidden sm:inline">Highlight</span>
+        </button>
+
+        <div class="flex items-center gap-1.5 px-3 py-2 bg-red-500/10 dark:bg-red-950/50 rounded-xl border border-red-200/60 dark:border-red-900/60 shadow-sm">
+          <span class="text-xs font-bold text-[#cf1717] dark:text-red-400">⏱️</span>
+          <span id="timerDisplay" class="font-mono font-black text-xs sm:text-sm text-[#cf1717] dark:text-red-400">00:00</span>
+        </div>
+
+        <button onclick="confirmSubmitExam()" class="px-3 sm:px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5">
+          Nộp Bài Thi
+        </button>
+
+        <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50">
+          <span id="themeIcon">🌙</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MOBILE TAB -->
   <div class="lg:hidden flex border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
     <button id="mobileTabReading" onclick="switchMobileTab('reading')" class="w-1/2 py-2.5 text-center font-bold text-xs text-[#cf1717] border-b-2 border-[#cf1717]">
       📖 Bài Đọc (Passage)
@@ -101,10 +90,10 @@
     </button>
   </div>
 
-  <!-- NỘI DUNG LÀM BÀI -->
+  <!-- MAIN CONTENT -->
   <main class="flex-1 max-w-7xl w-full mx-auto p-2 sm:p-4 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 overflow-hidden">
     
-    <!-- CỘT BÀI ĐỌC (CUỘN ĐỘC LẬP) -->
+    <!-- PASSAGE -->
     <section id="readingSection" class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 h-full overflow-y-auto shadow-sm space-y-4">
       <div class="flex items-center justify-between border-b dark:border-zinc-800 pb-3 sticky top-0 bg-white dark:bg-zinc-900 z-10">
         <h2 class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white flex items-center gap-2">📖 Reading Passage</h2>
@@ -115,7 +104,7 @@
       </div>
     </section>
 
-    <!-- CỘT CÂU HỎI (CUỘN ĐỘC LẬP) -->
+    <!-- QUESTIONS -->
     <section id="questionsSection" class="hidden lg:block bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 h-full overflow-y-auto shadow-sm">
       <div class="space-y-6">
         <div class="flex items-center justify-between border-b dark:border-zinc-800 pb-3 sticky top-0 bg-white dark:bg-zinc-900 z-10">
@@ -130,7 +119,7 @@
 
   </main>
 
-  <!-- MODAL KẾT QUẢ -->
+  <!-- RESULT MODAL -->
   <div id="resultModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-2xl text-center space-y-5 sm:space-y-6">
       <div class="w-14 h-14 sm:w-16 sm:h-16 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-full flex items-center justify-center text-2xl sm:text-3xl mx-auto">🏆</div>
@@ -147,18 +136,20 @@
           <span class="block text-[10px] sm:text-xs font-bold text-gray-400 uppercase">Thời Gian Làm</span>
           <span id="finalTime" class="text-xl sm:text-2xl font-black text-gray-700 dark:text-gray-200">00:00</span>
         </div>
-        <div class="space-y-2.5">
-      <button onclick="closeResultModal()" class="w-full py-3 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-800 dark:text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5">
-        <span>🔍</span>
-        <span>Đáp án & Giải thích</span>
-      </button>
       </div>
-      <button onclick="window.location.href='dashboard.html'" class="w-full py-2.5 sm:py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-lg transition text-sm shadow">Trở Về Trang Chủ Dashboard</button>
+      <div class="space-y-2.5">
+        <button onclick="closeResultModal()" class="w-full py-3 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-800 dark:text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5">
+          <span>🔍</span>
+          <span>Đáp án & Giải thích</span>
+        </button>
+        <button onclick="window.location.href='dashboard.html'" class="w-full py-2.5 sm:py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-lg transition text-sm shadow">Trở Về Trang Chủ Dashboard</button>
+      </div>
     </div>
   </div>
 
-<script>
-const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
     const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
     const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -184,32 +175,28 @@ const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
       startTimer(exam.time_limit || 60);
     }
 
-    // ================= HÀM TỰ ĐỘNG GẮN TOOLTIP TỪ VỰNG GẠCH NẾT ĐỨT =================
+    // TỰ ĐỘNG HIGHLIGHT TỪ VỰNG DẠNG GẠCH NẾT ĐỨT + TOOLTIP
     function renderPassageWithVocab(passageHTML, vocabList = []) {
+      if (!passageHTML) return '';
       if (!vocabList || !Array.isArray(vocabList) || vocabList.length === 0) {
-        return passageHTML || '';
+        return passageHTML;
       }
 
-      let processedText = passageHTML || '';
+      let processedText = passageHTML;
 
       vocabList.forEach(item => {
-        if (!item.word) return;
-        // Regex chỉ match từ nằm ngoài thẻ HTML để tránh hỏng code HTML
-        const regex = new RegExp(`\\b(${item.word})\\b(?![^<]*>|[^<>]*</)`, 'gi');
+        if (!item || !item.word) return;
 
-        const tooltipHTML = `
-        <span class="relative inline-block group cursor-pointer border-b-2 border-dotted border-gray-400 dark:border-zinc-500 hover:border-[#cf1717] dark:hover:border-red-400 transition-colors">
-          <span class="text-gray-900 dark:text-gray-100 font-semibold">$1</span>
-          <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex flex-col w-64 p-3.5 bg-zinc-900/95 text-white dark:bg-white/95 dark:text-zinc-900 rounded-2xl shadow-2xl z-50 text-xs space-y-1.5 pointer-events-none transition border border-zinc-700 dark:border-gray-200 backdrop-blur-md">
-            <span class="flex justify-between items-center border-b border-zinc-700/60 dark:border-gray-200/60 pb-1">
-              <strong class="text-red-400 dark:text-[#cf1717] font-black text-sm">${item.word}</strong>
-              <span class="text-[10px] text-gray-400 dark:text-gray-500 font-mono">${item.ipa || ''} ${item.type ? `(${item.type})` : ''}</span>
-            </span>
-            ${item.meaning ? `<p class="font-bold text-gray-100 dark:text-gray-800">👉 ${item.meaning}</p>` : ''}
-            ${item.context ? `<p class="text-[11px] text-gray-300 dark:text-gray-600 italic">Context: ${item.context}</p>` : ''}
-            ${item.collocation ? `<p class="text-[11px] text-amber-300 dark:text-amber-700 font-medium">Collocation: ${item.collocation}</p>` : ''}
-          </span>
-        </span>`;
+        const escapedWord = item.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`\\b(${escapedWord})\\b`, 'gi');
+
+        const ipaText = item.ipa ? `${item.ipa}` : '';
+        const typeText = item.type ? `(${item.type})` : '';
+        const meaningText = item.meaning ? `<p class="font-bold text-gray-100 dark:text-gray-800">👉 ${item.meaning}</p>` : '';
+        const contextText = item.context ? `<p class="text-[11px] text-gray-300 dark:text-gray-600 italic">Context: ${item.context}</p>` : '';
+        const collocText = item.collocation ? `<p class="text-[11px] text-amber-300 dark:text-amber-700 font-medium">Collocation: ${item.collocation}</p>` : '';
+
+        const tooltipHTML = `<span class="relative inline-block group cursor-pointer border-b-2 border-dotted border-gray-400 dark:border-zinc-500 hover:border-[#cf1717] dark:hover:border-red-400 transition-colors"><span class="text-gray-900 dark:text-gray-100 font-semibold">$1</span><span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex flex-col w-64 p-3.5 bg-zinc-900/95 text-white dark:bg-white/95 dark:text-zinc-900 rounded-2xl shadow-2xl z-50 text-xs space-y-1.5 pointer-events-none transition border border-zinc-700 dark:border-gray-200 backdrop-blur-md"><span class="flex justify-between items-center border-b border-zinc-700/60 dark:border-gray-200/60 pb-1"><strong class="text-red-400 dark:text-[#cf1717] font-black text-sm">${item.word}</strong><span class="text-[10px] text-gray-400 dark:text-gray-500 font-mono">${ipaText} ${typeText}</span></span>${meaningText}${contextText}${collocText}</span></span>`;
 
         processedText = processedText.replace(regex, tooltipHTML);
       });
@@ -224,7 +211,6 @@ const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
       const topicTag = document.getElementById('examTopicTag');
       if (topicTag) topicTag.innerText = currentExam.topic || 'General';
 
-      // HIỂN THỊ BÀI ĐỌC ĐÃ TÍCH HỢP TỰ ĐỘNG HIGHLIGHT TỪ VỰNG
       const passageBox = document.getElementById('passageContent');
       if (passageBox) {
         const rawPassage = currentExam.passage_html || currentExam.passage || '<p>Không có nội dung bài đọc.</p>';
@@ -451,5 +437,6 @@ const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
     }
 
     window.onload = initExam;
+  </script>
 </body>
 </html>
