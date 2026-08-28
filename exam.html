@@ -172,7 +172,6 @@
       }).join('');
     }
 
-    // TÍNH ĐIỂM CHUẨN XÁC TỪ V1 VÀ LƯU VÀO SUPABASE
 async function submitExam() {
   clearInterval(timerInterval);
   const questions = currentExam.questions || [];
@@ -190,18 +189,24 @@ async function submitExam() {
     let userAns = selectedVal.toLowerCase();
     let correctAns = (q.answer || '').toString().trim().toLowerCase();
 
+    let isCorrect = false;
     if (userAns && correctAns) {
       if (userAns === correctAns || userAns.startsWith(correctAns + '.') || userAns.startsWith(correctAns + ' ')) {
+        isCorrect = true;
         correctCount++;
       }
     }
+
+    // Đính kèm kết quả trực tiếp vào mảng câu hỏi để render giao diện
+    q.userSelected = selectedVal;
+    q.isCorrect = isCorrect;
   });
 
   // 2. Tính điểm thang 10 (Làm tròn 2 chữ số thập phân)
   const totalQuestions = questions.length;
   const score10 = totalQuestions > 0 ? Number(((10 / totalQuestions) * correctCount).toFixed(2)) : 0;
 
-  // 3. Gửi điểm thang 10 lên Supabase
+  // 3. Gửi điểm lên Supabase
   const payload = {
     exam_id: currentExam.id,
     user_id: currentUser.id,
@@ -213,10 +218,83 @@ async function submitExam() {
 
   if (error) {
     alert("❌ Lỗi lưu kết quả: " + error.message);
-  } else {
-    console.log("✅ Lưu thành công!", data);
+    return;
   }
 
+  // 4. Render trạng thái Đúng/Sai & Giải thích chi tiết phía sau màn hình
+  renderResultMode(questions);
+
+  // 5. Hiển thị kết quả chi tiết lên Pop-up Modal
+  document.getElementById('finalScore').innerText = `${score10}/10 điểm (${correctCount}/${totalQuestions} câu đúng)`;
+  document.getElementById('finalTime').innerText = `${Math.floor(timeSpentSeconds / 60)}m ${timeSpentSeconds % 60}s`;
+  document.getElementById('resultModal').classList.remove('hidden');
+}
+function closeResultModal() {
+  document.getElementById('resultModal').classList.add('hidden');
+}
+    // Hàm hiển thị Giao diện Đúng/Sai + Giải thích chi tiết
+function renderResultMode(questions) {
+  // Thay 'questionsContainer' bằng ID khung chứa danh sách câu hỏi trong file HTML của bạn
+  const questionBox = document.getElementById('questionsContainer'); 
+  if (!questionBox) return;
+
+  questionBox.innerHTML = questions.map((q, idx) => {
+    const isCorrect = q.isCorrect;
+    const userVal = q.userSelected || 'Chưa trả lời';
+
+    return `
+      <div class="p-4 sm:p-5 rounded-2xl border ${isCorrect ? 'bg-green-50/50 border-green-200 dark:bg-green-950/20 dark:border-green-900' : 'bg-red-50/50 border-red-200 dark:bg-red-950/20 dark:border-red-900'} space-y-3 mb-4">
+        
+        <!-- Tiêu đề câu hỏi + Badge Đúng/Sai -->
+        <div class="flex justify-between items-start gap-2">
+          <h4 class="font-bold text-sm text-gray-900 dark:text-white">Câu ${idx + 1}: ${q.question || q.title || ''}</h4>
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${isCorrect ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'}">
+            ${isCorrect ? '✓ Đúng' : '✕ Sai'}
+          </span>
+        </div>
+
+        <!-- Hiển thị các lựa chọn (Trắc nghiệm hoặc Tự luận) -->
+        <div class="space-y-1.5 text-xs">
+          ${q.options && Array.isArray(q.options) && q.options.length > 0 ? q.options.map(opt => {
+            const optKey = opt.trim().charAt(0).toLowerCase();
+            const correctKey = (q.answer || '').toString().trim().charAt(0).toLowerCase();
+            const userKey = (q.userSelected || '').trim().charAt(0).toLowerCase();
+
+            let style = "text-gray-600 dark:text-gray-400 p-1.5 rounded-lg";
+
+            if (optKey === correctKey) {
+              style = "font-bold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/50 p-1.5 rounded-lg";
+            } else if (optKey === userKey && !isCorrect) {
+              style = "font-bold text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/50 p-1.5 rounded-lg line-through";
+            }
+
+            return `<div class="${style}">${opt}</div>`;
+          }).join('') : `
+            <div class="p-2.5 bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 space-y-1">
+              <div><span class="text-gray-400">Bạn nhập:</span> <strong class="${isCorrect ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${userVal}</strong></div>
+              <div><span class="text-gray-400">Đáp án chuẩn:</span> <strong class="text-green-600 dark:text-green-400">${q.answer}</strong></div>
+            </div>
+          `}
+        </div>
+
+        <!-- Khung GIẢI THÍCH CHI TIẾT -->
+        ${q.explanation ? `
+          <div class="mt-3 pt-3 border-t border-gray-200/60 dark:border-zinc-700/60 text-xs">
+            <div class="flex items-center gap-1 text-[#cf1717] dark:text-red-400 font-bold mb-1">
+              <span>💡</span>
+              <span>Giải thích chi tiết:</span>
+            </div>
+            <div class="text-gray-700 dark:text-gray-300 leading-relaxed bg-white dark:bg-zinc-800 p-3 rounded-xl border border-gray-100 dark:border-zinc-700">
+              ${q.explanation}
+            </div>
+          </div>
+        ` : ''}
+
+      </div>
+    `;
+  }).join('');
+}
+    
   // 4. Hiển thị kết quả chi tiết lên Modal
   document.getElementById('finalScore').innerText = `${score10}/10 điểm (${correctCount}/${totalQuestions} câu đúng)`;
   document.getElementById('finalTime').innerText = `${Math.floor(timeSpentSeconds / 60)}m ${timeSpentSeconds % 60}s`;
