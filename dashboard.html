@@ -42,21 +42,48 @@
 </style>
   
   <!-- Header Navbar -->
-  <header class="bg-white dark:bg-zinc-900 border-b dark:border-zinc-800 sticky top-0 z-40 shadow-sm px-4">
-    <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
-      <div class="flex items-center gap-2 sm:gap-3">
-        <div class="w-12 h-12 rounded-xl bg-[#cf1717] flex items-center justify-center overflow-hidden"><img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain"></div>
-        <span class="font-extrabold text-lg sm:text-xl text-[#cf1717] tracking-wide">READUP ENGLISH</span>
-      </div>
-
-      <div class="flex items-center gap-2 sm:gap-3">
-        <span id="welcomeUser" class="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200 hidden sm:inline">👋 Chào mừng sinh viên</span>
-        <button onclick="togglePasswordModal(true)" class="px-2.5 sm:px-3 py-1.5 text-xs font-bold border border-[#cf1717] text-[#cf1717] hover:bg-[#cf1717] hover:text-white rounded-lg transition">🔒 Đổi mật khẩu</button>
-        <button onclick="handleLogout()" class="px-2.5 sm:px-3 py-1.5 text-xs font-bold bg-gray-200 dark:bg-zinc-800 hover:bg-red-100 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] rounded-lg transition">Đăng xuất</button>
-        <button onclick="toggleDarkMode()" class="p-2 rounded-full bg-gray-100 dark:bg-zinc-800 text-sm">🌙 / ☀️</button>
-      </div>
+  <!-- ================= HEADER DASHBOARD HIỆU ỨNG KÍNH MỜ (FROSTED GLASS) ================= -->
+<header class="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/60 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-950/60 transition px-4">
+  <div class="max-w-7xl mx-auto h-16 flex justify-between items-center">
+    
+    <!-- 1. KHU VỰC LOGO TRÒN & TIÊU ĐỀ (Link về Landing Page index.html) -->
+    <div class="flex items-center gap-3">
+      <!-- Khung Logo Tròn Đỏ -->
+      <a href="dashboard.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
+        <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
+      </a>
+      
+      <!-- Tên Thương Hiệu + Badge English -->
+      <a href="dashboard.html" class="flex items-center gap-2 hover:opacity-90 transition">
+        <span class="text-2xl font-black text-[#cf1717] tracking-tight">ReadUp</span>
+        <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full shadow-sm">English</span>
+      </a>
     </div>
-  </header>
+
+    <!-- 2. KHU VỰC THÔNG TIN & THAO TÁC HỌC VIÊN -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Tên Sinh Viên -->
+      <span id="welcomeUser" class="text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-200 hidden sm:inline-block mr-1">👋 Chào mừng sinh viên</span>
+
+      <!-- Nút Đổi mật khẩu -->
+      <button onclick="togglePasswordModal(true)" class="px-3 py-2 text-xs font-bold text-[#cf1717] dark:text-red-400 bg-red-50 dark:bg-red-950/40 hover:bg-[#cf1717] hover:text-white dark:hover:bg-[#cf1717] dark:hover:text-white rounded-xl border border-red-200/60 dark:border-red-900/50 transition flex items-center gap-1 shadow-sm">
+        <span>🔒</span>
+        <span class="hidden sm:inline">Đổi mật khẩu</span>
+      </button>
+
+      <!-- Nút Đăng xuất -->
+      <button onclick="handleLogout()" class="px-3 py-2 text-xs font-bold bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-red-100 dark:hover:bg-red-950/50 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] dark:hover:text-red-400 rounded-xl transition border border-gray-200/50 dark:border-zinc-700/50">
+        Đăng xuất
+      </button>
+
+      <!-- Nút Chuyển Chế Độ Sáng / Tối -->
+      <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50">
+        <span id="themeIcon">🌙</span>
+      </button>
+    </div>
+
+  </div>
+</header>
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8 sm:space-y-10">
 
@@ -500,16 +527,19 @@ function closeVocabModal() {
     <!-- 1. THÔNG TIN LIÊN HỆ -->
     <div class="space-y-3">
       <div class="flex items-center gap-2">
+        <a href="index.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
+        <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
+      </a>
         <span class="text-xl font-black text-[#cf1717]">ReadUp</span>
         <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full">English</span>
       </div>
       <p class="text-gray-400 leading-relaxed">Nền tảng luyện thi IELTS Reading thông minh, tối ưu hóa vốn từ vựng theo ngữ cảnh.</p>
       <div class="space-y-1">
-        <p>📧 Email: <a href="mailto:support@readupenglish.com" class="text-white hover:underline">readupenglishteam@gmail.com</a></p>
+        <p>📧 Email: <a href="mailto:readupenglish.team@gmail.com" class="text-white hover:underline">readupenglish.team@gmail.com</a></p>
       </div>
       <!-- Mạng xã hội -->
       <div class="flex items-center gap-3 pt-2">
-        <a href="https://tiktok.com" target="_blank" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-gray-300 hover:bg-[#cf1717] hover:text-white transition">
+        <a href="https://www.tiktok.com/@readupenglish?_r=1&_t=ZS-99FagtaKnGa" target="_blank" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-gray-300 hover:bg-[#cf1717] hover:text-white transition">
           <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.98-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.82.56-1.32 1.56-1.28 2.55.02.82.42 1.61 1.08 2.1 1.03.82 2.53.87 3.6.13.71-.48 1.18-1.28 1.25-2.13.06-3.81.02-7.63.03-11.44z"/></svg>
         </a>
       </div>
