@@ -937,11 +937,12 @@ function insertDocFile() {
     <span class="font-bold text-xs text-gray-800 dark:text-gray-100 flex items-center gap-1.5">
       📄 ${escapeHtml(fileName)}
     </span>
-    <a href="${fileUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition shadow">
-      📎 Mở / Tải tài liệu
-    </a>
   </div>
   <iframe src="${embedUrl}" class="w-full h-96 rounded-lg border border-gray-300 dark:border-zinc-600 shadow-inner bg-white" allow="autoplay"></iframe>
+  <div class="flex justify-center pt-1">
+    <a href="${fileUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition shadow">
+      📎 Mở / Tải tài liệu </a>
+  </div>
 </div>\n`;
 
   const contentInput = document.getElementById('guideInputContent');
