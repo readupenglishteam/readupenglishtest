@@ -64,50 +64,9 @@
     <div class="flex items-center gap-2 sm:gap-3">
       <!-- Tên Sinh Viên -->
       <span id="welcomeUser" class="text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-200 hidden sm:inline-block mr-1">👋 Chào mừng sinh viên</span>
-
-     <!-- MODAL ĐỔI MẬT KHẨU -->
-<div id="passwordModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-  <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4">
-    
-    <!-- Tiêu đề Modal -->
-    <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
-      <h3 class="font-extrabold text-base text-gray-900 dark:text-white flex items-center gap-2">🔒 Đổi Mật Khẩu</h3>
-      <button onclick="togglePasswordModal(false)" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-xl">&times;</button>
-    </div>
-
-    <!-- Ô Nhập Mật Khẩu Mới + Icon Con Mắt -->
-    <div class="space-y-4">
-      <div>
-        <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Mật khẩu mới</label>
-        <div class="relative w-full">
-          <input 
-            type="password" 
-            id="newPasswordInput" 
-            placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)..." 
-            class="w-full p-3 pr-10 rounded-xl border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#cf1717] dark:text-white"
-          >
-          <button 
-            type="button" 
-            onclick="togglePasswordVisibility('newPasswordInput', this)" 
-            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 focus:outline-none"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Nút thao tác -->
-      <div class="flex gap-2 pt-2">
-        <button type="button" onclick="togglePasswordModal(false)" class="w-1/2 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300 font-bold rounded-xl text-xs transition">Hủy</button>
-        <button type="button" onclick="handleUpdatePassword()" class="w-1/2 py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow transition">Xác Nhận Đổi</button>
-      </div>
-    </div>
-
-  </div>
-</div>
+      <!-- Đổi mật khẩu -->
+       <button onclick="togglePasswordModal(true)" class="px-3 py-2 text-xs font-bold text-[#cf1717] dark:text-red-400 bg-red-50 dark:bg-red-950/40 hover:bg-[#cf1717] hover:text-white dark:hover:bg-[#cf1717] dark:hover:text-white rounded-xl border border-red-200/60 dark:border-red-900/50 transition flex items-center gap-1 shadow-sm">
+        <span>🔒</span><span class="hidden sm:inline">Đổi mật khẩu</span></button> 
 
       <!-- Nút Đăng xuất -->
       <button onclick="handleLogout()" class="px-3 py-2 text-xs font-bold bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-red-100 dark:hover:bg-red-950/50 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] dark:hover:text-red-400 rounded-xl transition border border-gray-200/50 dark:border-zinc-700/50">
@@ -857,6 +816,48 @@ function closeVocabModal() {
   }
   
 </script>
+<!-- MODAL ĐỔI MẬT KHẨU -->
+<div id="passwordModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+  <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4">
+    
+    <!-- Tiêu đề Modal -->
+    <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
+      <h3 class="font-extrabold text-base text-gray-900 dark:text-white flex items-center gap-2">🔒 Đổi Mật Khẩu</h3>
+      <button onclick="togglePasswordModal(false)" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-xl">&times;</button>
+    </div>
 
+    <!-- Ô Nhập Mật Khẩu Mới + Icon Con Mắt -->
+    <div class="space-y-4">
+      <div>
+        <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Mật khẩu mới</label>
+        <div class="relative w-full">
+          <input 
+            type="password" 
+            id="newPasswordInput" 
+            placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)..." 
+            class="w-full p-3 pr-10 rounded-xl border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#cf1717] dark:text-white"
+          >
+          <button 
+            type="button" 
+            onclick="togglePasswordVisibility('newPasswordInput', this)" 
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 focus:outline-none"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Nút thao tác -->
+      <div class="flex gap-2 pt-2">
+        <button type="button" onclick="togglePasswordModal(false)" class="w-1/2 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300 font-bold rounded-xl text-xs transition">Hủy</button>
+        <button type="button" onclick="handleUpdatePassword()" class="w-1/2 py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow transition">Xác Nhận Đổi</button>
+      </div>
+    </div>
+
+  </div>
+</div>
 </body>
 </html>
