@@ -179,23 +179,42 @@ async function loadNews() {
       const countElem = document.getElementById('examCount');
       if (countElem) countElem.innerText = `${examList.length} bài làm`;
 
-      examBox.innerHTML = examList.map(exam => `
-        <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4 flex flex-col justify-between">
-          <div class="space-y-2">
-            <div class="flex justify-between items-center">
-              <span class="text-xs font-bold text-[#cf1717] bg-red-50 dark:bg-red-950/80 px-2.5 py-1 rounded-full">📌 ${exam.topic || 'General'}</span>
-              <span class="text-xs text-gray-400">⏱️ ${exam.time_limit || 60} phút</span>
-            </div>
-            <h3 class="font-bold text-base sm:text-lg text-gray-900 dark:text-white">${exam.title}</h3>
-            <p class="text-xs text-gray-500 line-clamp-2">${exam.notes || 'Không có ghi chú'}</p>
-          </div>
-          <div class="pt-3 border-t border-gray-100 dark:border-zinc-800 flex justify-between items-center">
-            <span class="text-[11px] text-gray-400">📅 ${new Date(exam.created_at).toLocaleDateString('vi-VN')}</span>
-            <button onclick="window.location.href='exam.html?token=${exam.token}'" class="px-3 sm:px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs rounded-lg shadow transition">Vào làm bài ➔</button>
-          </div>
+examBox.innerHTML = examList.map(exam => {
+  const hasVocab = exam.vocabulary && 
+                   exam.vocabulary !== '[]' && 
+                   (Array.isArray(exam.vocabulary) ? exam.vocabulary.length > 0 : true);
+
+  return `
+    <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4 flex flex-col justify-between">
+      <div class="space-y-2">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-bold text-[#cf1717] bg-red-50 dark:bg-red-950/80 px-2.5 py-1 rounded-full">📌 ${exam.topic || 'General'}</span>
+          <span class="text-xs text-gray-400">⏱️ ${exam.time_limit || 60} phút</span>
         </div>
-      `).join('');
-    }
+        <h3 class="font-bold text-base sm:text-lg text-gray-900 dark:text-white">${exam.title}</h3>
+        <p class="text-xs text-gray-500 line-clamp-2">${exam.notes || 'Không có ghi chú'}</p>
+      </div>
+
+      <div class="pt-3 border-t border-gray-100 dark:border-zinc-800 flex justify-between items-center gap-2">
+        <!-- Nhóm bên trái: Ngày tháng + Nút Vocabulary -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-[11px] text-gray-400">📅 ${new Date(exam.created_at).toLocaleDateString('vi-VN')}</span>
+          ${hasVocab ? `
+            <button onclick="openVocabModal('${exam.id || exam.token}')" class="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 dark:bg-red-950/60 text-[#cf1717] dark:text-red-400 hover:bg-[#cf1717] hover:text-white rounded-lg text-xs font-bold transition-all shadow-sm">
+              <span>📚</span>
+              <span>Vocabulary</span>
+            </button>
+          ` : ''}
+        </div>
+
+        <!-- Nhóm bên phải: Nút làm bài -->
+        <button onclick="window.location.href='exam.html?token=${exam.token}'" class="px-3 sm:px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs rounded-lg shadow transition whitespace-nowrap">
+          Vào làm bài ➔
+        </button>
+      </div>
+    </div>
+  `;
+}).join('');
 
    async function loadStudentHistory() {
   const historyContainer = document.getElementById('historyList');
@@ -362,6 +381,33 @@ function getTextPreview(rawContent) {
   } catch (e) {}
   return rawContent;
 }
+
+let globalTestsList = []; // Dữ liệu bài thi đã fetch từ Supabase
+
+function openVocabModal(testId) {
+  const test = globalTestsList.find(t => t.id == testId);
+  if (!test || !test.vocabulary) return;
+
+  let vocabArray = typeof test.vocabulary === 'string' ? JSON.parse(test.vocabulary) : test.vocabulary;
+  
+  const container = document.getElementById('vocabListContent');
+  container.innerHTML = vocabArray.map(v => `
+    <div class="p-3 bg-gray-50 dark:bg-zinc-800/60 rounded-xl border border-gray-100 dark:border-zinc-700/50">
+      <div class="flex items-baseline gap-2 mb-1">
+        <span class="font-bold text-sm text-gray-900 dark:text-white">${v.word}</span>
+        <span class="text-xs text-red-600 dark:text-red-400 font-medium">${v.ipa || ''}</span>
+        <span class="text-[10px] text-gray-400 italic">(${v.type || 'Word'})</span>
+      </div>
+      <p class="text-xs text-gray-600 dark:text-gray-300 font-medium">👉 ${v.meaning}</p>
+    </div>
+  `).join('');
+
+  document.getElementById('vocabModal').classList.remove('hidden');
+}
+
+function closeVocabModal() {
+  document.getElementById('vocabModal').classList.add('hidden');
+}
     
   </script>
   <!-- Pop-up Chi Tiết Thông Báo -->
@@ -381,5 +427,26 @@ function getTextPreview(rawContent) {
     </div>
   </div>
 </div>
+  
+<!-- Pop-up Modal Từ Vựng -->
+<div id="vocabModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-all">
+  <div class="bg-white dark:bg-zinc-900 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-gray-100 dark:border-zinc-800 p-5 sm:p-6 relative">
+    
+    <!-- Tiêu đề Modal -->
+    <div class="flex justify-between items-center pb-3 border-b border-gray-100 dark:border-zinc-800 mb-4">
+      <div class="flex items-center gap-2">
+        <span class="p-2 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-lg">📚</span>
+        <h3 class="font-extrabold text-lg text-gray-900 dark:text-white">Danh Sách Từ Vựng Bài Đọc</h3>
+      </div>
+      <button onclick="closeVocabModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 rounded-lg">✕</button>
+    </div>
+
+    <!-- Vùng hiển thị danh sách từ vựng chia 2 cột -->
+    <div id="vocabListContent" class="overflow-y-auto pr-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <!-- Dữ liệu từ vựng đổ vào đây -->
+    </div>
+  </div>
+</div>
+  
 </body>
 </html>
