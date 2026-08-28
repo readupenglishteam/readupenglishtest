@@ -166,6 +166,12 @@
           <label class="block text-xs font-bold uppercase mb-1">Danh sách câu hỏi (JSON)</label>
           <textarea id="examQuestions" rows="4" required placeholder="Danh sách câu hỏi (JSON)..." class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 font-mono text-xs"></textarea>
         </div>
+        <div>
+          <label class="block text-xs font-bold uppercase mb-1">DANH SÁCH TỪ VỰNG (JSON)</label>
+          <textarea id="editVocab" rows="5" class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 font-mono text-xs" placeholder='[
+  { "word": "Vital", "ipa": "/ˈvaɪ.təl/", "type": "Adjective", "meaning": "Thiết yếu, cực kỳ quan trọng." },
+  { "word": "Establish", "ipa": "/ɪˈstæb.lɪʃ/", "type": "Verb", "meaning": "Thiết lập, củng cố." }]'></textarea>
+        </div>
         <div class="flex gap-3 pt-2">
           <button type="button" onclick="closeExamModal()" class="w-1/2 py-3 bg-gray-200 dark:bg-zinc-700 font-bold rounded-lg text-sm">Hủy</button>
           <button type="submit" class="w-1/2 py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-lg transition text-sm shadow">Lưu Bài Thi</button>
@@ -361,7 +367,16 @@
       document.getElementById('examQuestions').value = JSON.stringify(exam.questions, null, 2);
       document.getElementById('examModal').classList.remove('hidden');
     }
-
+    // Lấy giá trị từ ô textarea
+    const vocabData = document.getElementById('editVocab').value;
+    const { error } = await sbClient.from('tests').upsert({
+    id: currentTestId, // Nếu sửa bài
+    title: titleInput,
+    content: contentInput,
+    questions: JSON.parse(questionsInput),
+    vocabulary: vocabData ? JSON.parse(vocabData) : [], // Lưu JSON Vocabulary
+  // ... các trường khác
+});
     async function handleSaveExam(e) {
       e.preventDefault();
       const id = document.getElementById('editingExamId').value;
