@@ -95,7 +95,7 @@
     </div>
   </div>
 
-  <script>
+<script>
     const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
     const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
     const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -165,58 +165,64 @@ async function loadNews() {
   `).join('');
 }
 
-    async function loadExams() {
-      const examBox = document.getElementById('examsContainer');
-      const { data: examList } = await sbClient.from('exams').select('*').order('created_at', { ascending: false });
+let globalTestsList = []; // Biến toàn cục lưu trữ danh sách bài thi
 
-      if (!examList || examList.length === 0) {
-        examBox.innerHTML = `<div class="col-span-full bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-xl p-6 text-center text-gray-400 text-xs sm:text-sm">Chưa có bài thi nào.</div>`;
-        const countElem = document.getElementById('examCount');
-        if (countElem) countElem.innerText = '0 bài làm';
-        return;
-      }
+async function loadExams() {
+  const examBox = document.getElementById('examsContainer');
+  const { data: examList } = await sbClient.from('exams').select('*').order('created_at', { ascending: false });
 
-      const countElem = document.getElementById('examCount');
-      if (countElem) countElem.innerText = `${examList.length} bài làm`;
+  if (!examList || examList.length === 0) {
+    examBox.innerHTML = `<div class="col-span-full bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-xl p-6 text-center text-gray-400 text-xs sm:text-sm">Chưa có bài thi nào.</div>`;
+    const countElem = document.getElementById('examCount');
+    if (countElem) countElem.innerText = '0 bài làm';
+    return;
+  }
 
-examBox.innerHTML = examList.map(exam => {
-  const hasVocab = exam.vocabulary && 
-                   exam.vocabulary !== '[]' && 
-                   (Array.isArray(exam.vocabulary) ? exam.vocabulary.length > 0 : true);
+  // Cập nhật biến toàn cục để Pop-up Vocabulary truy cập được dữ liệu
+  globalTestsList = examList;
 
-  return `
-    <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4 flex flex-col justify-between">
-      <div class="space-y-2">
-        <div class="flex justify-between items-center">
-          <span class="text-xs font-bold text-[#cf1717] bg-red-50 dark:bg-red-950/80 px-2.5 py-1 rounded-full">📌 ${exam.topic || 'General'}</span>
-          <span class="text-xs text-gray-400">⏱️ ${exam.time_limit || 60} phút</span>
-        </div>
-        <h3 class="font-bold text-base sm:text-lg text-gray-900 dark:text-white">${exam.title}</h3>
-        <p class="text-xs text-gray-500 line-clamp-2">${exam.notes || 'Không có ghi chú'}</p>
-      </div>
+  const countElem = document.getElementById('examCount');
+  if (countElem) countElem.innerText = `${examList.length} bài làm`;
 
-      <div class="pt-3 border-t border-gray-100 dark:border-zinc-800 flex justify-between items-center gap-2">
-        <!-- Nhóm bên trái: Ngày tháng + Nút Vocabulary -->
-        <div class="flex items-center gap-2 flex-wrap">
-          <span class="text-[11px] text-gray-400">📅 ${new Date(exam.created_at).toLocaleDateString('vi-VN')}</span>
-          ${hasVocab ? `
-            <button onclick="openVocabModal('${exam.id || exam.token}')" class="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 dark:bg-red-950/60 text-[#cf1717] dark:text-red-400 hover:bg-[#cf1717] hover:text-white rounded-lg text-xs font-bold transition-all shadow-sm">
-              <span>📚</span>
-              <span>Vocabulary</span>
-            </button>
-          ` : ''}
+  examBox.innerHTML = examList.map(exam => {
+    const hasVocab = exam.vocabulary && 
+                     exam.vocabulary !== '[]' && 
+                     (Array.isArray(exam.vocabulary) ? exam.vocabulary.length > 0 : true);
+
+    return `
+      <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4 flex flex-col justify-between">
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-[#cf1717] bg-red-50 dark:bg-red-950/80 px-2.5 py-1 rounded-full">📌 ${exam.topic || 'General'}</span>
+            <span class="text-xs text-gray-400">⏱️ ${exam.time_limit || 60} phút</span>
+          </div>
+          <h3 class="font-bold text-base sm:text-lg text-gray-900 dark:text-white">${exam.title}</h3>
+          <p class="text-xs text-gray-500 line-clamp-2">${exam.notes || 'Không có ghi chú'}</p>
         </div>
 
-        <!-- Nhóm bên phải: Nút làm bài -->
-        <button onclick="window.location.href='exam.html?token=${exam.token}'" class="px-3 sm:px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs rounded-lg shadow transition whitespace-nowrap">
-          Vào làm bài ➔
-        </button>
-      </div>
-    </div>
-  `;
-}).join('');
+        <div class="pt-3 border-t border-gray-100 dark:border-zinc-800 flex justify-between items-center gap-2">
+          <!-- Nhóm bên trái: Ngày tháng + Nút Vocabulary -->
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-[11px] text-gray-400">📅 ${new Date(exam.created_at).toLocaleDateString('vi-VN')}</span>
+            ${hasVocab ? `
+              <button onclick="openVocabModal('${exam.id}')" class="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 dark:bg-red-950/60 text-[#cf1717] dark:text-red-400 hover:bg-[#cf1717] hover:text-white rounded-lg text-xs font-bold transition-all shadow-sm">
+                <span>📚</span>
+                <span>Vocabulary</span>
+              </button>
+            ` : ''}
+          </div>
 
-   async function loadStudentHistory() {
+          <!-- Nhóm bên phải: Nút làm bài -->
+          <button onclick="window.location.href='exam.html?token=${exam.token}'" class="px-3 sm:px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs rounded-lg shadow transition whitespace-nowrap">
+            Vào làm bài ➔
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+} // <-- BỔ SUNG DẤU NGOẶC ĐÓNG NÀY CHO HÀM loadExams()
+
+async function loadStudentHistory() {
   const historyContainer = document.getElementById('historyList');
   if (!historyContainer) return;
 
@@ -271,44 +277,44 @@ examBox.innerHTML = examList.map(exam => {
   }).join('');
 }
 
-    function toggleDarkMode() {
-      if (document.documentElement.classList.contains('dark')) {
-        document.documentElement.classList.remove('dark');
-        localStorage.theme = 'light';
-      } else {
-        document.documentElement.classList.add('dark');
-        localStorage.theme = 'dark';
-      }
-    }
+function toggleDarkMode() {
+  if (document.documentElement.classList.contains('dark')) {
+    document.documentElement.classList.remove('dark');
+    localStorage.theme = 'light';
+  } else {
+    document.documentElement.classList.add('dark');
+    localStorage.theme = 'dark';
+  }
+}
 
-    function togglePasswordModal(show) {
-      document.getElementById('passwordModal').classList.toggle('hidden', !show);
-    }
+function togglePasswordModal(show) {
+  document.getElementById('passwordModal').classList.toggle('hidden', !show);
+}
 
-    async function handleChangePassword(e) {
-      e.preventDefault();
-      const newPassword = document.getElementById('newPassword').value;
-      const msg = document.getElementById('pwdMsg');
-      msg.innerText = "⏳ Đang cập nhật...";
-      const { error } = await sbClient.auth.updateUser({ password: newPassword });
-      if (error) {
-        msg.innerText = "❌ " + error.message;
-        msg.className = "text-center text-xs font-semibold text-red-500";
-      } else {
-        msg.innerText = "✅ Cập nhật mật khẩu thành công!";
-        msg.className = "text-center text-xs font-semibold text-green-600";
-        setTimeout(() => togglePasswordModal(false), 1500);
-      }
-    }
+async function handleChangePassword(e) {
+  e.preventDefault();
+  const newPassword = document.getElementById('newPassword').value;
+  const msg = document.getElementById('pwdMsg');
+  msg.innerText = "⏳ Đang cập nhật...";
+  const { error } = await sbClient.auth.updateUser({ password: newPassword });
+  if (error) {
+    msg.innerText = "❌ " + error.message;
+    msg.className = "text-center text-xs font-semibold text-red-500";
+  } else {
+    msg.innerText = "✅ Cập nhật mật khẩu thành công!";
+    msg.className = "text-center text-xs font-semibold text-green-600";
+    setTimeout(() => togglePasswordModal(false), 1500);
+  }
+}
 
-    async function handleLogout() {
-      await sbClient.auth.signOut();
-      window.location.href = 'index.html';
-    }
+async function handleLogout() {
+  await sbClient.auth.signOut();
+  window.location.href = 'index.html';
+}
 
-    window.onload = initDashboard;
+window.onload = initDashboard;
 
-   // Hàm mở Pop-up hiển thị đầy đủ tin tức
+// Hàm mở Pop-up hiển thị đầy đủ tin tức
 function openNewsModal(newsId) {
   const item = globalNewsList.find(n => n.id == newsId);
   if (!item) return;
@@ -382,8 +388,6 @@ function getTextPreview(rawContent) {
   return rawContent;
 }
 
-let globalTestsList = []; // Dữ liệu bài thi đã fetch từ Supabase
-
 function openVocabModal(testId) {
   const test = globalTestsList.find(t => t.id == testId);
   if (!test || !test.vocabulary) return;
@@ -391,24 +395,25 @@ function openVocabModal(testId) {
   let vocabArray = typeof test.vocabulary === 'string' ? JSON.parse(test.vocabulary) : test.vocabulary;
   
   const container = document.getElementById('vocabListContent');
+  if (!container) return;
+
   container.innerHTML = vocabArray.map(v => `
     <div class="p-3 bg-gray-50 dark:bg-zinc-800/60 rounded-xl border border-gray-100 dark:border-zinc-700/50">
       <div class="flex items-baseline gap-2 mb-1">
-        <span class="font-bold text-sm text-gray-900 dark:text-white">${v.word}</span>
+        <span class="font-bold text-sm text-gray-900 dark:text-white">${v.word || ''}</span>
         <span class="text-xs text-red-600 dark:text-red-400 font-medium">${v.ipa || ''}</span>
         <span class="text-[10px] text-gray-400 italic">(${v.type || 'Word'})</span>
       </div>
-      <p class="text-xs text-gray-600 dark:text-gray-300 font-medium">👉 ${v.meaning}</p>
+      <p class="text-xs text-gray-600 dark:text-gray-300 font-medium">👉 ${v.meaning || ''}</p>
     </div>
   `).join('');
 
-  document.getElementById('vocabModal').classList.remove('hidden');
+  document.getElementById('vocabModal')?.classList.remove('hidden');
 }
 
 function closeVocabModal() {
-  document.getElementById('vocabModal').classList.add('hidden');
+  document.getElementById('vocabModal')?.classList.add('hidden');
 }
-    
   </script>
   <!-- Pop-up Chi Tiết Thông Báo -->
 <div id="newsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-all duration-300">
