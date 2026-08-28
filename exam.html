@@ -40,34 +40,56 @@
   .animation-delay-2000 { animation-delay: 2s; }
   .animation-delay-4000 { animation-delay: 4s; }
 </style>
-  <!-- Header -->
-  <header class="bg-white dark:bg-zinc-900 border-b dark:border-zinc-800 h-16 flex-none z-40 shadow-sm px-4">
-    <div class="max-w-7xl mx-auto h-full flex justify-between items-center">
-      <div class="flex items-center gap-2 sm:gap-3">
-        <a href="dashboard.html" class="text-xs font-bold text-gray-500 hover:text-[#cf1717] transition">← Quay lại</a>
-        <h1 id="examHeaderTitle" class="font-extrabold text-sm sm:text-lg text-gray-900 dark:text-white truncate max-w-[150px] sm:max-w-md">Đang tải đề thi...</h1>
+<!-- ================= HEADER EXAM HIỆU ỨNG KÍNH MỜ (FROSTED GLASS) ================= -->
+<header class="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/60 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-950/60 transition px-4">
+  <div class="max-w-7xl mx-auto h-16 flex justify-between items-center">
+    
+    <!-- 1. KHU VỰC QUAY LẠI, LOGO NHỎ & TIÊU ĐỀ BÀI THI -->
+    <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+      <!-- Nút Quay lại Dashboard -->
+      <a href="dashboard.html" class="px-3 py-2 text-xs font-bold bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] dark:hover:text-red-400 rounded-xl transition border border-gray-200/50 dark:border-zinc-700/50 flex items-center gap-1 flex-shrink-0">
+        <span>←</span>
+        <span class="hidden sm:inline">Quay lại</span>
+      </a>
+
+      <!-- Logo Nhỏ Tạo Điểm Nhấn Thương Hiệu -->
+      <div class="w-9 h-9 rounded-full bg-[#cf1717] hidden md:flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm">
+        <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-6 w-auto object-contain">
       </div>
 
-      <div class="flex items-center gap-2 sm:gap-4">
-        <!-- Nút Highlight -->
-        <button onclick="highlightSelectedText()" class="px-2.5 sm:px-3 py-1.5 bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 font-bold text-xs rounded-lg border border-amber-300 dark:border-amber-700 hover:opacity-80 transition flex items-center gap-1">
-          🖍️ <span class="hidden sm:inline">Highlight văn bản</span>
-        </button>
-
-        <!-- Timer -->
-        <div class="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 bg-red-50 dark:bg-red-950/80 rounded-lg border border-red-200 dark:border-red-900">
-          <span class="text-xs font-bold text-[#cf1717]">⏱️</span>
-          <span id="timerDisplay" class="font-mono font-extrabold text-xs sm:text-base text-[#cf1717]">00:00</span>
-        </div>
-
-        <!-- Nút Nộp Bài Thi -->
-        <button onclick="confirmSubmitExam()" class="px-3 sm:px-4 py-1.5 sm:py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-lg shadow transition">Nộp Bài Thi</button>
-
-        <!-- Nút Chuyển Dark Mode -->
-        <button onclick="toggleDarkMode()" class="p-2 rounded-full bg-gray-100 dark:bg-zinc-800 text-sm">🌙 / ☀️</button>
-      </div>
+      <!-- Tiêu đề bài thi -->
+      <h1 id="examHeaderTitle" class="font-extrabold text-xs sm:text-base text-gray-900 dark:text-white truncate max-w-[130px] sm:max-w-xs md:max-w-md">
+        Đang tải đề thi...
+      </h1>
     </div>
-  </header>
+
+    <!-- 2. CÔNG CỤ BÀI THI, ĐỒNG HỒ ĐẾM NGƯỢC & THAO TÁC -->
+    <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+      <!-- Nút Highlight Văn Bản -->
+      <button onclick="highlightSelectedText()" class="px-2.5 sm:px-3 py-2 bg-amber-500/10 dark:bg-amber-500/20 hover:bg-amber-500/30 text-amber-700 dark:text-amber-300 font-bold text-xs rounded-xl border border-amber-300/60 dark:border-amber-700/60 transition flex items-center gap-1.5 shadow-sm">
+        <span>🖍️</span>
+        <span class="hidden sm:inline">Highlight</span>
+      </button>
+
+      <!-- ĐỒNG HỒ ĐẾM NGƯỢC -->
+      <div class="flex items-center gap-1.5 px-3 py-2 bg-red-500/10 dark:bg-red-950/50 rounded-xl border border-red-200/60 dark:border-red-900/60 shadow-sm">
+        <span class="text-xs font-bold text-[#cf1717] dark:text-red-400">⏱️</span>
+        <span id="timerDisplay" class="font-mono font-black text-xs sm:text-sm text-[#cf1717] dark:text-red-400">00:00</span>
+      </div>
+
+      <!-- Nút Nộp Bài Thi -->
+      <button onclick="confirmSubmitExam()" class="px-3 sm:px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5">
+        Nộp Bài Thi
+      </button>
+
+      <!-- Nút Chuyển Chế Độ Sáng / Tối -->
+      <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50">
+        <span id="themeIcon">🌙</span>
+      </button>
+    </div>
+
+  </div>
+</header>
 
   <!-- THANH CHUYỂN TAB TRÊN ĐIỆN THOẠI -->
   <div class="lg:hidden flex border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
