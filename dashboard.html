@@ -125,22 +125,40 @@
   </main>
 
   <!-- MODAL ĐỔI MẬT KHẨU -->
-  <div id="passwordModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4">
-      <h3 class="text-xl font-bold text-[#cf1717]">Đổi Mật Khẩu Tài Khoản</h3>
-      <form onsubmit="handleChangePassword(event)" class="space-y-4">
-        <div>
-          <label class="block text-xs font-bold uppercase mb-1">Mật khẩu mới</label>
-          <input type="password" id="newPassword" required minlength="6" placeholder="Mật khẩu mới (tối thiểu 6 ký tự)" class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
-        </div>
-        <div class="flex gap-3 pt-2">
-          <button type="button" onclick="togglePasswordModal(false)" class="w-1/2 py-2.5 bg-gray-200 dark:bg-zinc-700 font-bold rounded-lg text-sm">Hủy</button>
-          <button type="submit" class="w-1/2 py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-lg transition text-sm">Cập nhật</button>
-        </div>
-      </form>
-      <p id="pwdMsg" class="text-center text-xs font-semibold"></p>
+<div class="space-y-4">
+  <!-- Mật khẩu mới -->
+  <div>
+    <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Mật khẩu mới</label>
+    <div class="relative w-full">
+      <input 
+        type="password" 
+        id="newPassword" 
+        required 
+        placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)..." 
+        class="w-full p-3 pr-10 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#cf1717]"
+      >
+      <button 
+        type="button" 
+        onclick="togglePasswordVisibility('newPassword', this)" 
+        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 focus:outline-none"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
+      </button>
     </div>
   </div>
+
+  <!-- Nút Lưu Mật Khẩu Mới -->
+  <button 
+    type="button" 
+    onclick="handleUpdatePassword()" 
+    class="w-full py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl transition text-sm shadow"
+  >
+    Xác nhận đổi mật khẩu
+  </button>
+</div>
 
 <script>
     const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
@@ -799,6 +817,31 @@ function closeVocabModal() {
     document.getElementById('fbComment').value = '';
     closeFeedbackModal();
   }
+async function handleUpdatePassword() {
+  const newPasswordInput = document.getElementById('newPassword');
+  const newPassword = newPasswordInput ? newPasswordInput.value.trim() : '';
+
+  if (!newPassword || newPassword.length < 6) {
+    alert("Vui lòng nhập mật khẩu mới tối thiểu 6 ký tự!");
+    return;
+  }
+
+  // Cập nhật trực tiếp mật khẩu mới không qua xác minh mật khẩu cũ
+  const { data, error } = await sbClient.auth.updateUser({
+    password: newPassword
+  });
+
+  if (error) {
+    alert("❌ Đổi mật khẩu thất bại: " + error.message);
+  } else {
+    alert("🎉 Đổi mật khẩu thành công!");
+    newPasswordInput.value = '';
+    if (typeof togglePasswordModal === 'function') {
+      togglePasswordModal(false); // Đóng modal sau khi đổi thành công
+    }
+  }
+}
+  
 </script>
   
 </body>
