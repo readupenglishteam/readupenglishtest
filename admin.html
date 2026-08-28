@@ -342,66 +342,87 @@
       }
     }
 
-    // TẠO & SỬA BÀI THI
-    function openExamModal() {
-      document.getElementById('editingExamId').value = '';
-      document.getElementById('examModalTitle').innerText = 'Tạo Bài Reading Mới';
-      document.getElementById('examNotes').value = '';
-      document.getElementById('examModal').classList.remove('hidden');
-    }
-
-    function closeExamModal() {
-      document.getElementById('examModal').classList.add('hidden');
-    }
-
-    function editExam(id) {
-      const exam = allExams.find(e => e.id === id);
-      if (!exam) return;
-      document.getElementById('editingExamId').value = exam.id;
-      document.getElementById('examModalTitle').innerText = 'Chỉnh Sửa Bài Reading';
-      document.getElementById('examTitle').value = exam.title;
-      document.getElementById('examTopic').value = exam.topic;
-      document.getElementById('examTime').value = exam.time_limit;
-      document.getElementById('examNotes').value = exam.notes || '';
-      document.getElementById('examPassage').value = exam.passage_html;
-      document.getElementById('examQuestions').value = JSON.stringify(exam.questions, null, 2);
-      document.getElementById('examModal').classList.remove('hidden');
-    }
+  // TẠO & SỬA BÀI THI
+  function openExamModal() {
+    document.getElementById('editingExamId').value = '';
+    document.getElementById('examModalTitle').innerText = 'Tạo Bài Reading Mới';
     
-   async function handleSaveExam(e) {
-  e.preventDefault();
-  const id = document.getElementById('editingExamId').value;
-  try {
-    // 1. Parse JSON Câu hỏi
-    const questionsJson = JSON.parse(document.getElementById('examQuestions').value || '[]');
+    // Reset toàn bộ ô nhập liệu về trạng thái trống
+    document.getElementById('examTitle').value = '';
+    document.getElementById('examTopic').value = '';
+    document.getElementById('examTime').value = '60';
+    document.getElementById('examNotes').value = '';
+    document.getElementById('examPassage').value = '';
+    document.getElementById('examQuestions').value = '[]';
+    
+    const vocabElem = document.getElementById('examVocab');
+    if (vocabElem) vocabElem.value = '[]';
 
-    // 2. Parse JSON Từ vựng (xử lý an toàn nếu để trống)
-    const vocabVal = document.getElementById('examVocab')?.value.trim();
-    const vocabularyJson = vocabVal ? JSON.parse(vocabVal) : [];
+    document.getElementById('examModal').classList.remove('hidden');
+  }
 
-    const examData = {
-      title: document.getElementById('examTitle').value,
-      topic: document.getElementById('examTopic').value,
-      time_limit: parseInt(document.getElementById('examTime').value),
-      notes: document.getElementById('examNotes').value,
-      passage_html: document.getElementById('examPassage').value,
-      questions: questionsJson,
-      vocabulary: vocabularyJson // <-- Thêm trường này vào Supabase
-    };
+  function closeExamModal() {
+    document.getElementById('examModal').classList.add('hidden');
+  }
 
-    if (id) {
-      await sbClient.from('exams').update(examData).eq('id', id);
-    } else {
-      examData.token = 'ielts-' + Math.random().toString(36).substring(2, 9);
-      await sbClient.from('exams').insert([examData]);
+  function editExam(id) {
+    const exam = allExams.find(e => e.id === id);
+    if (!exam) return;
+    document.getElementById('editingExamId').value = exam.id;
+    document.getElementById('examModalTitle').innerText = 'Chỉnh Sửa Bài Reading';
+    document.getElementById('examTitle').value = exam.title || '';
+    document.getElementById('examTopic').value = exam.topic || '';
+    document.getElementById('examTime').value = exam.time_limit || 60;
+    document.getElementById('examNotes').value = exam.notes || '';
+    document.getElementById('examPassage').value = exam.passage_html || '';
+    document.getElementById('examQuestions').value = JSON.stringify(exam.questions || [], null, 2);
+    
+    // 💥 BỔ SUNG: Đổ dữ liệu từ vựng hiện tại vào ô examVocab
+    const vocabElem = document.getElementById('examVocab');
+    if (vocabElem) {
+      const vocabData = typeof exam.vocabulary === 'string' 
+        ? exam.vocabulary 
+        : JSON.stringify(exam.vocabulary || [], null, 2);
+      vocabElem.value = vocabData;
     }
 
-    closeExamModal();
-    loadAdminExams();
-  } catch (err) { 
-    alert("❌ Dữ liệu JSON không hợp lệ! Vui lòng kiểm tra lại cú pháp ở ô Câu hỏi hoặc Từ vựng."); 
+    document.getElementById('examModal').classList.remove('hidden');
   }
-}
+
+  async function handleSaveExam(e) {
+    e.preventDefault();
+    const id = document.getElementById('editingExamId').value;
+    try {
+      // 1. Parse JSON Câu hỏi
+      const questionsJson = JSON.parse(document.getElementById('examQuestions').value || '[]');
+
+      // 2. Parse JSON Từ vựng (xử lý an toàn nếu để trống)
+      const vocabVal = document.getElementById('examVocab')?.value.trim();
+      const vocabularyJson = vocabVal ? JSON.parse(vocabVal) : [];
+
+      const examData = {
+        title: document.getElementById('examTitle').value,
+        topic: document.getElementById('examTopic').value,
+        time_limit: parseInt(document.getElementById('examTime').value) || 60,
+        notes: document.getElementById('examNotes').value,
+        passage_html: document.getElementById('examPassage').value,
+        questions: questionsJson,
+        vocabulary: vocabularyJson
+      };
+
+      if (id) {
+        await sbClient.from('exams').update(examData).eq('id', id);
+      } else {
+        examData.token = 'ielts-' + Math.random().toString(36).substring(2, 9);
+        await sbClient.from('exams').insert([examData]);
+      }
+
+      closeExamModal();
+      loadAdminExams();
+    } catch (err) { 
+      alert("❌ Dữ liệu JSON không hợp lệ! Vui lòng kiểm tra lại cú pháp ở ô Câu hỏi hoặc Từ vựng."); 
+    }
+  }
 
     async function deleteExam(id) {
       if (confirm("Xóa bài thi này?")) {
