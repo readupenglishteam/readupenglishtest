@@ -23,24 +23,39 @@
   </div>
 
   <!-- NAVBAR -->
-  <header class="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/60 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-950/60 transition">
-    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-      <a href="index.html" class="flex items-center gap-2">
-        <span class="text-2xl font-black text-[#cf1717] tracking-tight">ReadUp</span>
-        <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full">English</span>
+<!-- ================= HEADER INDEX HIỆU ỨNG KÍNH MỜ (FROSTED GLASS) ================= -->
+<header class="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/60 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-950/60 transition px-4">
+  <div class="max-w-7xl mx-auto h-16 flex justify-between items-center">
+    
+    <!-- 1. KHU VỰC LOGO TRÒN & TIÊU ĐỀ -->
+    <div class="flex items-center gap-3">
+      <!-- Khung Logo Tròn Đỏ -->
+      <a href="index.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
+        <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
       </a>
-
-      <div class="flex items-center gap-3">
-        <!-- Switch Dark/Light -->
-        <button onclick="toggleTheme()" class="p-2 rounded-xl bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm">
-          <span id="themeIcon">🌙</span>
-        </button>
-        <a href="index.html" class="px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-lg transition transform hover:-translate-y-0.5">
-          Vào Luyện Tập 🚀
-        </a>
-      </div>
+      
+      <!-- Tên Thương Hiệu + Badge English -->
+      <a href="index.html" class="flex items-center gap-2 hover:opacity-90 transition">
+        <span class="text-2xl font-black text-[#cf1717] tracking-tight">ReadUp</span>
+        <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full shadow-sm">English</span>
+      </a>
     </div>
-  </header>
+
+    <!-- 2. KHU VỰC THAO TÁC & NÚT VÀO LUYỆN TẬP -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Nút Chuyển Chế Độ Sáng / Tối -->
+      <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50">
+        <span id="themeIcon">🌙</span>
+      </button>
+
+      <!-- Nút Vào Luyện Tập -->
+      <a href="login.html" class="px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5 flex items-center gap-1">
+        <span>Vào Luyện Tập 🚀</span>
+      </a>
+    </div>
+
+  </div>
+</header>
 
   <main class="max-w-6xl mx-auto px-4 pt-12 pb-20 space-y-24">
     
@@ -72,8 +87,8 @@
     <!-- KHOẢNG TỔNG QUAN / STATS -->
     <section class="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md rounded-3xl border border-gray-200/50 dark:border-zinc-800/50 text-center">
       <div class="space-y-1">
-        <div class="text-2xl sm:text-3xl font-black text-[#cf1717]">100+</div>
-        <div class="text-xs text-gray-500">Bộ Đề Thi Thật</div>
+        <div class="text-2xl sm:text-3xl font-black text-[#cf1717]">NEWS</div>
+        <div class="text-xs text-gray-500">Cập nhật tin tức mới</div>
       </div>
       <div class="space-y-1">
         <div class="text-2xl sm:text-3xl font-black text-amber-500">100%</div>
@@ -132,6 +147,137 @@
       </div>
     </section>
 
+
+    <!-- ================= 1. KHU VỰC HÌNH ẢNH MINH HỌA GIAO DIỆN ================= -->
+<section class="space-y-6">
+  <div class="text-center space-y-2">
+    <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white">Giao Diện Thực Tế</h2>
+    <p class="text-xs text-gray-500 dark:text-gray-400">Trải nghiệm không gian làm bài hiện đại, tối ưu cho máy tính và thiết bị di động</p>
+  </div>
+
+  <!-- Lưới 2 Ảnh Ngang Tỉ Lệ 16:9 -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    
+    <!-- KHUNG ẢNH 1 (Ngang 16:9) -->
+    <div class="group relative rounded-3xl overflow-hidden border border-gray-200/60 dark:border-zinc-800/60 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md shadow-lg transition hover:shadow-2xl hover:border-[#cf1717]/50">
+      <!-- Tỉ lệ 16:9 ngang (aspect-video) -->
+      <div class="aspect-video w-full overflow-hidden bg-gray-100 dark:bg-zinc-800">
+        <img src="https://i.ibb.co/q3y9NWYY/Screenshot-2026-08-28-114232.png" alt="Minh họa giao diện làm bài" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+      </div>
+      <div class="p-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm border-t border-gray-100 dark:border-zinc-800">
+        <h3 class="font-bold text-sm text-gray-900 dark:text-white">Giao Diện Thi Chuẩn Máy Tính/Điện thoại</h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Hỗ trợ chia đôi màn hình đọc - trả lời câu hỏi mượt mà, đồng hồ đếm ngược tự động.</p>
+      </div>
+    </div>
+
+    <!-- KHUNG ẢNH 2 (Ngang 16:9) -->
+    <div class="group relative rounded-3xl overflow-hidden border border-gray-200/60 dark:border-zinc-800/60 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md shadow-lg transition hover:shadow-2xl hover:border-[#cf1717]/50">
+      <!-- Tỉ lệ 16:9 ngang (aspect-video) -->
+      <div class="aspect-video w-full overflow-hidden bg-gray-100 dark:bg-zinc-800">
+        <img src="https://i.ibb.co/215rqdcH/Screenshot-2026-08-28-114459.png" alt="Announcement" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+      </div>
+      <div class="p-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm border-t border-gray-100 dark:border-zinc-800">
+        <h3 class="font-bold text-sm text-gray-900 dark:text-white">Tin Tức & Thông Báo Mới</h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cập nhật những tin tức, thông báo và nội dung mới nhất từ ReadUp English.</p>
+      </div>
+    </div>
+
+    <!-- KHUNG ẢNH 3 (Ngang 16:9) -->
+    <div class="group relative rounded-3xl overflow-hidden border border-gray-200/60 dark:border-zinc-800/60 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md shadow-lg transition hover:shadow-2xl hover:border-[#cf1717]/50">
+      <!-- Tỉ lệ 16:9 ngang (aspect-video) -->
+      <div class="aspect-video w-full overflow-hidden bg-gray-100 dark:bg-zinc-800">
+        <img src="https://i.ibb.co/215rqdcH/Screenshot-2026-08-28-114459.png" alt="Easy to use" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+      </div>
+      <div class="p-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm border-t border-gray-100 dark:border-zinc-800">
+        <h3 class="font-bold text-sm text-gray-900 dark:text-white">Giao diện trực quan – Thao tác dễ dàng</h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">ReadUp English được thiết kế với giao diện đơn giản, rõ ràng và thân thiện với người dùng. Các chức năng được bố trí khoa học, giúp người học dễ dàng tìm kiếm và thực hiện các thao tác cần thiết.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 
+    💡 HƯỚNG DẪN CHUYỂN KHUNG ẢNH NẰM DỌC (Ví dụ: Ảnh ứng dụng điện thoại / Poster):
+    - Đổi class `aspect-video` trong thẻ div chứa img thành:
+      + Tỉ lệ 3:4 ngang/dọc vừa phải  => `aspect-[3/4]`
+      + Tỉ lệ 9:16 dọc điện thoại      => `aspect-[9/16]`
+  -->
+</section>
+
+
+<!-- ================= 2. CỤM HASHTAG CHỦ ĐỀ & TỪ KHÓA (WORD CLOUD) ================= -->
+<section class="space-y-6">
+  <div class="text-center space-y-2">
+    <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white">Chủ Đề & Từ Khóa Nổi Bật</h2>
+    <p class="text-xs text-gray-500 dark:text-gray-400">Lan tỏa tinh thần tự học IELTS Reading hiệu quả cùng cộng đồng ReadUp English</p>
+  </div>
+
+  <div class="p-8 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 shadow-xl flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-center">
+    
+    <!-- HASHTAG BẢN QUYỀN LỚN NHẤT (CÓ GRADIENT ĐỎ-VÀNG) -->
+    <span class="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#cf1717] via-red-600 to-amber-500 text-white font-black text-xl sm:text-3xl shadow-lg shadow-red-500/20 transform hover:scale-105 transition cursor-pointer select-none">
+      #ReadUpEnglish
+    </span>
+
+    <!-- HÀNG HASHTAG NỔI BẬT CẤP 2 -->
+    <span class="px-4 py-2 rounded-xl bg-red-100 dark:bg-red-950/80 text-[#cf1717] dark:text-red-400 font-extrabold text-base sm:text-xl border border-red-200 dark:border-red-900 hover:scale-105 transition cursor-pointer select-none">
+      #10PhutEnglish
+    </span>
+
+    <span class="px-4 py-2 rounded-xl bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 font-extrabold text-base sm:text-xl border border-amber-200 dark:border-amber-800 hover:scale-105 transition cursor-pointer select-none">
+      #IELTSReading
+    </span>
+
+    <span class="px-3.5 py-2 rounded-xl bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 font-bold text-sm sm:text-lg border border-indigo-200 dark:border-indigo-800 hover:scale-105 transition cursor-pointer select-none">
+      #EnglishVocabulary
+    </span>
+
+    <span class="px-3.5 py-2 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 font-bold text-sm sm:text-lg border border-emerald-200 dark:border-emerald-800 hover:scale-105 transition cursor-pointer select-none">
+      #HocIELTS
+    </span>
+
+    <!-- CÁC HASHTAG VỪA & NHỎ VỚI NHIỀU MAU TỰ DO -->
+    <span class="px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 font-semibold text-xs sm:text-sm border border-gray-200/60 dark:border-zinc-700 hover:scale-105 hover:text-[#cf1717] transition cursor-pointer select-none">
+      #EnglishReading
+    </span>
+
+    <span class="px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 font-semibold text-xs sm:text-sm border border-gray-200/60 dark:border-zinc-700 hover:scale-105 hover:text-[#cf1717] transition cursor-pointer select-none">
+      #HocTiengAnh
+    </span>
+
+    <span class="px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 font-semibold text-xs sm:text-sm border border-gray-200/60 dark:border-zinc-700 hover:scale-105 hover:text-[#cf1717] transition cursor-pointer select-none">
+      #LearnEnglish
+    </span>
+
+    <!-- HASHTAG BỔ SUNG THÊM CHO PHONG PHÚ -->
+    <span class="px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 font-semibold text-xs sm:text-sm border border-amber-200/50 dark:border-amber-900/50 hover:scale-105 transition cursor-pointer select-none">
+      #IELTSPrep
+    </span>
+
+    <span class="px-3 py-1.5 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 font-semibold text-xs sm:text-sm border border-red-200/50 dark:border-red-900/50 hover:scale-105 transition cursor-pointer select-none">
+      #IELTSVocabulary
+    </span>
+
+    <span class="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-semibold text-xs sm:text-sm border border-indigo-200/50 dark:border-indigo-900/50 hover:scale-105 transition cursor-pointer select-none">
+      #DailyEnglish
+    </span>
+
+    <span class="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-semibold text-xs sm:text-sm border border-emerald-200/50 dark:border-emerald-900/50 hover:scale-105 transition cursor-pointer select-none">
+      #SelfStudyIELTS
+    </span>
+
+    <span class="px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 font-semibold text-xs sm:text-sm border border-purple-200/50 dark:border-purple-900/50 hover:scale-105 transition cursor-pointer select-none">
+      #IELTS75Plus
+    </span>
+
+    <span class="px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-semibold text-xs sm:text-sm border border-sky-200/50 dark:border-sky-900/50 hover:scale-105 transition cursor-pointer select-none">
+      #SmartLearning
+    </span>
+
+  </div>
+</section>
+
+    
   </main>
 
   <!-- SỬ DỤNG LẠI FOOTER BẠN ĐÃ CÓ Ở BÀI TRƯỚC -->
