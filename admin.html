@@ -226,14 +226,17 @@
 
         <div>
           <label class="block text-xs font-bold uppercase mb-1">Nội dung đoạn văn Reading (HTML)</label>
+          <button type="button" onclick="openGuideModal('reading_passage', 'Nội dung đoạn văn Reading')" class="w-5 h-5 rounded-full bg-[#cf1717] text-white flex items-center justify-center text-xs font-bold hover:bg-red-700 transition shadow" title="Xem hướng dẫn">?</button>
           <textarea id="examPassage" rows="5" required placeholder="Đoạn văn Reading (HTML)..." class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 font-mono text-sm"></textarea>
         </div>
         <div>
-          <label class="block text-xs font-bold uppercase mb-1">Danh sách câu hỏi (JSON)</label>
+          <label class="block text-xs font-bold uppercase mb-1">Danh sách câu hỏi (JSON)</label> 
+          <button type="button" onclick="openGuideModal('questions_json', 'Danh sách câu hỏi')" class="w-5 h-5 rounded-full bg-[#cf1717] text-white flex items-center justify-center text-xs font-bold hover:bg-red-700 transition shadow" title="Xem hướng dẫn">?</button>
           <textarea id="examQuestions" rows="4" required placeholder="Danh sách câu hỏi (JSON)..." class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 font-mono text-xs"></textarea>
         </div>
         <div>
           <label class="block text-xs font-bold uppercase mb-1">DANH SÁCH TỪ VỰNG (JSON)</label>
+          <button type="button" onclick="openGuideModal('vocab_json', 'Danh sách từ vựng')" class="w-5 h-5 rounded-full bg-[#cf1717] text-white flex items-center justify-center text-xs font-bold hover:bg-red-700 transition shadow" title="Xem hướng dẫn">?</button>
           <textarea id="examVocab" rows="5" class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 font-mono text-xs" placeholder='[
   {
     "word": "Innovation",
@@ -676,7 +679,225 @@ document.addEventListener("DOMContentLoaded", () => {
   loadAdminTickets();
   loadAdminFeedbacks();
 });
-    
+    let currentSectionKey = '';
+let currentGuideImageUrl = '';
+
+// 1. Mở Popup Hướng Dẫn
+async function openGuideModal(sectionKey, sectionTitle) {
+  currentSectionKey = sectionKey;
+  document.getElementById('guideModalTitle').innerText = `❓ Hướng Dẫn: ${sectionTitle}`;
+  document.getElementById('guideModal').classList.remove('hidden');
+  resetGuideForm();
+  await loadGuidesList();
+}
+
+// 2. Đóng Popup Hướng Dẫn
+function closeGuideModal() {
+  document.getElementById('guideModal').classList.add('hidden');
+}
+
+// 3. Tải Ảnh Hướng Dẫn lên Supabase Bucket
+async function uploadGuideImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const statusElem = document.getElementById('guideUploadStatus');
+  statusElem.innerText = 'Đang tải ảnh lên...';
+
+  const fileName = `guide_${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+  const { data, error } = await sbClient.storage
+    .from('exam-images')
+    .upload(fileName, file, { cacheControl: '3600', upsert: true });
+
+  if (error) {
+    alert('❌ Tải ảnh thất bại: ' + error.message);
+    statusElem.innerText = '';
+    return;
+  }
+
+  const { data: publicData } = sbClient.storage.from('exam-images').getPublicUrl(fileName);
+  currentGuideImageUrl = publicData.publicUrl;
+
+  // Hiển thị preview
+  document.getElementById('guidePreviewImg').src = currentGuideImageUrl;
+  document.getElementById('guideImagePreview').classList.remove('hidden');
+  statusElem.innerText = '✅ Tải ảnh thành công!';
+}
+
+function clearGuideImage() {
+  currentGuideImageUrl = '';
+  document.getElementById('guideImagePreview').classList.add('hidden');
+  document.getElementById('guidePreviewImg').src = '';
+  document.getElementById('guideImageInput').value = '';
+  document.getElementById('guideUploadStatus').innerText = '';
+}
+
+// 4. Lưu / Thêm / Cập nhật Hướng Dẫn
+async function saveGuide() {
+  const title = document.getElementById('guideInputTitle').value.trim();
+  const content = document.getElementById('guideInputContent').value.trim();
+  const editId = document.getElementById('guideEditId').value;
+
+  if (!title) {
+    alert('Vui lòng nhập tiêu đề hướng dẫn!');
+    return;
+  }
+
+  const payload = {
+    section_key: currentSectionKey,
+    title: title,
+    content: content,
+    image_url: currentGuideImageUrl
+  };
+
+  let error = null;
+  if (editId) {
+    // Sửa hướng dẫn
+    const res = await sbClient.from('guides').update(payload).eq('id', editId);
+    error = res.error;
+  } else {
+    // Thêm hướng dẫn mới
+    const res = await sbClient.from('guides').insert([payload]);
+    error = res.error;
+  }
+
+  if (error) {
+    alert('❌ Lưu hướng dẫn thất bại: ' + error.message);
+  } else {
+    resetGuideForm();
+    await loadGuidesList();
+  }
+}
+
+// 5. Tải và hiển thị danh sách hướng dẫn bên dưới
+async function loadGuidesList() {
+  const container = document.getElementById('guideListContainer');
+  container.innerHTML = '<p class="text-xs text-gray-400 italic">Đang tải...</p>';
+
+  const { data, error } = await sbClient
+    .from('guides')
+    .select('*')
+    .eq('section_key', currentSectionKey)
+    .order('created_at', { ascending: false });
+
+  if (error || !data || data.length === 0) {
+    container.innerHTML = '<p class="text-xs text-gray-400 italic">Chưa có hướng dẫn nào cho mục này.</p>';
+    return;
+  }
+
+  container.innerHTML = data.map(item => `
+    <div class="p-3.5 bg-white dark:bg-zinc-800 rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm space-y-2">
+      <div class="flex justify-between items-center">
+        <h5 class="font-bold text-sm text-gray-800 dark:text-gray-100">${escapeHtml(item.title)}</h5>
+        <div class="flex gap-2">
+          <button onclick='editGuide(${JSON.stringify(item)})' class="text-xs text-blue-600 dark:text-blue-400 font-bold hover:underline">Sửa</button>
+          <button onclick="deleteGuide(${item.id})" class="text-xs text-red-600 dark:text-red-400 font-bold hover:underline">Xóa</button>
+        </div>
+      </div>
+      ${item.content ? `<p class="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-line">${escapeHtml(item.content)}</p>` : ''}
+      ${item.image_url ? `<img src="${item.image_url}" class="max-h-48 rounded-lg border mt-2 object-contain">` : ''}
+    </div>
+  `).join('');
+}
+
+// 6. Điền dữ liệu vào form khi bấm "Sửa"
+function editGuide(guide) {
+  document.getElementById('guideEditId').value = guide.id;
+  document.getElementById('guideInputTitle').value = guide.title || '';
+  document.getElementById('guideInputContent').value = guide.content || '';
+  
+  if (guide.image_url) {
+    currentGuideImageUrl = guide.image_url;
+    document.getElementById('guidePreviewImg').src = guide.image_url;
+    document.getElementById('guideImagePreview').classList.remove('hidden');
+  } else {
+    clearGuideImage();
+  }
+
+  document.getElementById('guideFormHeading').innerText = '✏️ Chỉnh Sửa Hướng Dẫn';
+  document.getElementById('btnCancelGuideEdit').classList.remove('hidden');
+}
+
+// 7. Xóa Hướng Dẫn
+async function deleteGuide(id) {
+  if (!confirm('Bạn có chắc muốn xóa hướng dẫn này?')) return;
+  const { error } = await sbClient.from('guides').delete().eq('id', id);
+  if (error) {
+    alert('❌ Xóa thất bại: ' + error.message);
+  } else {
+    await loadGuidesList();
+  }
+}
+
+// Reset Form
+function resetGuideForm() {
+  document.getElementById('guideEditId').value = '';
+  document.getElementById('guideInputTitle').value = '';
+  document.getElementById('guideInputContent').value = '';
+  document.getElementById('guideFormHeading').innerText = '➕ Thêm Hướng Dẫn Mới';
+  document.getElementById('btnCancelGuideEdit').classList.add('hidden');
+  clearGuideImage();
+}
+
+function escapeHtml(str) {
+  return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
+}
   </script>
+<!-- MODAL HƯỚNG DẪN SỬ DỤNG (POPUP LỚN) -->
+<div id="guideModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden flex items-start justify-center p-4 z-[9999] overflow-y-auto">
+  <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 w-full max-w-3xl my-8 shadow-2xl space-y-6">
+    
+    <!-- Header Modal -->
+    <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
+      <h3 id="guideModalTitle" class="font-extrabold text-lg text-[#cf1717] dark:text-red-400 flex items-center gap-2">
+        <span>❓</span> Hướng Dẫn Sử Dụng
+      </h3>
+      <button onclick="closeGuideModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
+    </div>
+
+    <!-- FORM THÊM / SỬA HƯỚNG DẪN -->
+    <div class="bg-gray-50 dark:bg-zinc-800/60 p-4 rounded-xl border border-gray-200 dark:border-zinc-700 space-y-3">
+      <h4 id="guideFormHeading" class="font-bold text-xs uppercase text-gray-700 dark:text-gray-300">➕ Thêm Hướng Dẫn Mới</h4>
+      <input type="hidden" id="guideEditId" value="">
+      
+      <!-- Tiêu đề hướng dẫn -->
+      <input type="text" id="guideInputTitle" placeholder="Tiêu đề hướng dẫn (VD: Cách định dạng ảnh, cấu trúc JSON)..." class="w-full p-2.5 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#cf1717] dark:text-white">
+
+      <!-- Nội dung hướng dẫn -->
+      <textarea id="guideInputContent" rows="3" placeholder="Nội dung chi tiết hướng dẫn..." class="w-full p-2.5 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#cf1717] dark:text-white"></textarea>
+
+      <!-- Công cụ tải ảnh lên -->
+      <div class="flex items-center gap-3">
+        <label class="cursor-pointer px-3 py-1.5 bg-red-100 dark:bg-red-950/40 text-[#cf1717] dark:text-red-400 border border-red-200 dark:border-red-900 rounded-lg text-xs font-bold hover:bg-[#cf1717] hover:text-white transition">
+          📷 Tải Ảnh Hướng Dẫn
+          <input type="file" id="guideImageInput" accept="image/*" class="hidden" onchange="uploadGuideImage(this)">
+        </label>
+        <span id="guideUploadStatus" class="text-xs text-gray-500 italic"></span>
+      </div>
+
+      <!-- Preview ảnh vừa tải lên -->
+      <div id="guideImagePreview" class="hidden relative w-32 h-20 rounded-lg border overflow-hidden">
+        <img id="guidePreviewImg" src="" class="w-full h-full object-cover">
+        <button type="button" onclick="clearGuideImage()" class="absolute top-1 right-1 bg-black/70 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">&times;</button>
+      </div>
+
+      <!-- Nút Lưu -->
+      <div class="flex justify-end gap-2 pt-1">
+        <button type="button" id="btnCancelGuideEdit" onclick="resetGuideForm()" class="hidden px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-xl text-xs hover:bg-gray-300">Hủy sửa</button>
+        <button type="button" onclick="saveGuide()" class="px-5 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow transition">Lưu Hướng Dẫn</button>
+      </div>
+    </div>
+
+    <!-- DANH SÁCH HƯỚNG DẪN HIỆN CÓ -->
+    <div class="space-y-3">
+      <h4 class="font-bold text-xs uppercase text-gray-500 dark:text-gray-400">📋 Danh Sách Hướng Dẫn Đã Lưu</h4>
+      <div id="guideListContainer" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+        <p class="text-xs text-gray-400 italic">Đang tải hướng dẫn...</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+  
 </body>
 </html>
