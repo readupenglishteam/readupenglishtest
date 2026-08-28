@@ -68,9 +68,8 @@
           <span id="timerDisplay" class="font-mono font-black text-xs sm:text-sm text-[#cf1717] dark:text-red-400">00:00</span>
         </div>
 
-        <button onclick="confirmSubmitExam()" class="px-3 sm:px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5">
-          Nộp Bài Thi
-        </button>
+        <button id="submitBtn" onclick="confirmSubmitExam()" class="px-3 sm:px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5">
+  Nộp Bài Thi </button>
 
         <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50">
           <span id="themeIcon">🌙</span>
@@ -402,6 +401,7 @@
       
       const resultModal = document.getElementById('resultModal');
       if (resultModal) resultModal.classList.remove('hidden');
+      disableSubmitBtn();
     }
 
     function closeResultModal() {
@@ -519,8 +519,20 @@
     }
 
     function confirmSubmitExam() {
-      if (confirm("Bạn có chắc chắn muốn nộp bài thi?")) submitExam();
-    }
+  if (confirm("Bạn có chắc chắn muốn nộp bài thi?")) {
+    submitExam();
+  }
+}
+
+function disableSubmitBtn() {
+  const btn = document.getElementById('submitBtn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = 'Đã Nộp Bài';
+    // Đổi sang kiểu chữ xám, khóa hiệu ứng hover và đổi con trỏ chuột
+    btn.className = 'px-3 sm:px-4 py-2 bg-gray-400 dark:bg-zinc-700 text-gray-200 dark:text-gray-400 font-bold text-xs sm:text-sm rounded-xl cursor-not-allowed opacity-75 shadow-none pointer-events-none';
+  }
+}
 
     function toggleDarkMode() {
       if (document.documentElement.classList.contains('dark')) {
