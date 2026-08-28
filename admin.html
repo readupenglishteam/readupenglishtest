@@ -766,13 +766,6 @@ async function uploadGuideImage(input) {
   }
 }
 
-  const { data: publicData } = sbClient.storage.from('exam-images').getPublicUrl(fileName);
-  currentGuideImageUrl = publicData.publicUrl;
-
-  document.getElementById('guidePreviewImg').src = currentGuideImageUrl;
-  document.getElementById('guideImagePreview').classList.remove('hidden');
-  statusElem.innerText = '✅ Tải ảnh thành công!';
-}
 
 function clearGuideImage() {
   currentGuideImageUrl = '';
