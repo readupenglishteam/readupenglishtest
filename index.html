@@ -406,10 +406,14 @@
   </footer>
 
   <script>
-    function toggleTheme() {
-      const html = document.documentElement;
-      const isDark = html.classList.toggle('dark');
-      document.getElementById('themeIcon').innerText = isDark ? '🌙' : '☀️';
+    function toggleDarkMode() {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        localStorage.theme = 'light';
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.theme = 'dark';
+      }
     }
   </script>
 </body>
