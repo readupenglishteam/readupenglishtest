@@ -276,6 +276,15 @@ async function loginWithMagicLink(email) {
   if (error) alert("❌ Lỗi gửi liên kết: " + error.message);
   else alert("✉️ Đã gửi link đăng nhập vào Email của bạn!");
 }
+    function toggleDarkMode() {
+  if (document.documentElement.classList.contains('dark')) {
+    document.documentElement.classList.remove('dark');
+    localStorage.theme = 'light';
+  } else {
+    document.documentElement.classList.add('dark');
+    localStorage.theme = 'dark';
+  }
+}
 </script>
 </body>
 </html>
