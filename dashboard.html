@@ -125,7 +125,7 @@
     async function initDashboard() {
       const { data: { user } } = await sbClient.auth.getUser();
       if (!user) {
-        window.location.href = 'index.html';
+        window.location.href = 'login.html';
         return;
       }
       currentUser = user;
@@ -328,7 +328,7 @@ async function handleChangePassword(e) {
 
 async function handleLogout() {
   await sbClient.auth.signOut();
-  window.location.href = 'index.html';
+  window.location.href = 'login.html';
 }
 
 window.onload = initDashboard;
