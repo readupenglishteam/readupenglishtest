@@ -886,6 +886,43 @@ function escapeHtml(str) {
   return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
 }
 
+    // 1. CHÈN VIDEO YOUTUBE
+function insertYoutubeVideo() {
+  const url = prompt("Nhập đường dẫn Video YouTube (ví dụ: https://www.youtube.com/watch?v=dQw4w9WgXcQ):");
+  if (!url) return;
+
+  // Lấy Video ID từ đường dẫn YouTube
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+
+  if (match && match[2].length === 11) {
+    const videoId = match[2];
+    const iframeTag = `\n<div class="relative w-full aspect-video my-3 rounded-xl overflow-hidden shadow-md">\n  <iframe class="w-full h-full" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>\n</div>\n`;
+    
+    const contentInput = document.getElementById('guideInputContent');
+    contentInput.value += iframeTag;
+  } else {
+    alert("❌ Đường dẫn YouTube không hợp lệ!");
+  }
+}
+
+// 2. CHÈN FILE / TÀI LIỆU (PDF, Word, Google Drive link)
+function insertDocFile() {
+  const fileUrl = prompt("Nhập link tải File hoặc link Google Drive/PDF:");
+  if (!fileUrl) return;
+
+  const fileName = prompt("Nhập tên hiển thị của tài liệu:", "Tài liệu hướng dẫn (PDF/Word)") || "Tài liệu đính kèm";
+
+  // Nếu là file PDF, chèn thêm Khung đọc PDF trực tiếp + Nút Tải
+  if (fileUrl.toLowerCase().endsWith('.pdf')) {
+    const pdfTag = `\n<div class="my-3 space-y-2">\n  <a href="${fileUrl}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition">📎 Tải ${escapeHtml(fileName)}</a>\n  <iframe src="https://docs.google.com/gview?url=${encodeURIComponent(fileUrl)}&embedded=true" class="w-full h-80 rounded-xl border border-gray-300 dark:border-zinc-700 shadow-sm"></iframe>\n</div>\n`;
+    document.getElementById('guideInputContent').value += pdfTag;
+  } else {
+    // Với các file khác (Doc, Excel, Drive link) -> Tạo nút bấm tải về
+    const btnTag = `\n<div class="my-3">\n  <a href="${fileUrl}" target="_blank" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition shadow">📎 Xem/Tải tài liệu: ${escapeHtml(fileName)}</a>\n</div>\n`;
+    document.getElementById('guideInputContent').value += btnTag;
+  }
+}
 
     
   </script>
@@ -917,7 +954,13 @@ function escapeHtml(str) {
       <input type="hidden" id="guideEditId" value="">
       
       <input type="text" id="guideInputTitle" placeholder="Tiêu đề hướng dẫn..." class="w-full p-2.5 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#cf1717] dark:text-white">
-
+      <!-- CÁC NÚT CÔNG CỤ CHÈN NHANH -->
+<div class="flex items-center gap-2 pt-1">
+  <button type="button" onclick="insertYoutubeVideo()" class="px-2.5 py-1 bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400 border border-red-200 dark:border-red-900 rounded-lg text-xs font-bold hover:bg-red-200 transition">
+    📹 Chèn Video YouTube</button>
+<button type="button" onclick="insertDocFile()" class="px-2.5 py-1 bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-200 dark:border-blue-900 rounded-lg text-xs font-bold hover:bg-blue-200 transition">
+    📄 Chèn File (PDF/Doc/Drive)</button></div>
+<!-- Ô Nhập Nội Dung --><textarea id="guideInputContent" rows="4" placeholder="Nội dung chi tiết..." class="w-full p-2.5 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#cf1717] dark:text-white"></textarea>
       <textarea id="guideInputContent" rows="3" placeholder="Nội dung chi tiết hướng dẫn..." class="w-full p-2.5 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#cf1717] dark:text-white"></textarea>
 
       <!-- Công cụ tải ảnh -->
