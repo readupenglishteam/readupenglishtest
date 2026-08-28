@@ -837,7 +837,6 @@ async function loadGuidesList() {
           <button onclick="deleteGuide(${item.id})" class="text-xs text-red-600 dark:text-red-400 font-bold hover:underline">Xóa</button>
         </div>
       </div>
-      // Hiển thị trực tiếp thẻ HTML ảnh và chữ
       ${item.content ? `<div class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-line">${item.content}</div>` : ''}
       ${item.image_url ? `<img src="${item.image_url}" class="max-h-48 rounded-lg border mt-2 object-contain">` : ''}
     </div>
