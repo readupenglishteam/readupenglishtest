@@ -848,6 +848,9 @@ async function openStudentGuide(sectionKey, sectionTitle) {
     </div>
   `).join('');
 }
+  function escapeHtml(str) {
+  return str ? String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
+}
 
 function closeStudentGuide() {
   document.getElementById('studentGuideModal').classList.add('hidden');
