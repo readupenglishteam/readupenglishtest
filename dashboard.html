@@ -472,6 +472,284 @@ function closeVocabModal() {
     </div>
   </div>
 </div>
+
+<!-- ================= FOOTER CHUẨN TÔNG ĐỎ READUP ================= -->
+<footer class="bg-zinc-900 text-gray-300 pt-10 pb-8 mt-16 border-t border-zinc-800 text-xs">
+  <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+    
+    <!-- 1. THÔNG TIN LIÊN HỆ -->
+    <div class="space-y-3">
+      <div class="flex items-center gap-2">
+        <span class="text-xl font-black text-[#cf1717]">ReadUp</span>
+        <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full">English</span>
+      </div>
+      <p class="text-gray-400 leading-relaxed">Nền tảng luyện thi IELTS Reading thông minh, tối ưu hóa vốn từ vựng theo ngữ cảnh.</p>
+      <div class="space-y-1">
+        <p>📧 Email: <a href="mailto:support@readupenglish.com" class="text-white hover:underline">readupenglishteam@gmail.com</a></p>
+      </div>
+      <!-- Mạng xã hội -->
+      <div class="flex items-center gap-3 pt-2">
+        <a href="https://tiktok.com" target="_blank" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-gray-300 hover:bg-[#cf1717] hover:text-white transition">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.98-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.82.56-1.32 1.56-1.28 2.55.02.82.42 1.61 1.08 2.1 1.03.82 2.53.87 3.6.13.71-.48 1.18-1.28 1.25-2.13.06-3.81.02-7.63.03-11.44z"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- 2. HỖ TRỢ TRỰC TUYẾN -->
+    <div class="space-y-3">
+      <h4 class="font-bold text-white text-sm">Hỗ Trợ Trực Tuyến 🎧</h4>
+      <p class="text-gray-400">Gặp sự cố khi làm bài hoặc cần giải đáp thắc mắc? Đội ngũ ReadUp luôn sẵn sàng hỗ trợ bạn.</p>
+      <button onclick="openSupportModal()" class="w-full py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl transition shadow-lg flex items-center justify-center gap-2">
+        <span>🎧</span>
+        <span>Gửi Yêu Cầu Hỗ Trợ</span>
+      </button>
+    </div>
+
+    <!-- 3. KHẢO SÁT DỊCH VỤ -->
+    <div class="space-y-3">
+      <h4 class="font-bold text-white text-sm">Khảo Sát & Góp Ý 📝</h4>
+      <p class="text-gray-400">Đánh giá của bạn giúp ReadUp English cải thiện chất lượng bộ đề và giao diện ngày một tốt hơn.</p>
+      <button onclick="openFeedbackModal()" class="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition border border-zinc-700 flex items-center justify-center gap-2">
+        <span>⭐</span>
+        <span>Đánh Giá Trải Nghiệm Website</span>
+      </button>
+    </div>
+
+  </div>
+
+  <div class="max-w-6xl mx-auto px-4 pt-4 border-t border-zinc-800 text-center text-gray-500 text-[11px]">
+    © 2026 ReadUp English. All rights reserved.
+  </div>
+</footer>
+
+<!-- ================= MODAL HỖ TRỢ TRỰC TUYẾN ================= -->
+<div id="supportModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-lg w-full p-6 relative shadow-2xl border dark:border-zinc-800 max-h-[90vh] overflow-y-auto">
+    <button onclick="closeSupportModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white font-bold text-base">✕</button>
+    
+    <div id="supportChoiceView" class="space-y-4">
+      <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">🎧 Hỗ trợ Trực tuyến</h3>
+      <div class="space-y-2.5">
+        <button onclick="showCreateTicketForm()" class="w-full p-3.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-2xl text-xs transition flex items-center justify-center gap-2">
+          <span>➕</span><span>Tạo yêu cầu hỗ trợ mới</span>
+        </button>
+        <button onclick="showTicketHistoryView()" class="w-full p-3.5 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 text-gray-800 dark:text-white font-bold rounded-2xl text-xs transition flex items-center justify-center gap-2 border dark:border-zinc-700">
+          <span>📋</span><span>Kiểm tra tình trạng yêu cầu</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Form Tạo Yêu Cầu -->
+    <form id="createTicketForm" onsubmit="handleCreateTicket(event)" class="space-y-3 hidden">
+      <div class="flex justify-between items-center">
+        <h4 class="font-bold text-sm text-gray-900 dark:text-white">Tạo Yêu Cầu Hỗ Trợ Mới</h4>
+        <button type="button" onclick="showSupportChoice()" class="text-xs text-red-500 hover:underline">← Quay lại</button>
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-gray-500 mb-1">Họ và tên</label>
+        <input type="text" id="spFullName" required class="w-full p-2.5 border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 text-xs focus:ring-2 focus:ring-[#cf1717] outline-none">
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-gray-500 mb-1">Email liên hệ</label>
+        <input type="email" id="spEmail" required class="w-full p-2.5 border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 text-xs focus:ring-2 focus:ring-[#cf1717] outline-none">
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-gray-500 mb-1">Tiêu đề cần hỗ trợ</label>
+        <input type="text" id="spTitle" placeholder="VD: Lỗi không nộp được bài thi..." required class="w-full p-2.5 border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 text-xs focus:ring-2 focus:ring-[#cf1717] outline-none">
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-gray-500 mb-1">Nội dung chi tiết</label>
+        <textarea id="spContent" rows="4" placeholder="Mô tả chi tiết sự cố bạn gặp phải..." required class="w-full p-2.5 border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 text-xs focus:ring-2 focus:ring-[#cf1717] outline-none"></textarea>
+      </div>
+      <button type="submit" class="w-full py-2.5 bg-[#cf1717] text-white font-bold rounded-xl text-xs hover:bg-red-700 transition">Gửi Yêu Cầu</button>
+    </form>
+
+    <!-- Danh Sách Lịch Sử Hỗ Trợ -->
+    <div id="ticketHistoryView" class="space-y-3 hidden">
+      <div class="flex justify-between items-center">
+        <h4 class="font-bold text-sm text-gray-900 dark:text-white">Lịch Sử Yêu Cầu Hỗ Trợ</h4>
+        <button onclick="showSupportChoice()" class="text-xs text-red-500 hover:underline">← Quay lại</button>
+      </div>
+      <div id="ticketListContainer" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+        <!-- Render danh sách ticket bằng JS -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL KHẢO SÁT WEBSITE ================= -->
+<div id="feedbackModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-md w-full p-6 relative shadow-2xl border dark:border-zinc-800">
+    <button onclick="closeFeedbackModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white font-bold text-base">✕</button>
+    
+    <h3 class="text-base font-bold text-gray-900 dark:text-white mb-1 flex items-center gap-2">⭐ Khảo Sát Trải Nghiệm</h3>
+    <p class="text-[11px] text-gray-400 mb-4">Đánh giá ẩn danh (không yêu cầu tài khoản).</p>
+
+    <form onsubmit="handleSendFeedback(event)" class="space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">1. Giao diện website dễ nhìn, dễ thao tác?</label>
+        <div class="flex gap-2 text-xl cursor-pointer" id="starQ1">
+          <span onclick="setRating(1, 1)" class="star1 text-gray-300">★</span>
+          <span onclick="setRating(1, 2)" class="star1 text-gray-300">★</span>
+          <span onclick="setRating(1, 3)" class="star1 text-gray-300">★</span>
+          <span onclick="setRating(1, 4)" class="star1 text-gray-300">★</span>
+          <span onclick="setRating(1, 5)" class="star1 text-gray-300">★</span>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">2. Nội dung đề thi & giải thích chi tiết?</label>
+        <div class="flex gap-2 text-xl cursor-pointer" id="starQ2">
+          <span onclick="setRating(2, 1)" class="star2 text-gray-300">★</span>
+          <span onclick="setRating(2, 2)" class="star2 text-gray-300">★</span>
+          <span onclick="setRating(2, 3)" class="star2 text-gray-300">★</span>
+          <span onclick="setRating(2, 4)" class="star2 text-gray-300">★</span>
+          <span onclick="setRating(2, 5)" class="star2 text-gray-300">★</span>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">3. Tốc độ tải bài & độ ổn định?</label>
+        <div class="flex gap-2 text-xl cursor-pointer" id="starQ3">
+          <span onclick="setRating(3, 1)" class="star3 text-gray-300">★</span>
+          <span onclick="setRating(3, 2)" class="star3 text-gray-300">★</span>
+          <span onclick="setRating(3, 3)" class="star3 text-gray-300">★</span>
+          <span onclick="setRating(3, 4)" class="star3 text-gray-300">★</span>
+          <span onclick="setRating(3, 5)" class="star3 text-gray-300">★</span>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Góp ý bổ sung / Báo lỗi / Đề xuất tính năng</label>
+        <textarea id="fbComment" rows="3" placeholder="Nhập ý kiến của bạn..." class="w-full p-2.5 border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 text-xs outline-none focus:ring-2 focus:ring-[#cf1717]"></textarea>
+      </div>
+
+      <button type="submit" class="w-full py-2.5 bg-[#cf1717] text-white font-bold rounded-xl text-xs hover:bg-red-700 transition">Gửi Đánh Giá</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  let ratings = { q1: 5, q2: 5, q3: 5 };
+
+  function openSupportModal() {
+    showSupportChoice();
+    document.getElementById('supportModal').classList.remove('hidden');
+    // Tự động điền tên + email nếu học viên đã đăng nhập
+    if (typeof currentUser !== 'undefined' && currentUser) {
+      document.getElementById('spEmail').value = currentUser.email || '';
+      document.getElementById('spFullName').value = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+    }
+  }
+
+  function closeSupportModal() { document.getElementById('supportModal').classList.add('hidden'); }
+  function showSupportChoice() {
+    document.getElementById('supportChoiceView').classList.remove('hidden');
+    document.getElementById('createTicketForm').classList.add('hidden');
+    document.getElementById('ticketHistoryView').classList.add('hidden');
+  }
+  function showCreateTicketForm() {
+    document.getElementById('supportChoiceView').classList.add('hidden');
+    document.getElementById('createTicketForm').classList.remove('hidden');
+  }
+
+  async function handleCreateTicket(e) {
+    e.preventDefault();
+    const ticketCode = 'TK-' + Math.floor(10000 + Math.random() * 90000);
+    const payload = {
+      ticket_code: ticketCode,
+      user_id: (typeof currentUser !== 'undefined' && currentUser) ? currentUser.id : null,
+      full_name: document.getElementById('spFullName').value,
+      email: document.getElementById('spEmail').value,
+      title: document.getElementById('spTitle').value,
+      content: document.getElementById('spContent').value
+    };
+
+    const { error } = await sbClient.from('support_tickets').insert([payload]);
+    if (error) { alert("❌ Lỗi gửi yêu cầu: " + error.message); return; }
+
+    alert(`✅ Gửi yêu cầu thành công! Mã hỗ trợ của bạn là: ${ticketCode}`);
+    document.getElementById('spTitle').value = '';
+    document.getElementById('spContent').value = '';
+    showTicketHistoryView();
+  }
+
+  async function showTicketHistoryView() {
+    document.getElementById('supportChoiceView').classList.add('hidden');
+    document.getElementById('ticketHistoryView').classList.remove('hidden');
+    
+    const container = document.getElementById('ticketListContainer');
+    container.innerHTML = '<p class="text-xs text-gray-400">Đang tải dữ liệu...</p>';
+
+    let query = sbClient.from('support_tickets').select('*').order('created_at', { ascending: false });
+    if (typeof currentUser !== 'undefined' && currentUser) {
+      query = query.eq('user_id', currentUser.id);
+    } else {
+      const inputEmail = prompt("Nhập Email của bạn để kiểm tra lịch sử hỗ trợ:");
+      if (!inputEmail) { showSupportChoice(); return; }
+      query = query.eq('email', inputEmail.trim());
+    }
+
+    const { data: tickets, error } = await query;
+    if (error || !tickets || tickets.length === 0) {
+      container.innerHTML = '<p class="text-xs text-gray-400 py-4 text-center">Chưa có lịch sử yêu cầu hỗ trợ nào.</p>';
+      return;
+    }
+
+    // Render giao diện thẻ phản hồi chuẩn như ảnh đính kèm
+    container.innerHTML = tickets.map(t => `
+      <div class="p-4 bg-gray-50 dark:bg-zinc-800 rounded-2xl border dark:border-zinc-700 space-y-2 text-xs">
+        <div class="flex justify-between items-start gap-2">
+          <strong class="text-gray-900 dark:text-white font-bold">${t.title}</strong>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${t.status === 'resolved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
+            Mã: ${t.ticket_code}
+          </span>
+        </div>
+        <p class="text-gray-500 text-[11px]">Ngày gửi: ${new Date(t.created_at).toLocaleString('vi-VN')}</p>
+        <div class="text-gray-700 dark:text-gray-300 bg-white dark:bg-zinc-900/60 p-2.5 rounded-xl border dark:border-zinc-800">
+          ${t.content}
+        </div>
+        ${t.admin_reply ? `
+          <div class="p-3 bg-red-50/60 dark:bg-red-950/30 rounded-xl border border-red-100 dark:border-red-900/40 text-xs space-y-1">
+            <span class="font-bold text-[#cf1717] block">💬 Trả lời từ hỗ trợ:</span>
+            <p class="text-gray-800 dark:text-gray-200">${t.admin_reply}</p>
+          </div>
+        ` : `
+          <p class="text-[11px] text-yellow-600 italic">⏳ Đang chờ Quản trị viên phản hồi...</p>
+        `}
+      </div>
+    `).join('');
+  }
+
+  // KHẢO SÁT
+  function openFeedbackModal() { document.getElementById('feedbackModal').classList.remove('hidden'); setRating(1, 5); setRating(2, 5); setRating(3, 5); }
+  function closeFeedbackModal() { document.getElementById('feedbackModal').classList.add('hidden'); }
+  
+  function setRating(qNum, starCount) {
+    ratings[`q${qNum}`] = starCount;
+    const stars = document.querySelectorAll(`#starQ${qNum} .star${qNum}`);
+    stars.forEach((s, idx) => {
+      s.className = `star${qNum} ${idx < starCount ? 'text-amber-400' : 'text-gray-300'}`;
+    });
+  }
+
+  async function handleSendFeedback(e) {
+    e.preventDefault();
+    const payload = {
+      q1_rating: ratings.q1,
+      q2_rating: ratings.q2,
+      q3_rating: ratings.q3,
+      comment: document.getElementById('fbComment').value
+    };
+
+    const { error } = await sbClient.from('feedbacks').insert([payload]);
+    if (error) { alert("❌ Lỗi gửi đánh giá: " + error.message); return; }
+
+    alert("❤️ Cảm ơn bạn đã đóng góp ý kiến cho ReadUp English!");
+    document.getElementById('fbComment').value = '';
+    closeFeedbackModal();
+  }
+</script>
   
 </body>
 </html>
