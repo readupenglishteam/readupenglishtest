@@ -367,41 +367,41 @@
       document.getElementById('examQuestions').value = JSON.stringify(exam.questions, null, 2);
       document.getElementById('examModal').classList.remove('hidden');
     }
-    // Lấy giá trị từ ô textarea
-    const vocabData = document.getElementById('editVocab').value;
-    const { error } = await sbClient.from('tests').upsert({
-    id: currentTestId, // Nếu sửa bài
-    title: titleInput,
-    content: contentInput,
-    questions: JSON.parse(questionsInput),
-    vocabulary: vocabData ? JSON.parse(vocabData) : [], // Lưu JSON Vocabulary
-  // ... các trường khác
-});
-    async function handleSaveExam(e) {
-      e.preventDefault();
-      const id = document.getElementById('editingExamId').value;
-      try {
-        const questionsJson = JSON.parse(document.getElementById('examQuestions').value);
-        const examData = {
-          title: document.getElementById('examTitle').value,
-          topic: document.getElementById('examTopic').value,
-          time_limit: parseInt(document.getElementById('examTime').value),
-          notes: document.getElementById('examNotes').value,
-          passage_html: document.getElementById('examPassage').value,
-          questions: questionsJson
-        };
+    
+   async function handleSaveExam(e) {
+  e.preventDefault();
+  const id = document.getElementById('editingExamId').value;
+  try {
+    // 1. Parse JSON Câu hỏi
+    const questionsJson = JSON.parse(document.getElementById('examQuestions').value || '[]');
 
-        if (id) {
-          await sbClient.from('exams').update(examData).eq('id', id);
-        } else {
-          examData.token = 'ielts-' + Math.random().toString(36).substring(2, 9);
-          await sbClient.from('exams').insert([examData]);
-        }
+    // 2. Parse JSON Từ vựng (xử lý an toàn nếu để trống)
+    const vocabVal = document.getElementById('examVocab')?.value.trim();
+    const vocabularyJson = vocabVal ? JSON.parse(vocabVal) : [];
 
-        closeExamModal();
-        loadAdminExams();
-      } catch (err) { alert("❌ JSON câu hỏi không hợp lệ!"); }
+    const examData = {
+      title: document.getElementById('examTitle').value,
+      topic: document.getElementById('examTopic').value,
+      time_limit: parseInt(document.getElementById('examTime').value),
+      notes: document.getElementById('examNotes').value,
+      passage_html: document.getElementById('examPassage').value,
+      questions: questionsJson,
+      vocabulary: vocabularyJson // <-- Thêm trường này vào Supabase
+    };
+
+    if (id) {
+      await sbClient.from('exams').update(examData).eq('id', id);
+    } else {
+      examData.token = 'ielts-' + Math.random().toString(36).substring(2, 9);
+      await sbClient.from('exams').insert([examData]);
     }
+
+    closeExamModal();
+    loadAdminExams();
+  } catch (err) { 
+    alert("❌ Dữ liệu JSON không hợp lệ! Vui lòng kiểm tra lại cú pháp ở ô Câu hỏi hoặc Từ vựng."); 
+  }
+}
 
     async function deleteExam(id) {
       if (confirm("Xóa bài thi này?")) {
