@@ -109,7 +109,7 @@
         <div class="space-y-2.5">
       <button onclick="closeResultModal()" class="w-full py-3 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-800 dark:text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5">
         <span>🔍</span>
-        <span>Xem đáp án & giải thích chi tiết</span>
+        <span>Đáp án & Giải thích</span>
       </button>
       </div>
       <button onclick="window.location.href='dashboard.html'" class="w-full py-2.5 sm:py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-lg transition text-sm shadow">Trở Về Trang Chủ Dashboard</button>
@@ -225,7 +225,8 @@ async function submitExam() {
     exam_id: currentExam.id,
     user_id: currentUser.id,
     score: score10,
-    answers: userAnswers
+    answers: userAnswers,
+    time_spent: timeSpentSeconds
   };
 
   const { data, error } = await sbClient.from('exam_results').insert([payload]);
