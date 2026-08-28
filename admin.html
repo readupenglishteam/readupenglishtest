@@ -120,24 +120,27 @@
       </div>
     </section>
 
-    <!-- TAB ADMIN BUTTONS -->
-<div class="flex gap-2 mb-6 border-b dark:border-zinc-800 pb-3">
-  <button onclick="switchAdminTab('exams')" id="tabExamsBtn" class="px-4 py-2 font-bold text-xs rounded-xl bg-[#cf1717] text-white">Bài Thi</button>
-  <button onclick="switchAdminTab('tickets')" id="tabTicketsBtn" class="px-4 py-2 font-bold text-xs rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300">Yêu Cầu Hỗ Trợ</button>
-  <button onclick="switchAdminTab('feedbacks')" id="tabFeedbacksBtn" class="px-4 py-2 font-bold text-xs rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300">Đánh Giá Dịch Vụ</button>
-</div>
+   <!-- ================= 1. QUẢN LÝ YÊU CẦU HỖ TRỢ ================= -->
+<section class="space-y-4 mb-10">
+  <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
+    <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white">🎧 Quản Lý Yêu Cầu Hỗ Trợ</h2>
+    <span id="adminTicketCount" class="text-xs font-bold px-2.5 py-1 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">0 yêu cầu</span>
+  </div>
+  <div id="adminTicketList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <p class="text-gray-500 text-sm col-span-full">⏳ Đang tải danh sách hỗ trợ...</p>
+  </div>
+</section>
 
-<!-- KHU VỰC QUẢN LÝ HỖ TRỢ -->
-<div id="adminTicketsSection" class="hidden space-y-4">
-  <h3 class="font-bold text-base text-gray-900 dark:text-white">Danh Sách Yêu Cầu Hỗ Trợ</h3>
-  <div id="adminTicketsList" class="space-y-3"></div>
-</div>
-
-<!-- KHU VỰC ĐÁNH GIÁ DỊCH VỤ -->
-<div id="adminFeedbacksSection" class="hidden space-y-4">
-  <h3 class="font-bold text-base text-gray-900 dark:text-white">Đánh Giá & Ý Kiến Học Viên</h3>
-  <div id="adminFeedbacksList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-</div>
+<!-- ================= 2. QUẢN LÝ ĐÁNH GIÁ DỊCH VỤ ================= -->
+<section class="space-y-4">
+  <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
+    <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white">⭐ Quản Lý Đánh Giá Dịch Vụ</h2>
+    <span id="adminFeedbackCount" class="text-xs font-bold px-2.5 py-1 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">0 đánh giá</span>
+  </div>
+  <div id="adminFeedbackList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <p class="text-gray-500 text-sm col-span-full">⏳ Đang tải đánh giá...</p>
+  </div>
+</section>
 
   </main>
 
@@ -527,75 +530,108 @@ function switchAdminTab(tab) {
     }
   }
 
-  // Tải danh sách Support Tickets cho Admin
-  async function loadAdminTickets() {
-    const { data: tickets } = await sbClient.from('support_tickets').select('*').order('created_at', { ascending: false });
-    const container = document.getElementById('adminTicketsList');
-    
-    if (!tickets || tickets.length === 0) {
-      container.innerHTML = '<p class="text-xs text-gray-400">Không có yêu cầu hỗ trợ nào.</p>';
-      return;
-    }
+// Tải dữ liệu Yêu Cầu Hỗ Trợ
+async function loadAdminTickets() {
+  const container = document.getElementById('adminTicketList');
+  const countBadge = document.getElementById('adminTicketCount');
 
-    container.innerHTML = tickets.map(t => `
-      <div class="p-4 bg-white dark:bg-zinc-800 rounded-2xl border dark:border-zinc-700 space-y-2 text-xs">
-        <div class="flex justify-between items-center">
-          <div>
-            <strong class="text-sm font-bold text-gray-900 dark:text-white">[${t.ticket_code}] ${t.title}</strong>
-            <p class="text-gray-400 text-[11px]">${t.full_name} (${t.email}) - ${new Date(t.created_at).toLocaleString('vi-VN')}</p>
-          </div>
-          <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${t.status === 'resolved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
-            ${t.status === 'resolved' ? 'Đã phản hồi' : 'Chờ xử lý'}
+  const { data: tickets, error } = await sbClient
+    .from('support_tickets')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error || !tickets || tickets.length === 0) {
+    countBadge.innerText = '0 yêu cầu';
+    container.innerHTML = '<p class="text-gray-500 text-sm col-span-full">Chưa có yêu cầu hỗ trợ nào.</p>';
+    return;
+  }
+
+  countBadge.innerText = `${tickets.length} yêu cầu`;
+  container.innerHTML = tickets.map(t => `
+    <div class="p-4 bg-white dark:bg-zinc-800 rounded-2xl border dark:border-zinc-700 shadow-sm flex flex-col justify-between space-y-3">
+      <div class="space-y-2">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${t.status === 'resolved' ? 'bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-400' : 'bg-red-100 text-[#cf1717] dark:bg-red-950/60'}">
+            ${t.ticket_code}
           </span>
+          <span class="text-[10px] text-gray-400">${new Date(t.created_at).toLocaleDateString('vi-VN')}</span>
         </div>
-        <p class="bg-gray-50 dark:bg-zinc-900 p-2.5 rounded-xl border dark:border-zinc-800 text-gray-700 dark:text-gray-300">${t.content}</p>
-        
-        <div class="pt-2">
-          <textarea id="reply_${t.id}" rows="2" placeholder="Nhập câu trả lời cho học viên..." class="w-full p-2 border rounded-xl dark:bg-zinc-900 dark:border-zinc-700 text-xs mb-2 outline-none">${t.admin_reply || ''}</textarea>
-          <button onclick="sendAdminReply('${t.id}')" class="px-3 py-1.5 bg-[#cf1717] text-white font-bold rounded-lg text-xs hover:bg-red-700 transition">Gửi Phản Hồi</button>
-        </div>
+        <h3 class="font-bold text-xs text-gray-900 dark:text-white line-clamp-1">${t.title}</h3>
+        <p class="text-[11px] text-gray-500 dark:text-gray-400">👤 ${t.full_name} (${t.email})</p>
+        <p class="p-2 bg-gray-50 dark:bg-zinc-900 rounded-xl text-xs text-gray-700 dark:text-gray-300 border dark:border-zinc-800">${t.content}</p>
       </div>
-    `).join('');
-  }
 
-  async function sendAdminReply(ticketId) {
-    const replyText = document.getElementById(`reply_${ticketId}`).value;
-    if (!replyText) return alert("Vui lòng nhập nội dung trả lời!");
-
-    const { error } = await sbClient.from('support_tickets').update({
-      admin_reply: replyText,
-      status: 'resolved'
-    }).eq('id', ticketId);
-
-    if (error) alert("❌ Lỗi gửi trả lời: " + error.message);
-    else {
-      alert("✅ Đã lưu phản hồi hỗ trợ!");
-      loadAdminTickets();
-    }
-  }
-
-  // Tải danh sách Feedback khảo sát
-  async function loadAdminFeedbacks() {
-    const { data: list } = await sbClient.from('feedbacks').select('*').order('created_at', { ascending: false });
-    const container = document.getElementById('adminFeedbacksList');
-
-    if (!list || list.length === 0) {
-      container.innerHTML = '<p class="text-xs text-gray-400">Chưa có đánh giá nào.</p>';
-      return;
-    }
-
-    container.innerHTML = list.map(f => `
-      <div class="p-4 bg-white dark:bg-zinc-800 rounded-2xl border dark:border-zinc-700 space-y-2 text-xs">
-        <p class="text-[10px] text-gray-400">${new Date(f.created_at).toLocaleString('vi-VN')}</p>
-        <div class="space-y-1">
-          <div>Giao diện: <strong class="text-amber-500">${'★'.repeat(f.q1_rating)}</strong></div>
-          <div>Đề thi & Giải thích: <strong class="text-amber-500">${'★'.repeat(f.q2_rating)}</strong></div>
-          <div>Tốc độ hệ thống: <strong class="text-amber-500">${'★'.repeat(f.q3_rating)}</strong></div>
-        </div>
-        ${f.comment ? `<p class="italic bg-gray-50 dark:bg-zinc-900 p-2 rounded-lg border dark:border-zinc-800 text-gray-700 dark:text-gray-300">"${f.comment}"</p>` : ''}
+      <div class="pt-2 border-t dark:border-zinc-700/60 space-y-2">
+        <textarea id="reply_${t.id}" rows="2" placeholder="Nhập câu trả lời..." class="w-full p-2 border rounded-xl dark:bg-zinc-900 dark:border-zinc-700 text-xs outline-none focus:ring-1 focus:ring-[#cf1717]">${t.admin_reply || ''}</textarea>
+        <button onclick="sendAdminReply('${t.id}')" class="w-full py-1.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs rounded-xl transition">
+          ${t.admin_reply ? 'Cập Nhật Trả Lời' : 'Gửi Phản Hồi'}
+        </button>
       </div>
-    `).join('');
+    </div>
+  `).join('');
+}
+
+// Gửi phản hồi hỗ trợ
+async function sendAdminReply(ticketId) {
+  const replyText = document.getElementById(`reply_${ticketId}`).value;
+  if (!replyText.trim()) return alert("Vui lòng nhập nội dung phản hồi!");
+
+  const { error } = await sbClient
+    .from('support_tickets')
+    .update({ admin_reply: replyText, status: 'resolved' })
+    .eq('id', ticketId);
+
+  if (error) alert("❌ Lỗi: " + error.message);
+  else {
+    alert("✅ Đã gửi câu trả lời thành công!");
+    loadAdminTickets();
   }
+}
+
+// Tải dữ liệu Đánh Giá Dịch Vụ
+async function loadAdminFeedbacks() {
+  const container = document.getElementById('adminFeedbackList');
+  const countBadge = document.getElementById('adminFeedbackCount');
+
+  const { data: list, error } = await sbClient
+    .from('feedbacks')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error || !list || list.length === 0) {
+    countBadge.innerText = '0 đánh giá';
+    container.innerHTML = '<p class="text-gray-500 text-sm col-span-full">Chưa có đánh giá nào.</p>';
+    return;
+  }
+
+  countBadge.innerText = `${list.length} đánh giá`;
+  container.innerHTML = list.map(f => `
+    <div class="p-4 bg-white dark:bg-zinc-800 rounded-2xl border dark:border-zinc-700 shadow-sm space-y-2 text-xs">
+      <div class="flex justify-between items-center text-[10px] text-gray-400">
+        <span>Ẩn danh</span>
+        <span>${new Date(f.created_at).toLocaleDateString('vi-VN')}</span>
+      </div>
+
+      <div class="space-y-1 text-[11px] text-gray-700 dark:text-gray-300">
+        <div class="flex justify-between"><span>Giao diện:</span> <strong class="text-amber-400">${'★'.repeat(f.q1_rating)}</strong></div>
+        <div class="flex justify-between"><span>Đề thi & Nội dung:</span> <strong class="text-amber-400">${'★'.repeat(f.q2_rating)}</strong></div>
+        <div class="flex justify-between"><span>Tốc độ hệ thống:</span> <strong class="text-amber-400">${'★'.repeat(f.q3_rating)}</strong></div>
+      </div>
+
+      ${f.comment ? `
+        <div class="p-2.5 bg-gray-50 dark:bg-zinc-900 rounded-xl text-gray-700 dark:text-gray-300 border dark:border-zinc-800 italic text-[11px]">
+          "${f.comment}"
+        </div>
+      ` : ''}
+    </div>
+  `).join('');
+}
+
+// Gọi hàm khi tải trang Admin
+document.addEventListener("DOMContentLoaded", () => {
+  loadAdminTickets();
+  loadAdminFeedbacks();
+});
     
   </script>
 </body>
