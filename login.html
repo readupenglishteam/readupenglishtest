@@ -225,10 +225,10 @@
       });
 
       if (error) {
-        msg.innerText = "❌ Lỗi đăng ký: " + error.message;
+        msg.innerText = '<i class="bi bi-dash-circle-fill"></i> Lỗi đăng ký: ' + error.message;
         msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
       } else {
-        msg.innerText = "✅ Đăng ký thành công! Đang chuyển hướng...";
+        msg.innerText = '<i class="bi bi-check-circle"></i> Đăng ký thành công!';
         msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
         setTimeout(() => window.location.href = 'dashboard.html', 1500);
       }
@@ -253,11 +253,11 @@
 
       // 3. Phân luồng trang chuyển hướng
       if (role === 'admin') {
-        msg.innerText = "👑 Đăng nhập Admin thành công! Đang chuyển trang...";
+        msg.innerText = '<i class="bi bi-gear"></i> Đăng nhập Admin thành công';
         msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
         setTimeout(() => window.location.href = 'admin.html', 1000);
       } else {
-        msg.innerText = "✅ Đăng nhập thành công! Đang chuyển trang...";
+        msg.innerText = '<i class="bi bi-check-circle"></i> Đăng nhập thành công';
         msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
         setTimeout(() => window.location.href = 'dashboard.html', 1000);
       }
@@ -273,7 +273,7 @@ async function loginWithGoogle() {
       redirectTo: redirectUrl
     }
   });
-  if (error) alert("❌ Lỗi đăng nhập Google: " + error.message);
+  if (error) {msg.innerHTML = `<i class="bi bi-dash-circle-fill"></i> Lỗi đăng nhập Google: ' + error.message)`;
 }
 
 // 2. ĐĂNG NHẬP BẰNG FACEBOOK / GITHUB / APPLE
@@ -285,8 +285,9 @@ async function loginWithSocial(providerName) { // providerName = 'facebook' ho�
       redirectTo: redirectUrl
     }
   });
-  if (error) alert(`❌ Lỗi đăng nhập ${providerName}: ` + error.message);
+  if (error) {msg.innerHTML = `<i class="bi bi-dash-circle-fill"></i> Lỗi đăng nhập ${providerName}: ${error.message}`;}
 }
+
 
 // 3. ĐĂNG NHẬP BẰNG EMAIL & MẬT KHẨU TRUYỀN THỐNG
 async function loginWithEmail(email, password) {
@@ -294,7 +295,7 @@ async function loginWithEmail(email, password) {
     email: email,
     password: password
   });
-  if (error) alert("❌ Sai email hoặc mật khẩu!");
+  if (error) { msg.innerHTML = '<i class="bi bi-dash-circle-fill"></i> Sai email hoặc mật khẩu!';}
   else window.location.href = 'dashboard.html';
 }
 
@@ -306,7 +307,7 @@ async function loginWithMagicLink(email) {
       emailRedirectTo: window.location.origin + '/dashboard.html'
     }
   });
-  if (error) alert("❌ Lỗi gửi liên kết: " + error.message);
+  if (error) {msg.innerHTML = '<i class="bi bi-dash-circle-fill"> Lỗi gửi liên kết: " + error.message';}
   else alert("✉️ Đã gửi link đăng nhập vào Email của bạn!");
 }
     function toggleDarkMode() {
