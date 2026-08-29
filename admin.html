@@ -164,45 +164,46 @@
       </div>
     </section>
 
-    <!-- QUẢN LÝ TỪ/CÂU LUYỆN PHÁT ÂM -->
+<!-- QUẢN LÝ TỪ/CỤM TỪ LUYỆN PHÁT ÂM -->
 <section class="space-y-4">
-  <!-- Header Section -->
   <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
     <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
-      🎙️ Quản Lý Từ/Cụm Từ Luyện Phát Âm 
-      <button 
-        type="button" 
-        onclick="openGuideModal('luyen_phat_am', 'Quản Lý Luyện Phát Âm')" 
-        class="w-5 h-5 rounded-full bg-[#cf1717] text-white flex items-center justify-center text-xs font-bold hover:bg-red-700 transition shadow" 
-        title="Xem hướng dẫn"
-      >
-        ?
-      </button>
+      🎙️ Quản Lý Từ/Cụm Từ Luyện Phát Âm
+      <button type="button" onclick="openGuideModal('luyen_phat_am', 'Hướng Dẫn')" class="w-5 h-5 rounded-full bg-[#cf1717] text-white flex items-center justify-center text-xs font-bold hover:bg-red-700 transition shadow" title="Xem hướng dẫn">?</button>
     </h2>
     <span id="adminPronunCount" class="text-xs font-bold px-2.5 py-1 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">0 câu</span>
   </div>
 
-  <!-- Nội Dung Form & Danh Sách -->
   <div class="p-4 sm:p-5 bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 shadow-sm space-y-4">
-    <!-- Ô nhập câu mới -->
-    <div class="flex flex-col sm:flex-row gap-2">
-      <input 
-        id="inputPronunPhrase" 
-        type="text" 
-        placeholder="Nhập câu/cụm từ tiếng Anh (ví dụ: Reading comprehension is vital)..." 
-        class="flex-1 p-2.5 rounded-xl border border-gray-300 dark:border-zinc-700 dark:bg-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#cf1717] dark:text-white"
-      >
-      <button 
-        type="button" 
-        onclick="savePronunPhrase()" 
-        class="px-4 py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-sm rounded-xl transition shadow whitespace-nowrap flex items-center justify-center gap-1"
-      >
-        <span>+</span> Thêm Câu
+    <!-- ID ẩn dùng khi Sửa -->
+    <input type="hidden" id="editPronunId" value="">
+
+    <!-- 3 Ô Nhập Dữ Liệu -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div>
+        <label class="text-xs font-bold text-gray-600 dark:text-gray-300 mb-1 block">1. Câu tiếng Anh (*)</label>
+        <input id="inputPronunPhrase" type="text" placeholder="Reading comprehension..." class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-zinc-700 dark:bg-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#cf1717] dark:text-white">
+      </div>
+      <div>
+        <label class="text-xs font-bold text-gray-600 dark:text-gray-300 mb-1 block">2. Phiên âm IPA</label>
+        <input id="inputPronunIpa" type="text" placeholder="/ˈriː.dɪŋ ˌkɒm.prɪˈhen.ʃən/..." class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-zinc-700 dark:bg-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#cf1717] dark:text-white">
+      </div>
+      <div>
+        <label class="text-xs font-bold text-gray-600 dark:text-gray-300 mb-1 block">3. Nghĩa tiếng Việt</label>
+        <input id="inputPronunMeaning" type="text" placeholder="Khả năng đọc hiểu..." class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-zinc-700 dark:bg-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#cf1717] dark:text-white">
+      </div>
+    </div>
+
+    <!-- Nút Thao Tác -->
+    <div class="flex justify-end gap-2">
+      <button id="btnCancelPronunEdit" type="button" onclick="cancelPronunEdit()" class="hidden px-4 py-2.5 bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-gray-200 font-bold text-xs sm:text-sm rounded-xl hover:bg-gray-300 transition">Hủy Sửa</button>
+      <button id="btnSavePronun" type="button" onclick="savePronunPhrase()" class="px-5 py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow flex items-center gap-1">
+        <span id="btnSavePronunIcon">+</span> <span id="btnSavePronunText">Thêm Câu</span>
       </button>
     </div>
 
-    <!-- Container Danh sách các câu mẫu -->
-    <div id="adminPronunList" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+    <!-- Danh sách câu mẫu -->
+    <div id="adminPronunList" class="space-y-2 max-h-80 overflow-y-auto pr-1">
       <p class="text-gray-500 text-sm italic">⏳ Đang tải danh sách câu...</p>
     </div>
   </div>
@@ -1049,6 +1050,105 @@ async function deletePronunPhrase(id) {
 // Gọi tải danh sách khi mở trang
 document.addEventListener('DOMContentLoaded', loadAdminPronunPhrases);
 
+    let localPronunPhrases = []; // Lưu biến tạm để gọi nhanh khi bấm Sửa
+
+async function loadAdminPronunPhrases() {
+  const container = document.getElementById('adminPronunList');
+  const countBadge = document.getElementById('adminPronunCount');
+  if (!container) return;
+
+  const { data, error } = await sbClient
+    .from('pronunciation_phrases')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  localPronunPhrases = data || [];
+
+  if (countBadge) countBadge.innerText = `${localPronunPhrases.length} câu`;
+
+  if (error || localPronunPhrases.length === 0) {
+    container.innerHTML = '<p class="text-xs text-gray-400 italic p-2">Chưa có câu mẫu nào.</p>';
+    return;
+  }
+
+  container.innerHTML = localPronunPhrases.map(item => `
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 dark:bg-zinc-900/80 rounded-xl border border-gray-100 dark:border-zinc-700/60 hover:border-gray-300 transition gap-2">
+      <div class="space-y-0.5">
+        <p class="text-sm font-bold text-gray-800 dark:text-gray-100">${escapeHtml(item.phrase)}</p>
+        <div class="flex items-center gap-3 text-xs">
+          <span class="text-[#cf1717] dark:text-red-400 font-mono font-semibold">${item.ipa ? escapeHtml(item.ipa) : 'Chưa có IPA'}</span>
+          <span class="text-gray-500 dark:text-gray-400 italic">${item.meaning ? escapeHtml(item.meaning) : 'Chưa có nghĩa'}</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+        <button onclick="editPronunPhrase(${item.id})" class="text-xs text-blue-600 dark:text-blue-400 font-bold hover:underline px-2 py-1">Sửa</button>
+        <button onclick="deletePronunPhrase(${item.id})" class="text-xs text-red-600 dark:text-red-400 font-bold hover:underline px-2 py-1">Xóa</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Lưu (Thêm mới hoặc Cập nhật)
+async function savePronunPhrase() {
+  const editId = document.getElementById('editPronunId').value;
+  const phrase = document.getElementById('inputPronunPhrase').value.trim();
+  const ipa = document.getElementById('inputPronunIpa').value.trim();
+  const meaning = document.getElementById('inputPronunMeaning').value.trim();
+
+  if (!phrase) {
+    alert("Vui lòng nhập câu tiếng Anh!");
+    return;
+  }
+
+  const payload = { phrase, ipa, meaning };
+
+  if (editId) {
+    // Đang ở chế độ SỬA
+    const { error } = await sbClient.from('pronunciation_phrases').update(payload).eq('id', editId);
+    if (error) alert("❌ Lỗi sửa: " + error.message);
+  } else {
+    // Đang ở chế độ THÊM MỚI
+    const { error } = await sbClient.from('pronunciation_phrases').insert([payload]);
+    if (error) alert("❌ Lỗi thêm: " + error.message);
+  }
+
+  cancelPronunEdit();
+  await loadAdminPronunPhrases();
+}
+
+// Chuyển form sang trạng thái SỬA
+function editPronunPhrase(id) {
+  const item = localPronunPhrases.find(p => p.id === id);
+  if (!item) return;
+
+  document.getElementById('editPronunId').value = item.id;
+  document.getElementById('inputPronunPhrase').value = item.phrase || '';
+  document.getElementById('inputPronunIpa').value = item.ipa || '';
+  document.getElementById('inputPronunMeaning').value = item.meaning || '';
+
+  document.getElementById('btnSavePronunText').innerText = "Lưu Cập Nhật";
+  document.getElementById('btnSavePronunIcon').innerText = "💾";
+  document.getElementById('btnCancelPronunEdit').classList.remove('hidden');
+}
+
+// Hủy Sửa / Reset Form
+function cancelPronunEdit() {
+  document.getElementById('editPronunId').value = '';
+  document.getElementById('inputPronunPhrase').value = '';
+  document.getElementById('inputPronunIpa').value = '';
+  document.getElementById('inputPronunMeaning').value = '';
+
+  document.getElementById('btnSavePronunText').innerText = "Thêm Câu";
+  document.getElementById('btnSavePronunIcon').innerText = "+";
+  document.getElementById('btnCancelPronunEdit').classList.add('hidden');
+}
+
+// Xóa câu
+async function deletePronunPhrase(id) {
+  if (!confirm("Bạn có chắc muốn xóa câu này?")) return;
+  await sbClient.from('pronunciation_phrases').delete().eq('id', id);
+  await loadAdminPronunPhrases();
+}
     
   </script>
 <!-- MODAL HƯỚNG DẪN SỬ DỤNG PHÍA ADMIN (CÓ TAB) -->
