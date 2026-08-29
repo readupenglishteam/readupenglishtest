@@ -1004,10 +1004,23 @@ function startPronunciationCheck() {
     await processPronunResult(targetText, spokenText);
   };
 
-  recognition.onerror = (e) => {
-    alert("❌ Không thể ghi âm: " + e.error);
-    resetRecordBtn();
-  };
+  recognition.onerror = (event) => {
+  console.error("Speech error:", event.error);
+  
+  if (event.error === 'service-not-allowed' || event.error === 'not-allowed') {
+    alert(
+      "⚠️ KHÔNG THỂ BẬT MICRO!\n\n" +
+      "Vui lòng kiểm tra:\n" +
+      "1. Mở web bằng Chrome/Safari (Không mở trực tiếp trong Zalo/FB).\n" +
+      "2. Đã cấp quyền Micro cho trình duyệt trong Cài đặt điện thoại.\n" +
+      "3. Nếu dùng iPhone: Vào Cài đặt -> Bàn phím -> Bật 'Đọc bàn phím' (Dictation)."
+    );
+  } else {
+    alert("❌ Lỗi ghi âm: " + event.error);
+  }
+  
+  resetRecordBtn();
+};
 
   recognition.onend = resetRecordBtn;
 
