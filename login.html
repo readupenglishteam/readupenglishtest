@@ -5,21 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ReadUp English - Đăng nhập / Đăng ký</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>// BẮT BUỘC: Bảo Tailwind lắng nghe class "dark" ở thẻ <html> 
-    tailwind.config = {
-    darkMode: 'class'}
-</script>
+  <script>
+    tailwind.config = { darkMode: 'class' };
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Thêm Bootstrap Icons CDN để hiển thị các icon trong thông báo -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
 </head>
 <body class="bg-gradient-to-br from-red-50 via-white to-gray-100 dark:bg-zinc-950 dark:text-white min-h-screen transition-colors duration-300">
- <!-- ================= NỀN ĐỘNG CHUYỂN ĐỘNG DÙNG CHUNG ================= -->
+
 <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none select-none transition-colors duration-500 bg-slate-50 dark:bg-zinc-950">
-  <!-- Quầng sáng 1: Đỏ ReadUp (Trái trên) -->
   <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#cf1717]/20 dark:bg-[#cf1717]/15 rounded-full blur-3xl animate-blob"></div>
-  <!-- Quầng sáng 2: Tím nhạt (Phải giữa) -->
   <div class="absolute top-1/3 -right-24 w-[30rem] h-[30rem] bg-indigo-500/15 dark:bg-red-900/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-  <!-- Quầng sáng 3: Vàng cam ấm (Dưới) -->
   <div class="absolute -bottom-24 left-1/3 w-96 h-96 bg-amber-500/15 dark:bg-amber-600/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
 </div>
 
@@ -33,148 +31,104 @@
   .animation-delay-2000 { animation-delay: 2s; }
   .animation-delay-4000 { animation-delay: 4s; }
   @keyframes slideDown {
-    0% {
-      opacity: 0;
-      transform: translateY(-40px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    0% { opacity: 0; transform: translateY(-40px); }
+    100% { opacity: 1; transform: translateY(0); }
   }
-  .animate-slide-down {
-    animation: slideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-  
+  .animate-slide-down { animation: slideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 </style> 
-  <!-- Header Navbar -->
-  <!-- ================= HEADER LOGIN HIỆU ỨNG KÍNH MỜ (FROSTED GLASS) ================= -->
+
 <header class="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/60 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-950/60 transition px-4">
   <div class="max-w-7xl mx-auto h-16 flex justify-between items-center">
-    
-    <!-- 1. KHU VỰC LOGO TRÒN & TIÊU ĐỀ (Dẫn về Trang Chủ index.html) -->
     <div class="flex items-center gap-3">
-      <!-- Khung Logo Tròn Đỏ -->
       <a href="index.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
         <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
       </a>
-      
-      <!-- Tên Thương Hiệu + Badge English -->
       <a href="index.html" class="flex items-center gap-2 hover:opacity-90 transition">
         <span class="text-2xl font-black text-[#cf1717] tracking-tight">ReadUp</span>
         <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full shadow-sm">English</span>
       </a>
     </div>
 
-    <!-- 2. KHU VỰC THAO TÁC NẠP / ĐỔI GIAO DIỆN -->
     <div class="flex items-center gap-2 sm:gap-3">
-      <!-- Nút Quay Lại Trang Chủ -->
       <a href="index.html" class="px-3 py-2 text-xs font-bold bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300 rounded-xl transition border border-gray-200/50 dark:border-zinc-700/50 flex items-center gap-1">
         <span>🏠</span>
         <span class="hidden sm:inline">Trang chủ</span>
       </a>
-
-      <!-- Nút Chuyển Chế Độ Sáng / Tối -->
-      <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50">
+      <button type="button" onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50">
         <span id="themeIcon">🌙</span>
       </button>
     </div>
-
   </div>
 </header>
 
-  <!-- Form Container -->
-  <main class="flex justify-center items-center py-8 px-4 animate-slide-down">
-    <div class="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-zinc-800">
-      
-      <!-- Chuyển Đổi Tab Đăng Nhập / Đăng Ký -->
-      <div class="flex border-b border-gray-200 dark:border-zinc-700 mb-6">
-        <button id="tabLogin" type="button" onclick="switchTab('login')" class="w-1/2 py-2.5 text-center font-bold text-[#cf1717] border-b-2 border-[#cf1717] transition">
-          Đăng Nhập
-        </button>
-        <button id="tabRegister" type="button" onclick="switchTab('register')" class="w-1/2 py-2.5 text-center font-bold text-gray-400 hover:text-gray-600 transition">
-          Đăng Ký
-        </button>
-        <div class="space-y-3 max-w-sm mx-auto">
-</div>
+<main class="flex justify-center items-center py-8 px-4 animate-slide-down">
+  <div class="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-zinc-800">
+    
+    <div class="flex border-b border-gray-200 dark:border-zinc-700 mb-6">
+      <button id="tabLogin" type="button" onclick="switchTab('login')" class="w-1/2 py-2.5 text-center font-bold text-[#cf1717] border-b-2 border-[#cf1717] transition">
+        Đăng Nhập
+      </button>
+      <button id="tabRegister" type="button" onclick="switchTab('register')" class="w-1/2 py-2.5 text-center font-bold text-gray-400 hover:text-gray-600 transition">
+        Đăng Ký
+      </button>
+    </div>
+
+    <form id="authForm" onsubmit="handleAuth(event)" class="space-y-4">
+      <div id="fullNameGroup" class="hidden">
+        <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Họ và Tên</label>
+        <input type="text" id="fullName" placeholder="Nguyễn Văn A" class="w-full p-3 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
       </div>
 
-      <!-- Form Nhập Dữ Liệu -->
-      <form id="authForm" onsubmit="handleAuth(event)" class="space-y-4">
-        
-        <!-- Ô Họ và Tên (Hiện khi Đăng ký) -->
-        <div id="fullNameGroup" class="hidden">
-          <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Họ và Tên</label>
-          <input type="text" id="fullName" placeholder="Nguyễn Văn A" class="w-full p-3 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
+      <div id="dobGroup" class="hidden">
+        <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Ngày tháng năm sinh</label>
+        <input type="date" id="dob" class="w-full p-3 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Email</label>
+        <input type="email" id="email" required placeholder="student@example.com" class="w-full p-3 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Mật khẩu</label>
+        <div class="relative w-full">
+          <input type="password" id="password" required placeholder="••••••••" class="w-full p-3 pr-10 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
+          <button type="button" onclick="togglePasswordVisibility('password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none p-1">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
         </div>
+      </div>
 
-        <!-- Ô Ngày sinh (Hiện khi Đăng ký) -->
-        <div id="dobGroup" class="hidden">
-          <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Ngày tháng năm sinh</label>
-          <input type="date" id="dob" class="w-full p-3 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
-        </div>
+      <button type="submit" id="submitBtn" class="w-full py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-lg transition shadow-md hover:shadow-lg">
+        Đăng Nhập
+      </button>
 
-        <!-- Ô Email -->
-        <div>
-          <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Email</label>
-          <input type="email" id="email" required placeholder="student@example.com" class="w-full p-3 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
-        </div>
+      <!-- Đã thêm type="button" cho các nút Đăng nhập mạng xã hội -->
+      <button type="button" onclick="loginWithGoogle()" class="w-full flex items-center justify-center gap-3 py-2.5 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-xl font-bold text-xs hover:bg-gray-50 transition shadow-sm">
+        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-4 h-4" alt="Google">
+        Đăng nhập bằng Google
+      </button>
 
-        <!-- Ô Mật Khẩu -->
-<div>
-  <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Mật khẩu</label>
-  <div class="relative w-full">
-    <input 
-      type="password" 
-      id="password" 
-      required 
-      placeholder="••••••••" 
-      class="w-full p-3 pr-10 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]"
-    >
-    <button 
-      type="button" 
-      onclick="togglePasswordVisibility('password', this)" 
-      class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none p-1"
-    >
-      <!-- Icon con mắt -->
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-      </svg>
-    </button>
-  </div>
-</div>
+      <button type="button" onclick="loginWithSocial('facebook')" class="w-full flex items-center justify-center gap-3 py-2.5 bg-[#1877F2] text-white rounded-xl font-bold text-xs hover:opacity-90 transition shadow-sm">
+        <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" class="w-4 h-4 bg-white rounded-full" alt="Facebook">
+        Đăng nhập bằng Facebook
+      </button>
 
-        <!-- Nút Gửi -->
-        <button type="submit" id="submitBtn" class="w-full py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-lg transition shadow-md hover:shadow-lg">
-          Đăng Nhập
-        </button>
-          <!-- Nút Google -->
-  <button onclick="loginWithGoogle()" class="w-full flex items-center justify-center gap-3 py-2.5 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-xl font-bold text-xs hover:bg-gray-50 transition shadow-sm">
-    <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-4 h-4" alt="Google">
-    Đăng nhập bằng Google
-  </button>
-
-  <!-- Nút Facebook -->
-  <button onclick="loginWithSocial('facebook')" class="w-full flex items-center justify-center gap-3 py-2.5 bg-[#1877F2] text-white rounded-xl font-bold text-xs hover:opacity-90 transition shadow-sm">
-    <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" class="w-4 h-4 bg-white rounded-full" alt="Facebook">
-    Đăng nhập bằng Facebook
-  </button>
-
-        <!-- Thông báo bảo mật -->
-        <div class="pt-2 text-center">
-          <span class="text-xs text-gray-400 dark:text-gray-500 flex items-center justify-center gap-1 font-medium">
+      <div class="pt-2 text-center">
+        <span class="text-xs text-gray-400 dark:text-gray-500 flex items-center justify-center gap-1 font-medium">
           Dữ liệu đã được bảo mật
-          </span>
-        </div>
-      </form>
+        </span>
+      </div>
+    </form>
 
-      <!-- Dòng hiển thị trạng thái xử lý/lỗi -->
-      <p id="authMsg" class="mt-4 text-center text-sm font-semibold break-words"></p>
-    </div>
-  </main>
+    <p id="authMsg" class="mt-4 text-center text-sm font-semibold break-words"></p>
+  </div>
+</main>
 
-  <script>
+<script>
   const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
   const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
   const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -225,15 +179,14 @@
       });
 
       if (error) {
-        msg.innerText = '<i class="bi bi-dash-circle-fill"></i> Lỗi đăng ký: ' + error.message;
+        msg.innerHTML = '<i class="bi bi-dash-circle-fill"></i> Lỗi đăng ký: ' + error.message;
         msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
       } else {
-        msg.innerText = '<i class="bi bi-check-circle"></i> Đăng ký thành công!';
+        msg.innerHTML = '<i class="bi bi-check-circle"></i> Đăng ký thành công!';
         msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
         setTimeout(() => window.location.href = 'dashboard.html', 1500);
       }
     } else {
-      // 1. Thực hiện Đăng nhập
       const { data: authData, error: authError } = await sbClient.auth.signInWithPassword({ email, password });
       
       if (authError) {
@@ -242,7 +195,6 @@
         return;
       }
 
-      // 2. Kiểm tra Vai trò (Role) trong bảng profiles
       const { data: profile } = await sbClient
         .from('profiles')
         .select('role')
@@ -251,94 +203,106 @@
 
       const role = profile?.role?.trim().toLowerCase();
 
-      // 3. Phân luồng trang chuyển hướng
       if (role === 'admin') {
-        msg.innerText = '<i class="bi bi-gear"></i> Đăng nhập Admin thành công';
+        msg.innerHTML = '<i class="bi bi-gear"></i> Đăng nhập Admin thành công';
         msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
         setTimeout(() => window.location.href = 'admin.html', 1000);
       } else {
-        msg.innerText = '<i class="bi bi-check-circle"></i> Đăng nhập thành công';
+        msg.innerHTML = '<i class="bi bi-check-circle"></i> Đăng nhập thành công';
         msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
         setTimeout(() => window.location.href = 'dashboard.html', 1000);
       }
     }
   }
-    // 1. ĐĂNG NHẬP BẰNG GOOGLE
-async function loginWithGoogle() {
-  // Mã này tự lấy URL hiện tại của trang web (tự kèm tên repo nếu có)
-  const redirectUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/dashboard.html');
-  const { data, error } = await sbClient.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: redirectUrl
+
+  // 1. ĐĂNG NHẬP BẰNG GOOGLE
+  async function loginWithGoogle() {
+    const msg = document.getElementById('authMsg');
+    const redirectUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/dashboard.html');
+    const { data, error } = await sbClient.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: redirectUrl }
+    });
+    if (error) {
+      msg.innerHTML = `<i class="bi bi-dash-circle-fill"></i> Lỗi đăng nhập Google: ${error.message}`;
+      msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
     }
-  });
-  if (error) {msg.innerHTML = `<i class="bi bi-dash-circle-fill"></i> Lỗi đăng nhập Google: ' + error.message)`;
-}
-
-// 2. ĐĂNG NHẬP BẰNG FACEBOOK / GITHUB / APPLE
-async function loginWithSocial(providerName) { // providerName = 'facebook' hoặc 'github'
-  const redirectUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/dashboard.html');
-  const { data, error } = await sbClient.auth.signInWithOAuth({
-    provider: providerName,
-    options: {
-      redirectTo: redirectUrl
-    }
-  });
-  if (error) {msg.innerHTML = `<i class="bi bi-dash-circle-fill"></i> Lỗi đăng nhập ${providerName}: ${error.message}`;}
-}
-
-
-// 3. ĐĂNG NHẬP BẰNG EMAIL & MẬT KHẨU TRUYỀN THỐNG
-async function loginWithEmail(email, password) {
-  const { data, error } = await sbClient.auth.signInWithPassword({
-    email: email,
-    password: password
-  });
-  if (error) { msg.innerHTML = '<i class="bi bi-dash-circle-fill"></i> Sai email hoặc mật khẩu!';}
-  else window.location.href = 'dashboard.html';
-}
-
-// 4. ĐĂNG NHẬP KHÔNG CẦN MẬT KHẨU (MAGIC LINK GỬI VỀ EMAIL)
-async function loginWithMagicLink(email) {
-  const { data, error } = await sbClient.auth.signInWithOtp({
-    email: email,
-    options: {
-      emailRedirectTo: window.location.origin + '/dashboard.html'
-    }
-  });
-  if (error) {msg.innerHTML = '<i class="bi bi-dash-circle-fill"> Lỗi gửi liên kết: " + error.message';}
-  else alert("✉️ Đã gửi link đăng nhập vào Email của bạn!");
-}
-    function toggleDarkMode() {
-  if (document.documentElement.classList.contains('dark')) {
-    document.documentElement.classList.remove('dark');
-    localStorage.theme = 'light';
-  } else {
-    document.documentElement.classList.add('dark');
-    localStorage.theme = 'dark';
   }
-}
-    function togglePasswordVisibility(inputId, btn) {
-  const input = document.getElementById(inputId);
-  const icon = btn.querySelector('svg');
 
-  if (input.type === 'password') {
-    input.type = 'text';
-    // Đổi sang Icon gạch chéo (Mở mật khẩu)
-    icon.innerHTML = `
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.04 10.04 0 013.122-.563c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18" />
-    `;
-  } else {
-    input.type = 'password';
-    // Đổi về Icon mắt thường (Ẩn mật khẩu)
-    icon.innerHTML = `
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-    `;
+  // 2. ĐĂNG NHẬP BẰNG FACEBOOK / GITHUB / APPLE
+  async function loginWithSocial(providerName) {
+    const msg = document.getElementById('authMsg');
+    const redirectUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/dashboard.html');
+    const { data, error } = await sbClient.auth.signInWithOAuth({
+      provider: providerName,
+      options: { redirectTo: redirectUrl }
+    });
+    if (error) {
+      msg.innerHTML = `<i class="bi bi-dash-circle-fill"></i> Lỗi đăng nhập ${providerName}: ${error.message}`;
+      msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
+    }
   }
-}
+
+  // 3. ĐĂNG NHẬP BẰNG EMAIL & MẬT KHẨU TRUYỀN THỐNG
+  async function loginWithEmail(email, password) {
+    const msg = document.getElementById('authMsg');
+    const { data, error } = await sbClient.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
+    if (error) {
+      msg.innerHTML = '<i class="bi bi-dash-circle-fill"></i> Sai email hoặc mật khẩu!';
+      msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
+    } else {
+      window.location.href = 'dashboard.html';
+    }
+  }
+
+  // 4. ĐĂNG NHẬP KHÔNG CẦN MẬT KHẨU (MAGIC LINK)
+  async function loginWithMagicLink(email) {
+    const msg = document.getElementById('authMsg');
+    const { data, error } = await sbClient.auth.signInWithOtp({
+      email: email,
+      options: {
+        emailRedirectTo: window.location.origin + '/dashboard.html'
+      }
+    });
+    if (error) {
+      msg.innerHTML = `<i class="bi bi-dash-circle-fill"></i> Lỗi gửi liên kết: ${error.message}`;
+      msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
+    } else {
+      alert("✉️ Đã gửi link đăng nhập vào Email của bạn!");
+    }
+  }
+
+  function toggleDarkMode() {
+    if (document.documentElement.classList.contains('dark')) {
+      document.documentElement.classList.remove('dark');
+      localStorage.theme = 'light';
+    } else {
+      document.documentElement.classList.add('dark');
+      localStorage.theme = 'dark';
+    }
+  }
+
+  function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('svg');
+
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.innerHTML = `
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.04 10.04 0 013.122-.563c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18" />
+      `;
+    } else {
+      input.type = 'password';
+      icon.innerHTML = `
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+      `;
+    }
+  }
 </script>
 </body>
 </html>
