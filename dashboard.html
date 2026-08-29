@@ -995,62 +995,107 @@ function updateTargetSpeechText() {
 }
 
 // 2. Thu Âm & Chấm Điểm Web Speech API
+// === DÁN ĐOẠN NÀY THAY THẾ CHO ĐOẠN BẠN VỪA GỬI ===
+
+let recognition = null;
+let silenceTimer = null;
+let finalSpeechTranscript = '';
+
 function startPronunciationCheck() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  
   if (!SpeechRecognition) {
     alert("❌ Trình duyệt không hỗ trợ Web Speech API. Hãy dùng Google Chrome hoặc Microsoft Edge!");
     return;
   }
 
   const targetText = document.getElementById('targetSpeechText').innerText.trim();
-  if (!targetText) {
+  if (!targetText || targetText.includes("Hãy chọn câu")) {
     alert("Vui lòng chọn câu để đọc!");
     return;
   }
 
-  const recognition = new SpeechRecognition();
+  // Nếu đang nói mà bấm nút lần nữa -> Tự đóng micro và tiến hành chấm điểm ngay
+  if (recognition && recognition.isSpeaking) {
+    clearTimeout(silenceTimer);
+    recognition.stop();
+    return;
+  }
+
+  recognition = new SpeechRecognition();
   recognition.lang = 'en-US';
-  recognition.interimResults = false;
+  recognition.continuous = true;     // Cho phép vừa đọc vừa ngắt nghỉ lấy hơi
+  recognition.interimResults = true;  // Thu âm liên tục
+
+  finalSpeechTranscript = '';
+  recognition.isSpeaking = true;
 
   const btn = document.getElementById('btnRecordSpeech');
   const btnText = document.getElementById('btnRecordText');
 
-  btnText.innerText = "Đang nghe... Nói ngay!";
-  btn.className = "w-full py-3 bg-amber-500 text-white font-bold text-sm rounded-xl transition shadow animate-pulse flex items-center justify-center gap-2";
+  if (btnText && btn) {
+    btnText.innerText = "🎙️ Đang nghe... (Bấm khi nói xong)";
+    btn.className = "w-full py-3 bg-amber-500 text-white font-bold text-sm rounded-xl transition shadow animate-pulse flex items-center justify-center gap-2";
+  }
 
   recognition.start();
 
-  recognition.onresult = async (event) => {
-    const spokenText = event.results[0][0].transcript;
-    await processPronunResult(targetText, spokenText);
+  recognition.onresult = (event) => {
+    let interimTranscript = '';
+
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+      if (event.results[i].isFinal) {
+        finalSpeechTranscript += event.results[i][0].transcript + ' ';
+      } else {
+        interimTranscript += event.results[i][0].transcript;
+      }
+    }
+
+    // Đợi đủ 2.5 giây học sinh im lặng hoàn toàn mới kết thúc thu âm
+    clearTimeout(silenceTimer);
+    silenceTimer = setTimeout(() => {
+      if (recognition) recognition.stop();
+    }, 2500); // 2.5 giây cho học sinh thoải mái dừng thở
   };
 
   recognition.onerror = (event) => {
-  console.error("Speech error:", event.error);
-  
-  if (event.error === 'service-not-allowed' || event.error === 'not-allowed') {
-    alert(
-      "⚠️ KHÔNG THỂ BẬT MICRO!\n\n" +
-      "Vui lòng kiểm tra:\n" +
-      "1. Mở web bằng Chrome/Safari (Không mở trực tiếp trong Zalo/FB).\n" +
-      "2. Đã cấp quyền Micro cho trình duyệt trong Cài đặt điện thoại.\n" +
-      "3. Nếu dùng iPhone: Vào Cài đặt -> Bàn phím -> Bật 'Đọc bàn phím' (Dictation)."
-    );
-  } else {
-    alert("❌ Lỗi ghi âm: " + event.error);
-  }
-  
-  resetRecordBtn();
-};
+    console.error("Speech error:", event.error);
+    clearTimeout(silenceTimer);
+    
+    if (event.error === 'service-not-allowed' || event.error === 'not-allowed') {
+      alert(
+        "⚠️ KHÔNG THỂ BẬT MICRO!\n\n" +
+        "Vui lòng kiểm tra:\n" +
+        "1. Mở web bằng Chrome/Safari (Không mở trực tiếp trong Zalo/FB).\n" +
+        "2. Đã cấp quyền Micro cho trình duyệt trong Cài đặt điện thoại.\n" +
+        "3. Nếu dùng iPhone: Vào Cài đặt -> Bàn phím -> Bật 'Đọc bàn phím' (Dictation)."
+      );
+    } else if (event.error !== 'no-speech') {
+      alert("❌ Lỗi ghi âm: " + event.error);
+    }
+    
+    resetRecordBtn();
+  };
 
-  recognition.onend = resetRecordBtn;
+  recognition.onend = async () => {
+    clearTimeout(silenceTimer);
+    if (recognition) recognition.isSpeaking = false;
+    resetRecordBtn();
+
+    // Chuyển kết quả thu được sang hàm chấm điểm hiện tại của bạn
+    const spokenText = finalSpeechTranscript.trim();
+    if (spokenText && typeof processPronunResult === 'function') {
+      await processPronunResult(targetText, spokenText);
+    }
+  };
 
   function resetRecordBtn() {
-    btnText.innerText = "Bấm để nói lại";
-    btn.className = "w-full py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-sm rounded-xl transition shadow flex items-center justify-center gap-2";
+    if (btnText && btn) {
+      btnText.innerText = "Bấm để nói lại";
+      btn.className = "w-full py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-sm rounded-xl transition shadow flex items-center justify-center gap-2";
+    }
   }
 }
-
 // 3. Phân tích kết quả + Lưu lên Supabase
 async function processPronunResult(targetText, spokenText) {
   const clean = (str) => str.toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, "").trim().split(/\s+/);
