@@ -1076,7 +1076,7 @@ async function loadAdminPronunPhrases() {
       <div class="space-y-0.5">
         <p class="text-sm font-bold text-gray-800 dark:text-gray-100">${escapeHtml(item.phrase)}</p>
         <div class="flex items-center gap-3 text-xs">
-          <span class="text-[#cf1717] dark:text-red-400 font-mono font-semibold">${item.ipa ? escapeHtml(item.ipa) : 'Chưa có IPA'}</span>
+          <span class="text-[#cf1717] dark:text-red-400 font-sans font-medium text-xs tracking-wide">${item.ipa ? escapeHtml(item.ipa) : 'Chưa có IPA'}</span>
           <span class="text-gray-500 dark:text-gray-400 italic">${item.meaning ? escapeHtml(item.meaning) : 'Chưa có nghĩa'}</span>
         </div>
       </div>
