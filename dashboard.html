@@ -18,6 +18,7 @@
     }
   </script>
   <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen transition-colors duration-300">
 <!-- ================= NỀN ĐỘNG CHUYỂN ĐỘNG DÙNG CHUNG ================= -->
@@ -119,6 +120,90 @@
       </div>
 </div>
     </section>
+
+
+    <!-- PHẦN: LUYỆN PHÁT ÂM & BIỂU ĐỒ TIẾN BỘ -->
+<section class="space-y-3 sm:space-y-4">
+  <!-- Header Tiêu Đề Đồng Bộ -->
+  <div class="flex items-center gap-2 border-l-4 border-[#cf1717] pl-3">
+    <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">🎙️ Luyện Phát Âm & Biểu Đồ Tiến Bộ</h2>
+    <button 
+      type="button" 
+      onclick="openStudentGuide('luyen_phat_am', 'Hướng Dẫn Luyện Phát Âm')" 
+      class="w-5 h-5 rounded-full bg-[#cf1717] text-white flex items-center justify-center text-xs font-bold hover:bg-red-700 transition shadow" 
+      title="Xem hướng dẫn luyện phát âm"
+    >
+      ?
+    </button>
+  </div>
+
+  <!-- Nội Dung: Khung Thực Hành & Biểu Đồ -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+    
+    <!-- CỘT 1: THỰC HÀNH PHÁT ÂM -->
+    <div class="p-4 sm:p-5 bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 shadow-sm space-y-4">
+      <div class="flex justify-between items-center border-b dark:border-zinc-700/60 pb-3">
+        <span class="font-bold text-sm text-gray-800 dark:text-gray-100 flex items-center gap-1.5">
+          🎯 Bài Luyện Tập
+        </span>
+        <span class="text-xs bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400 font-extrabold px-2.5 py-0.5 rounded-full">AI Speech Check</span>
+      </div>
+
+      <!-- Select Chọn Câu Mẫu -->
+      <div>
+        <label class="text-xs font-bold text-gray-500 dark:text-gray-400 mb-1 block">Chọn câu luyện tập:</label>
+        <select 
+          id="selectPronunPhrase" 
+          onchange="updateTargetSpeechText()" 
+          class="w-full p-2.5 bg-gray-50 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-xl text-xs sm:text-sm font-semibold text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#cf1717]"
+        >
+          <option value="">-- ⏳ Đang tải câu mẫu... --</option>
+        </select>
+      </div>
+
+      <!-- Hiển Thị Câu Mục Tiêu -->
+      <div id="targetSpeechText" class="p-3.5 bg-gray-50 dark:bg-zinc-900/80 rounded-xl border border-gray-200 dark:border-zinc-700 text-sm sm:text-base font-bold text-gray-800 dark:text-white min-h-[52px] flex items-center">
+        Hãy chọn câu ở trên để bắt đầu!
+      </div>
+
+      <!-- Nút Thu Âm -->
+      <button 
+        type="button" 
+        id="btnRecordSpeech" 
+        onclick="startPronunciationCheck()" 
+        class="w-full py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-sm rounded-xl transition shadow flex items-center justify-center gap-2"
+      >
+        <span>🎤</span> <span id="btnRecordText">Bấm để nói</span>
+      </button>
+
+      <!-- Khung Hiển Thị Kết Quả -->
+      <div id="speechResultBox" class="hidden p-3.5 bg-gray-50 dark:bg-zinc-900/80 rounded-xl border border-gray-200 dark:border-zinc-700 space-y-2">
+        <div class="flex justify-between items-center border-b dark:border-zinc-700/60 pb-2">
+          <span class="text-xs font-bold text-gray-500 dark:text-gray-400">Phân tích phát âm:</span>
+          <span id="speechScoreBadge" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full"></span>
+        </div>
+        <div id="speechWordComparison" class="text-xs sm:text-sm font-semibold leading-relaxed"></div>
+        <p id="speechRawTranscript" class="text-xs text-gray-400 italic pt-1"></p>
+      </div>
+    </div>
+
+    <!-- CỘT 2: BIỂU ĐỒ TIẾN BỘ -->
+    <div class="p-4 sm:p-5 bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 shadow-sm flex flex-col justify-between space-y-3">
+      <div class="flex justify-between items-center border-b dark:border-zinc-700/60 pb-3">
+        <span class="font-bold text-sm text-gray-800 dark:text-gray-100 flex items-center gap-1.5">
+          📊 Lịch Sử & Tiến Bộ
+        </span>
+        <span class="text-xs text-gray-400 font-medium">10 lần gần nhất</span>
+      </div>
+      
+      <!-- Khung Vẽ Biểu Đồ Chart.js -->
+      <div class="relative w-full h-60 sm:h-64 my-auto">
+        <canvas id="pronunChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+</section>
 
   </main>
 
@@ -862,6 +947,181 @@ async function openStudentGuide(sectionKey, sectionTitle) {
 function closeStudentGuide() {
   document.getElementById('studentGuideModal').classList.add('hidden');
 }
+
+let pronunChartInstance = null;
+let currentPhrasesList = [];
+
+// 1. Tải danh sách câu từ Supabase vào Select
+async function loadStudentPronunPhrases() {
+  const select = document.getElementById('selectPronunPhrase');
+  if (!select) return;
+
+  const { data } = await sbClient.from('pronunciation_phrases').select('*').order('created_at', { ascending: false });
+
+  if (data && data.length > 0) {
+    currentPhrasesList = data;
+    select.innerHTML = data.map(item => `<option value="${item.id}">${escapeHtml(item.phrase)}</option>`).join('');
+    updateTargetSpeechText();
+  } else {
+    select.innerHTML = '<option value="">Chưa có câu mẫu nào</option>';
+  }
+}
+
+function updateTargetSpeechText() {
+  const select = document.getElementById('selectPronunPhrase');
+  const selectedObj = currentPhrasesList.find(p => p.id == select.value);
+  document.getElementById('targetSpeechText').innerText = selectedObj ? selectedObj.phrase : '';
+}
+
+// 2. Thu Âm & Chấm Điểm Web Speech API
+function startPronunciationCheck() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert("❌ Trình duyệt không hỗ trợ Web Speech API. Hãy dùng Google Chrome hoặc Microsoft Edge!");
+    return;
+  }
+
+  const targetText = document.getElementById('targetSpeechText').innerText.trim();
+  if (!targetText) {
+    alert("Vui lòng chọn câu để đọc!");
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = 'en-US';
+  recognition.interimResults = false;
+
+  const btn = document.getElementById('btnRecordSpeech');
+  const btnText = document.getElementById('btnRecordText');
+
+  btnText.innerText = "Đang nghe... Nói ngay!";
+  btn.className = "w-full py-3 bg-amber-500 text-white font-bold text-sm rounded-xl transition shadow animate-pulse flex items-center justify-center gap-2";
+
+  recognition.start();
+
+  recognition.onresult = async (event) => {
+    const spokenText = event.results[0][0].transcript;
+    await processPronunResult(targetText, spokenText);
+  };
+
+  recognition.onerror = (e) => {
+    alert("❌ Không thể ghi âm: " + e.error);
+    resetRecordBtn();
+  };
+
+  recognition.onend = resetRecordBtn;
+
+  function resetRecordBtn() {
+    btnText.innerText = "Bấm để nói lại";
+    btn.className = "w-full py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-sm rounded-xl transition shadow flex items-center justify-center gap-2";
+  }
+}
+
+// 3. Phân tích kết quả + Lưu lên Supabase
+async function processPronunResult(targetText, spokenText) {
+  const clean = (str) => str.toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, "").trim().split(/\s+/);
+  
+  const targetWords = clean(targetText);
+  const spokenWords = clean(spokenText);
+
+  let correctCount = 0;
+  let htmlResult = "";
+
+  targetWords.forEach(word => {
+    if (spokenWords.includes(word)) {
+      correctCount++;
+      htmlResult += `<span class="text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-950/60 px-1.5 py-0.5 rounded mr-1 inline-block my-0.5">✓ ${word}</span>`;
+    } else {
+      htmlResult += `<span class="text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-950/60 px-1.5 py-0.5 rounded mr-1 inline-block my-0.5 line-through">✗ ${word}</span>`;
+    }
+  });
+
+  const score = Math.round((correctCount / targetWords.length) * 100);
+
+  // Hiển thị UI kết quả
+  document.getElementById('speechResultBox').classList.remove('hidden');
+  document.getElementById('speechWordComparison').innerHTML = htmlResult;
+  document.getElementById('speechRawTranscript').innerText = `Máy nghe được: "${spokenText}"`;
+  
+  const badge = document.getElementById('speechScoreBadge');
+  badge.innerText = `${score}% Chính Xác`;
+  badge.className = score >= 80 
+    ? "text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+    : "text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300";
+
+  // Lấy ID Học sinh (hoặc dùng tạm 'student_demo' nếu chưa tích hợp Auth)
+  const studentId = window.currentUserId || 'student_demo';
+
+  // Lưu điểm lên Supabase
+  await sbClient.from('pronunciation_history').insert([{
+    user_id: studentId,
+    phrase_text: targetText,
+    score: score,
+    spoken_text: spokenText
+  }]);
+
+  // Cập nhật lại Biểu đồ
+  await renderPronunChart();
+}
+
+// 4. Lấy lịch sử & Vẽ Biểu Đồ
+async function renderPronunChart() {
+  const canvas = document.getElementById('pronunChart');
+  if (!canvas) return;
+
+  const studentId = window.currentUserId || 'student_demo';
+
+  // Lấy 10 lần thực hành gần nhất
+  const { data } = await sbClient
+    .from('pronunciation_history')
+    .select('*')
+    .eq('user_id', studentId)
+    .order('created_at', { ascending: true })
+    .limit(10);
+
+  const labels = data ? data.map((_, index) => `Lần ${index + 1}`) : [];
+  const scores = data ? data.map(item => item.score) : [];
+
+  if (pronunChartInstance) {
+    pronunChartInstance.destroy(); // Hủy biểu đồ cũ trước khi vẽ mới
+  }
+
+  pronunChartInstance = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Độ chính xác (%)',
+        data: scores,
+        borderColor: '#cf1717',
+        backgroundColor: 'rgba(207, 23, 23, 0.1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.3,
+        pointBackgroundColor: '#cf1717',
+        pointRadius: 5
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          min: 0,
+          max: 100,
+          ticks: { callback: value => value + '%' }
+        }
+      }
+    }
+  });
+}
+
+// Khởi tạo tính năng khi tải trang
+document.addEventListener('DOMContentLoaded', () => {
+  loadStudentPronunPhrases();
+  renderPronunChart();
+});
+
   
 </script>
 <!-- MODAL ĐỔI MẬT KHẨU -->
