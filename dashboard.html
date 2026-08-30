@@ -1545,101 +1545,119 @@ async function checkStreakRecoveryProgress() {
 }
 
   // KIỂM TRA BÀI MỚI KHI ĐĂNG NHẬP
-// ==================== QUẢN LÝ THÔNG BÁO THEO THỨ TỰ ƯU TIÊN ====================
+// ==================== QUẢN LÝ THÔNG BÁO TỰ ĐỘNG (LẤY NỘI DUNG MỚI NHẤT) ====================
 
-// 1. KIỂM TRA THÔNG BÁO HỆ THỐNG (ƯU TIÊN HÀNG ĐẦU)
 async function checkNewContentOnLogin() {
   const { data: { user } } = await sbClient.auth.getUser();
   if (!user) return false;
 
-  // A. Ưu tiên 1: Bài Reading mới
-  const { data: latestExam } = await sbClient.from('exams').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle();
-  if (latestExam && localStorage.getItem('seen_exam_' + latestExam.id) !== 'true') {
+  // 1. Tải đồng thời nội dung mới nhất của 3 bảng
+  const [examRes, announceRes, pronunRes] = await Promise.all([
+    sbClient.from('exams').select('id, title, topic, token, created_at').order('created_at', { ascending: false }).limit(1).maybeSingle(),
+    sbClient.from('announcements').select('id, title, content, created_at').order('created_at', { ascending: false }).limit(1).maybeSingle(),
+    sbClient.from('pronunciation_phrases').select('id, phrase_text, created_at').order('created_at', { ascending: false }).limit(1).maybeSingle()
+  ]);
+
+  const candidates = [];
+
+  if (examRes.data) {
+    candidates.push({
+      type: 'exam',
+      data: examRes.data,
+      time: new Date(examRes.data.created_at).getTime(),
+      seenKey: 'seen_exam_' + examRes.data.id
+    });
+  }
+
+  if (announceRes.data) {
+    candidates.push({
+      type: 'announce',
+      data: announceRes.data,
+      time: new Date(announceRes.data.created_at).getTime(),
+      seenKey: 'seen_announce_' + announceRes.data.id
+    });
+  }
+
+  if (pronunRes.data) {
+    candidates.push({
+      type: 'pronun',
+      data: pronunRes.data,
+      time: new Date(pronunRes.data.created_at).getTime(),
+      seenKey: 'seen_pronun_' + pronunRes.data.id
+    });
+  }
+
+  if (candidates.length === 0) return false;
+
+  // 2. Sắp xếp để tìm ra NỘI DUNG MỚI ĐƯỢC CẬP NHẬT SAU CÙNG (Thời gian lớn nhất)
+  candidates.sort((a, b) => b.time - a.time);
+  const latest = candidates[0]; 
+
+  // 3. Nếu người dùng đã xem nội dung mới nhất này rồi -> Không hiện nữa
+  if (localStorage.getItem(latest.seenKey) === 'true') {
+    return false;
+  }
+
+  // 4. Chỉ hiển thị DUY NHẤT 1 thông báo của nội dung mới nhất đó
+  if (latest.type === 'exam') {
     showAutoModal({
       icon: '📖',
-      title: `Bài Reading Mới: "${latestExam.title}"`,
-      note: latestExam.topic ? `Chủ đề: ${latestExam.topic}` : 'Hãy thử sức ngay hôm nay!',
+      title: `Bài Reading Mới: "${latest.data.title}"`,
+      note: latest.data.topic ? `Chủ đề: ${latest.data.topic}` : 'Hãy thử sức ngay hôm nay!',
       btnText: 'Vào làm bài',
       onConfirm: () => {
-        localStorage.setItem('seen_exam_' + latestExam.id, 'true');
-        window.location.href = `exam.html?token=${latestExam.token}`;
+        localStorage.setItem(latest.seenKey, 'true');
+        window.location.href = `exam.html?token=${latest.data.token}`;
       },
       onCancel: () => {
-        localStorage.setItem('seen_exam_' + latestExam.id, 'true');
+        localStorage.setItem(latest.seenKey, 'true');
         closeAutoModal();
-        checkStreakNotifications(); // Đóng thông báo trang xong -> Chuyển sang kiểm tra Chuỗi
+        checkStreakNotifications(); // Chuyển sang kiểm tra Streak
       }
     });
-    return true; // Đã hiện thông báo trang
-  }
-
-  // B. Ưu tiên 2: Thông báo Admin mới
-  const { data: latestAnnounce } = await sbClient.from('announcements').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle();
-  if (latestAnnounce && localStorage.getItem('seen_announce_' + latestAnnounce.id) !== 'true') {
+  } else if (latest.type === 'announce') {
     showAutoModal({
       icon: '📢',
-      title: `Thông Báo: "${latestAnnounce.title}"`,
-      note: latestAnnounce.content || 'Bạn có thông báo mới từ hệ thống.',
+      title: `Thông Báo: "${latest.data.title}"`,
+      note: latest.data.content || 'Bạn có thông báo mới từ hệ thống.',
       btnText: 'Xem ngay',
       onConfirm: () => {
-        localStorage.setItem('seen_announce_' + latestAnnounce.id, 'true');
+        localStorage.setItem(latest.seenKey, 'true');
         closeAutoModal();
-        alert(`📜 THÔNG BÁO CHI TIẾT:\n\n${latestAnnounce.content}`);
-        checkStreakNotifications(); // Xem xong -> Chuyển sang kiểm tra Chuỗi
+        alert(`📜 THÔNG BÁO CHI TIẾT:\n\n${latest.data.content}`);
+        checkStreakNotifications();
       },
       onCancel: () => {
-        localStorage.setItem('seen_announce_' + latestAnnounce.id, 'true');
+        localStorage.setItem(latest.seenKey, 'true');
         closeAutoModal();
-        checkStreakNotifications(); // Bỏ qua -> Chuyển sang kiểm tra Chuỗi
+        checkStreakNotifications();
       }
     });
-    return true; // Đã hiện thông báo trang
-  }
-
-  // C. Ưu tiên 3: Câu Luyện Phát Âm mới
-  const { data: latestPronun } = await sbClient.from('pronunciation_phrases').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle();
-  if (latestPronun && localStorage.getItem('seen_pronun_' + latestPronun.id) !== 'true') {
+  } else if (latest.type === 'pronun') {
     showAutoModal({
       icon: '🎙️',
-      title: `Câu Phát Âm Mới: "${latestPronun.phrase_text}"`,
+      title: `Câu Phát Âm Mới: "${latest.data.phrase_text}"`,
       note: 'Luyện tập ngay để nhận thêm XP!',
       btnText: 'Thử ngay',
       onConfirm: () => {
-        localStorage.setItem('seen_pronun_' + latestPronun.id, 'true');
+        localStorage.setItem(latest.seenKey, 'true');
         closeAutoModal();
         const element = document.getElementById('pronunSection');
         if (element) element.scrollIntoView({ behavior: 'smooth' });
-        checkStreakNotifications(); // Chuyển sang kiểm tra Chuỗi
+        checkStreakNotifications();
       },
       onCancel: () => {
-        localStorage.setItem('seen_pronun_' + latestPronun.id, 'true');
+        localStorage.setItem(latest.seenKey, 'true');
         closeAutoModal();
-        checkStreakNotifications(); // Bỏ qua -> Chuyển sang kiểm tra Chuỗi
+        checkStreakNotifications();
       }
     });
-    return true; // Đã hiện thông báo trang
   }
 
-  return false; // Không có thông báo trang nào
+  return true;
 }
 
-// 2. KHỞI TẠO LUỒNG THÔNG BÁO KHI VỪA ĐĂNG NHẬP
-async function initNotificationSequence() {
-  // Chạy kiểm tra thông báo trang trước
-  const hasSiteNotification = await checkNewContentOnLogin();
-
-  // Nếu KHÔNG có thông báo trang nào -> Mới chạy kiểm tra Cảnh báo Chuỗi
-  if (!hasSiteNotification) {
-    await checkStreakNotifications();
-  }
-}
-
-// Gọi chạy chuỗi thông báo khi tải trang Dashboard
-document.addEventListener('DOMContentLoaded', () => {
-  loadUserStats();
-  initNotificationSequence(); // Khởi chạy theo đúng thứ tự ưu tiên
-});
-
+// 5. ĐIỀU KHIỂN POPUP & SỬA LỖI VÒNG LẶP (STACK OVERFLOW)
 function showAutoModal({ icon, title, note, btnText, onConfirm, onCancel }) {
   document.getElementById('autoModalIcon').innerText = icon;
   document.getElementById('autoModalTitle').innerText = title;
@@ -1649,14 +1667,35 @@ function showAutoModal({ icon, title, note, btnText, onConfirm, onCancel }) {
   actionBtn.innerText = btnText;
   actionBtn.onclick = onConfirm;
 
-  window.currentOnCancel = onCancel;
+  window.currentOnCancelHandler = onCancel;
   document.getElementById('autoLoginModal').classList.remove('hidden');
 }
 
+function handleCancelModal() {
+  closeAutoModal();
+  if (typeof window.currentOnCancelHandler === 'function') {
+    const handler = window.currentOnCancelHandler;
+    window.currentOnCancelHandler = null; // Xóa handler để chặn lặp vô hạn
+    handler();
+  }
+}
+
 function closeAutoModal() {
-  if (window.currentOnCancel) window.currentOnCancel();
   document.getElementById('autoLoginModal').classList.add('hidden');
 }
+
+// 6. LUỒNG KHỞI TẠO KHI TẢI TRANG
+async function initNotificationSequence() {
+  const hasSiteNotification = await checkNewContentOnLogin();
+  if (!hasSiteNotification) {
+    await checkStreakNotifications();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadUserStats();
+  initNotificationSequence();
+});
 
 // Kích hoạt kiểm tra khi trang Dashboard tải hoàn tất
 document.addEventListener('DOMContentLoaded', checkNewContentOnLogin);
