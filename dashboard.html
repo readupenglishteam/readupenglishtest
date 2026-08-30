@@ -1428,11 +1428,14 @@ function getBadgeTitle(xp) {
   return "🌱 Tân Thủ";
 }
 
-// 4. Mở Modal & Render Bảng Xếp Hạng
+// Mở Modal & Render Bảng Xếp Hạng (Đã nâng cấp nhận diện "Bạn (Tôi)")
 async function openLeaderboardModal() {
   document.getElementById('modalLeaderboard').classList.remove('hidden');
   const container = document.getElementById('leaderboardList');
   container.innerHTML = '<p class="text-center text-xs text-gray-400 italic py-4">⏳ Đang tải xếp hạng...</p>';
+
+  // Lấy tài khoản đang đăng nhập hiện tại
+  const { data: { user: currentUser } } = await sbClient.auth.getUser();
 
   // Lấy Top 10 học sinh có XP cao nhất
   const { data, error } = await sbClient
@@ -1452,12 +1455,22 @@ async function openLeaderboardModal() {
     const rankIcon = medals[index] || `#${index + 1}`;
     const badge = getBadgeTitle(item.total_xp);
 
+    // Kiểm tra nếu dòng này là của chính người dùng đang đăng nhập
+    const isMe = currentUser && currentUser.id === item.user_id;
+    const displayName = isMe ? "Bạn (Tôi)" : `Học sinh #${item.user_id.substring(0, 5)}`;
+
     return `
-      <div class="flex items-center justify-between p-3 rounded-2xl ${index === 0 ? 'bg-amber-50 dark:bg-amber-950/40 border border-amber-200' : 'bg-gray-50 dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700/60'}">
+      <div class="flex items-center justify-between p-3 rounded-2xl transition ${
+        isMe 
+          ? 'bg-red-50 dark:bg-red-950/60 border-2 border-[#cf1717] shadow-sm' 
+          : (index === 0 ? 'bg-amber-50 dark:bg-amber-950/40 border border-amber-200' : 'bg-gray-50 dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700/60')
+      }">
         <div class="flex items-center gap-3">
           <span class="w-7 text-center font-black text-sm sm:text-base">${rankIcon}</span>
           <div>
-            <p class="font-extrabold text-xs sm:text-sm text-gray-900 dark:text-white">Học sinh #${item.user_id.substring(0, 5)}</p>
+            <p class="font-extrabold text-xs sm:text-sm ${isMe ? 'text-[#cf1717] dark:text-red-400' : 'text-gray-900 dark:text-white'}">
+              ${displayName} ${isMe ? '⭐' : ''}
+            </p>
             <span class="text-[10px] font-bold text-gray-500 dark:text-gray-400">${badge} • 🔥 ${item.streak_count || 0} ngày</span>
           </div>
         </div>
