@@ -246,19 +246,28 @@
 <section class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
   
   <!-- CARD 1: STREAK NGỌN LỬA -->
-  <div class="p-4 rounded-2xl border border-red-200/80 dark:border-red-900/50 streak-card-bg flex items-center justify-between shadow-sm">
-    <div class="flex items-center gap-3">
-      <div class="text-3xl sm:text-4xl animate-flame select-none">🔥</div>
-      <div>
-        <span class="text-[11px] font-black tracking-wider text-gray-500 uppercase dark:text-gray-400 block">Chuỗi Ngày Học</span>
-        <div class="flex items-baseline gap-1">
-          <span id="userStreakCount" class="text-2xl font-black text-[#cf1717] dark:text-red-400">0</span>
-          <span class="text-xs font-bold text-gray-600 dark:text-gray-300">ngày liên tiếp</span>
-        </div>
+<div class="p-4 rounded-2xl border border-red-200/80 dark:border-red-900/50 streak-card-bg flex items-center justify-between shadow-sm">
+  <div class="flex items-center gap-3">
+    <div class="text-3xl sm:text-4xl animate-flame select-none">🔥</div>
+    <div>
+      <span class="text-[11px] font-black tracking-wider text-gray-500 uppercase dark:text-gray-400 block">Chuỗi Ngày Học</span>
+      <div class="flex items-baseline gap-1">
+        <span id="userStreakCount" class="text-2xl font-black text-[#cf1717] dark:text-red-400">0</span>
+        <span class="text-xs font-bold text-gray-600 dark:text-gray-300">ngày liên tiếp</span>
       </div>
     </div>
-    <span class="text-xs px-2.5 py-1 rounded-full bg-red-100 dark:bg-red-950 text-[#cf1717] dark:text-red-300 font-bold">Giữ lửa 🎯</span>
   </div>
+
+  <!-- CỘT BÊN PHẢI: TRẠNG THÁI & NÚT KHÔI PHỤC -->
+  <div class="flex flex-col items-end gap-1.5">
+    <span id="streakStatusBadge" class="text-xs px-2.5 py-1 rounded-full bg-red-100 dark:bg-red-950 text-[#cf1717] dark:text-red-300 font-bold">Giữ lửa 🎯</span>
+    
+    <!-- NÚT KHÔI PHỤC CHUỖI (Mặc định ẩn 'hidden', chỉ hiện khi bị đứt chuỗi) -->
+    <button id="streakRecoveryBtn" onclick="startStreakRecovery()" class="hidden text-[11px] bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-extrabold px-2.5 py-1 rounded-lg shadow-sm transition flex items-center gap-1">
+      🛡️ Cứu chuỗi (2 câu IPA)
+    </button>
+  </div>
+</div>
 
   <!-- CARD 2: ĐIỂM XP tích lũy -->
   <div class="p-4 rounded-2xl border border-amber-200/80 dark:border-amber-900/50 bg-amber-50/50 dark:bg-amber-950/20 flex items-center justify-between shadow-sm">
@@ -1489,6 +1498,132 @@ function closeLeaderboardModal() {
 
 // Gọi hàm tải chỉ số khi bắt đầu trang
 document.addEventListener('DOMContentLoaded', loadUserStats);
+
+// 1. Bấm nút bắt đầu khôi phục chuỗi
+async function startStreakRecovery() {
+  const { data: { user } } = await sbClient.auth.getUser();
+  if (!user) return;
+
+  await sbClient.from('user_stats').update({
+    is_recovering: true,
+    recovery_progress: 0
+  }).eq('user_id', user.id);
+
+  alert("🎯 Nhiệm vụ khôi phục: Bạn cần luyện tập phát âm 2 câu chuẩn xác để lấy lại chuỗi ngọn lửa!");
+  document.getElementById('streakRecoveryBox').classList.add('hidden');
+}
+
+// 2. Chèn đoạn kiểm tra này VÀO TRONG HÀM processPronunResult(targetText, spokenText) 
+// (Ngay sau khi chấm điểm phát âm thành công)
+async function checkStreakRecoveryProgress() {
+  const { data: { user } } = await sbClient.auth.getUser();
+  if (!user) return;
+
+  const { data: stat } = await sbClient.from('user_stats').select('*').eq('user_id', user.id).single();
+  if (!stat || !stat.is_recovering) return;
+
+  let currentProgress = (stat.recovery_progress || 0) + 1;
+
+  if (currentProgress >= 2) {
+    // Đã đọc đủ 2 bài -> Khôi phục thành công!
+    await sbClient.from('user_stats').update({
+      is_recovering: false,
+      recovery_progress: 0,
+      streak_count: (stat.streak_count || 1) + 1,
+      last_study_date: new Date().toISOString().split('T')[0]
+    }).eq('user_id', user.id);
+
+    alert("🎉 CHÚC MỪNG! Bạn đã hoàn thành 2 bài phát âm và KHÔI PHỤC CHUỖI 🔥 thành công!");
+  } else {
+    // Mới đọc được 1 bài
+    await sbClient.from('user_stats').update({
+      recovery_progress: currentProgress
+    }).eq('user_id', user.id);
+
+    alert(`💪 Tuyệt vời! Bạn đã hoàn thành ${currentProgress}/2 bài phát âm. Hãy đọc thêm 1 câu nữa để cứu chuỗi!`);
+  }
+}
+
+  // KIỂM TRA BÀI MỚI KHI ĐĂNG NHẬP
+async function checkNewContentOnLogin() {
+  const { data: { user } } = await sbClient.auth.getUser();
+  if (!user) return;
+
+  // 1. Kiểm tra Bài Reading mới
+  const { data: latestExam } = await sbClient.from('exams').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle();
+  if (latestExam && localStorage.getItem('seen_exam_' + latestExam.id) !== 'true') {
+    showAutoModal({
+      icon: '📖',
+      title: `Bài Reading Mới: "${latestExam.title}"`,
+      note: latestExam.topic ? `Chủ đề: ${latestExam.topic}` : 'Hãy thử sức ngay hôm nay!',
+      btnText: 'Vào làm bài',
+      onConfirm: () => {
+        localStorage.setItem('seen_exam_' + latestExam.id, 'true');
+        window.location.href = `exam.html?token=${latestExam.token}`;
+      },
+      onCancel: () => localStorage.setItem('seen_exam_' + latestExam.id, 'true')
+    });
+    return;
+  }
+
+  // 2. Kiểm tra Thông báo mới từ Admin
+  const { data: latestAnnounce } = await sbClient.from('announcements').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle();
+  if (latestAnnounce && localStorage.getItem('seen_announce_' + latestAnnounce.id) !== 'true') {
+    showAutoModal({
+      icon: '📢',
+      title: `Thông Báo: "${latestAnnounce.title}"`,
+      note: latestAnnounce.content || 'Bạn có thông báo mới từ hệ thống.',
+      btnText: 'Xem ngay',
+      onConfirm: () => {
+        localStorage.setItem('seen_announce_' + latestAnnounce.id, 'true');
+        closeAutoModal();
+        alert(`📜 THÔNG BÁO CHI TIẾT:\n\n${latestAnnounce.content}`);
+      },
+      onCancel: () => localStorage.setItem('seen_announce_' + latestAnnounce.id, 'true')
+    });
+    return;
+  }
+
+  // 3. Kiểm tra Câu Luyện Phát Âm mới
+  const { data: latestPronun } = await sbClient.from('pronunciation_phrases').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle();
+  if (latestPronun && localStorage.getItem('seen_pronun_' + latestPronun.id) !== 'true') {
+    showAutoModal({
+      icon: '🎙️',
+      title: `Câu Phát Âm Mới: "${latestPronun.phrase_text}"`,
+      note: 'Luyện tập ngay để nhận thêm XP!',
+      btnText: 'Thử ngay',
+      onConfirm: () => {
+        localStorage.setItem('seen_pronun_' + latestPronun.id, 'true');
+        closeAutoModal();
+        const element = document.getElementById('pronunSection');
+        if (element) element.scrollIntoView({ behavior: 'smooth' });
+      },
+      onCancel: () => localStorage.setItem('seen_pronun_' + latestPronun.id, 'true')
+    });
+    return;
+  }
+}
+
+function showAutoModal({ icon, title, note, btnText, onConfirm, onCancel }) {
+  document.getElementById('autoModalIcon').innerText = icon;
+  document.getElementById('autoModalTitle').innerText = title;
+  document.getElementById('autoModalNote').innerText = note;
+  
+  const actionBtn = document.getElementById('autoModalActionBtn');
+  actionBtn.innerText = btnText;
+  actionBtn.onclick = onConfirm;
+
+  window.currentOnCancel = onCancel;
+  document.getElementById('autoLoginModal').classList.remove('hidden');
+}
+
+function closeAutoModal() {
+  if (window.currentOnCancel) window.currentOnCancel();
+  document.getElementById('autoLoginModal').classList.add('hidden');
+}
+
+// Kích hoạt kiểm tra khi trang Dashboard tải hoàn tất
+document.addEventListener('DOMContentLoaded', checkNewContentOnLogin);
   
 </script>
 <!-- MODAL ĐỔI MẬT KHẨU -->
@@ -1551,6 +1686,27 @@ document.addEventListener('DOMContentLoaded', loadUserStats);
       <p class="text-xs text-gray-400 italic">Đang tải hướng dẫn...</p>
     </div>
 
+  </div>
+</div>
+
+<!-- POPUP THÔNG BÁO TỰ ĐỘNG KHI ĐĂNG NHẬP -->
+<div id="autoLoginModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-sm w-full border border-gray-200 dark:border-zinc-700 shadow-2xl p-6 text-center space-y-4 animate-bounce-short">
+    <div id="autoModalIcon" class="text-4xl">🔔</div>
+    
+    <div class="space-y-1">
+      <h3 id="autoModalTitle" class="font-extrabold text-base text-gray-900 dark:text-white"></h3>
+      <p id="autoModalNote" class="text-xs text-gray-500 dark:text-gray-400"></p>
+    </div>
+
+    <div class="flex items-center gap-2 pt-2">
+      <button onclick="closeAutoModal()" class="w-1/2 py-2.5 text-xs font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition">
+        Hủy
+      </button>
+      <button id="autoModalActionBtn" class="w-1/2 py-2.5 text-xs font-extrabold text-white bg-[#cf1717] hover:bg-red-700 rounded-xl shadow transition">
+        Xác nhận
+      </button>
+    </div>
   </div>
 </div>
   
