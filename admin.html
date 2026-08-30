@@ -209,6 +209,30 @@
   </div>
 </section>
 
+    <section><!-- BẢNG XẾP HẠNG VÀ CHUỖI HỌC SINH -->
+<div class="p-5 bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 shadow-sm my-6">
+  <h3 class="font-extrabold text-base text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+    <span>🏆</span> Quản Lý Chuỗi Học & Điểm XP Học Sinh
+  </h3>
+  
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-xs text-gray-600 dark:text-gray-300">
+      <thead class="bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-white font-bold uppercase text-[10px]">
+        <tr>
+          <th class="p-3">Học Sinh ID</th>
+          <th class="p-3">Chuỗi 🔥</th>
+          <th class="p-3">Tổng XP ⚡</th>
+          <th class="p-3">Ngày Học Gần Nhất</th>
+          <th class="p-3">Trạng Thái</th>
+        </tr>
+      </thead>
+      <tbody id="adminLeaderboardTable" class="divide-y divide-gray-100 dark:divide-zinc-700">
+        <!-- Render bằng JS -->
+      </tbody>
+    </table>
+  </div>
+</div></section>
+
    <!-- ================= 1. QUẢN LÝ YÊU CẦU HỖ TRỢ ================= -->
 <section class="space-y-4 mb-10">
   <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
@@ -1149,6 +1173,31 @@ async function deletePronunPhrase(id) {
   await sbClient.from('pronunciation_phrases').delete().eq('id', id);
   await loadAdminPronunPhrases();
 }
+
+      async function loadAdminLeaderboard() {
+  const { data } = await sbClient
+    .from('user_stats')
+    .select('*')
+    .order('total_xp', { ascending: false });
+
+  const tbody = document.getElementById('adminLeaderboardTable');
+  if (!tbody || !data) return;
+
+  tbody.innerHTML = data.map(item => `
+    <tr class="hover:bg-gray-50 dark:hover:bg-zinc-700/50">
+      <td class="p-3 font-mono font-bold text-gray-900 dark:text-white">#${item.user_id.substring(0, 8)}</td>
+      <td class="p-3 font-black text-[#cf1717] dark:text-red-400">🔥 ${item.streak_count || 0} ngày</td>
+      <td class="p-3 font-black text-amber-500">${item.total_xp || 0} XP</td>
+      <td class="p-3">${item.last_study_date || 'Chưa học'}</td>
+      <td class="p-3">
+        ${item.is_recovering ? '<span class="px-2 py-0.5 text-[10px] bg-amber-100 text-amber-700 font-bold rounded-full">Đang khôi phục (2 bài)</span>' : '<span class="px-2 py-0.5 text-[10px] bg-green-100 text-green-700 font-bold rounded-full">Bình thường</span>'}
+      </td>
+    </tr>
+  `).join('');
+}
+
+// Gọi hàm khi trang Admin tải xong
+document.addEventListener('DOMContentLoaded', loadAdminLeaderboard);
     
   </script>
 <!-- MODAL HƯỚNG DẪN SỬ DỤNG PHÍA ADMIN (CÓ TAB) -->
