@@ -1545,11 +1545,14 @@ async function checkStreakRecoveryProgress() {
 }
 
   // KIỂM TRA BÀI MỚI KHI ĐĂNG NHẬP
+// ==================== QUẢN LÝ THÔNG BÁO THEO THỨ TỰ ƯU TIÊN ====================
+
+// 1. KIỂM TRA THÔNG BÁO HỆ THỐNG (ƯU TIÊN HÀNG ĐẦU)
 async function checkNewContentOnLogin() {
   const { data: { user } } = await sbClient.auth.getUser();
-  if (!user) return;
+  if (!user) return false;
 
-  // 1. Kiểm tra Bài Reading mới
+  // A. Ưu tiên 1: Bài Reading mới
   const { data: latestExam } = await sbClient.from('exams').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle();
   if (latestExam && localStorage.getItem('seen_exam_' + latestExam.id) !== 'true') {
     showAutoModal({
@@ -1561,12 +1564,16 @@ async function checkNewContentOnLogin() {
         localStorage.setItem('seen_exam_' + latestExam.id, 'true');
         window.location.href = `exam.html?token=${latestExam.token}`;
       },
-      onCancel: () => localStorage.setItem('seen_exam_' + latestExam.id, 'true')
+      onCancel: () => {
+        localStorage.setItem('seen_exam_' + latestExam.id, 'true');
+        closeAutoModal();
+        checkStreakNotifications(); // Đóng thông báo trang xong -> Chuyển sang kiểm tra Chuỗi
+      }
     });
-    return;
+    return true; // Đã hiện thông báo trang
   }
 
-  // 2. Kiểm tra Thông báo mới từ Admin
+  // B. Ưu tiên 2: Thông báo Admin mới
   const { data: latestAnnounce } = await sbClient.from('announcements').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle();
   if (latestAnnounce && localStorage.getItem('seen_announce_' + latestAnnounce.id) !== 'true') {
     showAutoModal({
@@ -1578,13 +1585,18 @@ async function checkNewContentOnLogin() {
         localStorage.setItem('seen_announce_' + latestAnnounce.id, 'true');
         closeAutoModal();
         alert(`📜 THÔNG BÁO CHI TIẾT:\n\n${latestAnnounce.content}`);
+        checkStreakNotifications(); // Xem xong -> Chuyển sang kiểm tra Chuỗi
       },
-      onCancel: () => localStorage.setItem('seen_announce_' + latestAnnounce.id, 'true')
+      onCancel: () => {
+        localStorage.setItem('seen_announce_' + latestAnnounce.id, 'true');
+        closeAutoModal();
+        checkStreakNotifications(); // Bỏ qua -> Chuyển sang kiểm tra Chuỗi
+      }
     });
-    return;
+    return true; // Đã hiện thông báo trang
   }
 
-  // 3. Kiểm tra Câu Luyện Phát Âm mới
+  // C. Ưu tiên 3: Câu Luyện Phát Âm mới
   const { data: latestPronun } = await sbClient.from('pronunciation_phrases').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle();
   if (latestPronun && localStorage.getItem('seen_pronun_' + latestPronun.id) !== 'true') {
     showAutoModal({
@@ -1597,12 +1609,36 @@ async function checkNewContentOnLogin() {
         closeAutoModal();
         const element = document.getElementById('pronunSection');
         if (element) element.scrollIntoView({ behavior: 'smooth' });
+        checkStreakNotifications(); // Chuyển sang kiểm tra Chuỗi
       },
-      onCancel: () => localStorage.setItem('seen_pronun_' + latestPronun.id, 'true')
+      onCancel: () => {
+        localStorage.setItem('seen_pronun_' + latestPronun.id, 'true');
+        closeAutoModal();
+        checkStreakNotifications(); // Bỏ qua -> Chuyển sang kiểm tra Chuỗi
+      }
     });
-    return;
+    return true; // Đã hiện thông báo trang
+  }
+
+  return false; // Không có thông báo trang nào
+}
+
+// 2. KHỞI TẠO LUỒNG THÔNG BÁO KHI VỪA ĐĂNG NHẬP
+async function initNotificationSequence() {
+  // Chạy kiểm tra thông báo trang trước
+  const hasSiteNotification = await checkNewContentOnLogin();
+
+  // Nếu KHÔNG có thông báo trang nào -> Mới chạy kiểm tra Cảnh báo Chuỗi
+  if (!hasSiteNotification) {
+    await checkStreakNotifications();
   }
 }
+
+// Gọi chạy chuỗi thông báo khi tải trang Dashboard
+document.addEventListener('DOMContentLoaded', () => {
+  loadUserStats();
+  initNotificationSequence(); // Khởi chạy theo đúng thứ tự ưu tiên
+});
 
 function showAutoModal({ icon, title, note, btnText, onConfirm, onCancel }) {
   document.getElementById('autoModalIcon').innerText = icon;
@@ -1624,6 +1660,88 @@ function closeAutoModal() {
 
 // Kích hoạt kiểm tra khi trang Dashboard tải hoàn tất
 document.addEventListener('DOMContentLoaded', checkNewContentOnLogin);
+
+// KIỂM TRA VÀ GỬI THÔNG BÁO CHUỖI TỰ ĐỘNG
+async function checkStreakNotifications() {
+  const { data: { user } } = await sbClient.auth.getUser();
+  if (!user) return;
+
+  const { data: stat } = await sbClient.from('user_stats').select('*').eq('user_id', user.id).maybeSingle();
+  if (!stat || !stat.last_study_date) return;
+
+  // Tính số ngày chênh lệch từ lần học gần nhất đến hôm nay
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const lastDate = new Date(stat.last_study_date);
+  lastDate.setHours(0, 0, 0, 0);
+
+  const diffDays = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+  const recoveryBtn = document.getElementById('streakRecoveryBtn');
+  const todayStr = today.toISOString().split('T')[0];
+
+  // TRƯỜNG HỢP 1: Bỏ lỡ từ 1 đến 7 ngày (diffDays từ 2 đến 8) -> CẢNH BÁO & CHO KHÔI PHỤC
+  if (diffDays >= 2 && diffDays <= 8) {
+    if (recoveryBtn) recoveryBtn.classList.remove('hidden'); // Hiện nút khôi phục ở CARD 1
+
+    // Kiểm tra xem hôm nay đã hiển thị thông báo này chưa (tránh hiện liên tục khi F5)
+    if (localStorage.getItem('seen_streak_recovery_' + todayStr) !== 'true') {
+      showAutoModal({
+        icon: '🛡️',
+        title: `Cảnh Báo: Chuỗi 🔥 ${stat.streak_count} Ngày Sắp Mất!`,
+        note: `Bạn đã bỏ lỡ ${diffDays - 1} ngày học. Bấm khôi phục và hoàn thành 2 bài phát âm để cứu ngay ngọn lửa!`,
+        btnText: 'Khôi phục ngay',
+        onConfirm: () => {
+          localStorage.setItem('seen_streak_recovery_' + todayStr, 'true');
+          closeAutoModal();
+          startStreakRecovery(); // Kích hoạt trạng thái khôi phục
+          
+          // Cuộn màn hình đến khu vực Luyện Phát Âm
+          const element = document.getElementById('pronunSection');
+          if (element) element.scrollIntoView({ behavior: 'smooth' });
+        },
+        onCancel: () => localStorage.setItem('seen_streak_recovery_' + todayStr, 'true')
+      });
+    }
+  } 
+  
+  // TRƯỜNG HỢP 2: Quá 7 ngày (Từ ngày thứ 8 trở đi) -> TỰ ĐỘNG RESET VỀ 0 & THÔNG BÁO MẤT CHUỖI
+  else if (diffDays > 8) {
+    // 1. Tự động reset chuỗi về 0 trong Database
+    await sbClient.from('user_stats').update({
+      streak_count: 0,
+      is_recovering: false,
+      recovery_progress: 0
+    }).eq('user_id', user.id);
+
+    if (recoveryBtn) recoveryBtn.classList.add('hidden');
+    const streakCountElem = document.getElementById('userStreakCount');
+    if (streakCountElem) streakCountElem.innerText = '0';
+
+    // 2. Hiển thị thông báo Mất Chuỗi
+    if (localStorage.getItem('seen_streak_lost_' + todayStr) !== 'true') {
+      showAutoModal({
+        icon: '💔',
+        title: 'Chuỗi 🔥 Đã Bị Dập Tắt!',
+        note: 'Do bạn đã không vào học hơn 7 ngày nên chuỗi ngày học đã bị tự động reset về 0. Hãy học ngay bài hôm nay để thắp lại ngọn lửa nhé!',
+        btnText: 'Thắp lại lửa ngay',
+        onConfirm: () => {
+          localStorage.setItem('seen_streak_lost_' + todayStr, 'true');
+          closeAutoModal();
+          const element = document.getElementById('pronunSection');
+          if (element) element.scrollIntoView({ behavior: 'smooth' });
+        },
+        onCancel: () => localStorage.setItem('seen_streak_lost_' + todayStr, 'true')
+      });
+    }
+  }
+}
+
+// Thêm hàm vào sự kiện load trang Dashboard
+document.addEventListener('DOMContentLoaded', () => {
+  loadUserStats();
+  checkStreakNotifications();
+});
   
 </script>
 <!-- MODAL ĐỔI MẬT KHẨU -->
