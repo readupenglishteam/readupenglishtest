@@ -40,6 +40,21 @@
   .animate-blob { animation: blob 10s infinite ease-in-out; }
   .animation-delay-2000 { animation-delay: 2s; }
   .animation-delay-4000 { animation-delay: 4s; }
+
+  /* HIỆU ỨNG LỬA CHÁY STREAK & GLOW */
+@keyframes flameGlow {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(207, 23, 23, 0.8)) drop-shadow(0 0 12px rgba(255, 140, 0, 0.6)); transform: scale(1); }
+  50% { filter: drop-shadow(0 0 12px rgba(207, 23, 23, 1)) drop-shadow(0 0 20px rgba(255, 69, 0, 0.9)); transform: scale(1.1); }
+}
+
+.animate-flame {
+  animation: flameGlow 1.8s infinite ease-in-out;
+}
+
+.streak-card-bg {
+  background: linear-gradient(135deg, rgba(207, 23, 23, 0.08) 0%, rgba(255, 107, 0, 0.05) 100%);
+}
+  
 </style>
   
   <!-- Header Navbar -->
@@ -227,6 +242,78 @@
   </div>
 </section>
 
+    <!-- KHU VỰC STREAK & LEADERBOARD STATS -->
+<section class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+  
+  <!-- CARD 1: STREAK NGỌN LỬA -->
+  <div class="p-4 rounded-2xl border border-red-200/80 dark:border-red-900/50 streak-card-bg flex items-center justify-between shadow-sm">
+    <div class="flex items-center gap-3">
+      <div class="text-3xl sm:text-4xl animate-flame select-none">🔥</div>
+      <div>
+        <span class="text-[11px] font-black tracking-wider text-gray-500 uppercase dark:text-gray-400 block">Chuỗi Ngày Học</span>
+        <div class="flex items-baseline gap-1">
+          <span id="userStreakCount" class="text-2xl font-black text-[#cf1717] dark:text-red-400">0</span>
+          <span class="text-xs font-bold text-gray-600 dark:text-gray-300">ngày liên tiếp</span>
+        </div>
+      </div>
+    </div>
+    <span class="text-xs px-2.5 py-1 rounded-full bg-red-100 dark:bg-red-950 text-[#cf1717] dark:text-red-300 font-bold">Giữ lửa 🎯</span>
+  </div>
+
+  <!-- CARD 2: ĐIỂM XP tích lũy -->
+  <div class="p-4 rounded-2xl border border-amber-200/80 dark:border-amber-900/50 bg-amber-50/50 dark:bg-amber-950/20 flex items-center justify-between shadow-sm">
+    <div class="flex items-center gap-3">
+      <div class="text-3xl sm:text-4xl text-amber-500 select-none drop-shadow">⚡</div>
+      <div>
+        <span class="text-[11px] font-black tracking-wider text-gray-500 uppercase dark:text-gray-400 block">Tổng Tích Lũy</span>
+        <div class="flex items-baseline gap-1">
+          <span id="userTotalXp" class="text-2xl font-black text-amber-600 dark:text-amber-400">0</span>
+          <span class="text-xs font-bold text-gray-600 dark:text-gray-300">XP</span>
+        </div>
+      </div>
+    </div>
+    <span id="userBadgeTitle" class="text-xs px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 font-bold">🌱 Tân Thủ</span>
+  </div>
+
+  <!-- CARD 3: NÚT MỞ BẢNG XẾP HẠNG -->
+  <button type="button" onclick="openLeaderboardModal()" class="p-4 rounded-2xl bg-gradient-to-r from-[#cf1717] to-red-600 hover:to-red-700 text-white flex items-center justify-between shadow-md transition transform hover:-translate-y-0.5">
+    <div class="flex items-center gap-3">
+      <div class="text-3xl select-none">🏆</div>
+      <div class="text-left">
+        <span class="text-xs font-bold text-red-100 block">Đua TOP Độc Quyền</span>
+        <span class="text-base font-black">Bảng Xếp Hạng</span>
+      </div>
+    </div>
+    <span class="text-xs bg-white/20 px-3 py-1.5 rounded-xl font-extrabold backdrop-blur-sm">Xem TOP →</span>
+  </button>
+
+</section>
+
+<!-- MODAL BẢNG XẾP HẠNG (LEADERBOARD) -->
+<div id="modalLeaderboard" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-md w-full border border-gray-200 dark:border-zinc-700 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+    
+    <!-- Modal Header -->
+    <div class="p-5 bg-gradient-to-r from-[#cf1717] to-red-700 text-white flex justify-between items-center shrink-0">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl">🏆</span>
+        <div>
+          <h3 class="font-extrabold text-lg leading-tight">Bảng Xếp Hạng Cao Thủ</h3>
+          <p class="text-xs text-red-100">Top học sinh có điểm XP cao nhất tuần này</p>
+        </div>
+      </div>
+      <button onclick="closeLeaderboardModal()" class="w-8 h-8 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center font-bold text-sm">✕</button>
+    </div>
+
+    <!-- Leaderboard List -->
+    <div id="leaderboardList" class="p-4 space-y-2.5 overflow-y-auto flex-1">
+      <p class="text-center text-xs text-gray-400 italic py-4">⏳ Đang tải xếp hạng...</p>
+    </div>
+
+  </div>
+</div>
+
+    
   </main>
 
 <script>
@@ -1151,6 +1238,8 @@ async function processPronunResult(targetText, spokenText) {
 
   // 3. CẬP NHẬT LẠI BIỂU ĐỒ CÁ NHÂN
   await renderPronunChart();
+  // 🔥 BƯỚC 5 ĐẶT Ở ĐÂY: Cộng 20 XP và duy trì Streak ngay sau khi đọc xong bài
+  await rewardXPAndStreak(20);
 }
   
 // 4. Lấy lịch sử & Vẽ Biểu Đồ
@@ -1266,6 +1355,127 @@ function togglePronunHint() {
     hintCard.classList.toggle('hidden');
   }
 }
+
+
+  // ==================== QUẢN LÝ STREAK, XP & LEADERBOARD ====================
+
+// 1. Tải chỉ số Streak & XP cá nhân
+async function loadUserStats() {
+  const { data: { user } } = await sbClient.auth.getUser();
+  if (!user) return;
+
+  let { data, error } = await sbClient.from('user_stats').select('*').eq('user_id', user.id).maybeSingle();
+
+  if (!data) {
+    // Tạo mới nếu chưa có
+    const { data: newStat } = await sbClient.from('user_stats').insert([{ user_id: user.id, streak_count: 0, total_xp: 0 }]).select().single();
+    data = newStat;
+  }
+
+  if (data) {
+    document.getElementById('userStreakCount').innerText = data.streak_count || 0;
+    document.getElementById('userTotalXp').innerText = data.total_xp || 0;
+    
+    // Cập nhật danh hiệu dựa trên XP
+    const badgeTitle = getBadgeTitle(data.total_xp || 0);
+    document.getElementById('userBadgeTitle').innerText = badgeTitle;
+  }
+}
+
+// 2. Hàm gọi khi Hoàn Thành Bài Tập (Được cộng XP và Tính Streak)
+async function rewardXPAndStreak(addedXp = 20) {
+  const { data: { user } } = await sbClient.auth.getUser();
+  if (!user) return;
+
+  const todayStr = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+  
+  let { data: stat } = await sbClient.from('user_stats').select('*').eq('user_id', user.id).maybeSingle();
+  if (!stat) return;
+
+  let currentStreak = stat.streak_count || 0;
+  let lastDate = stat.last_study_date;
+  let newXp = (stat.total_xp || 0) + addedXp;
+
+  if (lastDate !== todayStr) {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    if (lastDate === yesterdayStr) {
+      currentStreak += 1; // Học liên tiếp ngày hôm qua -> Tăng Streak
+    } else {
+      currentStreak = 1; // Bị đứt chuỗi -> Reset về 1
+    }
+  }
+
+  // Cập nhật Database
+  await sbClient.from('user_stats').update({
+    streak_count: currentStreak,
+    total_xp: newXp,
+    last_study_date: todayStr,
+    updated_at: new Date()
+  }).eq('user_id', user.id);
+
+  // Load lại giao diện
+  await loadUserStats();
+}
+
+// 3. Quy đổi Danh Hiệu Huy Hiệu
+function getBadgeTitle(xp) {
+  if (xp >= 1000) return "👑 Đại Cao Thủ";
+  if (xp >= 500) return "🔥 Chuyên Gia Reading";
+  if (xp >= 200) return "⚡ Cần Cù Bứt Phá";
+  return "🌱 Tân Thủ";
+}
+
+// 4. Mở Modal & Render Bảng Xếp Hạng
+async function openLeaderboardModal() {
+  document.getElementById('modalLeaderboard').classList.remove('hidden');
+  const container = document.getElementById('leaderboardList');
+  container.innerHTML = '<p class="text-center text-xs text-gray-400 italic py-4">⏳ Đang tải xếp hạng...</p>';
+
+  // Lấy Top 10 học sinh có XP cao nhất
+  const { data, error } = await sbClient
+    .from('user_stats')
+    .select('total_xp, streak_count, user_id')
+    .order('total_xp', { ascending: false })
+    .limit(10);
+
+  if (error || !data || data.length === 0) {
+    container.innerHTML = '<p class="text-center text-xs text-gray-400 py-4">Chưa có dữ liệu bảng xếp hạng.</p>';
+    return;
+  }
+
+  const medals = ['🥇', '🥈', '🥉'];
+
+  container.innerHTML = data.map((item, index) => {
+    const rankIcon = medals[index] || `#${index + 1}`;
+    const badge = getBadgeTitle(item.total_xp);
+
+    return `
+      <div class="flex items-center justify-between p-3 rounded-2xl ${index === 0 ? 'bg-amber-50 dark:bg-amber-950/40 border border-amber-200' : 'bg-gray-50 dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700/60'}">
+        <div class="flex items-center gap-3">
+          <span class="w-7 text-center font-black text-sm sm:text-base">${rankIcon}</span>
+          <div>
+            <p class="font-extrabold text-xs sm:text-sm text-gray-900 dark:text-white">Học sinh #${item.user_id.substring(0, 5)}</p>
+            <span class="text-[10px] font-bold text-gray-500 dark:text-gray-400">${badge} • 🔥 ${item.streak_count || 0} ngày</span>
+          </div>
+        </div>
+        <div class="text-right">
+          <span class="font-black text-sm text-[#cf1717] dark:text-red-400">${item.total_xp || 0}</span>
+          <span class="text-[10px] font-bold text-gray-400 block">XP</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function closeLeaderboardModal() {
+  document.getElementById('modalLeaderboard').classList.add('hidden');
+}
+
+// Gọi hàm tải chỉ số khi bắt đầu trang
+document.addEventListener('DOMContentLoaded', loadUserStats);
   
 </script>
 <!-- MODAL ĐỔI MẬT KHẨU -->
