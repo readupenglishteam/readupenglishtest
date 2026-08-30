@@ -1144,22 +1144,38 @@ async function processPronunResult(targetText, spokenText) {
 }
 
 // 4. Lấy lịch sử & Vẽ Biểu Đồ
+// 4. Lấy lịch sử & Vẽ Biểu Đồ
 async function renderPronunChart() {
   const canvas = document.getElementById('pronunChart');
   if (!canvas) return;
 
-  const studentId = window.currentUserId || 'student_demo';
+  // 1. LẤY USER ID CHUẨN TỪ SUPABASE AUTH
+  const { data: { user } } = await sbClient.auth.getUser();
+  const studentId = user ? user.id : window.currentUserId;
 
-  // Lấy 10 lần thực hành gần nhất
-  const { data } = await sbClient
+  if (!studentId) {
+    console.warn("Chưa đăng nhập tài khoản, không thể tải biểu đồ cá nhân.");
+    return;
+  }
+
+  // 2. LẤY 10 LẦN MỚI NHẤT CỦA ĐÚNG USER NÀY (ascending: false)
+  const { data, error } = await sbClient
     .from('pronunciation_history')
     .select('*')
     .eq('user_id', studentId)
-    .order('created_at', { ascending: true })
+    .order('created_at', { ascending: false })
     .limit(10);
 
-  const labels = data ? data.map((_, index) => `Lần ${index + 1}`) : [];
-  const scores = data ? data.map(item => item.score) : [];
+  if (error) {
+    console.error("Lỗi lấy lịch sử phát âm:", error);
+    return;
+  }
+
+  // Đảo ngược mảng để vẽ biểu đồ theo thứ tự thời gian từ cũ -> mới
+  const recentData = data ? data.reverse() : [];
+
+  const labels = recentData.map((_, index) => `Lần ${index + 1}`);
+  const scores = recentData.map(item => item.score);
 
   if (pronunChartInstance) {
     pronunChartInstance.destroy(); // Hủy biểu đồ cũ trước khi vẽ mới
@@ -1194,7 +1210,7 @@ async function renderPronunChart() {
     }
   });
 }
-
+  
 // Khởi tạo tính năng khi tải trang
 document.addEventListener('DOMContentLoaded', () => {
   loadStudentPronunPhrases();
