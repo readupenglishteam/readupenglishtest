@@ -518,11 +518,13 @@
       }, 1000);
     }
 
-    function confirmSubmitExam() {
+    async function confirmSubmitExam() {
   if (confirm("Bạn có chắc chắn muốn nộp bài thi?")) {
-    submitExam();
+    await submitExam();
+    await rewardXPAndStreak(20);
   }
 }
+
 
 function disableSubmitBtn() {
   const btn = document.getElementById('submitBtn');
