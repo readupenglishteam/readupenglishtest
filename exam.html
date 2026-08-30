@@ -546,6 +546,49 @@ function disableSubmitBtn() {
     }
 
     window.onload = initExam;
+
+    // Bổ sung hàm tính Streak & XP dành riêng cho trang exam.html
+async function rewardXPAndStreak(addedXp = 20) {
+  if (!currentUser) return;
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  
+  let { data: stat } = await sbClient.from('user_stats').select('*').eq('user_id', currentUser.id).maybeSingle();
+  
+  if (!stat) {
+    await sbClient.from('user_stats').insert([{ 
+      user_id: currentUser.id, 
+      streak_count: 1, 
+      total_xp: addedXp, 
+      last_study_date: todayStr 
+    }]);
+    return;
+  }
+
+  let currentStreak = stat.streak_count || 0;
+  let lastDate = stat.last_study_date;
+  let newXp = (stat.total_xp || 0) + addedXp;
+
+  if (lastDate !== todayStr) {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    if (lastDate === yesterdayStr) {
+      currentStreak += 1;
+    } else {
+      currentStreak = 1;
+    }
+  }
+
+  await sbClient.from('user_stats').update({
+    streak_count: currentStreak,
+    total_xp: newXp,
+    last_study_date: todayStr,
+    updated_at: new Date()
+  }).eq('user_id', currentUser.id);
+}
+    
   </script>
   <!-- GLOBAL FIXED TOOLTIP -->
   <div id="vocabTooltip" class="fixed hidden z-[9999] w-64 p-3.5 bg-zinc-900/95 text-white dark:bg-white/95 dark:text-zinc-900 rounded-2xl shadow-2xl text-xs space-y-1.5 border border-zinc-700 dark:border-gray-200 backdrop-blur-md pointer-events-none transition-opacity duration-150 opacity-0">
