@@ -390,7 +390,7 @@
         alert("❌ Lỗi lưu kết quả: " + error.message);
         return;
       }
-
+      await rewardXPAndStreak(20);
       renderResultMode(questions);
 
       const scoreElem = document.getElementById('finalScore');
@@ -518,10 +518,9 @@
       }, 1000);
     }
 
-    async function confirmSubmitExam() {
+  function confirmSubmitExam() {
   if (confirm("Bạn có chắc chắn muốn nộp bài thi?")) {
-    await submitExam();
-    await rewardXPAndStreak(20);
+    submitExam();
   }
 }
 
