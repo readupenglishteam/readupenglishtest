@@ -1125,24 +1125,34 @@ async function processPronunResult(targetText, spokenText) {
   const badge = document.getElementById('speechScoreBadge');
   badge.innerText = `${score}% Chính Xác`;
   badge.className = score >= 80 
-    ? "text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-    : "text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300";
+    ? "text-xs font-extrabold px-[#10px] py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+    : "text-xs font-extrabold px-[#10px] py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300";
 
-  // Lấy ID Học sinh (hoặc dùng tạm 'student_demo' nếu chưa tích hợp Auth)
-  const studentId = window.currentUserId || 'student_demo';
+  // 1. LẤY USER ID THỰC TẾ TỪ AUTH
+  const { data: { user } } = await sbClient.auth.getUser();
+  const studentId = user ? user.id : window.currentUserId;
 
-  // Lưu điểm lên Supabase
-  await sbClient.from('pronunciation_history').insert([{
+  if (!studentId) {
+    alert("⚠️ Bạn chưa đăng nhập nên không thể lưu kết quả bài làm!");
+    return;
+  }
+
+  // 2. LƯU ĐIỂM CHO ĐÚNG USER
+  const { error } = await sbClient.from('pronunciation_history').insert([{
     user_id: studentId,
     phrase_text: targetText,
     score: score,
     spoken_text: spokenText
   }]);
 
-  // Cập nhật lại Biểu đồ
+  if (error) {
+    console.error("Lỗi khi lưu điểm phát âm:", error);
+  }
+
+  // 3. CẬP NHẬT LẠI BIỂU ĐỒ CÁ NHÂN
   await renderPronunChart();
 }
-
+  
 // 4. Lấy lịch sử & Vẽ Biểu Đồ
 // 4. Lấy lịch sử & Vẽ Biểu Đồ
 async function renderPronunChart() {
