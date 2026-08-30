@@ -1544,120 +1544,84 @@ async function checkStreakRecoveryProgress() {
   }
 }
 
-  // KIỂM TRA BÀI MỚI KHI ĐĂNG NHẬP
-// ==================== QUẢN LÝ THÔNG BÁO TỰ ĐỘNG (LẤY NỘI DUNG MỚI NHẤT) ====================
+// ==================== CHỈ QUẢN LÝ THÔNG BÁO CHUỖI STREAK ====================
 
-async function checkNewContentOnLogin() {
+async function checkStreakNotifications() {
   const { data: { user } } = await sbClient.auth.getUser();
-  if (!user) return false;
+  if (!user) return;
 
-  // 1. Tải đồng thời nội dung mới nhất của 3 bảng
-  const [examRes, announceRes, pronunRes] = await Promise.all([
-    sbClient.from('exams').select('id, title, topic, token, created_at').order('created_at', { ascending: false }).limit(1).maybeSingle(),
-    sbClient.from('announcements').select('id, title, content, created_at').order('created_at', { ascending: false }).limit(1).maybeSingle(),
-    sbClient.from('pronunciation_phrases').select('id, phrase_text, created_at').order('created_at', { ascending: false }).limit(1).maybeSingle()
-  ]);
+  const { data: stat } = await sbClient.from('user_stats').select('*').eq('user_id', user.id).maybeSingle();
+  if (!stat || !stat.last_study_date) return;
 
-  const candidates = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-  if (examRes.data) {
-    candidates.push({
-      type: 'exam',
-      data: examRes.data,
-      time: new Date(examRes.data.created_at).getTime(),
-      seenKey: 'seen_exam_' + examRes.data.id
-    });
+  const lastDate = new Date(stat.last_study_date);
+  lastDate.setHours(0, 0, 0, 0);
+
+  const diffDays = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+  const recoveryBtn = document.getElementById('streakRecoveryBtn');
+  const todayStr = today.toISOString().split('T')[0];
+
+  // TRƯỜNG HỢP 1: Bỏ lỡ từ 1 đến 7 ngày (Quên 1-7 ngày) -> CẢNH BÁO & CHO KHÔI PHỤC
+  if (diffDays >= 2 && diffDays <= 8) {
+    if (recoveryBtn) recoveryBtn.classList.remove('hidden');
+
+    if (localStorage.getItem('seen_streak_recovery_' + todayStr) !== 'true') {
+      showAutoModal({
+        icon: '🛡️',
+        title: `Cảnh Báo: Chuỗi 🔥 ${stat.streak_count} Ngày Sắp Mất!`,
+        note: `Bạn đã bỏ lỡ ${diffDays - 1} ngày học. Hãy bấm khôi phục và hoàn thành 2 bài phát âm để cứu ngay ngọn lửa!`,
+        btnText: 'Khôi phục ngay',
+        onConfirm: () => {
+          localStorage.setItem('seen_streak_recovery_' + todayStr, 'true');
+          closeAutoModal();
+          startStreakRecovery();
+          const element = document.getElementById('pronunSection');
+          if (element) element.scrollIntoView({ behavior: 'smooth' });
+        },
+        onCancel: () => {
+          localStorage.setItem('seen_streak_recovery_' + todayStr, 'true');
+          closeAutoModal();
+        }
+      });
+    }
+  } 
+  
+  // TRƯỜNG HỢP 2: Bỏ lỡ quá 7 ngày (Đến ngày thứ 8 trở đi) -> RESET VỀ 0 & THÔNG BÁO MẤT CHUỖI
+  else if (diffDays > 8) {
+    await sbClient.from('user_stats').update({
+      streak_count: 0,
+      is_recovering: false,
+      recovery_progress: 0
+    }).eq('user_id', user.id);
+
+    if (recoveryBtn) recoveryBtn.classList.add('hidden');
+    const streakCountElem = document.getElementById('userStreakCount');
+    if (streakCountElem) streakCountElem.innerText = '0';
+
+    if (localStorage.getItem('seen_streak_lost_' + todayStr) !== 'true') {
+      showAutoModal({
+        icon: '💔',
+        title: 'Chuỗi 🔥 Đã Bị Dập Tắt!',
+        note: 'Do bạn đã không vào học hơn 7 ngày nên chuỗi ngày học đã bị tự động reset về 0. Hãy học ngay bài hôm nay để thắp lại ngọn lửa nhé!',
+        btnText: 'Thắp lại lửa ngay',
+        onConfirm: () => {
+          localStorage.setItem('seen_streak_lost_' + todayStr, 'true');
+          closeAutoModal();
+          const element = document.getElementById('pronunSection');
+          if (element) element.scrollIntoView({ behavior: 'smooth' });
+        },
+        onCancel: () => {
+          localStorage.setItem('seen_streak_lost_' + todayStr, 'true');
+          closeAutoModal();
+        }
+      });
+    }
   }
-
-  if (announceRes.data) {
-    candidates.push({
-      type: 'announce',
-      data: announceRes.data,
-      time: new Date(announceRes.data.created_at).getTime(),
-      seenKey: 'seen_announce_' + announceRes.data.id
-    });
-  }
-
-  if (pronunRes.data) {
-    candidates.push({
-      type: 'pronun',
-      data: pronunRes.data,
-      time: new Date(pronunRes.data.created_at).getTime(),
-      seenKey: 'seen_pronun_' + pronunRes.data.id
-    });
-  }
-
-  if (candidates.length === 0) return false;
-
-  // 2. Sắp xếp để tìm ra NỘI DUNG MỚI ĐƯỢC CẬP NHẬT SAU CÙNG (Thời gian lớn nhất)
-  candidates.sort((a, b) => b.time - a.time);
-  const latest = candidates[0]; 
-
-  // 3. Nếu người dùng đã xem nội dung mới nhất này rồi -> Không hiện nữa
-  if (localStorage.getItem(latest.seenKey) === 'true') {
-    return false;
-  }
-
-  // 4. Chỉ hiển thị DUY NHẤT 1 thông báo của nội dung mới nhất đó
-  if (latest.type === 'exam') {
-    showAutoModal({
-      icon: '📖',
-      title: `Bài Reading Mới: "${latest.data.title}"`,
-      note: latest.data.topic ? `Chủ đề: ${latest.data.topic}` : 'Hãy thử sức ngay hôm nay!',
-      btnText: 'Vào làm bài',
-      onConfirm: () => {
-        localStorage.setItem(latest.seenKey, 'true');
-        window.location.href = `exam.html?token=${latest.data.token}`;
-      },
-      onCancel: () => {
-        localStorage.setItem(latest.seenKey, 'true');
-        closeAutoModal();
-        checkStreakNotifications(); // Chuyển sang kiểm tra Streak
-      }
-    });
-  } else if (latest.type === 'announce') {
-    showAutoModal({
-      icon: '📢',
-      title: `Thông Báo: "${latest.data.title}"`,
-      note: latest.data.content || 'Bạn có thông báo mới từ hệ thống.',
-      btnText: 'Xem ngay',
-      onConfirm: () => {
-        localStorage.setItem(latest.seenKey, 'true');
-        closeAutoModal();
-        alert(`📜 THÔNG BÁO CHI TIẾT:\n\n${latest.data.content}`);
-        checkStreakNotifications();
-      },
-      onCancel: () => {
-        localStorage.setItem(latest.seenKey, 'true');
-        closeAutoModal();
-        checkStreakNotifications();
-      }
-    });
-  } else if (latest.type === 'pronun') {
-    showAutoModal({
-      icon: '🎙️',
-      title: `Câu Phát Âm Mới: "${latest.data.phrase_text}"`,
-      note: 'Luyện tập ngay để nhận thêm XP!',
-      btnText: 'Thử ngay',
-      onConfirm: () => {
-        localStorage.setItem(latest.seenKey, 'true');
-        closeAutoModal();
-        const element = document.getElementById('pronunSection');
-        if (element) element.scrollIntoView({ behavior: 'smooth' });
-        checkStreakNotifications();
-      },
-      onCancel: () => {
-        localStorage.setItem(latest.seenKey, 'true');
-        closeAutoModal();
-        checkStreakNotifications();
-      }
-    });
-  }
-
-  return true;
 }
 
-// 5. ĐIỀU KHIỂN POPUP & SỬA LỖI VÒNG LẶP (STACK OVERFLOW)
+// HÀM HIỂN THỊ VÀ TẮT POPUP
 function showAutoModal({ icon, title, note, btnText, onConfirm, onCancel }) {
   document.getElementById('autoModalIcon').innerText = icon;
   document.getElementById('autoModalTitle').innerText = title;
@@ -1672,11 +1636,12 @@ function showAutoModal({ icon, title, note, btnText, onConfirm, onCancel }) {
 }
 
 function handleCancelModal() {
-  closeAutoModal();
   if (typeof window.currentOnCancelHandler === 'function') {
     const handler = window.currentOnCancelHandler;
-    window.currentOnCancelHandler = null; // Xóa handler để chặn lặp vô hạn
+    window.currentOnCancelHandler = null;
     handler();
+  } else {
+    closeAutoModal();
   }
 }
 
@@ -1684,99 +1649,7 @@ function closeAutoModal() {
   document.getElementById('autoLoginModal').classList.add('hidden');
 }
 
-// 6. LUỒNG KHỞI TẠO KHI TẢI TRANG
-async function initNotificationSequence() {
-  const hasSiteNotification = await checkNewContentOnLogin();
-  if (!hasSiteNotification) {
-    await checkStreakNotifications();
-  }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  loadUserStats();
-  initNotificationSequence();
-});
-
-// Kích hoạt kiểm tra khi trang Dashboard tải hoàn tất
-document.addEventListener('DOMContentLoaded', checkNewContentOnLogin);
-
-// KIỂM TRA VÀ GỬI THÔNG BÁO CHUỖI TỰ ĐỘNG
-async function checkStreakNotifications() {
-  const { data: { user } } = await sbClient.auth.getUser();
-  if (!user) return;
-
-  const { data: stat } = await sbClient.from('user_stats').select('*').eq('user_id', user.id).maybeSingle();
-  if (!stat || !stat.last_study_date) return;
-
-  // Tính số ngày chênh lệch từ lần học gần nhất đến hôm nay
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const lastDate = new Date(stat.last_study_date);
-  lastDate.setHours(0, 0, 0, 0);
-
-  const diffDays = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
-  const recoveryBtn = document.getElementById('streakRecoveryBtn');
-  const todayStr = today.toISOString().split('T')[0];
-
-  // TRƯỜNG HỢP 1: Bỏ lỡ từ 1 đến 7 ngày (diffDays từ 2 đến 8) -> CẢNH BÁO & CHO KHÔI PHỤC
-  if (diffDays >= 2 && diffDays <= 8) {
-    if (recoveryBtn) recoveryBtn.classList.remove('hidden'); // Hiện nút khôi phục ở CARD 1
-
-    // Kiểm tra xem hôm nay đã hiển thị thông báo này chưa (tránh hiện liên tục khi F5)
-    if (localStorage.getItem('seen_streak_recovery_' + todayStr) !== 'true') {
-      showAutoModal({
-        icon: '🛡️',
-        title: `Cảnh Báo: Chuỗi 🔥 ${stat.streak_count} Ngày Sắp Mất!`,
-        note: `Bạn đã bỏ lỡ ${diffDays - 1} ngày học. Bấm khôi phục và hoàn thành 2 bài phát âm để cứu ngay ngọn lửa!`,
-        btnText: 'Khôi phục ngay',
-        onConfirm: () => {
-          localStorage.setItem('seen_streak_recovery_' + todayStr, 'true');
-          closeAutoModal();
-          startStreakRecovery(); // Kích hoạt trạng thái khôi phục
-          
-          // Cuộn màn hình đến khu vực Luyện Phát Âm
-          const element = document.getElementById('pronunSection');
-          if (element) element.scrollIntoView({ behavior: 'smooth' });
-        },
-        onCancel: () => localStorage.setItem('seen_streak_recovery_' + todayStr, 'true')
-      });
-    }
-  } 
-  
-  // TRƯỜNG HỢP 2: Quá 7 ngày (Từ ngày thứ 8 trở đi) -> TỰ ĐỘNG RESET VỀ 0 & THÔNG BÁO MẤT CHUỖI
-  else if (diffDays > 8) {
-    // 1. Tự động reset chuỗi về 0 trong Database
-    await sbClient.from('user_stats').update({
-      streak_count: 0,
-      is_recovering: false,
-      recovery_progress: 0
-    }).eq('user_id', user.id);
-
-    if (recoveryBtn) recoveryBtn.classList.add('hidden');
-    const streakCountElem = document.getElementById('userStreakCount');
-    if (streakCountElem) streakCountElem.innerText = '0';
-
-    // 2. Hiển thị thông báo Mất Chuỗi
-    if (localStorage.getItem('seen_streak_lost_' + todayStr) !== 'true') {
-      showAutoModal({
-        icon: '💔',
-        title: 'Chuỗi 🔥 Đã Bị Dập Tắt!',
-        note: 'Do bạn đã không vào học hơn 7 ngày nên chuỗi ngày học đã bị tự động reset về 0. Hãy học ngay bài hôm nay để thắp lại ngọn lửa nhé!',
-        btnText: 'Thắp lại lửa ngay',
-        onConfirm: () => {
-          localStorage.setItem('seen_streak_lost_' + todayStr, 'true');
-          closeAutoModal();
-          const element = document.getElementById('pronunSection');
-          if (element) element.scrollIntoView({ behavior: 'smooth' });
-        },
-        onCancel: () => localStorage.setItem('seen_streak_lost_' + todayStr, 'true')
-      });
-    }
-  }
-}
-
-// Thêm hàm vào sự kiện load trang Dashboard
+// KHỞI CHẠY KHI VỪA ĐĂNG NHẬP VÀO DASHBOARD
 document.addEventListener('DOMContentLoaded', () => {
   loadUserStats();
   checkStreakNotifications();
@@ -1846,24 +1719,41 @@ document.addEventListener('DOMContentLoaded', () => {
   </div>
 </div>
 
-<!-- POPUP THÔNG BÁO TỰ ĐỘNG KHI ĐĂNG NHẬP -->
-<div id="autoLoginModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-  <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-sm w-full border border-gray-200 dark:border-zinc-700 shadow-2xl p-6 text-center space-y-4 animate-bounce-short">
-    <div id="autoModalIcon" class="text-4xl">🔔</div>
+<!-- POPUP THÔNG BÁO STREAK (CHUỖI NGỌN LỬA) -->
+<div id="autoLoginModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 transition-all duration-300">
+  <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-sm w-full border border-orange-200 dark:border-red-900/50 shadow-2xl p-6 text-center space-y-4 relative overflow-hidden transform transition-all">
     
-    <div class="space-y-1">
-      <h3 id="autoModalTitle" class="font-extrabold text-base text-gray-900 dark:text-white"></h3>
-      <p id="autoModalNote" class="text-xs text-gray-500 dark:text-gray-400"></p>
+    <!-- Hiệu ứng Vệt Sáng Nền Cam/Đỏ Phía Trên -->
+    <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-32 h-32 bg-gradient-to-br from-amber-400 to-red-600 rounded-full blur-2xl opacity-20 pointer-events-none"></div>
+
+    <!-- Icon Ngọn Lửa Phát Sáng -->
+    <div class="relative z-10">
+      <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-amber-100 to-red-100 dark:from-amber-950/60 dark:to-red-950/60 border border-amber-300/60 dark:border-red-800/60 flex items-center justify-center shadow-lg shadow-orange-500/10">
+        <span id="autoModalIcon" class="text-3xl animate-bounce-short select-none">🔥</span>
+      </div>
+    </div>
+    
+    <!-- Tiêu Đề & Ghi Chú -->
+    <div class="space-y-2 relative z-10">
+      <h3 id="autoModalTitle" class="font-black text-base text-gray-900 dark:text-white leading-snug">
+        Cảnh Báo Chuỗi Học!
+      </h3>
+      <p id="autoModalNote" class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed font-medium px-2">
+        Bạn có nguy cơ bị đứt chuỗi. Hoàn thành bài tập ngay để giữ lửa!
+      </p>
     </div>
 
-    <div class="flex items-center gap-2 pt-2">
-      <button onclick="closeAutoModal()" class="w-1/2 py-2.5 text-xs font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition">
-        Hủy
+    <!-- Nút Bấm -->
+    <div class="flex items-center gap-2.5 pt-2 relative z-10">
+      <button onclick="handleCancelModal()" class="w-1/2 py-2.5 text-xs font-bold text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800/80 rounded-2xl transition active:scale-95">
+        Để sau
       </button>
-      <button id="autoModalActionBtn" class="w-1/2 py-2.5 text-xs font-extrabold text-white bg-[#cf1717] hover:bg-red-700 rounded-xl shadow transition">
-        Xác nhận
+
+      <button id="autoModalActionBtn" class="w-1/2 py-2.5 text-xs font-extrabold text-white bg-gradient-to-r from-amber-500 via-orange-600 to-red-600 hover:from-amber-600 hover:to-red-700 rounded-2xl shadow-lg shadow-orange-500/30 active:scale-95 transition-all">
+        Khôi phục ngay 🔥
       </button>
     </div>
+
   </div>
 </div>
   
