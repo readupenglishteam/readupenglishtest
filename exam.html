@@ -297,54 +297,136 @@
     }
 
     function renderExamData() {
-      const headerTitle = document.getElementById('examHeaderTitle');
-      if (headerTitle) headerTitle.innerText = currentExam.title || '';
+  const headerTitle = document.getElementById('examHeaderTitle');
+  if (headerTitle) headerTitle.innerText = currentExam.title || '';
 
-      const topicTag = document.getElementById('examTopicTag');
-      if (topicTag) topicTag.innerText = currentExam.topic || 'General';
+  const topicTag = document.getElementById('examTopicTag');
+  if (topicTag) topicTag.innerText = currentExam.topic || 'General';
 
-      const passageBox = document.getElementById('passageContent');
-      if (passageBox) {
-        const rawPassage = currentExam.passage_html || currentExam.passage || '<p>Không có nội dung bài đọc.</p>';
-        
-        // Quét tất cả các tên cột có thể dùng trong Database
-        const vocabList = currentExam.vocab_list || currentExam.vocab || currentExam.vocabularies || currentExam.vocabulary || [];
-        
-        passageBox.innerHTML = renderPassageWithVocab(rawPassage, vocabList);
+  const passageBox = document.getElementById('passageContent');
+  if (passageBox) {
+    const rawPassage = currentExam.passage_html || currentExam.passage || '<p>Không có nội dung bài đọc.</p>';
+    const vocabList = currentExam.vocab_list || currentExam.vocab || currentExam.vocabularies || currentExam.vocabulary || [];
+    passageBox.innerHTML = renderPassageWithVocab(rawPassage, vocabList);
+  }
+
+  const questions = currentExam.questions || [];
+  const countTag = document.getElementById('questionCountTag');
+  if (countTag) countTag.innerText = `${questions.length} câu hỏi`;
+
+  const form = document.getElementById('questionsForm') || document.getElementById('questionsContainer');
+  if (!form) return;
+
+  form.innerHTML = questions.map((q, idx) => {
+    const qNum = idx + 1;
+
+    // 1. TRƯỜNG HỢP TRẮC NGHIỆM (Multiple Choice)
+    if (q.options && Array.isArray(q.options) && q.options.length > 0) {
+      return `
+        <div class="p-3 sm:p-4 rounded-xl border border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/40 space-y-2 sm:space-y-3">
+          <p class="font-bold text-xs sm:text-sm text-gray-900 dark:text-white">Câu ${qNum}: ${q.question}</p>
+          <div class="space-y-1.5 sm:space-y-2">
+            ${q.options.map(opt => `
+              <label class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm p-2 sm:p-2.5 rounded-lg border border-gray-200 dark:border-zinc-700 hover:bg-white dark:hover:bg-zinc-800 cursor-pointer transition">
+                <input type="radio" name="q_idx_${idx}" value="${opt}" class="accent-[#cf1717]">
+                <span>${opt}</span>
+              </label>
+            `).join('')}
+          </div>
+        </div>`;
+    } 
+    
+    // 2. TRƯỜNG HỢP TỰ ĐIỀN (Fill in the blanks)
+    else {
+      // Tìm tất cả các số nằm trong ngoặc đơn dạng (1), (2), (5)... trong đề bài
+      const matches = [...q.question.matchAll(/\((\d+)\)/g)];
+      const blankNumbers = [...new Set(matches.map(m => m[1]))]; // Lọc danh sách số vị trí
+
+      // Nếu có các vị trí (1), (2)... -> Tự động sinh ra bấy nhiêu ô nhập tương ứng
+      if (blankNumbers.length > 0) {
+        return `
+          <div class="p-3 sm:p-4 rounded-xl border border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/40 space-y-3">
+            <p class="font-bold text-xs sm:text-sm text-gray-900 dark:text-white">Câu ${qNum}: ${q.question}</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 pt-1">
+              ${blankNumbers.map(num => `
+                <div class="flex items-center gap-2 bg-white dark:bg-zinc-800/80 p-1.5 sm:p-2 rounded-lg border border-gray-200 dark:border-zinc-700">
+                  <span class="font-black text-xs sm:text-sm text-[#cf1717] min-w-[28px] text-center">(${num})</span>
+                  <input type="text" 
+                         name="q_idx_${idx}_blank_${num}" 
+                         data-qidx="${idx}" 
+                         data-blank="${num}"
+                         placeholder="Nhập đáp án cho (${num})..." 
+                         class="w-full text-xs sm:text-sm bg-transparent focus:outline-none dark:text-white">
+                </div>
+              `).join('')}
+            </div>
+          </div>`;
       }
 
-      const questions = currentExam.questions || [];
-      const countTag = document.getElementById('questionCountTag');
-      if (countTag) countTag.innerText = `${questions.length} câu hỏi`;
-
-      const form = document.getElementById('questionsForm') || document.getElementById('questionsContainer');
-      if (!form) return;
-
-      form.innerHTML = questions.map((q, idx) => {
-        const qNum = idx + 1;
-        if (q.options && Array.isArray(q.options) && q.options.length > 0) {
-          return `
-            <div class="p-3 sm:p-4 rounded-xl border border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/40 space-y-2 sm:space-y-3">
-              <p class="font-bold text-xs sm:text-sm text-gray-900 dark:text-white">Câu ${qNum}: ${q.question}</p>
-              <div class="space-y-1.5 sm:space-y-2">
-                ${q.options.map(opt => `
-                  <label class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm p-2 sm:p-2.5 rounded-lg border border-gray-200 dark:border-zinc-700 hover:bg-white dark:hover:bg-zinc-800 cursor-pointer transition">
-                    <input type="radio" name="q_idx_${idx}" value="${opt}" class="accent-[#cf1717]">
-                    <span>${opt}</span>
-                  </label>
-                `).join('')}
-              </div>
-            </div>`;
-        } else {
-          return `
-            <div class="p-3 sm:p-4 rounded-xl border border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/40 space-y-2 sm:space-y-3">
-              <p class="font-bold text-xs sm:text-sm text-gray-900 dark:text-white">Câu ${qNum}: ${q.question}</p>
-              <input type="text" name="q_idx_${idx}" placeholder="Nhập câu trả lời..." class="w-full p-2 sm:p-2.5 text-xs sm:text-sm rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
-            </div>`;
-        }
-      }).join('');
+      // Ô nhập đơn mặc định (nếu câu hỏi không chứa dạng (1), (2)...)
+      return `
+        <div class="p-3 sm:p-4 rounded-xl border border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/40 space-y-2 sm:space-y-3">
+          <p class="font-bold text-xs sm:text-sm text-gray-900 dark:text-white">Câu ${qNum}: ${q.question}</p>
+          <input type="text" name="q_idx_${idx}" placeholder="Nhập câu trả lời..." class="w-full p-2 sm:p-2.5 text-xs sm:text-sm rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
+        </div>`;
     }
+  }).join('');
+}
 
+// 1. Hàm làm sạch chuỗi (Chuẩn IELTS)
+function cleanIELTSAnswer(text) {
+  if (!text) return '';
+  return text
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[.,!?;:]+$/g, '') // Bỏ dấu chấm, phẩy cuối từ
+    .replace(/\s+/g, ' ')       // Gộp nhiều khoảng trắng thành 1
+    .trim();
+}
+
+// 2. Hàm lấy tất cả câu trả lời của học sinh khi nộp bài
+function getUserAnswers(questions) {
+  const userAnswers = {};
+
+  questions.forEach((q, idx) => {
+    // Nếu là trắc nghiệm
+    if (q.options && q.options.length > 0) {
+      const selected = document.querySelector(`input[name="q_idx_${idx}"]:checked`);
+      userAnswers[idx] = selected ? selected.value : '';
+    } else {
+      // Tìm các ô nhập riêng lẻ dạng (1), (2)...
+      const blankInputs = document.querySelectorAll(`input[name^="q_idx_${idx}_blank_"]`);
+      
+      if (blankInputs.length > 0) {
+        userAnswers[idx] = {};
+        blankInputs.forEach(input => {
+          const num = input.getAttribute('data-blank');
+          userAnswers[idx][num] = input.value;
+        });
+      } else {
+        // Ô nhập đơn
+        const singleInput = document.querySelector(`input[name="q_idx_${idx}"]`);
+        userAnswers[idx] = singleInput ? singleInput.value : '';
+      }
+    }
+  });
+
+  return userAnswers;
+}
+
+// 3. Hàm so sánh điểm một vị trí điền từ
+function isAnswerCorrect(userVal, correctVal) {
+  const cleanedUser = cleanIELTSAnswer(userVal);
+
+  // Nếu đáp án đúng trong Database là dạng mảng nhiều đáp án chấp nhận (VD: ["Economic", "economy"])
+  if (Array.isArray(correctVal)) {
+    return correctVal.some(ans => cleanIELTSAnswer(ans) === cleanedUser);
+  }
+
+  return cleanedUser === cleanIELTSAnswer(correctVal);
+}
+    
     async function submitExam() {
       clearInterval(timerInterval);
       const questions = currentExam.questions || [];
