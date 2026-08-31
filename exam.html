@@ -491,62 +491,148 @@ function isAnswerCorrect(userVal, correctVal) {
       if (resultModal) resultModal.classList.add('hidden');
     }
 
-    function renderResultMode(questions) {
-      const questionBox = document.getElementById('questionsForm') || document.getElementById('questionsContainer'); 
-      if (!questionBox) return;
+function renderResultMode(questions) {
+  const questionBox = document.getElementById('questionsForm') || document.getElementById('questionsContainer'); 
+  if (!questionBox) return;
 
-      questionBox.innerHTML = questions.map((q, idx) => {
-        const isCorrect = q.isCorrect;
-        const userVal = q.userSelected || 'Chưa trả lời';
+  questionBox.innerHTML = questions.map((q, idx) => {
+    const isCorrect = q.isCorrect;
+    const userVal = q.userSelected;
+    const correctVal = q.answer;
 
-        return `
-          <div class="p-4 sm:p-5 rounded-2xl border ${isCorrect ? 'bg-green-50/50 border-green-200 dark:bg-green-950/20 dark:border-green-900' : 'bg-red-50/50 border-red-200 dark:bg-red-950/20 dark:border-red-900'} space-y-3 mb-4">
-            <div class="flex justify-between items-start gap-2">
-              <h4 class="font-bold text-sm text-gray-900 dark:text-white">Câu ${idx + 1}: ${q.question || q.title || ''}</h4>
-              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${isCorrect ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'}">
-                ${isCorrect ? '✓ Đúng' : '✕ Sai'}
-              </span>
-            </div>
+    // 1. TẠO HTML PHẦN NỘI DUNG / ĐÁP ÁN (Trắc nghiệm vs Tự điền)
+    let bodyHTML = '';
 
-            <div class="space-y-1.5 text-xs">
-              ${q.options && Array.isArray(q.options) && q.options.length > 0 ? q.options.map(opt => {
-                const optKey = opt.trim().charAt(0).toLowerCase();
-                const correctKey = (q.answer || '').toString().trim().charAt(0).toLowerCase();
-                const userKey = (q.userSelected || '').trim().charAt(0).toLowerCase();
+    // --- TRƯỜNG HỢP TRẮC NGHIỆM ---
+    if (q.options && Array.isArray(q.options) && q.options.length > 0) {
+      bodyHTML = q.options.map(opt => {
+        const optKey = opt.trim().charAt(0).toLowerCase();
+        const correctKey = (correctVal || '').toString().trim().charAt(0).toLowerCase();
+        const userKey = (userVal || '').toString().trim().charAt(0).toLowerCase();
 
-                let style = "text-gray-600 dark:text-gray-400 p-1.5 rounded-lg";
+        let style = "text-gray-600 dark:text-gray-400 p-1.5 rounded-lg";
 
-                if (optKey === correctKey) {
-                  style = "font-bold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/50 p-1.5 rounded-lg";
-                } else if (optKey === userKey && !isCorrect) {
-                  style = "font-bold text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/50 p-1.5 rounded-lg line-through";
-                }
+        if (optKey === correctKey) {
+          style = "font-bold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/50 p-1.5 rounded-lg";
+        } else if (optKey === userKey && !isCorrect) {
+          style = "font-bold text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/50 p-1.5 rounded-lg line-through";
+        }
 
-                return `<div class="${style}">${opt}</div>`;
-              }).join('') : `
-                <div class="p-2.5 bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 space-y-1">
-                  <div><span class="text-gray-400">Bạn nhập:</span> <strong class="${isCorrect ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${userVal}</strong></div>
-                  <div><span class="text-gray-400">Đáp án chuẩn:</span> <strong class="text-green-600 dark:text-green-400">${q.answer}</strong></div>
+        return `<div class="${style}">${opt}</div>`;
+      }).join('');
+
+    } 
+    // --- TRƯỜNG HỢP TỰ ĐIỀN (Cả 1 ô điền đơn và Nhiều ô điền (1), (2)...) ---
+    else {
+      const isMultiBlank = (typeof correctVal === 'object' && correctVal !== null && !Array.isArray(correctVal)) || 
+                           (typeof userVal === 'object' && userVal !== null);
+
+      if (isMultiBlank) {
+        // Gom tất cả các số vị trí (1, 2, 5...)
+        const keys = Array.from(new Set([
+          ...Object.keys(correctVal || {}),
+          ...Object.keys(userVal || {})
+        ])).sort((a, b) => Number(a) - Number(b));
+
+        bodyHTML = `
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+            ${keys.map(key => {
+              const uSubAns = (userVal && userVal[key]) ? userVal[key] : 'Chưa trả lời';
+              let cSubAns = correctVal ? correctVal[key] : '';
+              if (Array.isArray(cSubAns)) cSubAns = cSubAns.join(' / ');
+
+              // So sánh điểm cho từng ô nhỏ
+              const isSubCorrect = checkAnswerMatch ? checkAnswerMatch(uSubAns, correctVal ? correctVal[key] : '') : false;
+
+              return `
+                <div class="p-2.5 bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 text-xs space-y-1">
+                  <div class="font-bold text-[#cf1717] dark:text-red-400">Vị trí (${key}):</div>
+                  <div><span class="text-gray-400">Bạn nhập:</span> <strong class="${isSubCorrect ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${uSubAns}</strong></div>
+                  <div><span class="text-gray-400">Đáp án chuẩn:</span> <strong class="text-green-600 dark:text-green-400">${cSubAns}</strong></div>
                 </div>
-              `}
-            </div>
-
-            ${q.explanation ? `
-              <div class="mt-3 pt-3 border-t border-gray-200/60 dark:border-zinc-700/60 text-xs">
-                <div class="flex items-center gap-1 text-[#cf1717] dark:text-red-400 font-bold mb-1">
-                  <span>💡</span>
-                  <span>Giải thích chi tiết:</span>
-                </div>
-                <div class="text-gray-700 dark:text-gray-300 leading-relaxed bg-white dark:bg-zinc-800 p-3 rounded-xl border border-gray-100 dark:border-zinc-700">
-                  ${q.explanation}
-                </div>
-              </div>
-            ` : ''}
-
+              `;
+            }).join('')}
           </div>
         `;
-      }).join('');
+      } else {
+        // Dạng 1 ô điền đơn (Form cũ)
+        let displayCorrect = correctVal;
+        if (Array.isArray(displayCorrect)) displayCorrect = displayCorrect.join(' / ');
+
+        bodyHTML = `
+          <div class="p-2.5 bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 space-y-1 text-xs">
+            <div><span class="text-gray-400">Bạn nhập:</span> <strong class="${isCorrect ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${userVal || 'Chưa trả lời'}</strong></div>
+            <div><span class="text-gray-400">Đáp án chuẩn:</span> <strong class="text-green-600 dark:text-green-400">${displayCorrect}</strong></div>
+          </div>
+        `;
+      }
     }
+
+    // 2. TẠO HTML PHẦN GIẢI THÍCH (Chuỗi hoặc Object)
+    let explanationHTML = '';
+    if (q.explanation) {
+      if (typeof q.explanation === 'string') {
+        explanationHTML = `
+          <div class="mt-3 pt-3 border-t border-gray-200/60 dark:border-zinc-700/60 text-xs">
+            <div class="flex items-center gap-1 text-[#cf1717] dark:text-red-400 font-bold mb-1">
+              <span>💡</span>
+              <span>Giải thích chi tiết:</span>
+            </div>
+            <div class="text-gray-700 dark:text-gray-300 leading-relaxed bg-white dark:bg-zinc-800 p-3 rounded-xl border border-gray-100 dark:border-zinc-700">
+              ${q.explanation}
+            </div>
+          </div>
+        `;
+      } else if (typeof q.explanation === 'object') {
+        explanationHTML = `
+          <div class="mt-3 pt-3 border-t border-gray-200/60 dark:border-zinc-700/60 text-xs">
+            <div class="flex items-center gap-1 text-[#cf1717] dark:text-red-400 font-bold mb-2">
+              <span>💡</span>
+              <span>Giải thích chi tiết từng vị trí:</span>
+            </div>
+            <div class="space-y-2 bg-white dark:bg-zinc-800 p-3 rounded-xl border border-gray-100 dark:border-zinc-700">
+              ${Object.keys(q.explanation).map(key => `
+                <div class="text-gray-700 dark:text-gray-300 leading-relaxed border-b border-gray-100 dark:border-zinc-700/50 last:border-none pb-1.5 last:pb-0">
+                  <span class="font-black text-[#cf1717] dark:text-red-400">Vị trí (${key}):</span> ${q.explanation[key]}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // 3. KHUNG HIỂN THỊ TỔNG THỂ CỦA CÂU HỎI
+    return `
+      <div class="p-4 sm:p-5 rounded-2xl border ${isCorrect ? 'bg-green-50/50 border-green-200 dark:bg-green-950/20 dark:border-green-900' : 'bg-red-50/50 border-red-200 dark:bg-red-950/20 dark:border-red-900'} space-y-3 mb-4">
+        <div class="flex justify-between items-start gap-2">
+          <h4 class="font-bold text-sm text-gray-900 dark:text-white">Câu ${idx + 1}: ${q.question || q.title || ''}</h4>
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${isCorrect ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'}">
+            ${isCorrect ? '✓ Đúng' : '✕ Sai'}
+          </span>
+        </div>
+
+        <div class="space-y-1.5 text-xs">
+          ${bodyHTML}
+        </div>
+
+        ${explanationHTML}
+      </div>
+    `;
+  }).join('');
+}
+
+    function checkAnswerMatch(userVal, correctAns) {
+  const cleanUser = cleanIELTSAnswer(userVal);
+
+  // Nếu trong DB lưu mảng các đáp án đúng chấp nhận được
+  if (Array.isArray(correctAns)) {
+    return correctAns.some(ans => cleanIELTSAnswer(ans) === cleanUser);
+  }
+
+  // Nếu lưu chuỗi duy nhất
+  return cleanIELTSAnswer(correctAns) === cleanUser;
+}
 
     function switchMobileTab(tab) {
       const reading = document.getElementById('readingSection');
