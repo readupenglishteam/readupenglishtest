@@ -373,17 +373,6 @@
   }).join('');
 }
 
-// 1. Hàm làm sạch chuỗi (Chuẩn IELTS)
-function cleanIELTSAnswer(text) {
-  if (!text) return '';
-  return text
-    .toString()
-    .trim()
-    .toLowerCase()
-    .replace(/[.,!?;:]+$/g, '') // Bỏ dấu chấm, phẩy cuối từ
-    .replace(/\s+/g, ' ')       // Gộp nhiều khoảng trắng thành 1
-    .trim();
-}
 
 // 2. Hàm lấy tất cả câu trả lời của học sinh khi nộp bài
 function getUserAnswers(questions) {
@@ -427,64 +416,105 @@ function isAnswerCorrect(userVal, correctVal) {
   return cleanedUser === cleanIELTSAnswer(correctVal);
 }
     
-    async function submitExam() {
-      clearInterval(timerInterval);
-      const questions = currentExam.questions || [];
-      let correctCount = 0;
-      let userAnswers = {};
+// 1. HÀM LÀM SẠCH VÀ CHUẨN HÓA ĐÁP ÁN THEO CHUẨN IELTS
+function cleanIELTSAnswer(str) {
+  if (!str) return '';
+  return str.toString().trim().toLowerCase().replace(/[.,!?;:]+$/g, '').replace(/\s+/g, ' ').trim();
+}
 
-      questions.forEach((q, idx) => {
-        const radio = document.querySelector(`input[name="q_idx_${idx}"]:checked`);
-        const textInput = document.querySelector(`input[name="q_idx_${idx}"][type="text"]`);
-        
-        let selectedVal = (radio ? radio.value : (textInput ? textInput.value : '')).trim();
-        userAnswers[`câu_${idx + 1}`] = selectedVal;
+// 2. HÀM SO SÁNH NỘI DUNG MỘT VỊ TRÍ ĐIỀN
+function checkSingleMatch(userVal, correctAns) {
+  const cleanU = cleanIELTSAnswer(userVal);
+  if (Array.isArray(correctAns)) {
+    return correctAns.some(ans => cleanIELTSAnswer(ans) === cleanU);
+  }
+  return cleanU === cleanIELTSAnswer(correctAns);
+}
 
-        let userAns = selectedVal.toLowerCase();
-        let correctAns = (q.answer || '').toString().trim().toLowerCase();
+// 3. HÀM NỘP BÀI THI CẬP NHẬT
+async function submitExam() {
+  clearInterval(timerInterval);
+  const questions = currentExam.questions || [];
+  let correctCount = 0;
+  let userAnswers = {};
 
-        let isCorrect = false;
-        if (userAns && correctAns) {
-          if (userAns === correctAns || userAns.startsWith(correctAns + '.') || userAns.startsWith(correctAns + ' ')) {
-            isCorrect = true;
-            correctCount++;
-          }
-        }
+  questions.forEach((q, idx) => {
+    let selectedVal = null;
+    let isCorrect = false;
 
-        q.userSelected = selectedVal;
-        q.isCorrect = isCorrect;
+    // TRƯỜNG HỢP A: CÓ NHIỀU Ô ĐIỀN (1), (2)...
+    const blankInputs = document.querySelectorAll(`input[name^="q_idx_${idx}_blank_"]`);
+
+    if (blankInputs.length > 0) {
+      selectedVal = {};
+      blankInputs.forEach(input => {
+        const blankNum = input.getAttribute('data-blank');
+        selectedVal[blankNum] = input.value.trim();
       });
 
-      const totalQuestions = questions.length;
-      const score10 = totalQuestions > 0 ? Number(((10 / totalQuestions) * correctCount).toFixed(2)) : 0;
-
-      const payload = {
-        exam_id: currentExam.id,
-        user_id: currentUser.id,
-        score: score10,
-        answers: userAnswers,
-        time_spent: timeSpentSeconds
-      };
-
-      const { data, error } = await sbClient.from('exam_results').insert([payload]);
-
-      if (error) {
-        alert("❌ Lỗi lưu kết quả: " + error.message);
-        return;
+      // Chấm điểm: Tất cả vị trí (1), (2)... đều phải đúng
+      const correctObj = q.answer || {};
+      const keys = Object.keys(correctObj);
+      
+      if (keys.length > 0) {
+        isCorrect = keys.every(key => checkSingleMatch(selectedVal[key], correctObj[key]));
       }
-      await rewardXPAndStreak(20);
-      renderResultMode(questions);
-
-      const scoreElem = document.getElementById('finalScore');
-      if (scoreElem) scoreElem.innerText = `${score10}/10 điểm (${correctCount}/${totalQuestions} câu đúng)`;
+    } 
+    // TRƯỜNG HỢP B: CÂU HỎI TRẮC NGHIỆM
+    else if (q.options && Array.isArray(q.options) && q.options.length > 0) {
+      const radio = document.querySelector(`input[name="q_idx_${idx}"]:checked`);
+      selectedVal = radio ? radio.value.trim() : '';
       
-      const timeElem = document.getElementById('finalTime');
-      if (timeElem) timeElem.innerText = `${Math.floor(timeSpentSeconds / 60)}m ${timeSpentSeconds % 60}s`;
-      
-      const resultModal = document.getElementById('resultModal');
-      if (resultModal) resultModal.classList.remove('hidden');
-      disableSubmitBtn();
+      const userKey = selectedVal.charAt(0).toLowerCase();
+      const correctKey = (q.answer || '').toString().trim().charAt(0).toLowerCase();
+      isCorrect = userKey !== '' && userKey === correctKey;
+    } 
+    // TRƯỜNG HỢP C: CÂU 1 Ô ĐIỀN ĐƠN (FORM CŨ)
+    else {
+      const textInput = document.querySelector(`input[name="q_idx_${idx}"]`);
+      selectedVal = textInput ? textInput.value.trim() : '';
+      isCorrect = checkSingleMatch(selectedVal, q.answer);
     }
+
+    if (isCorrect) correctCount++;
+
+    // Lưu dữ liệu vào biến kết quả
+    userAnswers[`câu_${idx + 1}`] = selectedVal;
+    q.userSelected = selectedVal;
+    q.isCorrect = isCorrect;
+  });
+
+  const totalQuestions = questions.length;
+  const score10 = totalQuestions > 0 ? Number(((10 / totalQuestions) * correctCount).toFixed(2)) : 0;
+
+  const payload = {
+    exam_id: currentExam.id,
+    user_id: currentUser.id,
+    score: score10,
+    answers: userAnswers,
+    time_spent: timeSpentSeconds
+  };
+
+  const { data, error } = await sbClient.from('exam_results').insert([payload]);
+
+  if (error) {
+    alert("❌ Lỗi lưu kết quả: " + error.message);
+    return;
+  }
+
+  await rewardXPAndStreak(20);
+  renderResultMode(questions);
+
+  const scoreElem = document.getElementById('finalScore');
+  if (scoreElem) scoreElem.innerText = `${score10}/10 điểm (${correctCount}/${totalQuestions} câu đúng)`;
+  
+  const timeElem = document.getElementById('finalTime');
+  if (timeElem) timeElem.innerText = `${Math.floor(timeSpentSeconds / 60)}m ${timeSpentSeconds % 60}s`;
+  
+  const resultModal = document.getElementById('resultModal');
+  if (resultModal) resultModal.classList.remove('hidden');
+  disableSubmitBtn();
+}
 
     function closeResultModal() {
       const resultModal = document.getElementById('resultModal');
