@@ -416,13 +416,13 @@ function isAnswerCorrect(userVal, correctVal) {
   return cleanedUser === cleanIELTSAnswer(correctVal);
 }
     
-// 1. HÀM LÀM SẠCH VÀ CHUẨN HÓA ĐÁP ÁN THEO CHUẨN IELTS
+// 1. HÀM CHUẨN HÓA CHỮ (Gọt khoảng trắng & viết hoa/thường)
 function cleanIELTSAnswer(str) {
   if (!str) return '';
   return str.toString().trim().toLowerCase().replace(/[.,!?;:]+$/g, '').replace(/\s+/g, ' ').trim();
 }
 
-// 2. HÀM SO SÁNH NỘI DUNG MỘT VỊ TRÍ ĐIỀN
+// 2. HÀM CHECK ĐÁP ÁN ĐƠN
 function checkSingleMatch(userVal, correctAns) {
   const cleanU = cleanIELTSAnswer(userVal);
   if (Array.isArray(correctAns)) {
@@ -431,23 +431,22 @@ function checkSingleMatch(userVal, correctAns) {
   return cleanU === cleanIELTSAnswer(correctAns);
 }
 
-// 3. HÀM NỘP BÀI THI CẬP NHẬT
+// 3. HÀM NỘP BÀI THI
 async function submitExam() {
   clearInterval(timerInterval);
   const questions = currentExam.questions || [];
   
   const totalQuestions = questions.length;
-  const pointsPerQuestion = totalQuestions > 0 ? (10 / totalQuestions) : 0; // Điểm tối đa của 1 câu
-  let totalScore = 0; // Tổng điểm bài thi (thang điểm 10)
-
+  const pointsPerQuestion = totalQuestions > 0 ? (10 / totalQuestions) : 0;
+  let totalScore = 0;
   let userAnswers = {};
 
   questions.forEach((q, idx) => {
     let selectedVal = null;
     let earnedPoints = 0;
-    let status = 'wrong'; // 'correct' | 'partial' | 'wrong' | 'essay'
+    let status = 'wrong';
 
-    // KIỂM TRA 1: CÂU TỰ LUẬN (Nhận diện qua flag `is_essay` hoặc `type === 'essay'` hoặc không có đáp án mẫu)
+    // KIỂM TRA 1: CÂU TỰ LUẬN
     const isEssay = q.is_essay || q.type === 'essay' || (!q.answer && (!q.options || q.options.length === 0));
 
     if (isEssay) {
@@ -455,14 +454,14 @@ async function submitExam() {
       selectedVal = essayInput ? essayInput.value.trim() : '';
       
       q.status = 'essay';
-      q.isCorrect = null; // Không gắn đúng/sai
+      q.isCorrect = null;
       q.earnedPoints = 0;
       q.userSelected = selectedVal;
       userAnswers[`câu_${idx + 1}`] = selectedVal;
-      return; // Bỏ qua chấm tự động cho câu tự luận
+      return; // return này nằm trong hàm mũi tên của forEach -> Đúng cú pháp
     }
 
-    // KIỂM TRA 2: CÓ NHIỀU VỊ TRÍ ĐIỀN (1), (2)... -> TÍNH ĐIỂM CỦA TỪNG Ý
+    // KIỂM TRA 2: CÂU ĐIỀN NHIỀU VỊ TRÍ (1), (2)...
     const blankInputs = document.querySelectorAll(`input[name^="q_idx_${idx}_blank_"]`);
 
     if (blankInputs.length > 0) {
@@ -474,24 +473,22 @@ async function submitExam() {
 
       const correctObj = q.answer || {};
       const keys = Object.keys(correctObj);
-      const totalBlanks = keys.length; // Tổng số ý cần điền trong câu
+      const totalBlanks = keys.length;
       let correctSubCount = 0;
 
-      // Đếm số ý đúng
       keys.forEach(key => {
         if (checkSingleMatch(selectedVal[key], correctObj[key])) {
           correctSubCount++;
         }
       });
 
-      // Công thức: (Số ý đúng / Tổng số ý) * Điểm của câu
       const pointsPerSub = totalBlanks > 0 ? (pointsPerQuestion / totalBlanks) : 0;
       earnedPoints = correctSubCount * pointsPerSub;
 
       if (correctSubCount === totalBlanks && totalBlanks > 0) {
         status = 'correct';
       } else if (correctSubCount > 0) {
-        status = 'partial'; // Đúng một số ý
+        status = 'partial';
       } else {
         status = 'wrong';
       }
@@ -512,7 +509,7 @@ async function submitExam() {
         status = 'correct';
       }
     } 
-    // KIỂM TRA 4: CÂU 1 Ô ĐIỀN ĐƠN (FORM CŨ)
+    // KIỂM TRA 4: CÂU 1 Ô ĐIỀN ĐƠN
     else {
       const textInput = document.querySelector(`input[name="q_idx_${idx}"]`);
       selectedVal = textInput ? textInput.value.trim() : '';
@@ -523,10 +520,8 @@ async function submitExam() {
       }
     }
 
-    // Cộng điểm vào tổng điểm bài thi
     totalScore += earnedPoints;
 
-    // Lưu dữ liệu vào object câu hỏi để hiển thị giao diện kết quả
     q.status = status;
     q.isCorrect = status === 'correct';
     q.earnedPoints = Number(earnedPoints.toFixed(2));
@@ -548,7 +543,7 @@ async function submitExam() {
 
   if (error) {
     alert("❌ Lỗi lưu kết quả: " + error.message);
-    return;
+    return; // return này nằm trong hàm submitExam -> Đúng cú pháp
   }
 
   await rewardXPAndStreak(20);
