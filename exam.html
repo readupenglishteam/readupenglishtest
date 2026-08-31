@@ -435,14 +435,34 @@ function checkSingleMatch(userVal, correctAns) {
 async function submitExam() {
   clearInterval(timerInterval);
   const questions = currentExam.questions || [];
-  let correctCount = 0;
+  
+  const totalQuestions = questions.length;
+  const pointsPerQuestion = totalQuestions > 0 ? (10 / totalQuestions) : 0; // Điểm tối đa của 1 câu
+  let totalScore = 0; // Tổng điểm bài thi (thang điểm 10)
+
   let userAnswers = {};
 
   questions.forEach((q, idx) => {
     let selectedVal = null;
-    let isCorrect = false;
+    let earnedPoints = 0;
+    let status = 'wrong'; // 'correct' | 'partial' | 'wrong' | 'essay'
 
-    // TRƯỜNG HỢP A: CÓ NHIỀU Ô ĐIỀN (1), (2)...
+    // KIỂM TRA 1: CÂU TỰ LUẬN (Nhận diện qua flag `is_essay` hoặc `type === 'essay'` hoặc không có đáp án mẫu)
+    const isEssay = q.is_essay || q.type === 'essay' || (!q.answer && (!q.options || q.options.length === 0));
+
+    if (isEssay) {
+      const essayInput = document.querySelector(`textarea[name="q_idx_${idx}"], input[name="q_idx_${idx}"]`);
+      selectedVal = essayInput ? essayInput.value.trim() : '';
+      
+      q.status = 'essay';
+      q.isCorrect = null; // Không gắn đúng/sai
+      q.earnedPoints = 0;
+      q.userSelected = selectedVal;
+      userAnswers[`câu_${idx + 1}`] = selectedVal;
+      return; // Bỏ qua chấm tự động cho câu tự luận
+    }
+
+    // KIỂM TRA 2: CÓ NHIỀU VỊ TRÍ ĐIỀN (1), (2)... -> TÍNH ĐIỂM CỦA TỪNG Ý
     const blankInputs = document.querySelectorAll(`input[name^="q_idx_${idx}_blank_"]`);
 
     if (blankInputs.length > 0) {
@@ -452,45 +472,74 @@ async function submitExam() {
         selectedVal[blankNum] = input.value.trim();
       });
 
-      // Chấm điểm: Tất cả vị trí (1), (2)... đều phải đúng
       const correctObj = q.answer || {};
       const keys = Object.keys(correctObj);
-      
-      if (keys.length > 0) {
-        isCorrect = keys.every(key => checkSingleMatch(selectedVal[key], correctObj[key]));
+      const totalBlanks = keys.length; // Tổng số ý cần điền trong câu
+      let correctSubCount = 0;
+
+      // Đếm số ý đúng
+      keys.forEach(key => {
+        if (checkSingleMatch(selectedVal[key], correctObj[key])) {
+          correctSubCount++;
+        }
+      });
+
+      // Công thức: (Số ý đúng / Tổng số ý) * Điểm của câu
+      const pointsPerSub = totalBlanks > 0 ? (pointsPerQuestion / totalBlanks) : 0;
+      earnedPoints = correctSubCount * pointsPerSub;
+
+      if (correctSubCount === totalBlanks && totalBlanks > 0) {
+        status = 'correct';
+      } else if (correctSubCount > 0) {
+        status = 'partial'; // Đúng một số ý
+      } else {
+        status = 'wrong';
       }
+
+      q.correctSubCount = correctSubCount;
+      q.totalBlanks = totalBlanks;
     } 
-    // TRƯỜNG HỢP B: CÂU HỎI TRẮC NGHIỆM
+    // KIỂM TRA 3: CÂU TRẮC NGHIỆM
     else if (q.options && Array.isArray(q.options) && q.options.length > 0) {
       const radio = document.querySelector(`input[name="q_idx_${idx}"]:checked`);
       selectedVal = radio ? radio.value.trim() : '';
       
       const userKey = selectedVal.charAt(0).toLowerCase();
       const correctKey = (q.answer || '').toString().trim().charAt(0).toLowerCase();
-      isCorrect = userKey !== '' && userKey === correctKey;
+
+      if (userKey !== '' && userKey === correctKey) {
+        earnedPoints = pointsPerQuestion;
+        status = 'correct';
+      }
     } 
-    // TRƯỜNG HỢP C: CÂU 1 Ô ĐIỀN ĐƠN (FORM CŨ)
+    // KIỂM TRA 4: CÂU 1 Ô ĐIỀN ĐƠN (FORM CŨ)
     else {
       const textInput = document.querySelector(`input[name="q_idx_${idx}"]`);
       selectedVal = textInput ? textInput.value.trim() : '';
-      isCorrect = checkSingleMatch(selectedVal, q.answer);
+
+      if (checkSingleMatch(selectedVal, q.answer)) {
+        earnedPoints = pointsPerQuestion;
+        status = 'correct';
+      }
     }
 
-    if (isCorrect) correctCount++;
+    // Cộng điểm vào tổng điểm bài thi
+    totalScore += earnedPoints;
 
-    // Lưu dữ liệu vào biến kết quả
-    userAnswers[`câu_${idx + 1}`] = selectedVal;
+    // Lưu dữ liệu vào object câu hỏi để hiển thị giao diện kết quả
+    q.status = status;
+    q.isCorrect = status === 'correct';
+    q.earnedPoints = Number(earnedPoints.toFixed(2));
     q.userSelected = selectedVal;
-    q.isCorrect = isCorrect;
+    userAnswers[`câu_${idx + 1}`] = selectedVal;
   });
 
-  const totalQuestions = questions.length;
-  const score10 = totalQuestions > 0 ? Number(((10 / totalQuestions) * correctCount).toFixed(2)) : 0;
+  const finalScore10 = Number(totalScore.toFixed(2));
 
   const payload = {
     exam_id: currentExam.id,
     user_id: currentUser.id,
-    score: score10,
+    score: finalScore10,
     answers: userAnswers,
     time_spent: timeSpentSeconds
   };
@@ -506,7 +555,7 @@ async function submitExam() {
   renderResultMode(questions);
 
   const scoreElem = document.getElementById('finalScore');
-  if (scoreElem) scoreElem.innerText = `${score10}/10 điểm (${correctCount}/${totalQuestions} câu đúng)`;
+  if (scoreElem) scoreElem.innerText = `${finalScore10}/10 điểm`;
   
   const timeElem = document.getElementById('finalTime');
   if (timeElem) timeElem.innerText = `${Math.floor(timeSpentSeconds / 60)}m ${timeSpentSeconds % 60}s`;
@@ -526,15 +575,39 @@ function renderResultMode(questions) {
   if (!questionBox) return;
 
   questionBox.innerHTML = questions.map((q, idx) => {
-    const isCorrect = q.isCorrect;
+    const status = q.status;
     const userVal = q.userSelected;
     const correctVal = q.answer;
 
-    // 1. TẠO HTML PHẦN NỘI DUNG / ĐÁP ÁN (Trắc nghiệm vs Tự điền)
+    // 1. TẠO BADGE TRẠNG THÁI GÓC PHẢI
+    let badgeHTML = '';
+    let containerStyle = '';
+
+    if (status === 'essay') {
+      badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">📝 Tự luận (Đã ghi nhận)</span>`;
+      containerStyle = 'bg-blue-50/30 border-blue-200 dark:bg-blue-950/10 dark:border-blue-900/40';
+    } else if (status === 'correct') {
+      badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">✓ Đúng</span>`;
+      containerStyle = 'bg-green-50/50 border-green-200 dark:bg-green-950/20 dark:border-green-900';
+    } else if (status === 'partial') {
+      badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300">⚡ Đúng ${q.correctSubCount}/${q.totalBlanks} ý (+${q.earnedPoints}đ)</span>`;
+      containerStyle = 'bg-amber-50/40 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/60';
+    } else {
+      badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300">✕ Sai</span>`;
+      containerStyle = 'bg-red-50/50 border-red-200 dark:bg-red-950/20 dark:border-red-900';
+    }
+
+    // 2. TẠO NỘI DUNG HIỂN THỊ ĐÁP ÁN
     let bodyHTML = '';
 
-    // --- TRƯỜNG HỢP TRẮC NGHIỆM ---
-    if (q.options && Array.isArray(q.options) && q.options.length > 0) {
+    if (status === 'essay') {
+      bodyHTML = `
+        <div class="p-3 bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 text-xs">
+          <span class="text-gray-400 font-bold block mb-1">Câu trả lời tự luận của bạn:</span>
+          <p class="text-gray-800 dark:text-gray-200 whitespace-pre-line font-medium">${userVal || 'Chưa nhập nội dung.'}</p>
+        </div>
+      `;
+    } else if (q.options && Array.isArray(q.options) && q.options.length > 0) {
       bodyHTML = q.options.map(opt => {
         const optKey = opt.trim().charAt(0).toLowerCase();
         const correctKey = (correctVal || '').toString().trim().charAt(0).toLowerCase();
@@ -544,21 +617,17 @@ function renderResultMode(questions) {
 
         if (optKey === correctKey) {
           style = "font-bold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/50 p-1.5 rounded-lg";
-        } else if (optKey === userKey && !isCorrect) {
+        } else if (optKey === userKey && status !== 'correct') {
           style = "font-bold text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/50 p-1.5 rounded-lg line-through";
         }
 
         return `<div class="${style}">${opt}</div>`;
       }).join('');
-
-    } 
-    // --- TRƯỜNG HỢP TỰ ĐIỀN (Cả 1 ô điền đơn và Nhiều ô điền (1), (2)...) ---
-    else {
+    } else {
       const isMultiBlank = (typeof correctVal === 'object' && correctVal !== null && !Array.isArray(correctVal)) || 
                            (typeof userVal === 'object' && userVal !== null);
 
       if (isMultiBlank) {
-        // Gom tất cả các số vị trí (1, 2, 5...)
         const keys = Array.from(new Set([
           ...Object.keys(correctVal || {}),
           ...Object.keys(userVal || {})
@@ -571,8 +640,7 @@ function renderResultMode(questions) {
               let cSubAns = correctVal ? correctVal[key] : '';
               if (Array.isArray(cSubAns)) cSubAns = cSubAns.join(' / ');
 
-              // So sánh điểm cho từng ô nhỏ
-              const isSubCorrect = checkAnswerMatch ? checkAnswerMatch(uSubAns, correctVal ? correctVal[key] : '') : false;
+              const isSubCorrect = checkSingleMatch(uSubAns, correctVal ? correctVal[key] : '');
 
               return `
                 <div class="p-2.5 bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 text-xs space-y-1">
@@ -585,19 +653,69 @@ function renderResultMode(questions) {
           </div>
         `;
       } else {
-        // Dạng 1 ô điền đơn (Form cũ)
         let displayCorrect = correctVal;
         if (Array.isArray(displayCorrect)) displayCorrect = displayCorrect.join(' / ');
 
         bodyHTML = `
           <div class="p-2.5 bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 space-y-1 text-xs">
-            <div><span class="text-gray-400">Bạn nhập:</span> <strong class="${isCorrect ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${userVal || 'Chưa trả lời'}</strong></div>
+            <div><span class="text-gray-400">Bạn nhập:</span> <strong class="${status === 'correct' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${userVal || 'Chưa trả lời'}</strong></div>
             <div><span class="text-gray-400">Đáp án chuẩn:</span> <strong class="text-green-600 dark:text-green-400">${displayCorrect}</strong></div>
           </div>
         `;
       }
     }
 
+    // 3. TẠO PHẦN GIẢI THÍCH CHI TIẾT
+    let explanationHTML = '';
+    if (q.explanation) {
+      if (typeof q.explanation === 'string') {
+        explanationHTML = `
+          <div class="mt-3 pt-3 border-t border-gray-200/60 dark:border-zinc-700/60 text-xs">
+            <div class="flex items-center gap-1 text-[#cf1717] dark:text-red-400 font-bold mb-1">
+              <span>💡</span>
+              <span>Giải thích chi tiết:</span>
+            </div>
+            <div class="text-gray-700 dark:text-gray-300 leading-relaxed bg-white dark:bg-zinc-800 p-3 rounded-xl border border-gray-100 dark:border-zinc-700">
+              ${q.explanation}
+            </div>
+          </div>
+        `;
+      } else if (typeof q.explanation === 'object') {
+        explanationHTML = `
+          <div class="mt-3 pt-3 border-t border-gray-200/60 dark:border-zinc-700/60 text-xs">
+            <div class="flex items-center gap-1 text-[#cf1717] dark:text-red-400 font-bold mb-2">
+              <span>💡</span>
+              <span>Giải thích chi tiết từng vị trí:</span>
+            </div>
+            <div class="space-y-2 bg-white dark:bg-zinc-800 p-3 rounded-xl border border-gray-100 dark:border-zinc-700">
+              ${Object.keys(q.explanation).map(key => `
+                <div class="text-gray-700 dark:text-gray-300 leading-relaxed border-b border-gray-100 dark:border-zinc-700/50 last:border-none pb-1.5 last:pb-0">
+                  <span class="font-black text-[#cf1717] dark:text-red-400">Vị trí (${key}):</span> ${q.explanation[key]}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // 4. TRẢ VỀ TOÀN BỘ KHUNG CÂU HỎI
+    return `
+      <div class="p-4 sm:p-5 rounded-2xl border ${containerStyle} space-y-3 mb-4">
+        <div class="flex justify-between items-start gap-2">
+          <h4 class="font-bold text-sm text-gray-900 dark:text-white">Câu ${idx + 1}: ${q.question || q.title || ''}</h4>
+          ${badgeHTML}
+        </div>
+
+        <div class="space-y-1.5 text-xs">
+          ${bodyHTML}
+        </div>
+
+        ${explanationHTML}
+      </div>
+    `;
+  }).join('');
+}
     // 2. TẠO HTML PHẦN GIẢI THÍCH (Chuỗi hoặc Object)
     let explanationHTML = '';
     if (q.explanation) {
