@@ -100,6 +100,34 @@
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8 sm:space-y-10">
 
+    <!-- KHUNG TRA TỪ VỰNG & DỊCH THUẬT AI -->
+<div class="max-w-2xl mx-auto p-4 sm:p-6 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl space-y-4">
+  
+  <!-- Header -->
+  <div class="flex items-center justify-between border-b dark:border-zinc-800 pb-3">
+    <h3 class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white flex items-center gap-2">
+      <span class="text-[#cf1717]">🔍</span> ReadUp AI Dictionary
+    </h3>
+    <span class="text-[10px] font-bold px-2 py-0.5 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-full border border-red-200 dark:border-red-900">
+      Powered by AI
+    </span>
+  </div>
+
+  <!-- Input Search Box -->
+  <div class="relative">
+    <textarea id="aiSearchInput" rows="2" placeholder="Nhập từ vựng (ví dụ: celebrate) hoặc dán cả câu/đoạn văn để dịch..." class="w-full p-3 pr-24 text-xs sm:text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#cf1717] resize-none"></textarea>
+    <button onclick="handleAISearch()" class="absolute right-2 bottom-3 px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs rounded-lg shadow transition">
+      Tra cứu
+    </button>
+  </div>
+
+  <!-- Result Container -->
+  <div id="aiResultContainer" class="hidden space-y-4 pt-2">
+    <!-- Nội dung kết quả sẽ tự động render vào đây -->
+  </div>
+</div>
+
+    
     <!-- PHẦN 1: TIN TỨC & THÔNG BÁO -->
     <section class="space-y-3 sm:space-y-4">
       <div class="flex items-center gap-2 border-l-4 border-[#cf1717] pl-3">
@@ -1654,6 +1682,132 @@ document.addEventListener('DOMContentLoaded', () => {
   loadUserStats();
   checkStreakNotifications();
 });
+
+// Thay URL Worker của bạn vào đây (Không chứa bất kỳ API Key nào)
+const WORKER_URL = "https://readup-ai-proxy.ten-account.workers.dev";
+
+async function handleAISearch() {
+  const query = document.getElementById('aiSearchInput').value.trim();
+  const container = document.getElementById('aiResultContainer');
+  if (!query) return;
+
+  container.classList.remove('hidden');
+  container.innerHTML = `<div class="text-center py-6 text-xs text-gray-400 animate-pulse">🤖 AI đang phân tích từ vựng & ngữ cảnh...</div>`;
+
+  const isSingleWord = query.split(/\s+/).length === 1;
+
+  const prompt = isSingleWord ? `
+    Bạn là từ điển AI chuyên sâu như TFlat. Hãy phân tích từ "${query}".
+    Trả về kết quả dưới dạng JSON duy nhất (không chứa mã markdown \`\`\`json) theo cấu trúc:
+    {
+      "type": "word",
+      "word": "${query}",
+      "ipa": "/phiên âm/",
+      "forms": [
+        {
+          "pos": "Danh từ / Động từ / Tính từ / Trạng từ",
+          "wordForm": "từ tương ứng với từ loại đó",
+          "meaning": "nghĩa tiếng Việt",
+          "example": "câu ví dụ tiếng Anh (dịch nghĩa tiếng Việt)"
+        }
+      ],
+      "synonyms": ["từ đồng nghĩa 1", "từ đồng nghĩa 2"],
+      "antonyms": ["từ trái nghĩa 1", "từ trái nghĩa 2"],
+      "socialContext": "Ngữ cảnh hoặc tiếng lóng/cách dùng từ này phổ biến trên MXH"
+    }
+  ` : `
+    Hãy dịch đoạn văn sau sang tiếng Việt tự nhiên nhất: "${query}".
+    Trả về JSON duy nhất:
+    {
+      "type": "translation",
+      "original": "${query}",
+      "translated": "bản dịch tiếng Việt",
+      "keyGrammar": "Ghi chú ngắn về cấu trúc ngữ pháp nổi bật (nếu có)"
+    }
+  `;
+
+  try {
+    // Gọi thông qua Cloudflare Worker trung gian
+    const response = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: prompt })
+    });
+
+    const data = await response.json();
+    let rawText = data.candidates[0].content.parts[0].text;
+    rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+    const resData = JSON.parse(rawText);
+
+    renderAIResult(resData);
+  } catch (err) {
+    container.innerHTML = `<div class="p-3 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 rounded-xl text-xs">❌ Đã xảy ra lỗi khi tra cứu. Vui lòng thử lại.</div>`;
+  }
+}
+
+  function renderAIResult(data) {
+    const container = document.getElementById('aiResultContainer');
+
+    // Trường hợp 1: Dịch cả câu / đoạn văn
+    if (data.type === 'translation') {
+      container.innerHTML = `
+        <div class="p-4 bg-gray-50 dark:bg-zinc-800/60 rounded-xl border border-gray-100 dark:border-zinc-700 space-y-2 text-xs">
+          <div class="font-bold text-[#cf1717] text-sm">Bản dịch AI:</div>
+          <p class="text-gray-900 dark:text-white font-medium text-sm leading-relaxed">${data.translated}</p>
+          ${data.keyGrammar ? `<div class="pt-2 border-t dark:border-zinc-700 text-gray-500 italic">💡 Ghi chú: ${data.keyGrammar}</div>` : ''}
+        </div>
+      `;
+      return;
+    }
+
+    // Trường hợp 2: Tra cứu từ vựng chi tiết (TFlat Style)
+    const formsHTML = data.forms.map(f => `
+      <div class="p-3 bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700/60 space-y-1">
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-0.5 bg-red-50 dark:bg-red-950 text-[#cf1717] font-bold text-[11px] rounded">${f.pos}</span>
+          <strong class="text-gray-900 dark:text-white">${f.wordForm || data.word}</strong>
+        </div>
+        <p class="text-gray-700 dark:text-gray-300 font-semibold">👉 ${f.meaning}</p>
+        <p class="text-gray-500 dark:text-gray-400 italic">Ex: ${f.example}</p>
+      </div>
+    `).join('');
+
+    container.innerHTML = `
+      <div class="space-y-3 text-xs">
+        <!-- Từ & Phiên âm -->
+        <div class="flex items-baseline gap-2">
+          <h4 class="text-xl font-black text-[#cf1717]">${data.word}</h4>
+          <span class="font-mono text-gray-400">${data.ipa || ''}</span>
+        </div>
+
+        <!-- Các dạng từ loại & Câu ví dụ -->
+        <div class="space-y-2">
+          <div class="font-bold text-gray-700 dark:text-gray-300">Biến thể & Từ loại:</div>
+          ${formsHTML}
+        </div>
+
+        <!-- Đồng nghĩa & Trái nghĩa -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          <div class="p-2.5 bg-green-50/50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/40 rounded-xl">
+            <span class="font-bold text-green-700 dark:text-green-400 block mb-1">Từ đồng nghĩa:</span>
+            <span class="text-gray-700 dark:text-gray-300">${(data.synonyms || []).join(', ') || 'Không có'}</span>
+          </div>
+          <div class="p-2.5 bg-red-50/50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 rounded-xl">
+            <span class="font-bold text-red-700 dark:text-red-400 block mb-1">Từ trái nghĩa:</span>
+            <span class="text-gray-700 dark:text-gray-300">${(data.antonyms || []).join(', ') || 'Không có'}</span>
+          </div>
+        </div>
+
+        <!-- Ngữ cảnh MXH -->
+        ${data.socialContext ? `
+          <div class="p-3 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-xl text-gray-700 dark:text-gray-300">
+            <span class="font-bold text-amber-600 dark:text-amber-400 block mb-0.5">🌐 Xu hướng & MXH:</span>
+            ${data.socialContext}
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
   
 </script>
 <!-- MODAL ĐỔI MẬT KHẨU -->
@@ -1756,6 +1910,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   </div>
 </div>
+
+
   
 </body>
 </html>
