@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trình xem trước (Preview Mode)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 dark:bg-zinc-900 min-h-screen p-4 sm:p-6">
+
+  <!-- Thanh cảnh báo Xem thử -->
+  <div class="max-w-4xl mx-auto mb-4 bg-amber-500 text-white font-bold text-center py-2 px-4 rounded-xl shadow-md flex justify-between items-center text-xs sm:text-sm">
+    <span>⚠️ CHẾ ĐỘ XEM THỬ (Chưa lưu vào cơ sở dữ liệu)</span>
+    <button onclick="window.close()" class="bg-black/20 hover:bg-black/40 px-3 py-1 rounded-lg">Đóng</button>
+  </div>
+
+  <!-- Vùng chứa nội dung sẽ render -->
+  <div id="previewContainer" class="max-w-4xl mx-auto bg-white dark:bg-zinc-800 p-6 rounded-2xl shadow-lg"></div>
+
+  <script>
+    window.onload = function() {
+      const rawData = sessionStorage.getItem('preview_data');
+      if (!rawData) {
+        document.getElementById('previewContainer').innerHTML = `<p class="text-red-500 text-center">Không tìm thấy dữ liệu xem thử!</p>`;
+        return;
+      }
+
+      const { type, payload } = JSON.parse(rawData);
+      const container = document.getElementById('previewContainer');
+
+      if (type === 'announcement') {
+        renderAnnouncementPreview(container, payload);
+      } else if (type === 'exam') {
+        renderExamPreview(container, payload);
+      }
+    };
+
+    // Dựng giao diện Thông báo
+    function renderAnnouncementPreview(container, data) {
+      container.innerHTML = `
+        <div class="border-l-4 border-[#cf1717] bg-red-50/50 p-4 rounded-r-xl space-y-2">
+          <span class="text-xs font-bold text-[#cf1717] bg-red-100 px-2 py-0.5 rounded-full">${data.tag || 'THÔNG BÁO'}</span>
+          <h3 class="font-bold text-lg text-gray-900">${data.title || 'Tiêu đề thông báo'}</h3>
+          <p class="text-sm text-gray-700 whitespace-pre-line">${data.content || 'Nội dung...'}</p>
+        </div>`;
+    }
+
+    // Dựng giao diện Đề thi / Bài đọc
+    function renderExamPreview(container, data) {
+      container.innerHTML = `
+        <h2 class="text-xl font-bold mb-4">${data.title || 'Đề thi xem thử'}</h2>
+        <div class="prose dark:prose-invert max-w-none mb-6 p-4 bg-gray-50 rounded-xl">
+          ${data.passage_html || '<p>Nội dung bài đọc...</p>'}
+        </div>
+        <p class="text-xs text-gray-500">Số câu hỏi: ${data.questions?.length || 0} câu</p>`;
+    }
+  </script>
+</body>
+</html>
