@@ -28,7 +28,7 @@ Yêu cầu:
 - Part 3: Phân tích góc nhìn xã hội, mô hình R+E+E (Response + Explanation + Example), dùng từ vựng Band ${band}.`;
 
   try {
-    const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
     
     const apiResponse = await fetch(geminiEndpoint, {
       method: 'POST',
