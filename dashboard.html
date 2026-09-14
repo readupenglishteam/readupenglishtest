@@ -1733,6 +1733,17 @@ async function handleAISearch() {
     });
 
     const data = await response.json();
+
+    // Kiểm tra xem Cloudflare Worker hoặc Gemini có trả về lỗi hay không
+    if (data.error) {
+      const errMsg = typeof data.error === 'object' ? (data.error.message || JSON.stringify(data.error)) : data.error;
+      throw new Error(errMsg);
+    }
+
+    if (!data.candidates || !data.candidates[0]) {
+      throw new Error("Không nhận được dữ liệu phản hồi hợp lệ từ Gemini API.");
+    }
+
     let rawText = data.candidates[0].content.parts[0].text;
     rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
     const resData = JSON.parse(rawText);
@@ -1740,7 +1751,7 @@ async function handleAISearch() {
     renderAIResult(resData);
   } catch (err) {
     console.error("Lỗi chi tiết:", err);
-    container.innerHTML = `<div class="p-3 bg-red-50 text-red-600 rounded-xl text-xs">❌ Đã xảy ra lỗi khi tra cứu: ${err.message}</div>`;
+    container.innerHTML = `<div class="p-3 bg-red-50 text-red-600 rounded-xl text-xs">❌ Đã xảy ra lỗi: ${err.message}</div>`;
   }
 }
   function renderAIResult(data) {
