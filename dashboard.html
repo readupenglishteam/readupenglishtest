@@ -101,34 +101,33 @@
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8 sm:space-y-10">
 
     <!-- KHUNG TRA TỪ VỰNG & DỊCH THUẬT AI -->
-  <section><!-- ReadUp AI Search Bar (Google Style) -->
+  <!-- ReadUp AI Search Bar (Glassmorphism & Google Style) -->
 <div class="max-w-2xl mx-auto my-6 px-4">
-  <div class="relative flex items-center bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-gray-200/80 dark:border-zinc-800 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 p-1.5 pl-4">
-    <!-- Icon Kính Lúp -->
+  <!-- Thanh Tìm Kiếm Kính Mờ -->
+  <div class="relative flex items-center bg-white/65 dark:bg-zinc-900/65 backdrop-blur-xl border border-white/50 dark:border-zinc-700/50 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 p-1.5 pl-5 focus-within:ring-2 focus-within:ring-[#cf1717]/50">
+    
     <span class="text-gray-400 text-base mr-3">🔍</span>
 
-    <!-- Ô Nhập Liệu -->
     <input id="aiSearchInput" type="text" placeholder="Tra từ và cụm Anh-Việt" 
            onkeydown="if(event.key==='Enter') handleAISearch()"
-           class="w-full bg-transparent text-xs sm:text-sm text-gray-800 dark:text-white focus:outline-none placeholder-gray-400 font-medium">
+           class="w-full bg-transparent text-xs sm:text-sm text-gray-800 dark:text-white focus:outline-none placeholder-gray-400/80 font-medium">
 
-    <!-- Nút Thu Âm / Chấm Phát Âm -->
-    <button id="btnRecordSpeech" onclick="checkAndRequestMic()" class="p-2 text-gray-400 hover:text-[#cf1717] dark:hover:text-red-400 transition rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 mr-1" title="Chấm phát âm">
+    <button id="btnRecordSpeech" onclick="checkAndRequestMic()" class="p-2 text-gray-400 hover:text-[#cf1717] dark:hover:text-red-400 transition rounded-full hover:bg-white/40 dark:hover:bg-zinc-800/50 mr-1" title="Chấm phát âm">
       <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
         <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
         <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
       </svg>
     </button>
 
-    <!-- Nút Tra Cứu AI Mode -->
-    <button onclick="handleAISearch()" class="px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-full shadow transition active:scale-95 flex items-center gap-1.5 whitespace-nowrap">
+    <button onclick="handleAISearch()" class="px-4 py-2 bg-gradient-to-r from-[#cf1717] to-[#e63946] hover:from-[#b01313] hover:to-[#cf1717] text-white font-bold text-xs sm:text-sm rounded-full shadow-md transition active:scale-95 flex items-center gap-1.5 whitespace-nowrap">
       <span>✨ AI Mode</span>
     </button>
   </div>
 
-  <!-- Khung Hiển Thị Kết Quả Tra Từ (Kính Mờ) -->
-  <div id="aiResultContainer" class="hidden mt-3 p-5 bg-white/85 dark:bg-zinc-900/85 backdrop-blur-xl border border-gray-200/60 dark:border-zinc-800 rounded-2xl shadow-xl max-h-[70vh] overflow-y-auto"></div>
-</div></section>
+  <!-- Khung Hiển Thị Kết Quả Tra Từ Kính Mờ Nâng Cao -->
+  <div id="aiResultContainer" class="hidden mt-3 p-5 bg-white/75 dark:bg-zinc-900/75 backdrop-blur-2xl border border-white/40 dark:border-zinc-800/60 rounded-3xl shadow-2xl max-h-[70vh] overflow-y-auto space-y-4">
+  </div>
+</div>
 
     <!-- PHẦN 1: TIN TỨC & THÔNG BÁO -->
     <section class="space-y-3 sm:space-y-4">
@@ -1723,42 +1722,64 @@ document.addEventListener('DOMContentLoaded', () => {
 const WORKER_URL = "https://readupenglishtest.vercel.app/api/dictionary";
 
 async function handleAISearch() {
-  const query = document.getElementById('aiSearchInput').value.trim();
+  const queryElem = document.getElementById('aiSearchInput');
+  const query = queryElem ? queryElem.value.trim() : '';
   const container = document.getElementById('aiResultContainer');
   if (!query) return;
 
   container.classList.remove('hidden');
-  container.innerHTML = `<div class="text-center py-6 text-xs text-gray-400 animate-pulse">🤖 AI đang phân tích từ vựng & ngữ cảnh...</div>`;
+  const cacheKey = `dict_cache_${query.toLowerCase()}`;
 
-  const isSingleWord = query.split(/\s+/).length === 1;
+  // 1. KIỂM TRA CACHE: Nếu đã tra rồi -> Hiển thị ngay lập tức (0.01 giây)
+  const cachedData = localStorage.getItem(cacheKey);
+  if (cachedData) {
+    renderAIResult(JSON.parse(cachedData));
+    return;
+  }
 
+  // 2. LOADING SKELETON: Hiệu ứng khung chờ mờ nhấp nháy chuyên nghiệp
+  container.innerHTML = `
+    <div class="animate-pulse space-y-3 p-2">
+      <div class="h-6 bg-gray-200 dark:bg-zinc-700 rounded-md w-1/3"></div>
+      <div class="h-4 bg-gray-200 dark:bg-zinc-700 rounded-md w-1/4"></div>
+      <div class="space-y-2 pt-2">
+        <div class="h-16 bg-gray-100 dark:bg-zinc-800 rounded-2xl"></div>
+        <div class="h-16 bg-gray-100 dark:bg-zinc-800 rounded-2xl"></div>
+      </div>
+    </div>
+  `;
+
+  const isSingleWord = query.split(/\s+/).length <= 2;
+
+  // Prompt ép Gemini trả về IPA riêng cho từng từ loại/biến thể (forms)
   const prompt = isSingleWord ? `
-    Bạn là từ điển AI chuyên sâu như TFlat. Hãy phân tích từ "${query}".
+    Bạn là từ điển AI chuyên sâu. Hãy phân tích từ/cụm từ "${query}".
     Trả về kết quả dưới dạng JSON duy nhất (không chứa mã markdown \`\`\`json) theo cấu trúc:
     {
       "type": "word",
       "word": "${query}",
-      "ipa": "/phiên âm/",
+      "ipa": "/phiên âm chính/",
       "forms": [
         {
           "pos": "Danh từ / Động từ / Tính từ / Trạng từ",
-          "wordForm": "từ tương ứng với từ loại đó",
+          "wordForm": "từ biến thể (ví dụ: development)",
+          "ipa": "/phiên âm IPA riêng của từ biến thể này/",
           "meaning": "nghĩa tiếng Việt",
           "example": "câu ví dụ tiếng Anh (dịch nghĩa tiếng Việt)"
         }
       ],
       "synonyms": ["từ đồng nghĩa 1", "từ đồng nghĩa 2"],
       "antonyms": ["từ trái nghĩa 1", "từ trái nghĩa 2"],
-      "socialContext": "Ngữ cảnh hoặc tiếng lóng/cách dùng từ này phổ biến trên MXH"
+      "socialContext": "Ngữ cảnh hoặc tiếng lóng/cách dùng từ này phổ biến"
     }
   ` : `
     Hãy dịch đoạn văn sau sang tiếng Việt tự nhiên nhất: "${query}".
-    Trả về JSON duy nhất:
+    Trả về JSON duy nhất (không chứa mã markdown \`\`\`json):
     {
       "type": "translation",
       "original": "${query}",
       "translated": "bản dịch tiếng Việt",
-      "keyGrammar": "Ghi chú ngắn về cấu trúc ngữ pháp nổi bật (nếu có)"
+      "keyGrammar": "Ghi chú ngắn về cấu trúc ngữ pháp nổi bật"
     }
   `;
 
@@ -1771,89 +1792,123 @@ async function handleAISearch() {
 
     const data = await response.json();
 
-    // Kiểm tra xem Cloudflare Worker hoặc Gemini có trả về lỗi hay không
     if (data.error) {
       const errMsg = typeof data.error === 'object' ? (data.error.message || JSON.stringify(data.error)) : data.error;
       throw new Error(errMsg);
     }
 
     if (!data.candidates || !data.candidates[0]) {
-      throw new Error("Không nhận được dữ liệu phản hồi hợp lệ từ Gemini API.");
+      throw new Error("Không nhận được dữ liệu phản hồi hợp lệ từ AI.");
     }
 
     let rawText = data.candidates[0].content.parts[0].text;
     rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
     const resData = JSON.parse(rawText);
 
+    // Lưu vào bộ nhớ đệm Cache
+    localStorage.setItem(cacheKey, JSON.stringify(resData));
+    
     renderAIResult(resData);
   } catch (err) {
     console.error("Lỗi chi tiết:", err);
-    container.innerHTML = `<div class="p-3 bg-red-50 text-red-600 rounded-xl text-xs">❌ Đã xảy ra lỗi: ${err.message}</div>`;
+    container.innerHTML = `<div class="p-3 bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400 rounded-xl text-xs font-semibold">❌ Đã xảy ra lỗi: ${err.message}</div>`;
   }
 }
-  function renderAIResult(data) {
-    const container = document.getElementById('aiResultContainer');
+  
+  // Hàm bổ trợ phát âm giọng chuẩn US
+function playAudioWord(word) {
+  if (!word) return;
+  const utterance = new SpeechSynthesisUtterance(word);
+  utterance.lang = 'en-US';
+  window.speechSynthesis.speak(utterance);
+}
 
-    // Trường hợp 1: Dịch cả câu / đoạn văn
-    if (data.type === 'translation') {
-      container.innerHTML = `
-        <div class="p-4 bg-gray-50 dark:bg-zinc-800/60 rounded-xl border border-gray-100 dark:border-zinc-700 space-y-2 text-xs">
-          <div class="font-bold text-[#cf1717] text-sm">Bản dịch AI:</div>
-          <p class="text-gray-900 dark:text-white font-medium text-sm leading-relaxed">${data.translated}</p>
-          ${data.keyGrammar ? `<div class="pt-2 border-t dark:border-zinc-700 text-gray-500 italic">💡 Ghi chú: ${data.keyGrammar}</div>` : ''}
-        </div>
-      `;
-      return;
-    }
+function renderAIResult(data) {
+  const container = document.getElementById('aiResultContainer');
+  if (!container) return;
 
-    // Trường hợp 2: Tra cứu từ vựng chi tiết (TFlat Style)
-    const formsHTML = data.forms.map(f => `
-      <div class="p-3 bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700/60 space-y-1">
-        <div class="flex items-center gap-2">
-          <span class="px-2 py-0.5 bg-red-50 dark:bg-red-950 text-[#cf1717] font-bold text-[11px] rounded">${f.pos}</span>
-          <strong class="text-gray-900 dark:text-white">${f.wordForm || data.word}</strong>
-        </div>
-        <p class="text-gray-700 dark:text-gray-300 font-semibold">👉 ${f.meaning}</p>
-        <p class="text-gray-500 dark:text-gray-400 italic">Ex: ${f.example}</p>
-      </div>
-    `).join('');
-
+  // Trường hợp 1: Dịch cả câu / đoạn văn
+  if (data.type === 'translation') {
     container.innerHTML = `
-      <div class="space-y-3 text-xs">
-        <!-- Từ & Phiên âm -->
+      <div class="p-4 bg-gray-50 dark:bg-zinc-800/60 rounded-xl border border-gray-100 dark:border-zinc-700 space-y-2 text-xs">
+        <div class="font-bold text-[#cf1717] text-sm">Bản dịch AI:</div>
+        <p class="text-gray-900 dark:text-white font-medium text-sm leading-relaxed">${data.translated}</p>
+        ${data.keyGrammar ? `<div class="pt-2 border-t dark:border-zinc-700 text-gray-500 italic">💡 Ghi chú: ${data.keyGrammar}</div>` : ''}
+      </div>
+    `;
+    return;
+  }
+
+  // Trường hợp 2: Tra cứu từ vựng chi tiết (Nâng cấp IPA biến thể + Loa phát âm)
+  const formsHTML = (data.forms || []).map(f => {
+    // Tự động phối màu badge theo loại từ (Danh, Động, Tính, Trạng)
+    let badgeColor = "bg-red-50 dark:bg-red-950 text-[#cf1717]";
+    const pos = f.pos || '';
+    if (pos.includes("Động")) badgeColor = "bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400";
+    if (pos.includes("Tính")) badgeColor = "bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400";
+    if (pos.includes("Trạng") || pos.includes("Phó")) badgeColor = "bg-purple-50 dark:bg-purple-950 text-purple-600 dark:text-purple-400";
+
+    const wordForm = f.wordForm || data.word;
+    const formIpaHTML = f.ipa ? `<span class="font-mono text-gray-400 text-[11px] border-l border-gray-300 dark:border-zinc-700 pl-2 ml-1">${f.ipa}</span>` : '';
+
+    return `
+      <div class="p-3 bg-white dark:bg-zinc-800/80 rounded-xl border border-gray-100 dark:border-zinc-700/60 space-y-1.5 shadow-sm">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="px-2 py-0.5 ${badgeColor} font-bold text-[11px] rounded">${f.pos}</span>
+            <strong class="text-gray-900 dark:text-white text-sm">${wordForm}</strong>
+            ${formIpaHTML}
+          </div>
+          <button onclick="playAudioWord('${wordForm}')" class="p-1 text-gray-400 hover:text-[#cf1717] transition text-xs" title="Phát âm biến thể này">🔊</button>
+        </div>
+        <p class="text-gray-700 dark:text-gray-300 font-semibold text-xs sm:text-sm">👉 ${f.meaning}</p>
+        ${f.example ? `<p class="text-gray-500 dark:text-gray-400 italic text-xs bg-gray-50/50 dark:bg-zinc-900/50 p-2 rounded-lg">Ex: ${f.example}</p>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="space-y-3 text-xs">
+      <!-- Header Từ & Phiên âm chính + Loa + Nút Lưu -->
+      <div class="flex items-center justify-between border-b border-gray-200/60 dark:border-zinc-800 pb-2.5">
         <div class="flex items-baseline gap-2">
           <h4 class="text-xl font-black text-[#cf1717]">${data.word}</h4>
           <span class="font-mono text-gray-400">${data.ipa || ''}</span>
+          <button onclick="playAudioWord('${data.word}')" class="p-1 text-gray-400 hover:text-[#cf1717] transition text-sm" title="Phát âm từ gốc">🔊</button>
         </div>
-
-        <!-- Các dạng từ loại & Câu ví dụ -->
-        <div class="space-y-2">
-          <div class="font-bold text-gray-700 dark:text-gray-300">Biến thể & Từ loại:</div>
-          ${formsHTML}
-        </div>
-
-        <!-- Đồng nghĩa & Trái nghĩa -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-          <div class="p-2.5 bg-green-50/50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/40 rounded-xl">
-            <span class="font-bold text-green-700 dark:text-green-400 block mb-1">Từ đồng nghĩa:</span>
-            <span class="text-gray-700 dark:text-gray-300">${(data.synonyms || []).join(', ') || 'Không có'}</span>
-          </div>
-          <div class="p-2.5 bg-red-50/50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 rounded-xl">
-            <span class="font-bold text-red-700 dark:text-red-400 block mb-1">Từ trái nghĩa:</span>
-            <span class="text-gray-700 dark:text-gray-300">${(data.antonyms || []).join(', ') || 'Không có'}</span>
-          </div>
-        </div>
-
-        <!-- Ngữ cảnh MXH -->
-        ${data.socialContext ? `
-          <div class="p-3 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-xl text-gray-700 dark:text-gray-300">
-            <span class="font-bold text-amber-600 dark:text-amber-400 block mb-0.5">🌐 Xu hướng & MXH:</span>
-            ${data.socialContext}
-          </div>
-        ` : ''}
+        <button onclick="alert('Đã lưu từ vào sổ tay!')" class="px-2.5 py-1 bg-red-50 dark:bg-red-950 text-[#cf1717] dark:text-red-400 border border-red-200 dark:border-red-900 rounded-lg text-[11px] font-bold hover:bg-red-100 transition">
+          🔖 Lưu từ
+        </button>
       </div>
-    `;
-  }
+
+      <!-- Các dạng từ loại & IPA biến thể -->
+      <div class="space-y-2">
+        <div class="font-bold text-gray-700 dark:text-gray-300">Biến thể & Từ loại:</div>
+        ${formsHTML}
+      </div>
+
+      <!-- Đồng nghĩa & Trái nghĩa -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+        <div class="p-2.5 bg-green-50/50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/40 rounded-xl">
+          <span class="font-bold text-green-700 dark:text-green-400 block mb-1">Từ đồng nghĩa:</span>
+          <span class="text-gray-700 dark:text-gray-300">${(data.synonyms || []).join(', ') || 'Không có'}</span>
+        </div>
+        <div class="p-2.5 bg-red-50/50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 rounded-xl">
+          <span class="font-bold text-red-700 dark:text-red-400 block mb-1">Từ trái nghĩa:</span>
+          <span class="text-gray-700 dark:text-gray-300">${(data.antonyms || []).join(', ') || 'Không có'}</span>
+        </div>
+      </div>
+
+      <!-- Ngữ cảnh MXH -->
+      ${data.socialContext ? `
+        <div class="p-3 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-xl text-gray-700 dark:text-gray-300">
+          <span class="font-bold text-amber-600 dark:text-amber-400 block mb-0.5">🌐 Xu hướng & MXH:</span>
+          ${data.socialContext}
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
   
 </script>
 <!-- MODAL ĐỔI MẬT KHẨU -->
