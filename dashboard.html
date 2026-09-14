@@ -1741,7 +1741,8 @@ async function handleAISearch() {
 
     renderAIResult(resData);
   } catch (err) {
-    container.innerHTML = `<div class="p-3 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 rounded-xl text-xs">❌ Đã xảy ra lỗi khi tra cứu. Vui lòng thử lại.</div>`;
+  console.error("Lỗi chi tiết:", err);
+  container.innerHTML = &lt;div class="p-3 bg-red-50 text-red-600 text-xs"&gt;❌ Lỗi: ${err.message}&lt;/div&gt;;
   }
 }
 
