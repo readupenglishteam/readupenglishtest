@@ -150,8 +150,7 @@
       </div>
     </div>
   </div>
-
-  <!-- JAVASCRIPT LOGIC -->
+<!-- JAVASCRIPT LOGIC -->
   <script>
     const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
     const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
@@ -178,7 +177,8 @@
       renderExamData();
       startTimer(exam.time_limit || 60);
     }
- // 1. HIGHLIGHT TỪ VỰNG BÀI ĐỌC
+
+    // 1. HIGHLIGHT TỪ VỰNG BÀI ĐỌC
     function renderPassageWithVocab(passageHTML, vocabData = []) {
       if (!passageHTML) return '';
 
@@ -195,116 +195,115 @@
 
       if (sortedVocab.length === 0) return passageHTML;
 
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = passageHTML;
+      let processedHTML = passageHTML;
+      sortedVocab.forEach(item => {
+        const word = item.word || item.term;
+        if (!word) return;
+        const regex = new RegExp(`\\b(${word})\\b`, 'gi');
+        const jsonStr = encodeURIComponent(JSON.stringify(item));
+        processedHTML = processedHTML.replace(regex, `<mark class="vocab-item bg-amber-100 dark:bg-amber-900/50 text-amber-900 dark:text-amber-200 font-semibold px-1 rounded cursor-pointer" data-vocab="${jsonStr}">$1</mark>`);
+      });
 
-    
+      return processedHTML;
+    }
+
+    // XL BÔI ĐEN & FLOATING MENU HIGHLIGHT
     let savedRange = null;
-let activeMarkNode = null;
+    let activeMarkNode = null;
 
-// Listeners lưu vùng chọn trên di động & hiển thị Floating Menu
-document.addEventListener('selectionchange', handleSelectionChange);
-document.addEventListener('mouseup', handleSelectionMenuShow);
-document.addEventListener('touchend', handleSelectionMenuShow);
-document.addEventListener('click', handleMarkClick);
+    document.addEventListener('selectionchange', handleSelectionChange);
+    document.addEventListener('mouseup', handleSelectionMenuShow);
+    document.addEventListener('touchend', handleSelectionMenuShow);
+    document.addEventListener('click', handleMarkClick);
 
-function handleSelectionChange() {
-  const selection = window.getSelection();
-  if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
-    const range = selection.getRangeAt(0);
-    const passage = document.getElementById('passageContent');
-    if (passage && passage.contains(range.commonAncestorContainer)) {
-      savedRange = range.cloneRange(); // Lưu range trước khi ngón tay chạm nút khác
+    function handleSelectionChange() {
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
+        const range = selection.getRangeAt(0);
+        const passage = document.getElementById('passageContent');
+        if (passage && passage.contains(range.commonAncestorContainer)) {
+          savedRange = range.cloneRange();
+        }
+      }
     }
-  }
-}
 
-function handleSelectionMenuShow(e) {
-  // Tránh bắt sự kiện khi bấm vào chính toolbar
-  if (e.target.closest('#textSelectionMenu')) return;
+    function handleSelectionMenuShow(e) {
+      if (e.target.closest('#textSelectionMenu')) return;
 
-  const selection = window.getSelection();
-  const menu = document.getElementById('textSelectionMenu');
-  const removeBtn = document.getElementById('btnRemoveHighlight');
+      const selection = window.getSelection();
+      const menu = document.getElementById('textSelectionMenu');
+      const removeBtn = document.getElementById('btnRemoveHighlight');
 
-  if (selection && !selection.isCollapsed && savedRange) {
-    activeMarkNode = null;
-    if (removeBtn) removeBtn.classList.add('hidden');
+      if (selection && !selection.isCollapsed && savedRange) {
+        activeMarkNode = null;
+        if (removeBtn) removeBtn.classList.add('hidden');
 
-    const rect = selection.getRangeAt(0).getBoundingClientRect();
-    if (rect.width > 0 && menu) {
-      menu.style.top = `${window.scrollY + rect.top - 45}px`;
-      menu.style.left = `${window.scrollX + rect.left + (rect.width / 2)}px`;
-      menu.classList.remove('hidden');
+        const rect = selection.getRangeAt(0).getBoundingClientRect();
+        if (rect.width > 0 && menu) {
+          menu.style.top = `${window.scrollY + rect.top - 45}px`;
+          menu.style.left = `${window.scrollX + rect.left + (rect.width / 2)}px`;
+          menu.classList.remove('hidden');
+        }
+      } else if (!activeMarkNode && menu) {
+        menu.classList.add('hidden');
+      }
     }
-  } else if (!activeMarkNode && menu) {
-    menu.classList.add('hidden');
-  }
-}
 
-// Bấm trực tiếp vào chỗ đã tô highlight để hiện Tẩy
-function handleMarkClick(e) {
-  const mark = e.target.closest('mark.highlight-item');
-  const menu = document.getElementById('textSelectionMenu');
-  const removeBtn = document.getElementById('btnRemoveHighlight');
+    function handleMarkClick(e) {
+      const mark = e.target.closest('mark.highlight-item');
+      const menu = document.getElementById('textSelectionMenu');
+      const removeBtn = document.getElementById('btnRemoveHighlight');
 
-  if (mark) {
-    activeMarkNode = mark;
-    const rect = mark.getBoundingClientRect();
-    if (menu && removeBtn) {
-      removeBtn.classList.remove('hidden');
-      menu.style.top = `${window.scrollY + rect.top - 45}px`;
-      menu.style.left = `${window.scrollX + rect.left + (rect.width / 2)}px`;
-      menu.classList.remove('hidden');
+      if (mark) {
+        activeMarkNode = mark;
+        const rect = mark.getBoundingClientRect();
+        if (menu && removeBtn) {
+          removeBtn.classList.remove('hidden');
+          menu.style.top = `${window.scrollY + rect.top - 45}px`;
+          menu.style.left = `${window.scrollX + rect.left + (rect.width / 2)}px`;
+          menu.classList.remove('hidden');
+        }
+        e.stopPropagation();
+      }
     }
-    e.stopPropagation();
-  }
-}
 
-// Thực hiện Tô Màu từ Menu
-function applyHighlightFromMenu(colorClass) {
-  const selection = window.getSelection();
-  let range = (selection && !selection.isCollapsed) ? selection.getRangeAt(0) : savedRange;
+    function applyHighlightFromMenu(colorClass) {
+      const selection = window.getSelection();
+      let range = (selection && !selection.isCollapsed) ? selection.getRangeAt(0) : savedRange;
 
-  if (!range || range.collapsed) {
-    alert("Vui lòng bôi đen đoạn văn bản trong bài đọc!");
-    return;
-  }
+      if (!range || range.collapsed) {
+        alert("Vui lòng bôi đen đoạn văn bản trong bài đọc!");
+        return;
+      }
 
-  const mark = document.createElement('mark');
-  mark.className = `highlight-item ${colorClass} px-1 rounded`;
-  
-  try {
-    mark.appendChild(range.extractContents());
-    range.insertNode(mark);
-  } catch(err) {
-    console.warn("Không thể highlight cấu trúc phức tạp:", err);
-  }
+      const mark = document.createElement('mark');
+      mark.className = `highlight-item ${colorClass} px-1 rounded`;
+      
+      try {
+        mark.appendChild(range.extractContents());
+        range.insertNode(mark);
+      } catch(err) {
+        console.warn("Không thể highlight cấu trúc phức tạp:", err);
+      }
 
-  if (selection) selection.removeAllRanges();
-  savedRange = null;
-  document.getElementById('textSelectionMenu')?.classList.add('hidden');
-}
+      if (selection) selection.removeAllRanges();
+      savedRange = null;
+      document.getElementById('textSelectionMenu')?.classList.add('hidden');
+    }
 
-// Thực hiện Xóa Tô (Tẩy Highlight)
-function removeActiveHighlight() {
-  if (!activeMarkNode) return;
+    function removeActiveHighlight() {
+      if (!activeMarkNode) return;
 
-  const parent = activeMarkNode.parentNode;
-  while (activeMarkNode.firstChild) {
-    parent.insertBefore(activeMarkNode.firstChild, activeMarkNode);
-  }
-  parent.removeChild(activeMarkNode);
-  parent.normalize(); // Nối lại văn bản liền mạch
+      const parent = activeMarkNode.parentNode;
+      while (activeMarkNode.firstChild) {
+        parent.insertBefore(activeMarkNode.firstChild, activeMarkNode);
+      }
+      parent.removeChild(activeMarkNode);
+      parent.normalize();
 
-  activeMarkNode = null;
-  document.getElementById('textSelectionMenu')?.classList.add('hidden');
-}
-
-// Nút Highlight ở Header (Tương thích ngược)
-function highlightSelectedText() {
-  applyHighlightFromMenu('bg-yellow-300 dark:bg-yellow-500 text-black');
-}
+      activeMarkNode = null;
+      document.getElementById('textSelectionMenu')?.classList.add('hidden');
+    }
 
     // 2. TOOLTIP TỪ VỰNG
     document.addEventListener('mouseover', function(e) {
@@ -586,7 +585,7 @@ function highlightSelectedText() {
       disableSubmitBtn();
     }
 
-    // 6. RENDER HIỂN THỊ ĐÁP ÁN & GIẢI THÍCH (ĐÃ BỔ SUNG ĐẦY ĐỦ)
+    // 6. RENDER HIỂN THỊ ĐÁP ÁN & GIẢI THÍCH
     function renderResultMode(questions) {
       const questionBox = document.getElementById('questionsForm'); 
       if (!questionBox) return;
@@ -753,20 +752,6 @@ function highlightSelectedText() {
       }
     }
 
-    function highlightSelectedText() {
-      const selection = window.getSelection();
-      if (!selection.rangeCount || selection.isCollapsed) {
-        alert("Vui lòng bôi đen một đoạn văn bản trong bài đọc trước khi bấm Highlight!");
-        return;
-      }
-      const range = selection.getRangeAt(0);
-      const mark = document.createElement('mark');
-      mark.className = 'bg-yellow-300 dark:bg-yellow-500 text-black px-1 rounded';
-      mark.appendChild(range.extractContents());
-      range.insertNode(mark);
-      selection.removeAllRanges();
-    }
-
     function startTimer(minutes) {
       let remaining = minutes * 60;
       timerInterval = setInterval(() => {
@@ -851,7 +836,7 @@ function highlightSelectedText() {
 
     window.onload = initExam;
   </script>
-
+  
   <!-- GLOBAL FIXED TOOLTIP -->
   <div id="vocabTooltip" class="fixed hidden z-[9999] w-64 p-3.5 bg-zinc-900/95 text-white dark:bg-white/95 dark:text-zinc-900 rounded-2xl shadow-2xl text-xs space-y-1.5 border border-zinc-700 dark:border-gray-200 backdrop-blur-md pointer-events-none transition-opacity duration-150 opacity-0">
     <div class="flex justify-between items-center border-b border-zinc-700/60 dark:border-gray-200/60 pb-1">
