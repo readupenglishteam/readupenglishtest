@@ -101,44 +101,35 @@
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8 sm:space-y-10">
 
     <!-- KHUNG TRA TỪ VỰNG & DỊCH THUẬT AI -->
-<!-- ReadUp AI Dictionary Widget (Sticky & Glassmorphism UI) -->
-<div class="sticky top-4 z-40 max-w-2xl mx-auto p-4 sm:p-5 bg-white/75 dark:bg-zinc-900/75 backdrop-blur-xl border border-white/40 dark:border-zinc-800/60 rounded-2xl shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto transition-all duration-300">
+  <section><!-- ReadUp AI Search Bar (Google Style) -->
+<div class="max-w-2xl mx-auto my-6 px-4">
+  <div class="relative flex items-center bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-gray-200/80 dark:border-zinc-800 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 p-1.5 pl-4">
+    <!-- Icon Kính Lúp -->
+    <span class="text-gray-400 text-base mr-3">🔍</span>
 
-  <!-- Header -->
-  <div class="flex items-center justify-between border-b border-gray-200/60 dark:border-zinc-800/60 pb-2.5">
-    <h3 class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white flex items-center gap-2">
-      <span class="text-[#cf1717]">✨</span> ReadUp AI Dictionary
-    </h3>
-    <span class="text-[10px] font-extrabold px-2.5 py-0.5 bg-red-500/10 dark:bg-red-500/20 text-[#cf1717] dark:text-red-400 rounded-full border border-red-500/20 backdrop-blur-sm">
-      Powered by AI
-    </span>
-  </div>
+    <!-- Ô Nhập Liệu -->
+    <input id="aiSearchInput" type="text" placeholder="Tra từ và cụm Anh-Việt" 
+           onkeydown="if(event.key==='Enter') handleAISearch()"
+           class="w-full bg-transparent text-xs sm:text-sm text-gray-800 dark:text-white focus:outline-none placeholder-gray-400 font-medium">
 
-  <!-- Input Search Box -->
-  <div class="relative">
-    <textarea id="aiSearchInput" rows="2" placeholder="Nhập từ vựng (ví dụ: celebrate) hoặc dán cả câu/đoạn văn để dịch..." class="w-full p-3 pr-28 text-xs sm:text-sm rounded-xl border border-gray-200/80 dark:border-zinc-700/80 bg-white/50 dark:bg-zinc-800/50 dark:text-white focus:bg-white dark:focus:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]/80 backdrop-blur-md resize-none transition-all placeholder-gray-400"></textarea>
-
-    <button onclick="handleAISearch()" class="absolute right-2 bottom-3.5 px-4 py-2 bg-gradient-to-r from-[#cf1717] to-[#e63946] hover:from-[#b01313] hover:to-[#cf1717] text-white font-bold text-xs rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all duration-200 flex items-center gap-1.5">
-      <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
-        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+    <!-- Nút Thu Âm / Chấm Phát Âm -->
+    <button id="btnRecordSpeech" onclick="checkAndRequestMic()" class="p-2 text-gray-400 hover:text-[#cf1717] dark:hover:text-red-400 transition rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 mr-1" title="Chấm phát âm">
+      <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
       </svg>
-      <span>Tra cứu</span>
+    </button>
+
+    <!-- Nút Tra Cứu AI Mode -->
+    <button onclick="handleAISearch()" class="px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-full shadow transition active:scale-95 flex items-center gap-1.5 whitespace-nowrap">
+      <span>✨ AI Mode</span>
     </button>
   </div>
 
-  <!-- Result Container -->
-  <div id="aiResultContainer" class="hidden space-y-4 pt-1">
-    <!-- Nội dung kết quả sẽ tự động render vào đây -->
-  </div>
-</div>
+  <!-- Khung Hiển Thị Kết Quả Tra Từ (Kính Mờ) -->
+  <div id="aiResultContainer" class="hidden mt-3 p-5 bg-white/85 dark:bg-zinc-900/85 backdrop-blur-xl border border-gray-200/60 dark:border-zinc-800 rounded-2xl shadow-xl max-h-[70vh] overflow-y-auto"></div>
+</div></section>
 
-  <!-- Result Container -->
-  <div id="aiResultContainer" class="hidden space-y-4 pt-2">
-    <!-- Nội dung kết quả sẽ tự động render vào đây -->
-  </div>
-</div>
-
-    
     <!-- PHẦN 1: TIN TỨC & THÔNG BÁO -->
     <section class="space-y-3 sm:space-y-4">
       <div class="flex items-center gap-2 border-l-4 border-[#cf1717] pl-3">
@@ -1131,11 +1122,39 @@ function updateTargetSpeechText() {
 
 // 2. Thu Âm & Chấm Điểm Web Speech API
 // === DÁN ĐOẠN NÀY THAY THẾ CHO ĐOẠN BẠN VỪA GỬI ===
-
 let recognition = null;
 let silenceTimer = null;
 let finalSpeechTranscript = '';
 
+// 1. Kiểm tra và kích hoạt Modal xin quyền Micro
+async function checkAndRequestMic() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach(track => track.stop());
+    startPronunciationCheck();
+  } catch (err) {
+    document.getElementById('micPermissionModal')?.classList.remove('hidden');
+  }
+}
+
+// 2. Cấp quyền từ Modal
+async function grantMicrophonePermission() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach(track => track.stop());
+    closeMicModal();
+    startPronunciationCheck();
+  } catch (err) {
+    alert("⚠️ Trình duyệt đã bị từ chối quyền Micro. Vui lòng cho phép quyền Micro trên thanh địa chỉ trình duyệt!");
+    closeMicModal();
+  }
+}
+
+function closeMicModal() {
+  document.getElementById('micPermissionModal')?.classList.add('hidden');
+}
+
+// 3. Logic Thu Âm & Chấm Điểm Web Speech API
 function startPronunciationCheck() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   
@@ -1144,13 +1163,15 @@ function startPronunciationCheck() {
     return;
   }
 
-  const targetText = document.getElementById('targetSpeechText').innerText.trim();
-  if (!targetText || targetText.includes("Hãy chọn câu")) {
-    alert("Vui lòng chọn câu để đọc!");
+  const targetElem = document.getElementById('targetSpeechText');
+  const targetText = targetElem ? targetElem.innerText.trim() : document.getElementById('aiSearchInput')?.value.trim();
+  
+  if (!targetText) {
+    alert("Vui lòng nhập từ vựng hoặc chọn câu để đọc!");
     return;
   }
 
-  // Nếu đang nói mà bấm nút lần nữa -> Tự đóng micro và tiến hành chấm điểm ngay
+  // Nếu đang nói mà bấm nút lần nữa -> Dừng lại ngay
   if (recognition && recognition.isSpeaking) {
     clearTimeout(silenceTimer);
     recognition.stop();
@@ -1159,25 +1180,19 @@ function startPronunciationCheck() {
 
   recognition = new SpeechRecognition();
   recognition.lang = 'en-US';
-  recognition.continuous = true;     // Cho phép vừa đọc vừa ngắt nghỉ lấy hơi
-  recognition.interimResults = true;  // Thu âm liên tục
+  recognition.continuous = true;
+  recognition.interimResults = true;
 
   finalSpeechTranscript = '';
   recognition.isSpeaking = true;
 
-  const btn = document.getElementById('btnRecordSpeech');
-  const btnText = document.getElementById('btnRecordText');
-
-  if (btnText && btn) {
-    btnText.innerText = "🎙️ Đang nghe... (Bấm khi nói xong)";
-    btn.className = "w-full py-3 bg-amber-500 text-white font-bold text-sm rounded-xl transition shadow animate-pulse flex items-center justify-center gap-2";
-  }
+  // Cập nhật trạng thái nút ghi âm
+  setRecordBtnState(true);
 
   recognition.start();
 
   recognition.onresult = (event) => {
     let interimTranscript = '';
-
     for (let i = event.resultIndex; i < event.results.length; ++i) {
       if (event.results[i].isFinal) {
         finalSpeechTranscript += event.results[i][0].transcript + ' ';
@@ -1186,30 +1201,10 @@ function startPronunciationCheck() {
       }
     }
 
-    // Đợi đủ 2.5 giây học sinh im lặng hoàn toàn mới kết thúc thu âm
     clearTimeout(silenceTimer);
     silenceTimer = setTimeout(() => {
       if (recognition) recognition.stop();
-    }, 2500); // 2.5 giây cho học sinh thoải mái dừng thở
-  };
-
-  recognition.onerror = (event) => {
-    console.error("Speech error:", event.error);
-    clearTimeout(silenceTimer);
-    
-    if (event.error === 'service-not-allowed' || event.error === 'not-allowed') {
-      alert(
-        "⚠️ KHÔNG THỂ BẬT MICRO!\n\n" +
-        "Vui lòng kiểm tra:\n" +
-        "1. Mở web bằng Chrome/Safari (Không mở trực tiếp trong Zalo/FB).\n" +
-        "2. Đã cấp quyền Micro cho trình duyệt trong Cài đặt điện thoại.\n" +
-        "3. Nếu dùng iPhone: Vào Cài đặt -> Bàn phím -> Bật 'Đọc bàn phím' (Dictation)."
-      );
-    } else if (event.error !== 'no-speech') {
-      alert("❌ Lỗi ghi âm: " + event.error);
-    }
-    
-    resetRecordBtn();
+    }, 2500);
   };
 
   recognition.onend = async () => {
@@ -1217,19 +1212,50 @@ function startPronunciationCheck() {
     if (recognition) recognition.isSpeaking = false;
     resetRecordBtn();
 
-    // Chuyển kết quả thu được sang hàm chấm điểm hiện tại của bạn
     const spokenText = finalSpeechTranscript.trim();
-    if (spokenText && typeof processPronunResult === 'function') {
-      await processPronunResult(targetText, spokenText);
+    if (spokenText) {
+      if (typeof processPronunResult === 'function') {
+        await processPronunResult(targetText, spokenText);
+      } else {
+        alert("🎤 Âm thanh thu nhận: " + spokenText);
+      }
     }
   };
 
-  function resetRecordBtn() {
-    if (btnText && btn) {
-      btnText.innerText = "Bấm để nói lại";
-      btn.className = "w-full py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-sm rounded-xl transition shadow flex items-center justify-center gap-2";
+  recognition.onerror = (event) => {
+    console.error("Speech error:", event.error);
+    clearTimeout(silenceTimer);
+    
+    if (event.error === 'service-not-allowed' || event.error === 'not-allowed') {
+      document.getElementById('micPermissionModal')?.classList.remove('hidden');
+    } else if (event.error !== 'no-speech') {
+      alert("❌ Lỗi ghi âm: " + event.error);
+    }
+    
+    resetRecordBtn();
+  };
+}
+
+// Hàm bổ trợ cập nhật giao diện nút bấm
+function setRecordBtnState(isRecording) {
+  const btn = document.getElementById('btnRecordSpeech');
+  const btnText = document.getElementById('btnRecordText');
+
+  if (btnText) {
+    btnText.innerText = isRecording ? "🎙️ Đang nghe... (Bấm khi nói xong)" : "Bấm để nói lại";
+  }
+
+  if (btn) {
+    if (isRecording) {
+      btn.classList.add('text-amber-500', 'animate-pulse');
+    } else {
+      btn.classList.remove('text-amber-500', 'animate-pulse');
     }
   }
+}
+
+function resetRecordBtn() {
+  setRecordBtnState(false);
 }
 // 3. Phân tích kết quả + Lưu lên Supabase
 async function processPronunResult(targetText, spokenText) {
@@ -1930,7 +1956,26 @@ async function handleAISearch() {
 
   </div>
 </div>
-
+<!-- Modal Pop-up Xin Quyền Micro -->
+<div id="micPermissionModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+  <div class="bg-white dark:bg-zinc-900 rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-gray-100 dark:border-zinc-800 text-center space-y-4">
+    <div class="w-14 h-14 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full flex items-center justify-center mx-auto text-2xl animate-pulse">
+      🎙️
+    </div>
+    <h3 class="font-extrabold text-base text-gray-900 dark:text-white">Cấp Quyền Micro</h3>
+    <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+      ReadUp English cần quyền truy cập Micro để ghi âm và chấm điểm phát âm tiếng Anh của bạn.
+    </p>
+    <div class="space-y-2 pt-2">
+      <button onclick="grantMicrophonePermission()" class="w-full py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow transition active:scale-95">
+        Đồng Ý & Cấp Quyền Tất Cả
+      </button>
+      <button onclick="closeMicModal()" class="w-full py-2 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 font-semibold text-xs rounded-xl hover:bg-gray-200 transition">
+        Đóng
+      </button>
+    </div>
+  </div>
+</div>
 
   
 </body>
