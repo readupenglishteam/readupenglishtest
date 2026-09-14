@@ -901,6 +901,44 @@ if (!user) {
   window.location.href = 'login.html'; // Sẽ KHÔNG bị dính dòng này nữa khi preview=true!
 }
 
+const urlParams = new URLSearchParams(window.location.search);
+const isPreview = urlParams.get('preview') === 'true';
+const token = urlParams.get('token');
+
+// ==========================================
+// 1. XỬ LÝ CHẾ ĐỘ XEM THỬ (PREVIEW MODE)
+// ==========================================
+if (isPreview) {
+  // A. Hiện thanh thông báo Chế độ xem thử
+  showPreviewBanner();
+
+  // B. Đọc dữ liệu nháp từ sessionStorage (Trường hợp Admin đang tạo/sửa bài thi)
+  const draftData = JSON.parse(sessionStorage.getItem('preview_exam_data'));
+
+  if (draftData) {
+    // Ưu tiên 1: Render trực tiếp dữ liệu nháp từ Admin
+    renderExamUI(draftData);
+  } else if (token) {
+    // Ưu tiên 2: Nếu không có dữ liệu nháp, tải bài thi từ Supabase theo Token
+    fetchExamFromSupabase(token);
+  } else {
+    alert('Không tìm thấy dữ liệu bài thi để xem thử!');
+  }
+
+  // C. DỪNG LUỒNG: Không bắt đăng nhập, không tính giờ lưu DB
+  return; 
+}
+
+// ==========================================
+// 2. LUỒNG LÀM BÀI THẬT CỦA HỌC VIÊN
+// ==========================================
+if (!token) {
+  alert('Thiếu token bài thi!');
+  window.location.href = 'dashboard.html';
+  return;
+}
+
+// Tiếp tục đoạn code bắt Auth Supabase và làm bài thật của bạn ở dưới...
     
   </script>
   
