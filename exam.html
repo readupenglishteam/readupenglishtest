@@ -939,6 +939,17 @@ if (!token) {
 }
 
 // Tiếp tục đoạn code bắt Auth Supabase và làm bài thật của bạn ở dưới...
+
+function showPreviewBanner() {
+  const banner = document.createElement('div');
+  banner.className = 'fixed top-0 left-0 right-0 bg-amber-500 text-white font-bold text-center py-2 px-4 z-[9999] flex justify-between items-center text-xs sm:text-sm shadow-md';
+  banner.innerHTML = `
+    <span>⚠️ CHẾ ĐỘ XEM THỬ (Không lưu kết quả vào CSDL)</span>
+    <button onclick="window.close()" class="bg-black/20 hover:bg-black/40 text-white px-3 py-1 rounded-lg transition">✕ Đóng</button>
+  `;
+  document.body.prepend(banner);
+  document.body.classList.add('pt-10');
+}
     
   </script>
   
