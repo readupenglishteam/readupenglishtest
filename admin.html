@@ -155,9 +155,7 @@
           <label class="block text-xs font-bold uppercase mb-1">Nội dung thông báo</label>
           <textarea id="newsContent" rows="3" required placeholder="Chi tiết nội dung..." class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700"></textarea>
         </div>
-        <div class="flex justify-end gap-3 mt-4">
         <button type="submit" id="newsSubmitBtn" class="bg-[#cf1717] hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm transition shadow">Đăng Thông Báo</button>
-        <button type="button" onclick="previewAnnouncementForm()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs sm:text-sm flex items-center gap-2 transition"><span></span>Xem thử</button></div>
       </form>
 
       <!-- Danh sách tin cũ -->
@@ -446,6 +444,7 @@
           <div class="flex gap-2">
             <button onclick="editNews('${n.id}', '${encodeURIComponent(n.title)}', '${encodeURIComponent(n.content)}', '${n.image_url || ''}')" class="text-xs text-blue-500 font-bold hover:underline">Sửa</button>
             <button onclick="deleteNews('${n.id}')" class="text-xs text-red-500 font-bold hover:underline">Xóa</button>
+            <button type="button" onclick="previewAnnouncementForm()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs sm:text-sm flex items-center gap-2 transition"><span></span>Xem thử</button></div>
           </div>
         </div>
       `).join('');
@@ -1233,10 +1232,6 @@ function triggerPreview(type, payload) {
 // Ví dụ gắn sự kiện nút bấm Xem thử Đề thi:
 // triggerPreview('exam', { title: inputExamTitle.value, passage_html: editorContent, questions: listQuestions });
 
-// Ví dụ khi bấm nút "Xem thử đề thi":
-// const draftExam = { title: "Đề thi thử", passage_html: "...", questions: [...] };
-// previewDraft('exam', draftExam);
-
 function previewAnnouncementForm() {
   const draftData = {
     title: document.getElementById('annTitleInput').value || 'Chưa có tiêu đề',
@@ -1244,7 +1239,7 @@ function previewAnnouncementForm() {
     tag: document.getElementById('annTagSelect')?.value || 'THÔNG BÁO'
   };
   
-  previewDraft('announcement', draftData);
+  triggerPreview('announcement', draftData);
 } 
   function previewExamForm() {
   // Bắt toàn bộ dữ liệu đang điền dở trên giao diện Admin
@@ -1256,7 +1251,7 @@ function previewAnnouncementForm() {
     questions: typeof getCurrentQuestionsArray === 'function' ? getCurrentQuestionsArray() : []
   };
 
-  previewDraft('exam', draftData);
+  triggerPreview('exam', draftData);
 }
     
   </script>
