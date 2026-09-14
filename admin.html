@@ -367,7 +367,7 @@
           <div class="pt-2 flex gap-2">
             <button onclick="editExam('${exam.id}')" class="w-1/2 py-1.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-lg hover:bg-blue-100 transition">✏️ Sửa</button>
             <button onclick="deleteExam('${exam.id}')" class="w-1/2 py-1.5 bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-xs font-bold rounded-lg hover:bg-red-100 transition">🗑️ Xóa</button>
-            <button type="button" onclick="previewExamForm()" class="w-1/2 py-1.5 bg-amber-50 dark:bg-red-950/50 text-amber-600 dark:text-amber-400 text-xs font-bold rounded-lg hover:bg-red-100 transition">👁️ Xem thử</button>
+            <button type="button" onclick="previewExam()" class="w-1/2 py-1.5 bg-amber-50 dark:bg-red-950/50 text-amber-600 dark:text-amber-400 text-xs font-bold rounded-lg hover:bg-red-100 transition">👁️ Xem thử</button>
           </div>
         </div>
       `).join('');
@@ -444,7 +444,7 @@
           <div class="flex gap-2">
             <button onclick="editNews('${n.id}', '${encodeURIComponent(n.title)}', '${encodeURIComponent(n.content)}', '${n.image_url || ''}')" class="text-xs text-blue-500 font-bold hover:underline">Sửa</button>
             <button onclick="deleteNews('${n.id}')" class="text-xs text-red-500 font-bold hover:underline">Xóa</button>
-            <button type="button" onclick="previewAnnouncementForm()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs sm:text-sm flex items-center gap-2 transition"><span></span>Xem thử</button></div>
+            <button type="button" onclick="previewAnnouncement()" class="text-xs text-amber-500 font-bold hover:underline">Xem thử</button>
           </div>
         </div>
       `).join('');
@@ -1218,40 +1218,16 @@ function createSlug(str) {
     .replace(/-+/g, '-');                  // Xóa nhiều dấu gạch nối liền nhau
 }
 
-    // Gọi hàm này khi bấm nút "Xem thử" ở Admin Form
-function triggerPreview(type, payload) {
-  if (!payload) return alert('Vui lòng nhập nội dung trước khi xem thử!');
-  
-  sessionStorage.setItem('preview_data', JSON.stringify({ type, payload }));
-  window.open('preview.html', '_blank');
+// Xem thử Thông báo trên giao diện dashboard.html
+function previewAnnouncement(draftData) {
+  sessionStorage.setItem('preview_data', JSON.stringify({ type: 'announcement', payload: draftData }));
+  window.open('dashboard.html?preview=true', '_blank');
 }
 
-// Ví dụ gắn sự kiện nút bấm Xem thử Thông báo:
-// triggerPreview('announcement', { title: inputTitle.value, content: inputContent.value, tag: 'THÔNG BÁO' });
-
-// Ví dụ gắn sự kiện nút bấm Xem thử Đề thi:
-// triggerPreview('exam', { title: inputExamTitle.value, passage_html: editorContent, questions: listQuestions });
-
-function previewAnnouncementForm() {
-  const draftData = {
-    title: document.getElementById('annTitleInput').value || 'Chưa có tiêu đề',
-    content: document.getElementById('annContentInput').value || 'Chưa có nội dung',
-    tag: document.getElementById('annTagSelect')?.value || 'THÔNG BÁO'
-  };
-  
-  triggerPreview('announcement', draftData);
-} 
-  function previewExamForm() {
-  // Bắt toàn bộ dữ liệu đang điền dở trên giao diện Admin
-  const draftData = {
-    title: document.getElementById('examTitleInput')?.value || 'Đề thi thử nghiệm',
-    topic: document.getElementById('examTopicInput')?.value || 'IELTS Reading',
-    passage_html: document.getElementById('passageTextInput')?.value || '<p>Chưa nhập nội dung bài đọc...</p>',
-    // Nếu bạn có hàm gom danh sách câu hỏi hiện tại:
-    questions: typeof getCurrentQuestionsArray === 'function' ? getCurrentQuestionsArray() : []
-  };
-
-  triggerPreview('exam', draftData);
+// Xem thử Đề thi trên giao diện exam.html
+function previewExam(draftData) {
+  sessionStorage.setItem('preview_data', JSON.stringify({ type: 'exam', payload: draftData }));
+  window.open('exam.html?preview=true', '_blank');
 }
     
   </script>
