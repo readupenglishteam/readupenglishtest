@@ -178,7 +178,27 @@
       renderExamData();
       startTimer(exam.time_limit || 60);
     }
+ // 1. HIGHLIGHT TỪ VỰNG BÀI ĐỌC
+    function renderPassageWithVocab(passageHTML, vocabData = []) {
+      if (!passageHTML) return '';
 
+      let vocabList = vocabData;
+      if (typeof vocabList === 'string') {
+        try { vocabList = JSON.parse(vocabList); } catch (e) { vocabList = []; }
+      }
+
+      if (!Array.isArray(vocabList) || vocabList.length === 0) return passageHTML;
+
+      const sortedVocab = [...vocabList]
+        .filter(v => v && (v.word || v.term))
+        .sort((a, b) => ((b.word || b.term).length - (a.word || a.term).length));
+
+      if (sortedVocab.length === 0) return passageHTML;
+
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = passageHTML;
+
+    
     let savedRange = null;
 let activeMarkNode = null;
 
