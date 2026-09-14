@@ -532,39 +532,42 @@
   }
 
   async function handleSaveExam(e) {
-    e.preventDefault();
-    const id = document.getElementById('editingExamId').value;
-    try {
-      // 1. Parse JSON Câu hỏi
-      const questionsJson = JSON.parse(document.getElementById('examQuestions').value || '[]');
+  e.preventDefault();
+  const id = document.getElementById('editingExamId').value;
+  try {
+    const questionsJson = JSON.parse(document.getElementById('examQuestions').value || '[]');
+    const vocabVal = document.getElementById('examVocab')?.value.trim();
+    const vocabularyJson = vocabVal ? JSON.parse(vocabVal) : [];
 
-      // 2. Parse JSON Từ vựng (xử lý an toàn nếu để trống)
-      const vocabVal = document.getElementById('examVocab')?.value.trim();
-      const vocabularyJson = vocabVal ? JSON.parse(vocabVal) : [];
+    const titleVal = document.getElementById('examTitle').value;
+    const topicVal = document.getElementById('examTopic').value;
 
-      const examData = {
-        title: document.getElementById('examTitle').value,
-        topic: document.getElementById('examTopic').value,
-        time_limit: parseInt(document.getElementById('examTime').value) || 60,
-        notes: document.getElementById('examNotes').value,
-        passage_html: document.getElementById('examPassage').value,
-        questions: questionsJson,
-        vocabulary: vocabularyJson
-      };
+    // Tự động tạo token dạng slug từ Tên bài thi (hoặc topicVal nếu muốn lấy theo chủ đề)
+    const generatedToken = createSlug(titleVal);
 
-      if (id) {
-        await sbClient.from('exams').update(examData).eq('id', id);
-      } else {
-        examData.token = 'ielts-' + Math.random().toString(36).substring(2, 9);
-        await sbClient.from('exams').insert([examData]);
-      }
+    const examData = {
+      title: titleVal,
+      topic: topicVal,
+      time_limit: parseInt(document.getElementById('examTime').value) || 60,
+      notes: document.getElementById('examNotes').value,
+      passage_html: document.getElementById('examPassage').value,
+      questions: questionsJson,
+      vocabulary: vocabularyJson,
+      token: generatedToken
+    };
 
-      closeExamModal();
-      loadAdminExams();
-    } catch (err) { 
-      alert("❌ Dữ liệu JSON không hợp lệ! Vui lòng kiểm tra lại cú pháp ở ô Câu hỏi hoặc Từ vựng."); 
+    if (id) {
+      await sbClient.from('exams').update(examData).eq('id', id);
+    } else {
+      await sbClient.from('exams').insert([examData]);
     }
+
+    closeExamModal();
+    loadAdminExams();
+  } catch (err) { 
+    alert("❌ Dữ liệu JSON không hợp lệ! Vui lòng kiểm tra lại cú pháp ở ô Câu hỏi hoặc Từ vựng."); 
   }
+}
 
     async function deleteExam(id) {
       if (confirm("Xóa bài thi này?")) {
@@ -1198,6 +1201,20 @@ async function deletePronunPhrase(id) {
 
 // Gọi hàm khi trang Admin tải xong
 document.addEventListener('DOMContentLoaded', loadAdminLeaderboard);
+
+function createSlug(str) {
+  if (!str) return '';
+  return str
+    .toLowerCase()
+    .normalize('NFD')                     // Tách các ký tự dấu tiếng Việt
+    .replace(/[\u0300-\u036f]/g, '')       // Xóa các dấu thanh
+    .replace(/đ/g, 'd').replace(/Đ/g, 'd') // Chuyển đ/Đ thành d
+    .replace(/['’]/g, '')                  // Xóa dấu nháy đơn (ví dụ: Minh's -> minhs)
+    .replace(/[^a-z0-9\s-]/g, '')          // Xóa các ký tự đặc biệt (: , ! ? ...)
+    .trim()
+    .replace(/\s+/g, '-')                  // Thay khoảng trắng thành dấu gạch nối (-)
+    .replace(/-+/g, '-');                  // Xóa nhiều dấu gạch nối liền nhau
+}
     
   </script>
 <!-- MODAL HƯỚNG DẪN SỬ DỤNG PHÍA ADMIN (CÓ TAB) -->
