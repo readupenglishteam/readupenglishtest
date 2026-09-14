@@ -101,25 +101,36 @@
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8 sm:space-y-10">
 
     <!-- KHUNG TRA TỪ VỰNG & DỊCH THUẬT AI -->
-<div class="max-w-2xl mx-auto p-4 sm:p-6 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl space-y-4">
-  
+<!-- ReadUp AI Dictionary Widget (Sticky & Glassmorphism UI) -->
+<div class="sticky top-4 z-40 max-w-2xl mx-auto p-4 sm:p-5 bg-white/75 dark:bg-zinc-900/75 backdrop-blur-xl border border-white/40 dark:border-zinc-800/60 rounded-2xl shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto transition-all duration-300">
+
   <!-- Header -->
-  <div class="flex items-center justify-between border-b dark:border-zinc-800 pb-3">
+  <div class="flex items-center justify-between border-b border-gray-200/60 dark:border-zinc-800/60 pb-2.5">
     <h3 class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white flex items-center gap-2">
-      <span class="text-[#cf1717]">🔍</span> ReadUp AI Dictionary
+      <span class="text-[#cf1717]">✨</span> ReadUp AI Dictionary
     </h3>
-    <span class="text-[10px] font-bold px-2 py-0.5 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-full border border-red-200 dark:border-red-900">
+    <span class="text-[10px] font-extrabold px-2.5 py-0.5 bg-red-500/10 dark:bg-red-500/20 text-[#cf1717] dark:text-red-400 rounded-full border border-red-500/20 backdrop-blur-sm">
       Powered by AI
     </span>
   </div>
 
   <!-- Input Search Box -->
   <div class="relative">
-    <textarea id="aiSearchInput" rows="2" placeholder="Nhập từ vựng (ví dụ: celebrate) hoặc dán cả câu/đoạn văn để dịch..." class="w-full p-3 pr-24 text-xs sm:text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#cf1717] resize-none"></textarea>
-    <button onclick="handleAISearch()" class="absolute right-2 bottom-3 px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs rounded-lg shadow transition">
-      Tra cứu
+    <textarea id="aiSearchInput" rows="2" placeholder="Nhập từ vựng (ví dụ: celebrate) hoặc dán cả câu/đoạn văn để dịch..." class="w-full p-3 pr-28 text-xs sm:text-sm rounded-xl border border-gray-200/80 dark:border-zinc-700/80 bg-white/50 dark:bg-zinc-800/50 dark:text-white focus:bg-white dark:focus:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]/80 backdrop-blur-md resize-none transition-all placeholder-gray-400"></textarea>
+
+    <button onclick="handleAISearch()" class="absolute right-2 bottom-3.5 px-4 py-2 bg-gradient-to-r from-[#cf1717] to-[#e63946] hover:from-[#b01313] hover:to-[#cf1717] text-white font-bold text-xs rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all duration-200 flex items-center gap-1.5">
+      <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+      </svg>
+      <span>Tra cứu</span>
     </button>
   </div>
+
+  <!-- Result Container -->
+  <div id="aiResultContainer" class="hidden space-y-4 pt-1">
+    <!-- Nội dung kết quả sẽ tự động render vào đây -->
+  </div>
+</div>
 
   <!-- Result Container -->
   <div id="aiResultContainer" class="hidden space-y-4 pt-2">
