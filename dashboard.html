@@ -2001,41 +2001,6 @@ function deleteFromNotebook(index) {
   localStorage.setItem('readup_notebook', JSON.stringify(notebook));
   openNotebookModal(); // Render lại danh sách sau khi xóa
 }
-
-  // Check tham số trên URL
-const isPreview = new URLSearchParams(window.location.search).get('preview') === 'true';
-
-if (isPreview) {
-  // A. Hiện thanh cảnh báo + Nút đóng
-  const banner = document.createElement('div');
-  banner.className = 'fixed top-0 left-0 right-0 bg-amber-500 text-white font-bold text-center py-2 px-4 z-[9999] flex justify-between items-center text-xs sm:text-sm shadow-md';
-  banner.innerHTML = `
-    <span>⚠️ CHẾ ĐỘ XEM THỬ (Không cần đăng nhập & Không lưu DB)</span>
-    <button onclick="window.close()" class="bg-black/20 hover:bg-black/40 text-white px-3 py-1 rounded-lg transition">✕ Đóng cửa sổ</button>
-  `;
-  document.body.prepend(banner);
-  document.body.classList.add('pt-10');
-
-  // B. Đọc dữ liệu nháp từ sessionStorage
-  const rawData = sessionStorage.getItem('preview_data');
-  if (rawData) {
-    const { payload } = JSON.parse(rawData);
-    
-    // C. Gọi hàm render giao diện sẵn có của bạn
-    renderUIWithDraftData(payload); 
-  }
-
-  // D. QUAN TRỌNG: Dùng return để ngắt toàn bộ luồng kiểm tra Đăng nhập / Fetch Supabase bên dưới
-  return; 
-}
-
-// -------------------------------------------------------------
-// CODE KIỂM TRA ĐĂNG NHẬP VÀ FETCH SUPABASE CỦA BẠN SẼ NẰM BÊN DƯỚI NÀY
-// -------------------------------------------------------------
-const { data: { user } } = await supabase.auth.getUser();
-if (!user) {
-  window.location.href = 'login.html'; // Sẽ KHÔNG bị dính dòng này nữa khi preview=true!
-}
   
 </script>
 <!-- MODAL ĐỔI MẬT KHẨU -->
