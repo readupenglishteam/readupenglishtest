@@ -195,16 +195,46 @@
 
       if (sortedVocab.length === 0) return passageHTML;
 
-      let processedHTML = passageHTML;
-      sortedVocab.forEach(item => {
-        const word = item.word || item.term;
-        if (!word) return;
-        const regex = new RegExp(`\\b(${word})\\b`, 'gi');
-        const jsonStr = encodeURIComponent(JSON.stringify(item));
-        processedHTML = processedHTML.replace(regex, `<mark class="vocab-item bg-amber-100 dark:bg-amber-900/50 text-amber-900 dark:text-amber-200 font-semibold px-1 rounded cursor-pointer" data-vocab="${jsonStr}">$1</mark>`);
-      });
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = passageHTML;
 
-      return processedHTML;
+      function highlightTextNodes(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          let text = node.nodeValue;
+          if (!text || !text.trim()) return;
+
+          let hasMatch = false;
+          let htmlResult = text;
+
+          sortedVocab.forEach(item => {
+            const wordStr = item.word || item.term;
+            if (!wordStr) return;
+
+            const escapedWord = wordStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`\\b(${escapedWord})\\b`, 'gi');
+
+            if (regex.test(htmlResult)) {
+              hasMatch = true;
+              const encodedData = encodeURIComponent(JSON.stringify(item));
+              const spanHTML = `<span class="vocab-item cursor-pointer border-b-2 border-dotted border-[#cf1717] dark:border-red-400 bg-red-500/10 dark:bg-red-500/20 px-0.5 rounded font-semibold text-gray-900 dark:text-gray-100 hover:bg-red-500/20" data-vocab="${encodedData}">$1</span>`;
+              htmlResult = htmlResult.replace(regex, spanHTML);
+            }
+          });
+
+          if (hasMatch) {
+            const spanWrapper = document.createElement('span');
+            spanWrapper.innerHTML = htmlResult;
+            node.parentNode.replaceChild(spanWrapper, node);
+          }
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          if (node.tagName !== 'SCRIPT' && node.tagName !== 'STYLE' && !node.classList.contains('vocab-item')) {
+            Array.from(node.childNodes).forEach(highlightTextNodes);
+          }
+        }
+      }
+
+      Array.from(tempDiv.childNodes).forEach(highlightTextNodes);
+      return tempDiv.innerHTML;
     }
 
     // XL BÔI ĐEN & FLOATING MENU HIGHLIGHT
