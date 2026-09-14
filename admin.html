@@ -1219,16 +1219,19 @@ function createSlug(str) {
     .replace(/-+/g, '-');                  // Xóa nhiều dấu gạch nối liền nhau
 }
 
-    function previewDraft(type, draftData) {
-  // Lưu dữ liệu tạm thời vào bộ nhớ trình duyệt
-  sessionStorage.setItem('preview_data', JSON.stringify({
-    type: type, // 'exam', 'announcement', 'passage'
-    payload: draftData
-  }));
-
-  // Mở trang preview ở tab mới (hoặc dạng Popup)
-  window.open('preview.html', '_blank', 'width=1000,height=800');
+    // Gọi hàm này khi bấm nút "Xem thử" ở Admin Form
+function triggerPreview(type, payload) {
+  if (!payload) return alert('Vui lòng nhập nội dung trước khi xem thử!');
+  
+  sessionStorage.setItem('preview_data', JSON.stringify({ type, payload }));
+  window.open('preview.html', '_blank');
 }
+
+// Ví dụ gắn sự kiện nút bấm Xem thử Thông báo:
+// triggerPreview('announcement', { title: inputTitle.value, content: inputContent.value, tag: 'THÔNG BÁO' });
+
+// Ví dụ gắn sự kiện nút bấm Xem thử Đề thi:
+// triggerPreview('exam', { title: inputExamTitle.value, passage_html: editorContent, questions: listQuestions });
 
 // Ví dụ khi bấm nút "Xem thử đề thi":
 // const draftExam = { title: "Đề thi thử", passage_html: "...", questions: [...] };
