@@ -1,6 +1,6 @@
 import { GoogleGenAI, Type } from '@google/genai';
 
-const ai = new GoogleGenAI({apiKey:process.env.GEMINI_API_KEY_SPEAKING});
+const ai = new GoogleGenAI({apiKey:process.env.GEMINI_API_KEY});
 
 export default async function handler(req, res) {
   // 1. Thiết lập Header CORS ngay đầu hàm
