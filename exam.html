@@ -36,6 +36,15 @@
     .animate-blob { animation: blob 10s infinite ease-in-out; }
     .animation-delay-2000 { animation-delay: 2s; }
     .animation-delay-4000 { animation-delay: 4s; }
+
+  mark.highlight-item {
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  mark.highlight-item:hover {
+    filter: brightness(0.9);
+  }
+  
   </style>
 
   <!-- HEADER -->
@@ -57,11 +66,6 @@
         </h1>
       </div>
 
-      <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-        <button onclick="highlightSelectedText()" class="px-2.5 sm:px-3 py-2 bg-amber-500/10 dark:bg-amber-500/20 hover:bg-amber-500/30 text-amber-700 dark:text-amber-300 font-bold text-xs rounded-xl border border-amber-300/60 dark:border-amber-700/60 transition flex items-center gap-1.5 shadow-sm">
-          <span>🖍️</span>
-          <span class="hidden sm:inline">Highlight</span>
-        </button>
 
         <div class="flex items-center gap-1.5 px-3 py-2 bg-red-500/10 dark:bg-red-950/50 rounded-xl border border-red-200/60 dark:border-red-900/60 shadow-sm">
           <span class="text-xs font-bold text-[#cf1717] dark:text-red-400">⏱️</span>
@@ -175,64 +179,112 @@
       startTimer(exam.time_limit || 60);
     }
 
-    // 1. HIGHLIGHT TỪ VỰNG BÀI ĐỌC
-    function renderPassageWithVocab(passageHTML, vocabData = []) {
-      if (!passageHTML) return '';
+    let savedRange = null;
+let activeMarkNode = null;
 
-      let vocabList = vocabData;
-      if (typeof vocabList === 'string') {
-        try { vocabList = JSON.parse(vocabList); } catch (e) { vocabList = []; }
-      }
+// Listeners lưu vùng chọn trên di động & hiển thị Floating Menu
+document.addEventListener('selectionchange', handleSelectionChange);
+document.addEventListener('mouseup', handleSelectionMenuShow);
+document.addEventListener('touchend', handleSelectionMenuShow);
+document.addEventListener('click', handleMarkClick);
 
-      if (!Array.isArray(vocabList) || vocabList.length === 0) return passageHTML;
-
-      const sortedVocab = [...vocabList]
-        .filter(v => v && (v.word || v.term))
-        .sort((a, b) => ((b.word || b.term).length - (a.word || a.term).length));
-
-      if (sortedVocab.length === 0) return passageHTML;
-
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = passageHTML;
-
-      function highlightTextNodes(node) {
-        if (node.nodeType === Node.TEXT_NODE) {
-          let text = node.nodeValue;
-          if (!text || !text.trim()) return;
-
-          let hasMatch = false;
-          let htmlResult = text;
-
-          sortedVocab.forEach(item => {
-            const wordStr = item.word || item.term;
-            if (!wordStr) return;
-
-            const escapedWord = wordStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const regex = new RegExp(`\\b(${escapedWord})\\b`, 'gi');
-
-            if (regex.test(htmlResult)) {
-              hasMatch = true;
-              const encodedData = encodeURIComponent(JSON.stringify(item));
-              const spanHTML = `<span class="vocab-item cursor-pointer border-b-2 border-dotted border-[#cf1717] dark:border-red-400 bg-red-500/10 dark:bg-red-500/20 px-0.5 rounded font-semibold text-gray-900 dark:text-gray-100 hover:bg-red-500/20" data-vocab="${encodedData}">$1</span>`;
-              htmlResult = htmlResult.replace(regex, spanHTML);
-            }
-          });
-
-          if (hasMatch) {
-            const spanWrapper = document.createElement('span');
-            spanWrapper.innerHTML = htmlResult;
-            node.parentNode.replaceChild(spanWrapper, node);
-          }
-        } else if (node.nodeType === Node.ELEMENT_NODE) {
-          if (node.tagName !== 'SCRIPT' && node.tagName !== 'STYLE' && !node.classList.contains('vocab-item')) {
-            Array.from(node.childNodes).forEach(highlightTextNodes);
-          }
-        }
-      }
-
-      Array.from(tempDiv.childNodes).forEach(highlightTextNodes);
-      return tempDiv.innerHTML;
+function handleSelectionChange() {
+  const selection = window.getSelection();
+  if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
+    const range = selection.getRangeAt(0);
+    const passage = document.getElementById('passageContent');
+    if (passage && passage.contains(range.commonAncestorContainer)) {
+      savedRange = range.cloneRange(); // Lưu range trước khi ngón tay chạm nút khác
     }
+  }
+}
+
+function handleSelectionMenuShow(e) {
+  // Tránh bắt sự kiện khi bấm vào chính toolbar
+  if (e.target.closest('#textSelectionMenu')) return;
+
+  const selection = window.getSelection();
+  const menu = document.getElementById('textSelectionMenu');
+  const removeBtn = document.getElementById('btnRemoveHighlight');
+
+  if (selection && !selection.isCollapsed && savedRange) {
+    activeMarkNode = null;
+    if (removeBtn) removeBtn.classList.add('hidden');
+
+    const rect = selection.getRangeAt(0).getBoundingClientRect();
+    if (rect.width > 0 && menu) {
+      menu.style.top = `${window.scrollY + rect.top - 45}px`;
+      menu.style.left = `${window.scrollX + rect.left + (rect.width / 2)}px`;
+      menu.classList.remove('hidden');
+    }
+  } else if (!activeMarkNode && menu) {
+    menu.classList.add('hidden');
+  }
+}
+
+// Bấm trực tiếp vào chỗ đã tô highlight để hiện Tẩy
+function handleMarkClick(e) {
+  const mark = e.target.closest('mark.highlight-item');
+  const menu = document.getElementById('textSelectionMenu');
+  const removeBtn = document.getElementById('btnRemoveHighlight');
+
+  if (mark) {
+    activeMarkNode = mark;
+    const rect = mark.getBoundingClientRect();
+    if (menu && removeBtn) {
+      removeBtn.classList.remove('hidden');
+      menu.style.top = `${window.scrollY + rect.top - 45}px`;
+      menu.style.left = `${window.scrollX + rect.left + (rect.width / 2)}px`;
+      menu.classList.remove('hidden');
+    }
+    e.stopPropagation();
+  }
+}
+
+// Thực hiện Tô Màu từ Menu
+function applyHighlightFromMenu(colorClass) {
+  const selection = window.getSelection();
+  let range = (selection && !selection.isCollapsed) ? selection.getRangeAt(0) : savedRange;
+
+  if (!range || range.collapsed) {
+    alert("Vui lòng bôi đen đoạn văn bản trong bài đọc!");
+    return;
+  }
+
+  const mark = document.createElement('mark');
+  mark.className = `highlight-item ${colorClass} px-1 rounded`;
+  
+  try {
+    mark.appendChild(range.extractContents());
+    range.insertNode(mark);
+  } catch(err) {
+    console.warn("Không thể highlight cấu trúc phức tạp:", err);
+  }
+
+  if (selection) selection.removeAllRanges();
+  savedRange = null;
+  document.getElementById('textSelectionMenu')?.classList.add('hidden');
+}
+
+// Thực hiện Xóa Tô (Tẩy Highlight)
+function removeActiveHighlight() {
+  if (!activeMarkNode) return;
+
+  const parent = activeMarkNode.parentNode;
+  while (activeMarkNode.firstChild) {
+    parent.insertBefore(activeMarkNode.firstChild, activeMarkNode);
+  }
+  parent.removeChild(activeMarkNode);
+  parent.normalize(); // Nối lại văn bản liền mạch
+
+  activeMarkNode = null;
+  document.getElementById('textSelectionMenu')?.classList.add('hidden');
+}
+
+// Nút Highlight ở Header (Tương thích ngược)
+function highlightSelectedText() {
+  applyHighlightFromMenu('bg-yellow-300 dark:bg-yellow-500 text-black');
+}
 
     // 2. TOOLTIP TỪ VỰNG
     document.addEventListener('mouseover', function(e) {
@@ -790,5 +842,19 @@
     <p id="tooltipContext" class="text-[11px] text-gray-300 dark:text-gray-600 italic"></p>
     <p id="tooltipColloc" class="text-[11px] text-amber-300 dark:text-amber-700 font-medium"></p>
   </div>
+
+  <!-- FLOATING ACTION TOOLBAR (Hiện ngay khi bôi đen hoặc click Highlight) -->
+<div id="textSelectionMenu" class="fixed hidden z-50 bg-zinc-900/90 dark:bg-white/90 text-white dark:text-zinc-900 px-2 py-1.5 rounded-2xl shadow-2xl border border-zinc-700 dark:border-gray-200 backdrop-blur-md flex items-center gap-1 text-xs transition-all duration-150 transform -translate-x-1/2">
+  <button onclick="applyHighlightFromMenu('bg-yellow-300 dark:bg-yellow-500 text-black')" class="px-2 py-1 hover:bg-zinc-800 dark:hover:bg-gray-200 rounded-xl flex items-center gap-1 font-bold">
+    <span>🖍️</span> <span>Tô Vàng</span>
+  </button>
+  <button onclick="applyHighlightFromMenu('bg-green-300 dark:bg-green-600 text-black dark:text-white')" class="px-2 py-1 hover:bg-zinc-800 dark:hover:bg-gray-200 rounded-xl flex items-center gap-1 font-bold">
+    <span>🟢</span> <span>Tô Xanh</span>
+  </button>
+  <button id="btnRemoveHighlight" onclick="removeActiveHighlight()" class="hidden px-2 py-1 bg-red-500/20 text-red-400 dark:text-red-600 hover:bg-red-500/30 rounded-xl font-bold flex items-center gap-1">
+    <span>🧽</span> <span>Xóa Tô</span>
+  </button>
+</div>
+  
 </body>
 </html>
