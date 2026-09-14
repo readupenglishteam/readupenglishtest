@@ -155,7 +155,9 @@
           <label class="block text-xs font-bold uppercase mb-1">Nội dung thông báo</label>
           <textarea id="newsContent" rows="3" required placeholder="Chi tiết nội dung..." class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700"></textarea>
         </div>
+        <div class="flex justify-end gap-3 mt-4">
         <button type="submit" id="newsSubmitBtn" class="bg-[#cf1717] hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm transition shadow">Đăng Thông Báo</button>
+        <button type="button" onclick="previewAnnouncementForm()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs sm:text-sm flex items-center gap-2 transition"><span></span>Xem thử</button></div>
       </form>
 
       <!-- Danh sách tin cũ -->
@@ -367,6 +369,7 @@
           <div class="pt-2 flex gap-2">
             <button onclick="editExam('${exam.id}')" class="w-1/2 py-1.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-lg hover:bg-blue-100 transition">✏️ Sửa</button>
             <button onclick="deleteExam('${exam.id}')" class="w-1/2 py-1.5 bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-xs font-bold rounded-lg hover:bg-red-100 transition">🗑️ Xóa</button>
+            <button type="button" onclick="previewExamForm()" class="w-1/2 py-1.5 bg-amber-50 dark:bg-red-950/50 text-amber-600 dark:text-amber-400 text-xs font-bold rounded-lg hover:bg-red-100 transition">👁️ Xem thử</button>
           </div>
         </div>
       `).join('');
@@ -1214,6 +1217,43 @@ function createSlug(str) {
     .trim()
     .replace(/\s+/g, '-')                  // Thay khoảng trắng thành dấu gạch nối (-)
     .replace(/-+/g, '-');                  // Xóa nhiều dấu gạch nối liền nhau
+}
+
+    function previewDraft(type, draftData) {
+  // Lưu dữ liệu tạm thời vào bộ nhớ trình duyệt
+  sessionStorage.setItem('preview_data', JSON.stringify({
+    type: type, // 'exam', 'announcement', 'passage'
+    payload: draftData
+  }));
+
+  // Mở trang preview ở tab mới (hoặc dạng Popup)
+  window.open('preview.html', '_blank', 'width=1000,height=800');
+}
+
+// Ví dụ khi bấm nút "Xem thử đề thi":
+// const draftExam = { title: "Đề thi thử", passage_html: "...", questions: [...] };
+// previewDraft('exam', draftExam);
+
+function previewAnnouncementForm() {
+  const draftData = {
+    title: document.getElementById('annTitleInput').value || 'Chưa có tiêu đề',
+    content: document.getElementById('annContentInput').value || 'Chưa có nội dung',
+    tag: document.getElementById('annTagSelect')?.value || 'THÔNG BÁO'
+  };
+  
+  previewDraft('announcement', draftData);
+}
+  function previewExamForm() {
+  // Bắt toàn bộ dữ liệu đang điền dở trên giao diện Admin
+  const draftData = {
+    title: document.getElementById('examTitleInput')?.value || 'Đề thi thử nghiệm',
+    topic: document.getElementById('examTopicInput')?.value || 'IELTS Reading',
+    passage_html: document.getElementById('passageTextInput')?.value || '<p>Chưa nhập nội dung bài đọc...</p>',
+    // Nếu bạn có hàm gom danh sách câu hỏi hiện tại:
+    questions: typeof getCurrentQuestionsArray === 'function' ? getCurrentQuestionsArray() : []
+  };
+
+  previewDraft('exam', draftData);
 }
     
   </script>
