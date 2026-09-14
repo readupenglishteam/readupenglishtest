@@ -190,8 +190,50 @@
       </div>
 </div>
     </section>
+<!-- KHUNG AI SPEAKING ASSISTANT -->
+<section class="space-y-3 sm:space-y-4">
+<div class="space-y-4 max-w-2xl mx-auto">
+  <div class="p-5 sm:p-6 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm space-y-4">
+    <div class="flex items-center gap-2 border-l-4 border-[#cf1717] pl-3">
+      <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">🎙️ AI Speaking Assistant</h2>
+    </div>
 
+    <!-- Chọn Part & Target Band -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+      <div>
+        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">CHỌN PART</label>
+        <select id="speakingPart" class="w-full p-2.5 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none">
+          <option value="Part 1">Part 1 (Ngắn gọn, tự nhiên)</option>
+          <option value="Part 2">Part 2 (Kể chuyện / Cue Card)</option>
+          <option value="Part 3">Part 3 (Thảo luận sâu / Lý thuyết)</option>
+        </select>
+      </div>
 
+      <div>
+        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">MỤC TIÊU BAND</label>
+        <select id="targetBand" class="w-full p-2.5 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none">
+          <option value="6.0-6.5">Band 6.0 - 6.5</option>
+          <option value="7.0-7.5" selected>Band 7.0 - 7.5</option>
+          <option value="8.0+">Band 8.0+</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Nhập câu hỏi -->
+    <div>
+      <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">CÂU HỎI HOẶC CHỦ ĐỀ</label>
+      <textarea id="speakingQuestion" rows="3" class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none placeholder-gray-400 font-medium" placeholder="Nhập câu hỏi (Ví dụ: Do you prefer reading books or watching movies?)"></textarea>
+    </div>
+
+    <!-- Nút hành động -->
+    <button onclick="generateSpeakingHint()" class="w-full py-3 bg-gradient-to-r from-[#cf1717] to-[#e63946] hover:from-[#b01313] hover:to-[#cf1717] text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition active:scale-95 flex items-center justify-center gap-2">
+      <span>✨ Tạo gợi ý trả lời</span>
+    </button>
+  </div>
+
+  <!-- Vùng hiển thị kết quả -->
+  <div id="aiResultContainer" class="hidden space-y-4"></div>
+</div></section>
     <!-- PHẦN: LUYỆN PHÁT ÂM & BIỂU ĐỒ TIẾN BỘ -->
 <section class="space-y-3 sm:space-y-4">
   <!-- Header Tiêu Đề Đồng Bộ -->
@@ -2001,6 +2043,53 @@ function deleteFromNotebook(index) {
   localStorage.setItem('readup_notebook', JSON.stringify(notebook));
   openNotebookModal(); // Render lại danh sách sau khi xóa
 }
+
+// Khai báo API Endpoint dùng chung cho hệ thống
+const WORKER_URL = "https://readupenglishtest.vercel.app/api/speaking";
+
+async function generateSpeakingHint() {
+  const part = document.getElementById('speakingPart').value;
+  const band = document.getElementById('targetBand').value;
+  const question = document.getElementById('speakingQuestion').value.trim();
+  const container = document.getElementById('aiResultContainer');
+
+  if (!question) {
+    alert('Vui lòng nhập câu hỏi hoặc chủ đề Speaking!');
+    return;
+  }
+
+  container.classList.remove('hidden');
+  container.innerHTML = `
+    <div class="p-6 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl text-center space-y-2">
+      <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#cf1717] border-t-transparent"></div>
+      <p class="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-300">🤖 AI đang phân tích dữ liệu cho ${part} (Mục tiêu ${band})...</p>
+    </div>
+  `;
+
+  try {
+    // Gọi API thông qua hằng số WORKER_URL
+    const response = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, part, band })
+    });
+
+    if (!response.ok) throw new Error('API Request failed');
+
+    const data = await response.json();
+    renderAIResponse(data);
+  } catch (error) {
+    console.error('Speaking API Error:', error);
+    container.innerHTML = `
+      <div class="p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 rounded-2xl text-xs sm:text-sm font-medium text-center">
+        ❌ Có lỗi xảy ra trong quá trình tạo gợi ý. Vui lòng thử lại sau!
+      </div>
+    `;
+  }
+}
+
+
+
   
 </script>
 <!-- MODAL ĐỔI MẬT KHẨU -->
