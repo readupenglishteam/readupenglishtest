@@ -317,6 +317,7 @@
         <div class="flex gap-3 pt-2">
           <button type="button" onclick="closeExamModal()" class="w-1/2 py-3 bg-gray-200 dark:bg-zinc-700 font-bold rounded-lg text-sm">Hủy</button>
           <button type="submit" class="w-1/2 py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-lg transition text-sm shadow">Lưu Bài Thi</button>
+          <button type="button" onclick="previewDraftExam()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5">Xem thử bài nháp</button>
         </div>
       </form>
     </div>
@@ -367,7 +368,7 @@
           <div class="pt-2 flex gap-2">
             <button onclick="editExam('${exam.id}')" class="w-1/2 py-1.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-lg hover:bg-blue-100 transition">✏️ Sửa</button>
             <button onclick="deleteExam('${exam.id}')" class="w-1/2 py-1.5 bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-xs font-bold rounded-lg hover:bg-red-100 transition">🗑️ Xóa</button>
-            <button type="button" onclick="previewExam()" class="w-1/2 py-1.5 bg-amber-50 dark:bg-red-950/50 text-amber-600 dark:text-amber-400 text-xs font-bold rounded-lg hover:bg-red-100 transition">👁️ Xem thử</button>
+            <button type="button" onclick="previewExam('${exam.token}')" class="w-1/2 py-1.5 bg-amber-50 dark:bg-red-950/50 text-amber-600 dark:text-amber-400 text-xs font-bold rounded-lg hover:bg-red-100 transition">👁️ Xem thử</button>
           </div>
         </div>
       `).join('');
@@ -1224,10 +1225,36 @@ function previewAnnouncement(draftData) {
   window.open('dashboard.html?preview=true', '_blank');
 }
 
-// Xem thử Đề thi trên giao diện exam.html
-function previewExam(draftData) {
-  sessionStorage.setItem('preview_data', JSON.stringify({ type: 'exam', payload: draftData }));
+function previewExam(token) {
+  if (!token) return alert('Không tìm thấy Token bài thi!');
+  // 1. Xóa dữ liệu nháp cũ (để exam.html biết đường tải dữ liệu từ DB theo token)
+  sessionStorage.removeItem('preview_exam_data');
+  // 2. Mở exam.html truyền kèm token và cờ preview=true
+  window.open(`exam.html?token=${token}&preview=true`, '_blank');
+}
+    // Xem thử bảng nháp
+    function previewDraftExam() {
+  // 1. Lấy dữ liệu từ các ô Input/Editor trên Form của bạn
+  const draftData = {
+    title: document.getElementById('examTitle')?.value || 'Đề thi xem thử',
+    passage_html: document.getElementById('examPassage')?.innerHTML || document.getElementById('passageInput')?.value || '',
+    questions: typeof getQuestionsFromUI === 'function' ? getQuestionsFromUI() : [] // Hàm lấy danh sách câu hỏi hiện tại (nếu có)
+  };
+
+  if (!draftData.title && !draftData.passage_html) {
+    return alert('Vui lòng nhập tiêu đề hoặc nội dung trước khi xem thử!');
+  }
+
+  // 2. Lưu vào sessionStorage
+  sessionStorage.setItem('preview_exam_data', JSON.stringify(draftData));
+
+  // 3. Mở exam.html với cờ preview=true (Không truyền token vì chưa có trong DB)
   window.open('exam.html?preview=true', '_blank');
+}
+    // Xem bài đã có rồi
+    function previewExistingExam(examToken) {
+  sessionStorage.removeItem('preview_exam_data'); // Xóa dữ liệu nháp cũ nếu có
+  window.open(`exam.html?token=${examToken}&preview=true`, '_blank');
 }
     
   </script>
