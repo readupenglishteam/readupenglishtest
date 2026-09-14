@@ -101,31 +101,57 @@
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8 sm:space-y-10">
 
     <!-- KHUNG TRA TỪ VỰNG & DỊCH THUẬT AI -->
-  <!-- ReadUp AI Search Bar (Glassmorphism & Google Style) -->
+  <!-- ReadUp AI Search Bar & Notebook Button -->
 <div class="max-w-2xl mx-auto my-6 px-4">
-  <!-- Thanh Tìm Kiếm Kính Mờ -->
-  <div class="relative flex items-center bg-white/65 dark:bg-zinc-900/65 backdrop-blur-xl border border-white/50 dark:border-zinc-700/50 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 p-1.5 pl-5 focus-within:ring-2 focus-within:ring-[#cf1717]/50">
+  <div class="relative flex items-center bg-white/65 dark:bg-zinc-900/65 backdrop-blur-xl border border-white/50 dark:border-zinc-700/50 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 p-1.5 pl-4 focus-within:ring-2 focus-within:ring-[#cf1717]/50">
     
-    <span class="text-gray-400 text-base mr-3">🔍</span>
+    <span class="text-gray-400 text-base mr-2">🔍</span>
 
     <input id="aiSearchInput" type="text" placeholder="Tra từ và cụm Anh-Việt" 
            onkeydown="if(event.key==='Enter') handleAISearch()"
            class="w-full bg-transparent text-xs sm:text-sm text-gray-800 dark:text-white focus:outline-none placeholder-gray-400/80 font-medium">
 
+    <!-- Nút Thu Âm -->
     <button id="btnRecordSpeech" onclick="checkAndRequestMic()" class="p-2 text-gray-400 hover:text-[#cf1717] dark:hover:text-red-400 transition rounded-full hover:bg-white/40 dark:hover:bg-zinc-800/50 mr-1" title="Chấm phát âm">
-      <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+      <svg class="w-4 h-4 sm:w-5 sm:h-5 fill-current" viewBox="0 0 24 24">
         <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
         <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
       </svg>
     </button>
 
-    <button onclick="handleAISearch()" class="px-4 py-2 bg-gradient-to-r from-[#cf1717] to-[#e63946] hover:from-[#b01313] hover:to-[#cf1717] text-white font-bold text-xs sm:text-sm rounded-full shadow-md transition active:scale-95 flex items-center gap-1.5 whitespace-nowrap">
+    <!-- Nút Mở Sổ Tay -->
+    <button onclick="openNotebookModal()" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-200 font-bold text-xs rounded-full transition mr-1.5 flex items-center gap-1" title="Mở Sổ tay từ vựng">
+      <span>📚</span> <span class="hidden sm:inline">Sổ tay</span>
+    </button>
+
+    <!-- Nút Tra Cứu AI Mode -->
+    <button onclick="handleAISearch()" class="px-3.5 py-2 bg-gradient-to-r from-[#cf1717] to-[#e63946] hover:from-[#b01313] hover:to-[#cf1717] text-white font-bold text-xs sm:text-sm rounded-full shadow-md transition active:scale-95 flex items-center gap-1 whitespace-nowrap">
       <span>✨ AI Mode</span>
     </button>
   </div>
 
-  <!-- Khung Hiển Thị Kết Quả Tra Từ Kính Mờ Nâng Cao -->
-  <div id="aiResultContainer" class="hidden mt-3 p-5 bg-white/75 dark:bg-zinc-900/75 backdrop-blur-2xl border border-white/40 dark:border-zinc-800/60 rounded-3xl shadow-2xl max-h-[70vh] overflow-y-auto space-y-4">
+  <!-- Khung Hiển Thị Kết Quả Tra Từ -->
+  <div id="aiResultContainer" class="hidden mt-3 p-5 bg-white/75 dark:bg-zinc-900/75 backdrop-blur-2xl border border-white/40 dark:border-zinc-800/60 rounded-3xl shadow-2xl max-h-[70vh] overflow-y-auto space-y-4"></div>
+</div>
+
+<!-- Modal Pop-up Sổ Tay Từ Vựng -->
+<div id="notebookModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+  <div class="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-2xl rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl border border-white/40 dark:border-zinc-800 space-y-4 max-h-[80vh] flex flex-col">
+    
+    <!-- Header Pop-up -->
+    <div class="flex items-center justify-between border-b border-gray-200/60 dark:border-zinc-800 pb-3">
+      <h3 class="font-black text-base sm:text-lg text-gray-900 dark:text-white flex items-center gap-2">
+        <span class="text-[#cf1717]">📚</span> Sổ Tay Từ Vựng
+      </h3>
+      <button onclick="closeNotebookModal()" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-500 hover:text-black dark:hover:text-white font-bold text-sm flex items-center justify-center transition">
+        ✕
+      </button>
+    </div>
+
+    <!-- Danh sách từ vựng đã lưu -->
+    <div id="notebookList" class="overflow-y-auto flex-1 space-y-2.5 pr-1">
+      <!-- Từ vựng sẽ tự động render vào đây -->
+    </div>
   </div>
 </div>
 
@@ -1876,8 +1902,8 @@ function renderAIResult(data) {
           <span class="font-mono text-gray-400">${data.ipa || ''}</span>
           <button onclick="playAudioWord('${data.word}')" class="p-1 text-gray-400 hover:text-[#cf1717] transition text-sm" title="Phát âm từ gốc">🔊</button>
         </div>
-        <button onclick="alert('Đã lưu từ vào sổ tay!')" class="px-2.5 py-1 bg-red-50 dark:bg-red-950 text-[#cf1717] dark:text-red-400 border border-red-200 dark:border-red-900 rounded-lg text-[11px] font-bold hover:bg-red-100 transition">
-          🔖 Lưu từ
+        <button onclick="saveToNotebook('${data.word}', '${data.ipa || ''}', '${data.forms?.[0]?.meaning || ''}')" class="px-2.5 py-1 bg-red-50 dark:bg-red-950 text-[#cf1717] dark:text-red-400 border border-red-200 dark:border-red-900 rounded-lg text-[11px] font-bold hover:bg-red-100 transition">
+        🔖 Lưu từ
         </button>
       </div>
 
@@ -1908,6 +1934,72 @@ function renderAIResult(data) {
       ` : ''}
     </div>
   `;
+}
+
+  // 1. Hàm lưu từ vựng thật vào localStorage
+function saveToNotebook(word, ipa, meaning) {
+  let notebook = JSON.parse(localStorage.getItem('readup_notebook') || '[]');
+  
+  // Kiểm tra trùng lặp từ
+  const exists = notebook.some(item => item.word.toLowerCase() === word.toLowerCase());
+  if (exists) {
+    alert(`Từ "${word}" đã có trong sổ tay của bạn rồi!`);
+    return;
+  }
+
+  notebook.unshift({ word, ipa: ipa || '', meaning: meaning || '', time: new Date().toLocaleDateString('vi-VN') });
+  localStorage.setItem('readup_notebook', JSON.stringify(notebook));
+  alert(`✅ Đã lưu từ "${word}" vào Sổ tay!`);
+}
+
+// 2. Mở Bảng Pop-up Sổ Tay
+function openNotebookModal() {
+  const modal = document.getElementById('notebookModal');
+  const container = document.getElementById('notebookList');
+  if (!modal || !container) return;
+
+  let notebook = JSON.parse(localStorage.getItem('readup_notebook') || '[]');
+
+  if (notebook.length === 0) {
+    container.innerHTML = `
+      <div class="text-center py-8 text-gray-400 dark:text-gray-500 text-xs space-y-1">
+        <p class="text-2xl">📭</p>
+        <p>Sổ tay đang trống.</p>
+        <p class="text-[11px]">Hãy bấm "🔖 Lưu từ" khi tra cứu để tích lũy từ mới nhé!</p>
+      </div>
+    `;
+  } else {
+    container.innerHTML = notebook.map((item, index) => `
+      <div class="p-3 bg-white/60 dark:bg-zinc-800/60 rounded-2xl border border-gray-100 dark:border-zinc-800 flex items-center justify-between gap-2 shadow-sm">
+        <div class="space-y-0.5">
+          <div class="flex items-center gap-2">
+            <strong class="text-sm font-bold text-gray-900 dark:text-white capitalize">${item.word}</strong>
+            <span class="text-xs font-mono text-gray-400">${item.ipa}</span>
+            <button onclick="playAudioWord('${item.word}')" class="text-xs text-gray-400 hover:text-[#cf1717]">🔊</button>
+          </div>
+          <p class="text-xs text-gray-600 dark:text-gray-300 font-medium">${item.meaning}</p>
+        </div>
+        <button onclick="deleteFromNotebook(${index})" class="text-gray-400 hover:text-red-500 p-1.5 transition text-xs" title="Xóa từ này">
+          🗑️
+        </button>
+      </div>
+    `).join('');
+  }
+
+  modal.classList.remove('hidden');
+}
+
+// 3. Đóng Bảng Sổ Tay
+function closeNotebookModal() {
+  document.getElementById('notebookModal')?.classList.add('hidden');
+}
+
+// 4. Xóa từ khỏi Sổ tay
+function deleteFromNotebook(index) {
+  let notebook = JSON.parse(localStorage.getItem('readup_notebook') || '[]');
+  notebook.splice(index, 1);
+  localStorage.setItem('readup_notebook', JSON.stringify(notebook));
+  openNotebookModal(); // Render lại danh sách sau khi xóa
 }
   
 </script>
