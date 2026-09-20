@@ -1185,7 +1185,135 @@ function triggerPDFPrint() {
     }
 
     window.onload = initExam;
-  </script>
+
+let roomId = null;
+let examStartTime = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // 1. Lấy thông tin phòng từ URL
+  const urlParams = new URLSearchParams(window.location.search);
+  roomId = urlParams.get('room_id');
+
+  // 2. Bắt đầu đếm thời gian làm bài
+  examStartTime = new Date();
+
+  // 3. Nếu đang trong phòng thi đấu -> Hiển thị Badge báo hiệu trên giao diện bài thi
+  if (roomId) {
+    const headerTitle = document.getElementById('examHeaderTitle');
+    if (headerTitle) {
+      headerTitle.innerHTML += ` <span class="bg-red-100 text-[#cf1717] text-[10px] font-black px-2 py-0.5 rounded-full ml-2">⚔️ Đang Thi Đấu</span>`;
+    }
+  }
+});
+    
+    
+    async function handleRoomSubmitExam(score, timeSpentSeconds) {
+  const urlParams = new URLSearchParams(window.location.search);
+  const roomId = urlParams.get('room_id');
+
+  if (!roomId) return; // Bài thi cá nhân bình thường
+
+  // 1. Cập nhật Điểm & Thời Gian vào Room Participants
+  await sbClient.from('room_participants').update({
+    score: score,
+    completion_time: timeSpentSeconds,
+    is_submitted: true
+  }).eq('room_id', roomId).eq('user_id', currentUser.id);
+
+  // 2. Mở Bảng Vàng Vinh Danh Realtime
+  openLeaderboardRoomModal(roomId);
+}
+
+// LẮNG NGHE BẢNG XẾP HẠNG REAL-TIME KHI CÓ NGƯỜI NỘP BÀI
+function openLeaderboardRoomModal(roomId) {
+  const modal = document.getElementById('roomLeaderboardModal');
+  modal.classList.remove('hidden');
+
+  sbClient.channel(`leaderboard_${roomId}`)
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'room_participants', filter: `room_id=eq.${roomId}` },
+      () => renderRealtimeLeaderboard(roomId)
+    )
+    .subscribe();
+
+  renderRealtimeLeaderboard(roomId);
+}
+
+async function renderRealtimeLeaderboard(roomId) {
+  // Lấy thông tin Chế Độ Chơi của Phòng
+  const { data: room } = await sbClient.from('rooms').select('mode').eq('id', roomId).single();
   
+  // Lấy danh sách thành viên
+  const { data: list } = await sbClient.from('room_participants')
+    .select('*')
+    .eq('room_id', roomId);
+
+  const container = document.getElementById('leaderboardContent');
+
+  if (room.mode === 'battle') {
+    // ⚔️ CHẾ ĐỘ ĐUA TỐC ĐỘ: Sắp xếp theo ĐIỂM SỐ (Cao xuống thấp) + THỜI GIAN (Nhanh lên trước)
+    list.sort((a, b) => b.score - a.score || a.completion_time - b.completion_time);
+
+    container.innerHTML = list.map((item, index) => `
+      <div class="flex justify-between items-center p-3 rounded-xl ${index === 0 ? 'bg-amber-100 border-2 border-amber-400 font-black' : 'bg-gray-50'}">
+        <div class="flex items-center gap-2">
+          <span>${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}</span>
+          <span class="text-xs font-bold">${item.full_name}</span>
+        </div>
+        <div class="text-right">
+          ${item.is_submitted 
+            ? `<span class="text-xs font-bold text-[#cf1717]">${item.score}/10 Điểm</span> <span class="text-[10px] text-gray-500">(${Math.floor(item.completion_time/60)}m${item.completion_time%60}s)</span>`
+            : `<span class="text-[10px] text-amber-600 font-bold animate-pulse">⏳ Đang làm bài...</span>`
+          }
+        </div>
+      </div>
+    `).join('');
+
+  } else {
+    // ☕ CHẾ ĐỘ CO-WORKING (HỌC NHÓM): Không áp lực thời gian, hiện tích xanh ✅
+    container.innerHTML = list.map(item => `
+      <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+        <span class="text-xs font-bold">${item.full_name}</span>
+        ${item.is_submitted 
+          ? `<span class="text-xs font-bold text-green-600 flex items-center gap-1">✅ Đã hoàn thành (${item.score}/10)</span>`
+          : `<span class="text-xs text-gray-400 italic">⏳ Đang cày bài...</span>`
+        }
+      </div>
+    `).join('');
+  }
+}
+    // Hàm gắn vào nút "Nộp Bài" của giao diện exam.html
+async function onSubmitExamButtonClick() {
+  // 1. Tính toán điểm bài thi & tổng thời gian làm bài (tính bằng giây)
+  const userScore = calculateScore(); // Hàm tính điểm bài thi hiện tại của bạn
+  const timeSpentSeconds = Math.floor((new Date() - examStartTime) / 1000);
+
+  if (roomId) {
+    // Trường hợp THI NHÓM: Gọi hàm xử lý Realtime ở BƯỚC 4
+    await handleRoomSubmitExam(userScore, timeSpentSeconds);
+  } else {
+    // Trường hợp THI CÁ NHÂN bình thường
+    await savePersonalExamResult(userScore);
+    alert(`Bạn đã hoàn thành bài thi! Điểm số: ${userScore}/10`);
+    window.location.href = 'dashboard.html';
+  }
+}
+  </script>
+  <!-- MODAL BẢNG VÀNG VINH DANH REAL-TIME -->
+<div id="roomLeaderboardModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+  <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-100 dark:border-zinc-800 space-y-4">
+    <div class="text-center space-y-1">
+      <span class="text-3xl">🏆</span>
+      <h3 class="text-xl font-black text-gray-900 dark:text-white">Bảng Kết Quả Phòng Thi</h3>
+      <p class="text-xs text-gray-500">Cập nhật trực tiếp tiến độ nộp bài của các thành viên</p>
+    </div>
+
+    <!-- Nơi render danh sách xếp hạng Realtime -->
+    <div id="leaderboardContent" class="space-y-2 max-h-64 overflow-y-auto pr-1"></div>
+
+    <button onclick="window.location.href='dashboard.html'" class="w-full py-3 bg-zinc-900 text-white font-extrabold text-sm rounded-xl hover:bg-black transition active:scale-95">
+      Rời Phòng & Trở Về Dashboard
+    </button>
+  </div>
+</div>
 </body>
 </html>
