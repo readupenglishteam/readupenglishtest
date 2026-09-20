@@ -927,97 +927,87 @@
       questionBox.innerHTML = htmlContent;
     }
 
-    function triggerPDFPrint() {
-      if (!currentExam) {
-        alert("Đang tải dữ liệu bài thi, vui lòng đợi giây lát!");
-        return;
-      }
+function triggerPDFPrint() {
+  if (!currentExam) {
+    alert("Đang tải dữ liệu bài thi, vui lòng đợi giây lát!");
+    return;
+  }
 
-      const printArea = document.getElementById('printArea');
-      if (!printArea) return;
+  const printArea = document.getElementById('printArea');
+  if (!printArea) return;
 
-      const title = currentExam.title || 'READING EXAM';
-      const passageHTML = currentExam.passage_html || currentExam.passage || '';
-      const questions = currentExam.questions || [];
-      const imageURL = currentExam.image_url || currentExam.image || 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=800';
-      const imageCaption = currentExam.image_caption || 'Illustration of reading topic and urban infrastructure developments.';
-      const vocabList = currentExam.vocab_list || currentExam.vocab || currentExam.vocabularies || currentExam.vocabulary || [];
+  const title = currentExam.title || 'READING EXAM';
+  const passageHTML = currentExam.passage_html || currentExam.passage || '';
+  const questions = currentExam.questions || [];
+  const imageURL = currentExam.image_url || currentExam.image || 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=800';
+  const imageCaption = currentExam.image_caption || 'Illustration of reading topic and urban infrastructure developments.';
+  const vocabList = currentExam.vocab_list || currentExam.vocab || currentExam.vocabularies || currentExam.vocabulary || [];
 
-      const questionsPDFHTML = questions.map((q, idx) => {
-        let opts = '';
-        if (q.options && Array.isArray(q.options)) {
-          opts = '<div class="pdf-options">' + 
-            q.options.map(o => '<div class="pdf-option"><strong>' + o + '</strong></div>').join('') + 
-          '</div>';
-        }
-        return '<div class="pdf-question-item">' +
-          '<div class="pdf-question-title">' + (idx + 1) + '. ' + q.question + '</div>' +
-          opts +
-        '</div>';
-      }).join('');
-
-      let vocabPDFHTML = '';
-      let parsedVocab = vocabList;
-      if (typeof parsedVocab === 'string') {
-        try { parsedVocab = JSON.parse(parsedVocab); } catch(e) { parsedVocab = []; }
-      }
-
-      if (Array.isArray(parsedVocab) && parsedVocab.length > 0) {
-        const rows = parsedVocab.map(v => {
-          const w = v.word || v.term || '';
-          const ipa = v.ipa || '';
-          const type = v.type ? '(' + v.type + ')' : '';
-          const meaning = v.meaning || '';
-          return '<tr><td><strong>' + w + '</strong></td><td>' + ipa + ' ' + type + '</td><td>' + meaning + '</td></tr>';
-        }).join('');
-
-        vocabPDFHTML = `
-          <div style="margin-top: 20px; page-break-inside: avoid;">
-            <h3 style="font-size: 12px; font-weight: bold; border-bottom: 1.5px solid #000; padding-bottom: 3px; margin-bottom: 6px;">VOCABULARY LIST</h3>
-            <table class="pdf-vocab-table">
-              <thead>
-                <tr>
-                  <th>Word</th>
-                  <th>IPA / Type</th>
-                  <th>Meaning</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${rows}
-              </tbody>
-            </table>
-          </div>`;
-      }
-
-      printArea.innerHTML = `
-        <div class="pdf-header">
-          <div class="pdf-header-left">
-            <img src="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png" alt="ReadUp Logo">
-            <div style="font-weight: 900; color: #cf1717; font-size: 11px; line-height: 1.1;">READ UP<br><span style="color:#000">ENGLISH</span></div>
-          </div>
-          <div class="pdf-header-right">
-            <div class="pdf-header-title">${title}</div>
-          </div>
-        </div>
-
-        <div class="pdf-grid">
-          <div class="pdf-passage">
-            ${passageHTML}
-          </div>
-          <div class="pdf-questions-col">
-            <div class="pdf-image-box">
-              <img src="${imageURL}" alt="Reading Illustration">
-              <div class="pdf-caption">${imageCaption}</div>
-            </div>
-            ${questionsPDFHTML}
-          </div>
-        </div>
-
-        ${vocabPDFHTML}
-      `;
-
-      window.print();
+  const questionsPDFHTML = questions.map((q, idx) => {
+    let opts = '';
+    if (q.options && Array.isArray(q.options)) {
+      opts = '<div class="pdf-options">' + 
+        q.options.map(o => '<div class="pdf-option"><strong>' + o + '</strong></div>').join('') + 
+      '</div>';
     }
+    return '<div class="pdf-question-item">' +
+      '<div class="pdf-question-title">' + (idx + 1) + '. ' + q.question + '</div>' +
+      opts +
+    '</div>';
+  }).join('');
+
+  let vocabPDFHTML = '';
+  let parsedVocab = vocabList;
+  if (typeof parsedVocab === 'string') {
+    try { parsedVocab = JSON.parse(parsedVocab); } catch(e) { parsedVocab = []; }
+  }
+
+  if (Array.isArray(parsedVocab) && parsedVocab.length > 0) {
+    const rows = parsedVocab.map(v => {
+      const w = v.word || v.term || '';
+      const ipa = v.ipa || '';
+      const type = v.type ? '(' + v.type + ')' : '';
+      const meaning = v.meaning || '';
+      return '<tr><td><strong>' + w + '</strong></td><td>' + ipa + ' ' + type + '</td><td>' + meaning + '</td></tr>';
+    }).join('');
+
+    vocabPDFHTML = 
+      '<div style="margin-top: 20px; page-break-inside: avoid;">' +
+        '<h3 style="font-size: 12px; font-weight: bold; border-bottom: 1.5px solid #000; padding-bottom: 3px; margin-bottom: 6px;">VOCABULARY LIST</h3>' +
+        '<table class="pdf-vocab-table">' +
+          '<thead><tr><th>Word</th><th>IPA / Type</th><th>Meaning</th></tr></thead>' +
+          '<tbody>' + rows + '</tbody>' +
+        '</table>' +
+      '</div>';
+  }
+
+  printArea.innerHTML = `
+    <div class="pdf-header">
+      <div class="pdf-header-left">
+        <img src="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png" alt="ReadUp Logo">
+        <div style="font-weight: 900; color: #cf1717; font-size: 11px; line-height: 1.1;">READ UP<br><span style="color:#000">ENGLISH</span></div>
+      </div>
+      <div class="pdf-header-right">
+        <div class="pdf-header-title">${title}</div>
+      </div>
+    </div>
+
+    <div class="pdf-grid">
+      <div class="pdf-passage">${passageHTML}</div>
+      <div class="pdf-questions-col">
+        <div class="pdf-image-box">
+          <img src="${imageURL}" alt="Reading Illustration">
+          <div class="pdf-caption">${imageCaption}</div>
+        </div>
+        ${questionsPDFHTML}
+      </div>
+    </div>
+
+    ${vocabPDFHTML}
+  `;
+
+  window.print();
+}
 
     function closeResultModal() {
       const resultModal = document.getElementById('resultModal');
