@@ -925,6 +925,8 @@ function parseAndRenderContent(rawContent) {
         jsonObj.list.forEach(li => html += `<li>${li}</li>`);
         html += `</ul>`;
       }
+      if (jsonObj.link) { html += ` <div class="my-4"> <a href="${jsonObj.link}" target="_blank" rel="noopener noreferrer"  class="inline-flex items-center gap-1.5 font-semibold text-[#cf1717] dark:text-red-400 underline underline-offset-4 hover:text-red-700 dark:hover:text-red-300 active:text-red-900 dark:active:text-red-500 transition-colors">
+        ${jsonObj.linkText || '🔗 Mở liên kết'} → </a> </div> `;}
       if (jsonObj.note) html += `<p class="mt-3 p-3 bg-red-50 dark:bg-red-950/40 border-l-4 border-[#cf1717] rounded-r-lg text-xs italic text-[#cf1717] dark:text-red-300">${jsonObj.note}</p>`;
       return html;
     }
