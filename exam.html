@@ -17,15 +17,6 @@
     }
   </script>
   <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
-</head>
-<body class="bg-gray-100 dark:bg-zinc-950 dark:text-gray-100 h-screen flex flex-col overflow-hidden transition-colors duration-300">
-
-  <!-- BACKGROUND DECORATION -->
-  <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none select-none transition-colors duration-500 bg-slate-50 dark:bg-zinc-950">
-    <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#cf1717]/20 dark:bg-[#cf1717]/15 rounded-full blur-3xl animate-blob"></div>
-    <div class="absolute top-1/3 -right-24 w-[30rem] h-[30rem] bg-indigo-500/15 dark:bg-red-900/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-    <div class="absolute -bottom-24 left-1/3 w-96 h-96 bg-amber-500/15 dark:bg-amber-600/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
-  </div>
 
   <style>
     @keyframes blob {
@@ -37,19 +28,155 @@
     .animation-delay-2000 { animation-delay: 2s; }
     .animation-delay-4000 { animation-delay: 4s; }
 
-  mark.highlight-item {
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-  mark.highlight-item:hover {
-    filter: brightness(0.9);
-  }
-  
+    mark.highlight-item {
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    mark.highlight-item:hover {
+      filter: brightness(0.9);
+    }
+
+    /* TẮT CALLOUT MẶC ĐỊNH CỦA IOS KHI CHẠM GIỮ BÔI ĐEN */
+    #passageContent, .prose, mark.highlight-item {
+      -webkit-touch-callout: none !important;
+      -webkit-user-select: text !important;
+      user-select: text !important;
+    }
+
+    /* LAYOUT IN / XUẤT PDF CHUẨN KHỔ A4 (DẠNG VECTOR CHUẨN SẮC NÉT) */
+    #printArea {
+      display: none;
+    }
+
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 10mm 12mm 10mm 12mm;
+      }
+      body * {
+        visibility: hidden !important;
+      }
+      #printArea, #printArea * {
+        visibility: visible !important;
+      }
+      #printArea {
+        display: block !important;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        font-size: 11px;
+        line-height: 1.4;
+      }
+
+      /* Header khung kép giống ảnh mẫu */
+      .pdf-header {
+        display: flex;
+        border: 1.5px solid #000;
+        margin-bottom: 15px;
+      }
+      .pdf-header-left {
+        width: 140px;
+        border-right: 1.5px solid #000;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+      .pdf-header-left img {
+        max-height: 35px;
+        margin-bottom: 3px;
+      }
+      .pdf-header-right {
+        flex: 1;
+        padding: 10px 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+      .pdf-header-title {
+        color: #cf1717;
+        font-weight: 900;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      /* Bố cục 2 cột giống hình ảnh mẫu */
+      .pdf-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .pdf-passage p {
+        margin-bottom: 10px;
+        text-align: justify;
+      }
+      .pdf-image-box {
+        text-align: center;
+        margin-bottom: 12px;
+      }
+      .pdf-image-box img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 2px;
+      }
+      .pdf-caption {
+        font-style: italic;
+        font-size: 9px;
+        color: #444;
+        margin-top: 4px;
+        line-height: 1.2;
+      }
+      .pdf-question-item {
+        margin-bottom: 12px;
+        page-break-inside: avoid;
+      }
+      .pdf-question-title {
+        font-weight: bold;
+        margin-bottom: 4px;
+      }
+      .pdf-options {
+        margin-left: 8px;
+      }
+      .pdf-option {
+        margin-bottom: 2px;
+      }
+      .pdf-vocab-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+        font-size: 10px;
+      }
+      .pdf-vocab-table th, .pdf-vocab-table td {
+        border: 1px solid #ccc;
+        padding: 4px 6px;
+        text-align: left;
+      }
+      .pdf-vocab-table th {
+        background-color: #f2f2f2;
+      }
+    }
   </style>
+</head>
+<body class="bg-gray-100 dark:bg-zinc-950 dark:text-gray-100 h-screen flex flex-col overflow-hidden transition-colors duration-300">
+
+  <!-- BACKGROUND DECORATION -->
+  <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none select-none transition-colors duration-500 bg-slate-50 dark:bg-zinc-950">
+    <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#cf1717]/20 dark:bg-[#cf1717]/15 rounded-full blur-3xl animate-blob"></div>
+    <div class="absolute top-1/3 -right-24 w-[30rem] h-[30rem] bg-indigo-500/15 dark:bg-red-900/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+    <div class="absolute -bottom-24 left-1/3 w-96 h-96 bg-amber-500/15 dark:bg-amber-600/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+  </div>
 
   <!-- HEADER -->
   <header class="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/60 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-950/60 transition px-4">
-    <div class="max-w-7xl mx-auto h-16 flex justify-between items-center">
+    <div class="max-w-7xl mx-auto h-16 flex justify-between items-center gap-2">
       
       <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
         <a href="dashboard.html" class="px-3 py-2 text-xs font-bold bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] dark:hover:text-red-400 rounded-xl transition border border-gray-200/50 dark:border-zinc-700/50 flex items-center gap-1 flex-shrink-0">
@@ -61,22 +188,28 @@
           <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-6 w-auto object-contain">
         </div>
 
-        <h1 id="examHeaderTitle" class="font-extrabold text-xs sm:text-base text-gray-900 dark:text-white truncate max-w-[130px] sm:max-w-xs md:max-w-md">
+        <h1 id="examHeaderTitle" class="font-extrabold text-xs sm:text-base text-gray-900 dark:text-white truncate max-w-[110px] sm:max-w-xs md:max-w-md">
           Đang tải đề thi...
         </h1>
       </div>
 
+      <div class="flex items-center gap-2">
+        <!-- NÚT IN / XUẤT PDF A4 -->
+        <button onclick="triggerPDFPrint()" class="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5 flex-shrink-0">
+          <span>🖨️</span>
+          <span class="hidden sm:inline">In PDF (A4)</span>
+        </button>
 
-        <div class="flex items-center gap-1.5 px-3 py-2 bg-red-500/10 dark:bg-red-950/50 rounded-xl border border-red-200/60 dark:border-red-900/60 shadow-sm">
+        <div class="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 bg-red-500/10 dark:bg-red-950/50 rounded-xl border border-red-200/60 dark:border-red-900/60 shadow-sm flex-shrink-0">
           <span class="text-xs font-bold text-[#cf1717] dark:text-red-400">⏱️</span>
           <span id="timerDisplay" class="font-mono font-black text-xs sm:text-sm text-[#cf1717] dark:text-red-400">00:00</span>
         </div>
 
-        <button id="submitBtn" onclick="confirmSubmitExam()" class="px-3 sm:px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5">
-          Nộp Bài Thi
+        <button id="submitBtn" onclick="confirmSubmitExam()" class="px-3 sm:px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5 flex-shrink-0">
+          Nộp Bài
         </button>
 
-        <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50">
+        <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50 flex-shrink-0">
           <span id="themeIcon">🌙</span>
         </button>
       </div>
@@ -150,7 +283,35 @@
       </div>
     </div>
   </div>
-<!-- JAVASCRIPT LOGIC -->
+
+  <!-- GLOBAL FIXED TOOLTIP -->
+  <div id="vocabTooltip" class="fixed hidden z-[9999] w-64 p-3.5 bg-zinc-900/95 text-white dark:bg-white/95 dark:text-zinc-900 rounded-2xl shadow-2xl text-xs space-y-1.5 border border-zinc-700 dark:border-gray-200 backdrop-blur-md pointer-events-none transition-opacity duration-150 opacity-0">
+    <div class="flex justify-between items-center border-b border-zinc-700/60 dark:border-gray-200/60 pb-1">
+      <strong id="tooltipWord" class="text-red-400 dark:text-[#cf1717] font-black text-sm"></strong>
+      <span id="tooltipIpaType" class="text-[10px] text-gray-400 dark:text-gray-500 font-mono"></span>
+    </div>
+    <p id="tooltipMeaning" class="font-bold text-gray-100 dark:text-gray-800"></p>
+    <p id="tooltipContext" class="text-[11px] text-gray-300 dark:text-gray-600 italic"></p>
+    <p id="tooltipColloc" class="text-[11px] text-amber-300 dark:text-amber-700 font-medium"></p>
+  </div>
+
+  <!-- FLOATING ACTION TOOLBAR HIGHLIGHT (SỬA LỖI TRÀN MÀN HÌNH VÀ VỊ TRÍ) -->
+  <div id="textSelectionMenu" class="fixed hidden z-50 bg-zinc-900/95 dark:bg-white/95 text-white dark:text-zinc-900 px-2.5 py-1.5 rounded-2xl shadow-2xl border border-zinc-700 dark:border-gray-200 backdrop-blur-md flex items-center gap-1.5 text-xs transition-all duration-150 -translate-x-1/2">
+    <button onclick="applyHighlightFromMenu('bg-yellow-300 dark:bg-yellow-500 text-black')" class="px-2 py-1 hover:bg-zinc-800 dark:hover:bg-gray-200 rounded-xl flex items-center gap-1 font-bold whitespace-nowrap">
+      <span>🖍️</span> <span>Tô Vàng</span>
+    </button>
+    <button onclick="applyHighlightFromMenu('bg-green-300 dark:bg-green-600 text-black dark:text-white')" class="px-2 py-1 hover:bg-zinc-800 dark:hover:bg-gray-200 rounded-xl flex items-center gap-1 font-bold whitespace-nowrap">
+      <span>🟢</span> <span>Tô Xanh</span>
+    </button>
+    <button id="btnRemoveHighlight" onclick="removeActiveHighlight()" class="hidden px-2 py-1 bg-red-500/20 text-red-400 dark:text-red-600 hover:bg-red-500/30 rounded-xl font-bold flex items-center gap-1 whitespace-nowrap">
+      <span>🧽</span> <span>Xóa Tô</span>
+    </button>
+  </div>
+
+  <!-- PHẦN KHUNG CHỦYỂN ĐỔI CHUYÊN DỤNG CHO IN PDF A4 -->
+  <div id="printArea"></div>
+
+  <!-- JAVASCRIPT LOGIC -->
   <script>
     const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
     const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
@@ -237,7 +398,7 @@
       return tempDiv.innerHTML;
     }
 
-    // XL BÔI ĐEN & FLOATING MENU HIGHLIGHT
+    // XL BÔI ĐEN & FLOATING MENU HIGHLIGHT (ĐÃ ĐƯỢC FIX LỖI TRÀN & ĐẨY LÊN CAO)
     let savedRange = null;
     let activeMarkNode = null;
 
@@ -257,6 +418,34 @@
       }
     }
 
+    function positionSelectionMenu(rect) {
+      const menu = document.getElementById('textSelectionMenu');
+      if (!menu) return;
+
+      menu.classList.remove('hidden');
+      const menuWidth = menu.offsetWidth || 200;
+      const menuHeight = menu.offsetHeight || 40;
+
+      // Đẩy cao lên hẳn trên đoạn bôi đen (-55px) tránh tay che trên iOS/Mobile
+      let top = window.scrollY + rect.top - menuHeight - 15;
+      if (top < window.scrollY + 10) {
+        top = window.scrollY + rect.bottom + 10;
+      }
+
+      let left = window.scrollX + rect.left + (rect.width / 2);
+
+      // Chống tràn lề trái / lề phải màn hình
+      const halfWidth = menuWidth / 2;
+      const minLeft = halfWidth + 12;
+      const maxLeft = window.innerWidth - halfWidth - 12;
+
+      if (left < minLeft) left = minLeft;
+      if (left > maxLeft) left = maxLeft;
+
+      menu.style.top = `${top}px`;
+      menu.style.left = `${left}px`;
+    }
+
     function handleSelectionMenuShow(e) {
       if (e.target.closest('#textSelectionMenu')) return;
 
@@ -270,9 +459,7 @@
 
         const rect = selection.getRangeAt(0).getBoundingClientRect();
         if (rect.width > 0 && menu) {
-          menu.style.top = `${window.scrollY + rect.top - 45}px`;
-          menu.style.left = `${window.scrollX + rect.left + (rect.width / 2)}px`;
-          menu.classList.remove('hidden');
+          positionSelectionMenu(rect);
         }
       } else if (!activeMarkNode && menu) {
         menu.classList.add('hidden');
@@ -289,9 +476,7 @@
         const rect = mark.getBoundingClientRect();
         if (menu && removeBtn) {
           removeBtn.classList.remove('hidden');
-          menu.style.top = `${window.scrollY + rect.top - 45}px`;
-          menu.style.left = `${window.scrollX + rect.left + (rect.width / 2)}px`;
-          menu.classList.remove('hidden');
+          positionSelectionMenu(rect);
         }
         e.stopPropagation();
       }
@@ -754,7 +939,103 @@
       questionBox.innerHTML = htmlContent;
     }
 
-    // 7. CÁC HÀM BỔ TRỢ KHÁC
+    // 7. HÀM TẠO CẤU TRÚC VÀ IN ĐỀ THI RA PDF A4 CHUẨN ĐẸP (THEO HÌNH MẪU)
+    function triggerPDFPrint() {
+      if (!currentExam) {
+        alert("Đang tải dữ liệu bài thi, vui lòng đợi giây lát!");
+        return;
+      }
+
+      const printArea = document.getElementById('printArea');
+      if (!printArea) return;
+
+      const title = currentExam.title || 'READING EXAM';
+      const passageHTML = currentExam.passage_html || currentExam.passage || '';
+      const questions = currentExam.questions || [];
+      const imageURL = currentExam.image_url || currentExam.image || 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=800';
+      const imageCaption = currentExam.image_caption || 'Illustration of reading topic and urban infrastructure developments.';
+      const vocabList = currentExam.vocab_list || currentExam.vocab || currentExam.vocabularies || currentExam.vocabulary || [];
+
+      // Render danh sách câu hỏi cho PDF
+      const questionsPDFHTML = questions.map((q, idx) => {
+        let opts = '';
+        if (q.options && Array.isArray(q.options)) {
+          opts = `<div class="pdf-options">
+            ${q.options.map(o => `<div class="pdf-option"><strong>${o}</strong></div>`).join('')}
+          </div>`;
+        }
+        return `
+          <div class="pdf-question-item">
+            <div class="pdf-question-title">${idx + 1}. ${q.question}</div>
+            ${opts}
+          </div>`;
+      }).join('');
+
+      // Render Từ vựng nếu có
+      let vocabPDFHTML = '';
+      let parsedVocab = vocabList;
+      if (typeof parsedVocab === 'string') {
+        try { parsedVocab = JSON.parse(parsedVocab); } catch(e) { parsedVocab = []; }
+      }
+
+      if (Array.isArray(parsedVocab) && parsedVocab.length > 0) {
+        vocabPDFHTML = `
+          <div style="margin-top: 20px; page-break-inside: avoid;">
+            <h3 style="font-size: 12px; font-weight: bold; border-bottom: 1.5px solid #000; padding-bottom: 3px; margin-bottom: 6px;">VOCABULARY LIST</h3>
+            <table class="pdf-vocab-table">
+              <thead>
+                <tr>
+                  <th>Word</th>
+                  <th>IPA / Type</th>
+                  <th>Meaning</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${parsedVocab.map(v => `
+                  <tr>
+                    <td><strong>${v.word || v.term || ''}</strong></td>
+                    <td>${v.ipa \vert{}\vert{} ''}${v.type ? `(${v.type})` : ''}</td>
+                    <td>${v.meaning || ''}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>`;
+      }
+
+      // Lắp ráp Layout hoàn chỉnh chuẩn A4 theo mẫu hình ed5f14.jpg
+      printArea.innerHTML = `
+        <div class="pdf-header">
+          <div class="pdf-header-left">
+            <img src="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png" alt="ReadUp Logo">
+            <div style="font-weight: 900; color: #cf1717; font-size: 11px; line-height: 1.1;">READ UP<br><span style="color:#000">ENGLISH</span></div>
+          </div>
+          <div class="pdf-header-right">
+            <div class="pdf-header-title">${title}</div>
+          </div>
+        </div>
+
+        <div class="pdf-grid">
+          <div class="pdf-passage">
+            ${passageHTML}
+          </div>
+          <div class="pdf-questions-col">
+            <div class="pdf-image-box">
+              <img src="${imageURL}" alt="Reading Illustration">
+              <div class="pdf-caption">${imageCaption}</div>
+            </div>
+            ${questionsPDFHTML}
+          </div>
+        </div>
+
+        ${vocabPDFHTML}
+      `;
+
+      // Kích hoạt hộp thoại In / Lưu PDF của trình duyệt
+      window.print();
+    }
+
+    // 8. CÁC HÀM BỔ TRỢ KHÁC
     function closeResultModal() {
       const resultModal = document.getElementById('resultModal');
       if (resultModal) resultModal.classList.add('hidden');
@@ -866,30 +1147,6 @@
 
     window.onload = initExam;
   </script>
-  
-  <!-- GLOBAL FIXED TOOLTIP -->
-  <div id="vocabTooltip" class="fixed hidden z-[9999] w-64 p-3.5 bg-zinc-900/95 text-white dark:bg-white/95 dark:text-zinc-900 rounded-2xl shadow-2xl text-xs space-y-1.5 border border-zinc-700 dark:border-gray-200 backdrop-blur-md pointer-events-none transition-opacity duration-150 opacity-0">
-    <div class="flex justify-between items-center border-b border-zinc-700/60 dark:border-gray-200/60 pb-1">
-      <strong id="tooltipWord" class="text-red-400 dark:text-[#cf1717] font-black text-sm"></strong>
-      <span id="tooltipIpaType" class="text-[10px] text-gray-400 dark:text-gray-500 font-mono"></span>
-    </div>
-    <p id="tooltipMeaning" class="font-bold text-gray-100 dark:text-gray-800"></p>
-    <p id="tooltipContext" class="text-[11px] text-gray-300 dark:text-gray-600 italic"></p>
-    <p id="tooltipColloc" class="text-[11px] text-amber-300 dark:text-amber-700 font-medium"></p>
-  </div>
-
-  <!-- FLOATING ACTION TOOLBAR (Hiện ngay khi bôi đen hoặc click Highlight) -->
-<div id="textSelectionMenu" class="fixed hidden z-50 bg-zinc-900/90 dark:bg-white/90 text-white dark:text-zinc-900 px-2 py-1.5 rounded-2xl shadow-2xl border border-zinc-700 dark:border-gray-200 backdrop-blur-md flex items-center gap-1 text-xs transition-all duration-150 transform -translate-x-1/2">
-  <button onclick="applyHighlightFromMenu('bg-yellow-300 dark:bg-yellow-500 text-black')" class="px-2 py-1 hover:bg-zinc-800 dark:hover:bg-gray-200 rounded-xl flex items-center gap-1 font-bold">
-    <span>🖍️</span> <span>Tô Vàng</span>
-  </button>
-  <button onclick="applyHighlightFromMenu('bg-green-300 dark:bg-green-600 text-black dark:text-white')" class="px-2 py-1 hover:bg-zinc-800 dark:hover:bg-gray-200 rounded-xl flex items-center gap-1 font-bold">
-    <span>🟢</span> <span>Tô Xanh</span>
-  </button>
-  <button id="btnRemoveHighlight" onclick="removeActiveHighlight()" class="hidden px-2 py-1 bg-red-500/20 text-red-400 dark:text-red-600 hover:bg-red-500/30 rounded-xl font-bold flex items-center gap-1">
-    <span>🧽</span> <span>Xóa Tô</span>
-  </button>
-</div>
   
 </body>
 </html>
