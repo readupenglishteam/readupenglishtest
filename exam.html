@@ -36,14 +36,12 @@
       filter: brightness(0.9);
     }
 
-    /* TẮT CALLOUT MẶC ĐỊNH CỦA IOS KHI CHẠM GIỮ BÔI ĐEN */
     #passageContent, .prose, mark.highlight-item {
       -webkit-touch-callout: none !important;
       -webkit-user-select: text !important;
       user-select: text !important;
     }
 
-    /* LAYOUT IN / XUẤT PDF CHUẨN KHỔ A4 (DẠNG VECTOR CHUẨN SẮC NÉT) */
     #printArea {
       display: none;
     }
@@ -72,7 +70,6 @@
         line-height: 1.4;
       }
 
-      /* Header khung kép giống ảnh mẫu */
       .pdf-header {
         display: flex;
         border: 1.5px solid #000;
@@ -108,7 +105,6 @@
         letter-spacing: 0.5px;
       }
 
-      /* Bố cục 2 cột giống hình ảnh mẫu */
       .pdf-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -194,7 +190,6 @@
       </div>
 
       <div class="flex items-center gap-2">
-        <!-- NÚT IN / XUẤT PDF A4 -->
         <button onclick="triggerPDFPrint()" class="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5 flex-shrink-0">
           <span>🖨️</span>
           <span class="hidden sm:inline">In PDF (A4)</span>
@@ -295,7 +290,7 @@
     <p id="tooltipColloc" class="text-[11px] text-amber-300 dark:text-amber-700 font-medium"></p>
   </div>
 
-  <!-- FLOATING ACTION TOOLBAR HIGHLIGHT (SỬA LỖI TRÀN MÀN HÌNH VÀ VỊ TRÍ) -->
+  <!-- FLOATING ACTION TOOLBAR HIGHLIGHT -->
   <div id="textSelectionMenu" class="fixed hidden z-50 bg-zinc-900/95 dark:bg-white/95 text-white dark:text-zinc-900 px-2.5 py-1.5 rounded-2xl shadow-2xl border border-zinc-700 dark:border-gray-200 backdrop-blur-md flex items-center gap-1.5 text-xs transition-all duration-150 -translate-x-1/2">
     <button onclick="applyHighlightFromMenu('bg-yellow-300 dark:bg-yellow-500 text-black')" class="px-2 py-1 hover:bg-zinc-800 dark:hover:bg-gray-200 rounded-xl flex items-center gap-1 font-bold whitespace-nowrap">
       <span>🖍️</span> <span>Tô Vàng</span>
@@ -308,7 +303,7 @@
     </button>
   </div>
 
-  <!-- PHẦN KHUNG CHỦYỂN ĐỔI CHUYÊN DỤNG CHO IN PDF A4 -->
+  <!-- PRINT AREA -->
   <div id="printArea"></div>
 
   <!-- JAVASCRIPT LOGIC -->
@@ -339,7 +334,6 @@
       startTimer(exam.time_limit || 60);
     }
 
-    // 1. HIGHLIGHT TỪ VỰNG BÀI ĐỌC
     function renderPassageWithVocab(passageHTML, vocabData = []) {
       if (!passageHTML) return '';
 
@@ -398,7 +392,6 @@
       return tempDiv.innerHTML;
     }
 
-    // XL BÔI ĐEN & FLOATING MENU HIGHLIGHT (ĐÃ ĐƯỢC FIX LỖI TRÀN & ĐẨY LÊN CAO)
     let savedRange = null;
     let activeMarkNode = null;
 
@@ -426,15 +419,12 @@
       const menuWidth = menu.offsetWidth || 200;
       const menuHeight = menu.offsetHeight || 40;
 
-      // Đẩy cao lên hẳn trên đoạn bôi đen (-55px) tránh tay che trên iOS/Mobile
       let top = window.scrollY + rect.top - menuHeight - 15;
       if (top < window.scrollY + 10) {
         top = window.scrollY + rect.bottom + 10;
       }
 
       let left = window.scrollX + rect.left + (rect.width / 2);
-
-      // Chống tràn lề trái / lề phải màn hình
       const halfWidth = menuWidth / 2;
       const minLeft = halfWidth + 12;
       const maxLeft = window.innerWidth - halfWidth - 12;
@@ -442,8 +432,8 @@
       if (left < minLeft) left = minLeft;
       if (left > maxLeft) left = maxLeft;
 
-      menu.style.top = `${top}px`;
-      menu.style.left = `${left}px`;
+      menu.style.top = top + 'px';
+      menu.style.left = left + 'px';
     }
 
     function handleSelectionMenuShow(e) {
@@ -520,7 +510,6 @@
       document.getElementById('textSelectionMenu')?.classList.add('hidden');
     }
 
-    // 2. TOOLTIP TỪ VỰNG
     document.addEventListener('mouseover', function(e) {
       const vocabTarget = e.target.closest('.vocab-item');
       if (vocabTarget) {
@@ -542,18 +531,20 @@
       if (!tooltip) return;
 
       document.getElementById('tooltipWord').innerText = item.word || item.term || '';
-      document.getElementById('tooltipIpaType').innerText = `${item.ipa || ''} ${item.type ? `(${item.type})` : ''}`.trim();
+      
+      const typeStr = item.type ? '(' + item.type + ')' : '';
+      document.getElementById('tooltipIpaType').innerText = ((item.ipa || '') + ' ' + typeStr).trim();
       
       const mElem = document.getElementById('tooltipMeaning');
-      mElem.innerHTML = item.meaning ? `👉 ${item.meaning}` : '';
+      mElem.innerHTML = item.meaning ? '👉 ' + item.meaning : '';
       mElem.style.display = item.meaning ? 'block' : 'none';
 
       const cElem = document.getElementById('tooltipContext');
-      cElem.innerHTML = item.context ? `Context: ${item.context}` : '';
+      cElem.innerHTML = item.context ? 'Context: ' + item.context : '';
       cElem.style.display = item.context ? 'block' : 'none';
 
       const colElem = document.getElementById('tooltipColloc');
-      colElem.innerHTML = item.collocation ? `Collocation: ${item.collocation}` : '';
+      colElem.innerHTML = item.collocation ? 'Collocation: ' + item.collocation : '';
       colElem.style.display = item.collocation ? 'block' : 'none';
 
       tooltip.classList.remove('hidden');
@@ -569,8 +560,8 @@
         left = window.innerWidth - tooltip.offsetWidth - 10;
       }
 
-      tooltip.style.top = `${top}px`;
-      tooltip.style.left = `${left}px`;
+      tooltip.style.top = top + 'px';
+      tooltip.style.left = left + 'px';
     }
 
     function hideVocabTooltip() {
@@ -581,7 +572,6 @@
       }
     }
 
-    // 3. RENDER DANH SÁCH CÂU HỎI
     function renderExamData() {
       const headerTitle = document.getElementById('examHeaderTitle');
       if (headerTitle) headerTitle.innerText = currentExam.title || '';
@@ -598,7 +588,7 @@
 
       const questions = currentExam.questions || [];
       const countTag = document.getElementById('questionCountTag');
-      if (countTag) countTag.innerText = `${questions.length} câu hỏi`;
+      if (countTag) countTag.innerText = questions.length + ' câu hỏi';
 
       const form = document.getElementById('questionsForm');
       if (!form) return;
@@ -661,7 +651,6 @@
       }).join('');
     }
 
-    // 4. LÀM SẠCH VÀ KIỂM TRA ĐÁP ÁN
     function cleanIELTSAnswer(str) {
       if (!str) return '';
       return str.toString().trim().toLowerCase().replace(/[.,!?;:]+$/g, '').replace(/\s+/g, ' ').trim();
@@ -675,7 +664,6 @@
       return cleanU === cleanIELTSAnswer(correctAns);
     }
 
-    // 5. NỘP BÀI THI & TÍNH ĐIỂM
     async function submitExam() {
       clearInterval(timerInterval);
       const questions = currentExam.questions || [];
@@ -700,7 +688,7 @@
           q.isCorrect = null;
           q.earnedPoints = 0;
           q.userSelected = selectedVal;
-          userAnswers[`câu_${idx + 1}`] = selectedVal;
+          userAnswers['câu_' + (idx + 1)] = selectedVal;
           return;
         }
 
@@ -766,7 +754,7 @@
         q.isCorrect = status === 'correct';
         q.earnedPoints = Number(earnedPoints.toFixed(2));
         q.userSelected = selectedVal;
-        userAnswers[`câu_${idx + 1}`] = selectedVal;
+        userAnswers['câu_' + (idx + 1)] = selectedVal;
       });
 
       const finalScore10 = Number(totalScore.toFixed(2));
@@ -790,17 +778,16 @@
       renderResultMode(questions);
 
       const scoreElem = document.getElementById('finalScore');
-      if (scoreElem) scoreElem.innerText = `${finalScore10}/10 điểm`;
+      if (scoreElem) scoreElem.innerText = finalScore10 + '/10 điểm';
       
       const timeElem = document.getElementById('finalTime');
-      if (timeElem) timeElem.innerText = `${Math.floor(timeSpentSeconds / 60)}m ${timeSpentSeconds % 60}s`;
+      if (timeElem) timeElem.innerText = Math.floor(timeSpentSeconds / 60) + 'm ' + (timeSpentSeconds % 60) + 's';
       
       const resultModal = document.getElementById('resultModal');
       if (resultModal) resultModal.classList.remove('hidden');
       disableSubmitBtn();
     }
 
-    // 6. RENDER HIỂN THỊ ĐÁP ÁN & GIẢI THÍCH
     function renderResultMode(questions) {
       const questionBox = document.getElementById('questionsForm'); 
       if (!questionBox) return;
@@ -821,7 +808,7 @@
           containerStyle = 'bg-green-50/50 border-green-200 dark:bg-green-950/20 dark:border-green-900';
         } else if (status === 'partial') {
           const earned = q.earnedPoints !== undefined ? q.earnedPoints : 0;
-          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300">⚡ Đúng ${q.correctSubCount || 0}/${q.totalBlanks || 0} ý (+${earned}đ)</span>`;
+          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300">⚡ Đúng ${(q.correctSubCount || 0)}/${(q.totalBlanks || 0)} ý (+${earned}đ)</span>`;
           containerStyle = 'bg-amber-50/40 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/60';
         } else {
           badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300">✕ Sai</span>`;
@@ -903,10 +890,11 @@
                 </div>
               </div>`;
           } else if (typeof q.explanation === 'object') {
-            const expItemsHTML = Object.keys(q.explanation).map(key => `
-              <div class="text-gray-700 dark:text-gray-300 leading-relaxed border-b border-gray-100 dark:border-zinc-700/50 last:border-none pb-1.5 last:pb-0">
-                <span class="font-black text-[#cf1717] dark:text-red-400">Vị trí (${key}):</span> ${q.explanation[key]}
-              </div>`).join('');
+            const expItemsHTML = Object.keys(q.explanation).map(key => {
+              return '<div class="text-gray-700 dark:text-gray-300 leading-relaxed border-b border-gray-100 dark:border-zinc-700/50 last:border-none pb-1.5 last:pb-0">' +
+                     '<span class="font-black text-[#cf1717] dark:text-red-400">Vị trí (' + key + '):</span> ' + q.explanation[key] +
+                     '</div>';
+            }).join('');
 
             explanationHTML = `
               <div class="mt-3 pt-3 border-t border-gray-200/60 dark:border-zinc-700/60 text-xs">
@@ -939,7 +927,6 @@
       questionBox.innerHTML = htmlContent;
     }
 
-    // 7. HÀM TẠO CẤU TRÚC VÀ IN ĐỀ THI RA PDF A4 CHUẨN ĐẸP (THEO HÌNH MẪU)
     function triggerPDFPrint() {
       if (!currentExam) {
         alert("Đang tải dữ liệu bài thi, vui lòng đợi giây lát!");
@@ -956,22 +943,19 @@
       const imageCaption = currentExam.image_caption || 'Illustration of reading topic and urban infrastructure developments.';
       const vocabList = currentExam.vocab_list || currentExam.vocab || currentExam.vocabularies || currentExam.vocabulary || [];
 
-      // Render danh sách câu hỏi cho PDF
       const questionsPDFHTML = questions.map((q, idx) => {
         let opts = '';
         if (q.options && Array.isArray(q.options)) {
-          opts = `<div class="pdf-options">
-            ${q.options.map(o => `<div class="pdf-option"><strong>${o}</strong></div>`).join('')}
-          </div>`;
+          opts = '<div class="pdf-options">' + 
+            q.options.map(o => '<div class="pdf-option"><strong>' + o + '</strong></div>').join('') + 
+          '</div>';
         }
-        return `
-          <div class="pdf-question-item">
-            <div class="pdf-question-title">${idx + 1}. ${q.question}</div>
-            ${opts}
-          </div>`;
+        return '<div class="pdf-question-item">' +
+          '<div class="pdf-question-title">' + (idx + 1) + '. ' + q.question + '</div>' +
+          opts +
+        '</div>';
       }).join('');
 
-      // Render Từ vựng nếu có
       let vocabPDFHTML = '';
       let parsedVocab = vocabList;
       if (typeof parsedVocab === 'string') {
@@ -979,6 +963,14 @@
       }
 
       if (Array.isArray(parsedVocab) && parsedVocab.length > 0) {
+        const rows = parsedVocab.map(v => {
+          const w = v.word || v.term || '';
+          const ipa = v.ipa || '';
+          const type = v.type ? '(' + v.type + ')' : '';
+          const meaning = v.meaning || '';
+          return '<tr><td><strong>' + w + '</strong></td><td>' + ipa + ' ' + type + '</td><td>' + meaning + '</td></tr>';
+        }).join('');
+
         vocabPDFHTML = `
           <div style="margin-top: 20px; page-break-inside: avoid;">
             <h3 style="font-size: 12px; font-weight: bold; border-bottom: 1.5px solid #000; padding-bottom: 3px; margin-bottom: 6px;">VOCABULARY LIST</h3>
@@ -991,19 +983,12 @@
                 </tr>
               </thead>
               <tbody>
-                ${parsedVocab.map(v => `
-                  <tr>
-                    <td><strong>${v.word || v.term || ''}</strong></td>
-                    <td>${v.ipa \vert{}\vert{} ''}${v.type ? `(${v.type})` : ''}</td>
-                    <td>${v.meaning || ''}</td>
-                  </tr>
-                `).join('')}
+                ${rows}
               </tbody>
             </table>
           </div>`;
       }
 
-      // Lắp ráp Layout hoàn chỉnh chuẩn A4 theo mẫu hình ed5f14.jpg
       printArea.innerHTML = `
         <div class="pdf-header">
           <div class="pdf-header-left">
@@ -1031,11 +1016,9 @@
         ${vocabPDFHTML}
       `;
 
-      // Kích hoạt hộp thoại In / Lưu PDF của trình duyệt
       window.print();
     }
 
-    // 8. CÁC HÀM BỔ TRỢ KHÁC
     function closeResultModal() {
       const resultModal = document.getElementById('resultModal');
       if (resultModal) resultModal.classList.add('hidden');
