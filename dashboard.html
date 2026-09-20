@@ -2860,6 +2860,38 @@ async function triggerStartGame() {
 
   await sbClient.from('rooms').update({ status: 'playing' }).eq('id', currentRoomId);
 }
+
+// Hàm mở & đóng Modal Tạo Phòng
+function openCreateRoomModal() {
+  document.getElementById('createRoomModal').classList.remove('hidden');
+}
+
+function closeCreateRoomModal() {
+  document.getElementById('createRoomModal').classList.add('hidden');
+}
+
+// Xử lý khi nhấn nút "Tạo Phòng Ngay"
+async function handleConfirmCreateRoom() {
+  const exerciseType = document.getElementById('selectExerciseType').value;
+  const roomMode = document.getElementById('selectRoomMode').value;
+  
+  // ID bài tập (thay bằng ID bài tập thực tế trong hệ thống của bạn nếu có)
+  const exerciseId = '00000000-0000-0000-0000-000000000000'; 
+
+  closeCreateRoomModal();
+  
+  // Gọi hàm createRoom đã tạo ở Bước 3
+  if (typeof createRoom === 'function') {
+    await createRoom(exerciseType, exerciseId, roomMode);
+  } else {
+    alert("⚠️ Hàm createRoom chưa được định nghĩa!");
+  }
+}
+
+// Đảm bảo các hàm có thể truy cập toàn cục (đặc biệt quan trọng khi dùng type="module")
+window.openCreateRoomModal = openCreateRoomModal;
+window.closeCreateRoomModal = closeCreateRoomModal;
+window.handleConfirmCreateRoom = handleConfirmCreateRoom;
   
 </script>
 <!-- MODAL ĐỔI MẬT KHẨU -->
