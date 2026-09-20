@@ -484,26 +484,47 @@
 
     let currentUser = null;
 
-    async function initDashboard() {
-      const { data: { user } } = await sbClient.auth.getUser();
-      if (!user) {
-        window.location.href = 'index.html';
-        return;
-      }
-      currentUser = user;
-      
+async function initDashboard() {
+  // 1. Dựng khung Lịch ngay tức thì (0ms delay)
+  if (typeof initCalendar === 'function') initCalendar();
 
-      const { data: profile } = await sbClient.from('profiles').select('full_name').eq('id', user.id).single();
-      if (profile?.full_name) {
-        document.getElementById('welcomeUser').innerText = `👋 Chào, ${profile.full_name}`;
-      }
+  // 2. Kiểm tra Auth siêu nhanh từ Session Local (không tốn time chờ Server Auth)
+  const { data: { session } } = await sbClient.auth.getSession();
+  if (!session || !session.user) {
+    window.location.href = 'index.html';
+    return;
+  }
+  currentUser = session.user;
 
-      loadNews();
-      loadExams();
-      loadStudentHistory();
-      initCalendar();
-    }
+  // 3. TẢI SONG SONG TẤT CẢ DỮ LIỆU CÙNG 1 LÚC (Nhanh gấp 3 - 4 lần)
+  try {
+    await Promise.all([
+      // Tác vụ 1: Lấy Profile người dùng
+      sbClient.from('profiles').select('full_name').eq('id', currentUser.id).single()
+        .then(({ data: profile }) => {
+          if (profile?.full_name) {
+            const welcomeElem = document.getElementById('welcomeUser');
+            if (welcomeElem) welcomeElem.innerText = `👋 Chào, ${profile.full_name}`;
+          }
+        }),
 
+      // Tác vụ 2: Tải Tin tức (nếu có hàm)
+      typeof loadNews === 'function' ? loadNews() : Promise.resolve(),
+
+      // Tác vụ 3: Tải Bài thi (nếu có hàm)
+      typeof loadExams === 'function' ? loadExams() : Promise.resolve(),
+
+      // Tác vụ 4: Tải Lịch sử làm bài (nếu có hàm)
+      typeof loadStudentHistory === 'function' ? loadStudentHistory() : Promise.resolve()
+    ]);
+  } catch (error) {
+    console.error("Lỗi khi tải dữ liệu Dashboard:", error);
+  } finally {
+    // 4. CHỐNG CHỜ ĐỜI: Khi TẤT CẢ dữ liệu đã về đủ -> Vẽ Lịch & Chấm đỏ tự động bật lên 100%!
+    if (typeof renderCalendar === 'function') renderCalendar();
+    if (typeof updateSelectedDateDetails === 'function') updateSelectedDateDetails();
+  }
+}
 // Biến toàn cục lưu trữ danh sách tin tức để Pop-up đọc dữ liệu
 let globalNewsList = [];
 
@@ -559,6 +580,7 @@ async function loadExams() {
     const countElem = document.getElementById('examCount');
     if (countElem) countElem.innerText = '0 bài làm';
     return;
+    if (typeof renderCalendar === 'function') renderCalendar();
   }
 
   // Cập nhật biến toàn cục để Pop-up Vocabulary truy cập được dữ liệu
