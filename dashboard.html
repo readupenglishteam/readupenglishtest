@@ -3060,35 +3060,75 @@ window.handleConfirmCreateRoom = handleConfirmCreateRoom;
     
   </div>
 </div>
-  <!-- MODAL TẠO PHÒNG -->
-<div id="createRoomModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-  <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-100 dark:border-zinc-800 space-y-4">
+  <!-- 1. MODAL NHẬP MÃ PHÒNG (JOIN ROOM) -->
+<div id="joinRoomModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+  <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 dark:border-zinc-800 space-y-4">
     <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
-      <h3 class="text-lg font-black text-gray-900 dark:text-white">Tạo Phòng Thi Đấu</h3>
+      <h3 class="text-lg font-black text-gray-900 dark:text-white">🔑 Nhập Mã Tham Gia</h3>
+      <button onclick="closeJoinRoomModal()" class="text-gray-400 hover:text-black dark:hover:text-white font-bold">✕</button>
+    </div>
+    <div class="space-y-2">
+      <label class="text-xs font-bold text-gray-500">MÃ TOKEN (Ví dụ: READ-8932)</label>
+      <input type="text" id="inputRoomToken" placeholder="READ-XXXX" class="w-full p-3 uppercase font-mono tracking-widest text-center text-lg font-extrabold bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-[#cf1717] outline-none">
+    </div>
+    <button onclick="handleConfirmJoinRoom()" class="w-full py-3 bg-zinc-900 text-white font-extrabold text-sm rounded-xl hover:bg-black transition active:scale-95">
+      Vào Phòng Ngay
+    </button>
+  </div>
+</div>
+
+<!-- 2. MODAL TẠO PHÒNG CHI TIẾT (CREATE ROOM) -->
+<div id="createRoomModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+  <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 dark:border-zinc-800 space-y-4 max-h-[90vh] flex flex-col">
+    
+    <!-- Header -->
+    <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3 shrink-0">
+      <h3 class="text-lg font-black text-gray-900 dark:text-white">➕ Tạo Phòng Thi Đấu</h3>
       <button onclick="closeCreateRoomModal()" class="text-gray-400 hover:text-black dark:hover:text-white font-bold">✕</button>
     </div>
 
-    <!-- Chọn dạng bài tập -->
-    <div class="space-y-2">
-      <label class="text-xs font-bold text-gray-600 dark:text-gray-300">Loại bài tập</label>
-      <select id="selectExerciseType" class="w-full p-3 bg-gray-50 dark:bg-zinc-800 rounded-xl border dark:border-zinc-700 font-semibold text-sm">
-        <option value="reading">Luyện Đọc (Reading)</option>
-        <option value="speaking">Luyện Phát Âm (Speaking)</option>
-      </select>
+    <div class="space-y-4 overflow-y-auto pr-1 flex-1">
+      <!-- Chọn Dạng Bài Tập -->
+      <div class="space-y-1.5">
+        <label class="text-xs font-extrabold text-gray-700 dark:text-gray-300">1. Kỹ năng luyện tập</label>
+        <select id="selectExerciseType" onchange="onExerciseTypeChange()" class="w-full p-3 bg-gray-50 dark:bg-zinc-800 rounded-xl border dark:border-zinc-700 font-bold text-sm">
+          <option value="reading">📖 Luyện Đọc (Reading)</option>
+          <option value="speaking">🎙️ Luyện Phát Âm (Speaking)</option>
+        </select>
+      </div>
+
+      <!-- Thông Báo Khi Chọn Speaking -->
+      <div id="speakingNotice" class="hidden p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-2xl text-center space-y-1">
+        <span class="text-2xl">🚧</span>
+        <h4 class="text-xs font-black text-amber-800 dark:text-amber-300">TÍNH NĂNG ĐANG PHÁT TRIỂN</h4>
+        <p class="text-[11px] text-amber-700 dark:text-amber-400">Chế độ Đua Phát Âm Nhóm (Speaking Battle) sẽ sớm có mặt ở bản cập nhật tiếp theo.</p>
+      </div>
+
+      <!-- Danh Sách Bài Reading (Chỉ hiện khi chọn Reading) -->
+      <div id="readingLessonSection" class="space-y-2">
+        <label class="text-xs font-extrabold text-gray-700 dark:text-gray-300">2. Chọn bài đọc thi đấu</label>
+        <div id="readingLessonsList" class="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+          <!-- Các thẻ Card Bài Đọc sẽ được render tự động qua JS -->
+        </div>
+      </div>
+
+      <!-- Chọn Chế Độ Chơi -->
+      <div id="modeSection" class="space-y-1.5">
+        <label class="text-xs font-extrabold text-gray-700 dark:text-gray-300">3. Chế độ phòng</label>
+        <select id="selectRoomMode" class="w-full p-3 bg-gray-50 dark:bg-zinc-800 rounded-xl border dark:border-zinc-700 font-bold text-sm">
+          <option value="battle">⚔️ Đua Tốc Độ (Battle Mode)</option>
+          <option value="coworking">☕ Học Nhóm (Co-working Mode)</option>
+        </select>
+      </div>
     </div>
 
-    <!-- Chọn chế độ -->
-    <div class="space-y-2">
-      <label class="text-xs font-bold text-gray-600 dark:text-gray-300">Chế độ chơi</label>
-      <select id="selectRoomMode" class="w-full p-3 bg-gray-50 dark:bg-zinc-800 rounded-xl border dark:border-zinc-700 font-semibold text-sm">
-        <option value="battle">⚔️ Đua Tốc Độ (Battle)</option>
-        <option value="coworking">☕ Học Nhóm (Co-working)</option>
-      </select>
+    <!-- Nút Tạo -->
+    <div class="shrink-0 pt-2 border-t dark:border-zinc-800">
+      <button id="btnSubmitCreateRoom" onclick="handleConfirmCreateRoom()" class="w-full py-3 bg-[#cf1717] hover:bg-red-700 text-white font-extrabold text-sm rounded-xl transition active:scale-95 shadow-md">
+        Khởi Tạo Sảnh Chờ
+      </button>
     </div>
 
-    <button onclick="handleConfirmCreateRoom()" class="w-full py-3 bg-[#cf1717] text-white font-extrabold text-sm rounded-xl hover:bg-red-700 transition active:scale-95">
-      Tạo Phòng Ngay
-    </button>
   </div>
 </div>
 </body>
