@@ -32,6 +32,13 @@
 </div>
 
 <style>
+  @keyframes toastProgress {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+.animate-toast-bar {
+  animation: toastProgress 5s linear forwards;
+}
   @keyframes blob {
     0%, 100% { transform: translate(0px, 0px) scale(1); }
     33% { transform: translate(30px, -50px) scale(1.1); }
@@ -530,6 +537,7 @@ async function initDashboard() {
     if (typeof renderCalendar === 'function') renderCalendar();
     if (typeof updateSelectedDateDetails === 'function') updateSelectedDateDetails();
   }
+  checkNewUpdatesInLast3Days();
 }
 // Biến toàn cục lưu trữ danh sách tin tức để Pop-up đọc dữ liệu
 let globalNewsList = [];
@@ -2533,6 +2541,132 @@ function updateSelectedDateDetails() {
   contentElem.innerHTML = html;
 }
 
+  // =========================================================================
+// CHỨC NĂNG THÔNG BÁO NỘI DUNG MỚI TRONG 3 NGÀY (TOAST NOTIFICATION)
+// =========================================================================
+
+// 1. Hàm hiển thị Toast Popup góc phải
+function showToastNotification({ title, message, icon = '🔔', linkUrl = null }) {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+
+  const toastId = 'toast-' + Date.now();
+  const toastHtml = `
+    <div id="${toastId}" class="pointer-events-auto bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden transform transition-all duration-300 translate-x-full opacity-0 relative">
+      <div class="p-3.5 sm:p-4 flex items-start gap-3">
+        <!-- Icon tròn màu đỏ chủ đạo -->
+        <div class="w-9 h-9 rounded-full bg-red-50 dark:bg-red-950/80 flex-shrink-0 flex items-center justify-center text-[#cf1717] dark:text-red-400 font-bold text-base shadow-sm">
+          ${icon}
+        </div>
+        
+        <!-- Nội dung -->
+        <div class="flex-1 pr-4">
+          <h4 class="text-xs sm:text-sm font-bold text-gray-900 dark:text-white leading-tight">${title}</h4>
+          <p class="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">${message}</p>
+          ${linkUrl ? `<a href="${linkUrl}" class="inline-block mt-1.5 text-xs font-bold text-[#cf1717] hover:underline">Xem ngay ➔</a>` : ''}
+        </div>
+
+        <!-- Nút đóng -->
+        <button onclick="closeToast('${toastId}')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white text-base leading-none p-1">
+          ✕
+        </button>
+      </div>
+
+      <!-- Thanh tiến trình tự chạy 5 giây (Màu chủ đạo #cf1717) -->
+      <div class="h-1 bg-red-100 dark:bg-zinc-800 w-full">
+        <div class="h-full bg-[#cf1717] animate-toast-bar"></div>
+      </div>
+    </div>
+  `;
+
+  container.insertAdjacentHTML('beforeend', toastHtml);
+
+  // Hiệu ứng trượt vào
+  const toastElem = document.getElementById(toastId);
+  setTimeout(() => {
+    toastElem.classList.remove('translate-x-full', 'opacity-0');
+  }, 50);
+
+  // Tự động biến mất sau 5 giây
+  setTimeout(() => {
+    closeToast(toastId);
+  }, 5000);
+}
+
+// Hàm đóng Toast
+function closeToast(id) {
+  const elem = document.getElementById(id);
+  if (elem) {
+    elem.classList.add('translate-x-full', 'opacity-0');
+    setTimeout(() => elem.remove(), 300);
+  }
+}
+
+// 2. Hàm kiểm tra dữ liệu mới trong 3 ngày qua khi Học Sinh đăng nhập
+async function checkNewUpdatesInLast3Days() {
+  // Tính mốc thời gian 3 ngày trước
+  const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+  const threeDaysAgo = new Date(Date.now() - THREE_DAYS_MS).toISOString();
+
+  try {
+    // 1. Kiểm tra Bài Reading mới
+    const { data: newExams } = await sbClient
+      .from('exams')
+      .select('title, created_at, token')
+      .gte('created_at', threeDaysAgo)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (newExams && newExams.length > 0) {
+      showToastNotification({
+        title: '📚 Bài Reading Mới!',
+        message: `Đã có bài thi mới: "${newExams[0].title}"`,
+        icon: '📖',
+        linkUrl: `exam.html?token=${newExams[0].token}`
+      });
+    }
+
+    // 2. Kiểm tra Tin Tức / Thông Báo mới
+    const { data: newNews } = await sbClient
+      .from('news')
+      .select('title, created_at, id')
+      .gte('created_at', threeDaysAgo)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (newNews && newNews.length > 0) {
+      setTimeout(() => {
+        showToastNotification({
+          title: '📢 Thông Báo Mới!',
+          message: newNews[0].title,
+          icon: '🔔',
+          linkUrl: `#`
+        });
+      }, 600); // Trễ 0.6s để hiển thị nối tiếp nếu có nhiều thông báo
+    }
+
+    // 3. Kiểm tra Bài Tập Phát Âm mới (Nếu bạn đã tạo bảng 'pronunciation' hoặc tương tự trong Supabase)
+    const { data: newPronun } = await sbClient
+      .from('pronunciation') // Thay tên bảng bài phát âm của bạn vào đây nếu có
+      .select('title, created_at')
+      .gte('created_at', threeDaysAgo)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (newPronun && newPronun.length > 0) {
+      setTimeout(() => {
+        showToastNotification({
+          title: '🎙️ Bài Luyện Phát Âm Mới!',
+          message: `Bài mới: "${newPronun[0].title}"`,
+          icon: '🎙️'
+        });
+      }, 1200);
+    }
+
+  } catch (err) {
+    console.log("Kiểm tra cập nhật mới:", err);
+  }
+}
 
   
 </script>
@@ -2656,7 +2790,8 @@ function updateSelectedDateDetails() {
     </div>
   </div>
 </div>
-
+<!-- KHUNG HIỂN THỊ THÔNG BÁO TOAST GÓC PHẢI TRÊN -->
+<div id="toastContainer" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
   
 </body>
 </html>
