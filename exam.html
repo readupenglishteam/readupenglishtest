@@ -46,119 +46,166 @@
       display: none;
     }
 
-    @media print {
-      @page {
-        size: A4 portrait;
-        margin: 10mm 12mm 10mm 12mm;
-      }
-      body * {
-        visibility: hidden !important;
-      }
-      #printArea, #printArea * {
-        visibility: visible !important;
-      }
-      #printArea {
-        display: block !important;
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        background: #ffffff !important;
-        color: #000000 !important;
-        font-family: 'Segoe UI', Arial, sans-serif;
-        font-size: 11px;
-        line-height: 1.4;
-      }
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm 10mm 12mm;
+  }
+  body * {
+    visibility: hidden !important;
+  }
+  #printArea, #printArea * {
+    visibility: visible !important;
+  }
+  #printArea {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: #ffffff !important;
+    color: #111827 !important;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 13.5px; /* Tăng kích thước chữ tổng thể */
+    line-height: 1.6;
+  }
 
-      .pdf-header {
-        display: flex;
-        border: 1.5px solid #000;
-        margin-bottom: 15px;
-      }
-      .pdf-header-left {
-        width: 140px;
-        border-right: 1.5px solid #000;
-        padding: 8px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-      }
-      .pdf-header-left img {
-        max-height: 35px;
-        margin-bottom: 3px;
-      }
-      .pdf-header-right {
-        flex: 1;
-        padding: 10px 15px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-      }
-      .pdf-header-title {
-        color: #cf1717;
-        font-weight: 900;
-        font-size: 14px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
+  /* Header phong cách đề thi chính thức */
+  .pdf-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid #cf1717;
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+  }
+  .pdf-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pdf-brand img {
+    height: 32px;
+  }
+  .pdf-brand-text {
+    font-weight: 900;
+    color: #cf1717;
+    font-size: 13px;
+    line-height: 1.1;
+  }
+  .pdf-header-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: #111827;
+    text-transform: uppercase;
+    text-align: right;
+  }
 
-      .pdf-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
-      }
-      .pdf-passage p {
-        margin-bottom: 10px;
-        text-align: justify;
-      }
-      .pdf-image-box {
-        text-align: center;
-        margin-bottom: 12px;
-      }
-      .pdf-image-box img {
-        max-width: 100%;
-        height: auto;
-        border-radius: 2px;
-      }
-      .pdf-caption {
-        font-style: italic;
-        font-size: 9px;
-        color: #444;
-        margin-top: 4px;
-        line-height: 1.2;
-      }
-      .pdf-question-item {
-        margin-bottom: 12px;
-        page-break-inside: avoid;
-      }
-      .pdf-question-title {
-        font-weight: bold;
-        margin-bottom: 4px;
-      }
-      .pdf-options {
-        margin-left: 8px;
-      }
-      .pdf-option {
-        margin-bottom: 2px;
-      }
-      .pdf-vocab-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 15px;
-        font-size: 10px;
-      }
-      .pdf-vocab-table th, .pdf-vocab-table td {
-        border: 1px solid #ccc;
-        padding: 4px 6px;
-        text-align: left;
-      }
-      .pdf-vocab-table th {
-        background-color: #f2f2f2;
-      }
-    }
+  /* Khung 2 cột: Bài đọc & Câu hỏi */
+  .pdf-grid {
+    display: grid;
+    grid-template-columns: 52% 45%;
+    gap: 3%;
+    align-items: start;
+  }
+
+  /* Bài đọc */
+  .pdf-passage-col {
+    padding-right: 12px;
+    border-right: 1px dashed #d1d5db; /* Vách ngăn nét đứt giữa 2 cột */
+  }
+  .pdf-passage-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #cf1717;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .pdf-passage p {
+    margin-bottom: 10px;
+    text-align: justify;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  /* Cột câu hỏi */
+  .pdf-questions-col {
+    font-size: 13px;
+  }
+  .pdf-image-box {
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .pdf-image-box img {
+    max-width: 100%;
+    max-height: 160px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+  .pdf-caption {
+    font-style: italic;
+    font-size: 10px;
+    color: #6b7280;
+    margin-top: 3px;
+  }
+
+  /* Thẻ từng câu hỏi */
+  .pdf-question-item {
+    margin-bottom: 10px;
+    page-break-inside: avoid;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    padding: 8px 10px;
+    border-radius: 6px;
+  }
+  .pdf-question-title {
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #111827;
+  }
+  .pdf-options {
+    margin-left: 8px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .pdf-option {
+    font-size: 12px;
+    color: #374151;
+  }
+
+  /* Bảng từ vựng */
+  .pdf-vocab-container {
+    margin-top: 20px;
+    page-break-inside: avoid;
+  }
+  .pdf-vocab-head {
+    font-size: 13px;
+    font-weight: 800;
+    color: #cf1717;
+    border-bottom: 1.5px solid #cf1717;
+    padding-bottom: 3px;
+    margin-bottom: 8px;
+  }
+  .pdf-vocab-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11.5px;
+  }
+  .pdf-vocab-table th, .pdf-vocab-table td {
+    border: 1px solid #d1d5db;
+    padding: 5px 8px;
+    text-align: left;
+  }
+  .pdf-vocab-table th {
+    background-color: #f3f4f6;
+    font-weight: 700;
+    color: #111827;
+  }
+  .pdf-vocab-table tr:nth-child(even) {
+    background-color: #f9fafb;
+  }
+}
   </style>
 </head>
 <body class="bg-gray-100 dark:bg-zinc-950 dark:text-gray-100 h-screen flex flex-col overflow-hidden transition-colors duration-300">
@@ -936,26 +983,38 @@ function triggerPDFPrint() {
   const printArea = document.getElementById('printArea');
   if (!printArea) return;
 
-  const title = currentExam.title || 'READING EXAM';
+  const title = currentExam.title || 'READING PRACTICE TEST';
   const passageHTML = currentExam.passage_html || currentExam.passage || '';
   const questions = currentExam.questions || [];
-  const imageURL = currentExam.image_url || currentExam.image || 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=800';
-  const imageCaption = currentExam.image_caption || 'Illustration of reading topic and urban infrastructure developments.';
+  const imageURL = currentExam.image_url || currentExam.image || '';
+  const imageCaption = currentExam.image_caption || '';
   const vocabList = currentExam.vocab_list || currentExam.vocab || currentExam.vocabularies || currentExam.vocabulary || [];
 
+  // Tạo HTML câu hỏi
   const questionsPDFHTML = questions.map((q, idx) => {
     let opts = '';
     if (q.options && Array.isArray(q.options)) {
       opts = '<div class="pdf-options">' + 
-        q.options.map(o => '<div class="pdf-option"><strong>' + o + '</strong></div>').join('') + 
+        q.options.map(o => '<div class="pdf-option">' + o + '</div>').join('') + 
       '</div>';
     }
     return '<div class="pdf-question-item">' +
-      '<div class="pdf-question-title">' + (idx + 1) + '. ' + q.question + '</div>' +
+      '<div class="pdf-question-title">Câu ' + (idx + 1) + ': ' + q.question + '</div>' +
       opts +
     '</div>';
   }).join('');
 
+  // Tạo HTML ảnh minh họa nếu có
+  let imageHTML = '';
+  if (imageURL) {
+    imageHTML = `
+      <div class="pdf-image-box">
+        <img src="${imageURL}" alt="Illustration">
+        ${imageCaption ? `<div class="pdf-caption">${imageCaption}</div>` : ''}
+      </div>`;
+  }
+
+  // Tạo HTML Bảng từ vựng
   let vocabPDFHTML = '';
   let parsedVocab = vocabList;
   if (typeof parsedVocab === 'string') {
@@ -971,34 +1030,41 @@ function triggerPDFPrint() {
       return '<tr><td><strong>' + w + '</strong></td><td>' + ipa + ' ' + type + '</td><td>' + meaning + '</td></tr>';
     }).join('');
 
-    vocabPDFHTML = 
-      '<div style="margin-top: 20px; page-break-inside: avoid;">' +
-        '<h3 style="font-size: 12px; font-weight: bold; border-bottom: 1.5px solid #000; padding-bottom: 3px; margin-bottom: 6px;">VOCABULARY LIST</h3>' +
-        '<table class="pdf-vocab-table">' +
-          '<thead><tr><th>Word</th><th>IPA / Type</th><th>Meaning</th></tr></thead>' +
-          '<tbody>' + rows + '</tbody>' +
-        '</table>' +
-      '</div>';
+    vocabPDFHTML = `
+      <div class="pdf-vocab-container">
+        <div class="pdf-vocab-head">VOCABULARY & KEY TERMS</div>
+        <table class="pdf-vocab-table">
+          <thead>
+            <tr>
+              <th style="width: 30%;">Từ vựng</th>
+              <th style="width: 30%;">Phiên âm / Từ loại</th>
+              <th style="width: 40%;">Nghĩa tiếng Việt</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      </div>`;
   }
 
   printArea.innerHTML = `
     <div class="pdf-header">
-      <div class="pdf-header-left">
+      <div class="pdf-brand">
         <img src="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png" alt="ReadUp Logo">
-        <div style="font-weight: 900; color: #cf1717; font-size: 11px; line-height: 1.1;">READ UP<br><span style="color:#000">ENGLISH</span></div>
+        <div class="pdf-brand-text">READ UP<br><span style="color:#000">ENGLISH</span></div>
       </div>
-      <div class="pdf-header-right">
-        <div class="pdf-header-title">${title}</div>
-      </div>
+      <div class="pdf-header-title">${title}</div>
     </div>
 
     <div class="pdf-grid">
-      <div class="pdf-passage">${passageHTML}</div>
+      <div class="pdf-passage-col">
+        <div class="pdf-passage-title">📖 Reading Passage</div>
+        <div class="pdf-passage">${passageHTML}</div>
+      </div>
       <div class="pdf-questions-col">
-        <div class="pdf-image-box">
-          <img src="${imageURL}" alt="Reading Illustration">
-          <div class="pdf-caption">${imageCaption}</div>
-        </div>
+        ${imageHTML}
+        <div class="pdf-passage-title">✍️ Questions</div>
         ${questionsPDFHTML}
       </div>
     </div>
