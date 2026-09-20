@@ -2548,7 +2548,7 @@ function updateSelectedDateDetails() {
 // =========================================================================
 
 // 1. Hàm hiển thị Toast Popup góc phải
-function showToastNotification({ title, message, icon = '🔔', linkUrl = null }) {
+function showToastNotification({ title, message, icon = '🔔', linkUrl = null, onClick = null }) {
   const container = document.getElementById('toastContainer');
   if (!container) return;
 
@@ -2565,7 +2565,17 @@ function showToastNotification({ title, message, icon = '🔔', linkUrl = null }
         <div class="flex-1 pr-4">
           <h4 class="text-xs sm:text-sm font-bold text-gray-900 dark:text-white leading-tight">${title}</h4>
           <p class="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">${message}</p>
-          ${linkUrl ? `<a href="${linkUrl}" class="inline-block mt-1.5 text-xs font-bold text-[#cf1717] hover:underline">Xem ngay ➔</a>` : ''}
+          
+          <!-- Ưu tiên gọi hàm onClick nếu có, nếu không thì dùng linkUrl -->
+          ${onClick ? `
+            <button type="button" onclick="${onClick}; closeToast('${toastId}')" class="inline-block mt-1.5 text-xs font-bold text-[#cf1717] hover:underline cursor-pointer">
+              Xem ngay ➔
+            </button>
+          ` : (linkUrl ? `
+            <a href="${linkUrl}" class="inline-block mt-1.5 text-xs font-bold text-[#cf1717] hover:underline">
+              Xem ngay ➔
+            </a>
+          ` : '')}
         </div>
 
         <!-- Nút đóng -->
@@ -2574,7 +2584,7 @@ function showToastNotification({ title, message, icon = '🔔', linkUrl = null }
         </button>
       </div>
 
-      <!-- Thanh tiến trình tự chạy 5 giây (Màu chủ đạo #cf1717) -->
+      <!-- Thanh tiến trình tự chạy 5s -->
       <div class="h-1 bg-red-100 dark:bg-zinc-800 w-full">
         <div class="h-full bg-[#cf1717] animate-toast-bar"></div>
       </div>
@@ -2642,11 +2652,12 @@ async function checkNewUpdatesInLast3Days() {
           title: '📢 Thông Báo Mới!',
           message: newNews[0].title,
           icon: '🔔',
-          linkUrl: `#`
+          // Gọi trực tiếp hàm mở Modal bài tin dựa theo ID
+          onClick: `openNewsModal('${newNews[0].id}')` 
         });
-      }, 600); // Trễ 0.6s để hiển thị nối tiếp nếu có nhiều thông báo
+      }, 600);
     }
-
+    
     // 3. Kiểm tra Bài Tập Phát Âm mới (Nếu bạn đã tạo bảng 'pronunciation' hoặc tương tự trong Supabase)
     const { data: newPronun } = await sbClient
       .from('pronunciation') // Thay tên bảng bài phát âm của bạn vào đây nếu có
