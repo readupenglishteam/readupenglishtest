@@ -3028,6 +3028,36 @@ async function triggerStartGame() {
     
   </div>
 </div>
-  
+  <!-- MODAL TẠO PHÒNG -->
+<div id="createRoomModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+  <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-100 dark:border-zinc-800 space-y-4">
+    <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
+      <h3 class="text-lg font-black text-gray-900 dark:text-white">Tạo Phòng Thi Đấu</h3>
+      <button onclick="closeCreateRoomModal()" class="text-gray-400 hover:text-black dark:hover:text-white font-bold">✕</button>
+    </div>
+
+    <!-- Chọn dạng bài tập -->
+    <div class="space-y-2">
+      <label class="text-xs font-bold text-gray-600 dark:text-gray-300">Loại bài tập</label>
+      <select id="selectExerciseType" class="w-full p-3 bg-gray-50 dark:bg-zinc-800 rounded-xl border dark:border-zinc-700 font-semibold text-sm">
+        <option value="reading">Luyện Đọc (Reading)</option>
+        <option value="speaking">Luyện Phát Âm (Speaking)</option>
+      </select>
+    </div>
+
+    <!-- Chọn chế độ -->
+    <div class="space-y-2">
+      <label class="text-xs font-bold text-gray-600 dark:text-gray-300">Chế độ chơi</label>
+      <select id="selectRoomMode" class="w-full p-3 bg-gray-50 dark:bg-zinc-800 rounded-xl border dark:border-zinc-700 font-semibold text-sm">
+        <option value="battle">⚔️ Đua Tốc Độ (Battle)</option>
+        <option value="coworking">☕ Học Nhóm (Co-working)</option>
+      </select>
+    </div>
+
+    <button onclick="handleConfirmCreateRoom()" class="w-full py-3 bg-[#cf1717] text-white font-extrabold text-sm rounded-xl hover:bg-red-700 transition active:scale-95">
+      Tạo Phòng Ngay
+    </button>
+  </div>
+</div>
 </body>
 </html>
