@@ -537,7 +537,8 @@ async function initDashboard() {
     if (typeof renderCalendar === 'function') renderCalendar();
     if (typeof updateSelectedDateDetails === 'function') updateSelectedDateDetails();
   }
-  checkNewUpdatesInLast3Days();
+  if (!sessionStorage.getItem('hasShownNewUpdateToast')) {checkNewUpdatesInLast3Days();  // Đánh dấu là đã hiển thị thông báo trong phiên này rồi
+                                                          sessionStorage.setItem('hasShownNewUpdateToast', 'true'); }
 }
 // Biến toàn cục lưu trữ danh sách tin tức để Pop-up đọc dữ liệu
 let globalNewsList = [];
@@ -874,6 +875,7 @@ async function handleUpdatePassword() {
 }
 
 async function handleLogout() {
+  sessionStorage.removeItem('hasShownNewUpdateToast');
   await sbClient.auth.signOut();
   window.location.href = 'index.html';
 }
