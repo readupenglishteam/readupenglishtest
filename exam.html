@@ -820,6 +820,20 @@
         alert("❌ Lỗi lưu kết quả: " + error.message);
         return;
       }
+      const urlParams = new URLSearchParams(window.location.search);
+      const roomCode = urlParams.get('room_code');
+      if (roomCode && currentUser) {
+        localStorage.setItem('last_active_room', roomCode);
+        await sbClient
+          .from('room_participants')
+          .update({
+            score: finalScore10,
+            completion_time: timeSpentSeconds,
+            is_finished: true
+          })
+          .eq('room_code', roomCode)
+          .eq('user_id', currentUser.id);
+      }
 
       await rewardXPAndStreak(20);
       renderResultMode(questions);
@@ -1212,13 +1226,12 @@ async function submitExamInRoom(score, totalQuestions, timeTakenSeconds) {
   }
 }
 
-// Nút "Thoát về Dashboard" trên trang exam.html
+// XỬ LÝ KHI BẤM NÚT "TRỞ VỀ DASHBOARD"
 function exitToDashboard() {
   const urlParams = new URLSearchParams(window.location.search);
-  const roomCode = urlParams.get('room_code');
+  const roomCode = urlParams.get('room_code') || localStorage.getItem('last_active_room');
   
   if (roomCode) {
-    // Chuyển hướng kèm theo mã phòng để Dashboard tiếp tục hiển thị
     window.location.href = `dashboard.html?active_room=${roomCode}`;
   } else {
     window.location.href = `dashboard.html`;
@@ -1247,18 +1260,7 @@ async function onExamFinished(score, totalQuestions, timeInSeconds) {
   }
 }
 
-// 2. XỬ LÝ KHI BẤM NÚT "TRỞ VỀ DASHBOARD"
-function exitToDashboard() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const roomCode = urlParams.get('room_code') || localStorage.getItem('last_active_room');
-  
-  if (roomCode) {
-    // Chuyển về Dashboard kèm theo mã phòng để không bị mất phòng
-    window.location.href = `dashboard.html?active_room=${roomCode}`;
-  } else {
-    window.location.href = `dashboard.html`;
-  }
-}
+
 
   </script>
   <!-- MODAL BẢNG VÀNG VINH DANH REAL-TIME -->
