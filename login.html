@@ -85,8 +85,8 @@
     </div>
 
       <div>
-        <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Email hoặc Số điện thoại</label>
-        <input type="email" id="email" required placeholder="0912345678 hoặc email@example.com" class="w-full p-3 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
+        <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Email</label>
+        <input type="email" id="email" required placeholder="student@example.com" class="w-full p-3 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
       </div>
 
       <div id="phoneGroup" class="hidden">
@@ -159,11 +159,11 @@
 
 async function handleAuth(e) {
   e.preventDefault();
-  const email = document.getElementById('email').value.trim(); // Nhận Email hoặc SĐT
+  const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
   const fullName = document.getElementById('fullName').value.trim();
   const phone = document.getElementById('phone')?.value?.trim() || '';
-  const rawDob = document.getElementById('dob')?.value?.trim() || ''; // 🛠️ Sửa tên biến thành rawDob
+  const rawDob = document.getElementById('dob')?.value?.trim() || ''; 
   const msg = document.getElementById('authMsg');
 
   msg.innerText = "⏳ Đang xử lý...";
@@ -197,61 +197,43 @@ async function handleAuth(e) {
       }
     });
 
-    if (error) {
-      msg.innerHTML = '<i class="bi bi-dash-circle-fill"></i> Lỗi đăng ký: ' + error.message;
-      msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
-    } else {
-      msg.innerHTML = '<i class="bi bi-check-circle"></i> Đăng ký thành công!';
-      msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
-      setTimeout(() => window.location.href = 'dashboard.html', 1500);
-    }
-  } else {
-    // ➕ [BỔ SUNG]: Xử lý đăng nhập bằng SĐT hoặc Email
-    let loginEmail = email;
-
-    if (!email.includes('@')) {
-      // Nếu không có ký tự '@', tra cứu email từ SĐT qua RPC trên Supabase
-      const { data: foundEmail, error: rpcErr } = await sbClient
-        .rpc('get_email_by_phone', { phone_input: email });
-
-      if (rpcErr || !foundEmail) {
-        msg.innerText = "❌ Không tìm thấy tài khoản liên kết với số điện thoại này!";
-        msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
-        return;
-      }
-      loginEmail = foundEmail;
-    }
-
-    const { data: authData, error: authError } = await sbClient.auth.signInWithPassword({ 
-      email: loginEmail, 
-      password 
-    });
     
-    if (authError) {
-      msg.innerText = "❌ Đăng nhập thất bại: " + authError.message;
-      msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
-      return;
-    }
+      if (error) {
+        msg.innerHTML = '<i class="bi bi-dash-circle-fill"></i> Lỗi đăng ký: ' + error.message;
+        msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
+      } else {
+        msg.innerHTML = '<i class="bi bi-check-circle"></i> Đăng ký thành công!';
+        msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
+        setTimeout(() => window.location.href = 'dashboard.html', 1500);
+      }
+    } else {
+      const { data: authData, error: authError } = await sbClient.auth.signInWithPassword({ email, password });
+      
+      if (authError) {
+        msg.innerText = "❌ Đăng nhập thất bại: " + authError.message;
+        msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
+        return;
+      }
 
-    const { data: profile } = await sbClient
-      .from('profiles')
-      .select('role')
-      .eq('id', authData.user.id)
-      .single();
+      const { data: profile } = await sbClient
+        .from('profiles')
+        .select('role')
+        .eq('id', authData.user.id)
+        .single();
 
-    const role = profile?.role?.trim().toLowerCase();
+      const role = profile?.role?.trim().toLowerCase();
 
-    if (role === 'admin') {
-      msg.innerHTML = '<i class="bi bi-gear"></i> Đăng nhập Admin thành công';
-      msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
-      setTimeout(() => window.location.href = 'admin.html', 1000);
-    } else {
-      msg.innerHTML = '<i class="bi bi-check-circle"></i> Đăng nhập thành công';
-      msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
-      setTimeout(() => window.location.href = 'dashboard.html', 1000);
-    }
-  }
-}
+      if (role === 'admin') {
+        msg.innerHTML = '<i class="bi bi-gear"></i> Đăng nhập Admin thành công';
+        msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
+        setTimeout(() => window.location.href = 'admin.html', 1000);
+      } else {
+        msg.innerHTML = '<i class="bi bi-check-circle"></i> Đăng nhập thành công';
+        msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
+        setTimeout(() => window.location.href = 'dashboard.html', 1000);
+      }
+    }
+  }
 
   // 1. ĐĂNG NHẬP BẰNG GOOGLE
   async function loginWithGoogle() {
