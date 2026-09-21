@@ -80,13 +80,18 @@
       </div>
 
       <div id="dobGroup" class="hidden">
-        <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Ngày tháng năm sinh</label>
-        <input type="date" id="dob" class="w-full p-3 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
-      </div>
+        <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Ngày tháng năm sinh (DD/MM/YYYY)</label>
+        <input type="text" id="dob" placeholder="dd/mm/yyyy" maxlength="10" class="w-full p-3 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
+    </div>
 
       <div>
-        <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Email</label>
-        <input type="email" id="email" required placeholder="student@example.com" class="w-full p-3 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
+        <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Email hoặc Số điện thoại</label>
+        <input type="email" id="email" required placeholder="0912345678 hoặc email@example.com" class="w-full p-3 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
+      </div>
+
+      <div id="phoneGroup" class="hidden">
+      <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Số điện thoại</label>
+      <input type="tel" id="phone" placeholder="0912345678" class="w-full p-3 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
       </div>
 
       <div>
@@ -152,68 +157,101 @@
       : 'w-1/2 py-2.5 text-center font-bold text-gray-400 hover:text-gray-600 transition';
   }
 
-  async function handleAuth(e) {
-    e.preventDefault();
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const fullName = document.getElementById('fullName').value.trim();
-    const dob = document.getElementById('dob').value;
-    const msg = document.getElementById('authMsg');
+async function handleAuth(e) {
+  e.preventDefault();
+  const email = document.getElementById('email').value.trim(); // Nhận Email hoặc SĐT
+  const password = document.getElementById('password').value;
+  const fullName = document.getElementById('fullName').value.trim();
+  const phone = document.getElementById('phone')?.value?.trim() || '';
+  const rawDob = document.getElementById('dob')?.value?.trim() || ''; // 🛠️ Sửa tên biến thành rawDob
+  const msg = document.getElementById('authMsg');
 
-    msg.innerText = "⏳ Đang xử lý...";
-    msg.className = "mt-4 text-center text-sm font-semibold text-gray-500";
+  msg.innerText = "⏳ Đang xử lý...";
+  msg.className = "mt-4 text-center text-sm font-semibold text-gray-500";
 
-    if (currentMode === 'register') {
-      if (!fullName || !dob) {
-        msg.innerText = "⚠️ Vui lòng nhập đầy đủ Họ tên và Ngày sinh!";
-        msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
-        return;
+  if (currentMode === 'register') {
+    if (!fullName || !rawDob) {
+      msg.innerText = "⚠️ Vui lòng nhập đầy đủ Họ tên và Ngày sinh!";
+      msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
+      return;
+    }
+    if (!phone) {
+      msg.innerText = "⚠️ Vui lòng nhập đầy đủ Số điện thoại!";
+      msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
+      return;
+    }
+
+    // Chuyển đổi định dạng ngày sinh
+    const isoDob = formatToISO(rawDob);
+    if (!isoDob) {
+      msg.innerText = "⚠️ Ngày sinh không hợp lệ! Vui lòng nhập đúng định dạng DD/MM/YYYY (Ví dụ: 25/12/2005)";
+      msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
+      return;
+    }
+
+    const { data, error } = await sbClient.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullName, phone: phone, dob: isoDob, role: 'student' }
       }
+    });
 
-      const { data, error } = await sbClient.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: fullName, dob: dob, role: 'student' }
-        }
-      });
-
-      if (error) {
-        msg.innerHTML = '<i class="bi bi-dash-circle-fill"></i> Lỗi đăng ký: ' + error.message;
-        msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
-      } else {
-        msg.innerHTML = '<i class="bi bi-check-circle"></i> Đăng ký thành công!';
-        msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
-        setTimeout(() => window.location.href = 'dashboard.html', 1500);
-      }
+    if (error) {
+      msg.innerHTML = '<i class="bi bi-dash-circle-fill"></i> Lỗi đăng ký: ' + error.message;
+      msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
     } else {
-      const { data: authData, error: authError } = await sbClient.auth.signInWithPassword({ email, password });
-      
-      if (authError) {
-        msg.innerText = "❌ Đăng nhập thất bại: " + authError.message;
+      msg.innerHTML = '<i class="bi bi-check-circle"></i> Đăng ký thành công!';
+      msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
+      setTimeout(() => window.location.href = 'dashboard.html', 1500);
+    }
+  } else {
+    // ➕ [BỔ SUNG]: Xử lý đăng nhập bằng SĐT hoặc Email
+    let loginEmail = email;
+
+    if (!email.includes('@')) {
+      // Nếu không có ký tự '@', tra cứu email từ SĐT qua RPC trên Supabase
+      const { data: foundEmail, error: rpcErr } = await sbClient
+        .rpc('get_email_by_phone', { phone_input: email });
+
+      if (rpcErr || !foundEmail) {
+        msg.innerText = "❌ Không tìm thấy tài khoản liên kết với số điện thoại này!";
         msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
         return;
       }
+      loginEmail = foundEmail;
+    }
 
-      const { data: profile } = await sbClient
-        .from('profiles')
-        .select('role')
-        .eq('id', authData.user.id)
-        .single();
+    const { data: authData, error: authError } = await sbClient.auth.signInWithPassword({ 
+      email: loginEmail, 
+      password 
+    });
+    
+    if (authError) {
+      msg.innerText = "❌ Đăng nhập thất bại: " + authError.message;
+      msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
+      return;
+    }
 
-      const role = profile?.role?.trim().toLowerCase();
+    const { data: profile } = await sbClient
+      .from('profiles')
+      .select('role')
+      .eq('id', authData.user.id)
+      .single();
 
-      if (role === 'admin') {
-        msg.innerHTML = '<i class="bi bi-gear"></i> Đăng nhập Admin thành công';
-        msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
-        setTimeout(() => window.location.href = 'admin.html', 1000);
-      } else {
-        msg.innerHTML = '<i class="bi bi-check-circle"></i> Đăng nhập thành công';
-        msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
-        setTimeout(() => window.location.href = 'dashboard.html', 1000);
-      }
+    const role = profile?.role?.trim().toLowerCase();
+
+    if (role === 'admin') {
+      msg.innerHTML = '<i class="bi bi-gear"></i> Đăng nhập Admin thành công';
+      msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
+      setTimeout(() => window.location.href = 'admin.html', 1000);
+    } else {
+      msg.innerHTML = '<i class="bi bi-check-circle"></i> Đăng nhập thành công';
+      msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
+      setTimeout(() => window.location.href = 'dashboard.html', 1000);
     }
   }
+}
 
   // 1. ĐĂNG NHẬP BẰNG GOOGLE
   async function loginWithGoogle() {
@@ -303,6 +341,21 @@
       `;
     }
   }
+  function formatToISO(vnDateStr) {
+  if (!vnDateStr) return null;
+  const parts = vnDateStr.trim().split('/');
+  if (parts.length === 3) {
+    const day = parts[0].padStart(2, '0');
+    const month = parts[1].padStart(2, '0');
+    const year = parts[2];
+    
+    // Kiểm tra tính hợp lệ cơ bản của ngày, tháng, năm
+    if (Number(day) > 0 && Number(day) <= 31 && Number(month) > 0 && Number(month) <= 12 && year.length === 4) {
+      return `${year}-${month}-${day}`;
+    }
+  }
+  return null;
+}
 </script>
 </body>
 </html>
