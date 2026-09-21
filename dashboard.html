@@ -3251,12 +3251,23 @@ async function initActiveRoomWidget() {
   const urlParams = new URLSearchParams(window.location.search);
   const roomCode = urlParams.get('active_room') || localStorage.getItem('last_active_room');
 
-  if (!roomCode || !currentUser) {
+  // Nếu không có mã phòng thì ẩn widget
+  if (!roomCode) {
     leaveActiveRoomWidget();
     return;
   }
 
-  // 🔴 BƯỚC BẮT BỘC: Kiểm tra xem User này có tham gia phòng không
+  // Đảm bảo đã có thông tin user
+  if (!currentUser) {
+    const { data: { user } } = await sbClient.auth.getUser();
+    if (user) currentUser = user;
+    else {
+      leaveActiveRoomWidget();
+      return;
+    }
+  }
+
+  // 1. Kiểm tra User có thuộc phòng này không
   const { data: participant, error: partErr } = await sbClient
     .from('room_participants')
     .select('*')
@@ -3264,26 +3275,31 @@ async function initActiveRoomWidget() {
     .eq('user_id', currentUser.id)
     .maybeSingle();
 
-  // Nếu người dùng KHÔNG thuộc phòng này -> Khóa khung, xóa cache
   if (!participant || partErr) {
     localStorage.removeItem('last_active_room');
     leaveActiveRoomWidget();
     return;
   }
 
-  // Lấy thông tin chi tiết phòng
-  const { data: room } = await sbClient.from('rooms').select('*').eq('code', roomCode).single();
+  // 2. Tìm thông tin phòng (Thử cả cột 'code' và 'room_code')
+  let { data: room } = await sbClient.from('rooms').select('*').eq('code', roomCode).maybeSingle();
   if (!room) {
-    leaveActiveRoomWidget();
-    return;
+    const res = await sbClient.from('rooms').select('*').eq('room_code', roomCode).maybeSingle();
+    room = res.data;
   }
 
-  // ✅ Đúng người đúng phòng -> Mới hiển thị Khung Trò Chuyện
-  document.getElementById('sectionActiveRoomContainer')?.classList.remove('hidden');
-  document.getElementById('sectionRoomCode').innerText = roomCode;
+  // 3. HIỂN THỊ KHUNG WIDGET & GẮN MÃ PHÒNG
+  const container = document.getElementById('sectionActiveRoomContainer');
+  if (container) {
+    container.classList.remove('hidden');
+    container.style.display = 'block'; // Đảm bảo chắc chắn không bị CSS ẩn
+  }
 
-  // PHÂN QUYỀN: Hiện cụm nút Lưu/Xóa NẾU người dùng là HOST
-  const isHost = (room.host_id === currentUser.id) || (participant.role === 'host');
+  const roomCodeEl = document.getElementById('sectionRoomCode');
+  if (roomCodeEl) roomCodeEl.innerText = roomCode;
+
+  // 4. Phân quyền hiển thị nút Host
+  const isHost = (room && room.host_id === currentUser.id) || (participant.role === 'host');
   const hostControls = document.getElementById('sectionHostControls');
   if (hostControls) {
     if (isHost) {
@@ -3295,9 +3311,16 @@ async function initActiveRoomWidget() {
     }
   }
 
-  // Tải danh sách thành viên (bao gồm Host) và Lắng nghe Realtime
-  loadRoomParticipants(roomCode);
-  subscribeRealtimeRoom(roomCode);
+  // 5. Nạp danh sách thành viên, tin nhắn và đăng ký Realtime
+  if (typeof renderWidgetParticipants === 'function') {
+    await renderWidgetParticipants(roomCode);
+  }
+  if (typeof loadRoomMessages === 'function') {
+    await loadRoomMessages(roomCode);
+  }
+  if (typeof subscribeRealtimeRoom === 'function') {
+    subscribeRealtimeRoom(roomCode);
+  }
 }
 
 // Render Tiến Độ / Bảng Điểm Các Thành Viên Trên Widget
@@ -3502,6 +3525,16 @@ async function handleHostDeleteRoom() {
     alert("❌ Lỗi khi xóa phòng: " + err.message);
   }
 }
+// Đặt đoạn này ở cuối file JS Dashboard của bạn
+document.addEventListener('DOMContentLoaded', () => {
+  sbClient.auth.onAuthStateChange(async (event, session) => {
+    if (session && session.user) {
+      currentUser = session.user;
+      // Khi đã có user -> Kích hoạt Widget phòng làm bài ngay
+      await initActiveRoomWidget();
+    }
+  });
+});
   
 </script>
 <!-- MODAL ĐỔI MẬT KHẨU -->
