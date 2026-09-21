@@ -3251,6 +3251,17 @@ async function handleQrImageUpload(event) {
     event.target.value = '';
   }
 }
+
+// KHI MỞ TRANG DASHBOARD -> TỰ ĐỘNG KHÔI PHỤC PHÒNG & CHAT
+window.addEventListener('DOMContentLoaded', async () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const activeRoomCode = urlParams.get('active_room') || localStorage.getItem('last_active_room');
+
+  if (activeRoomCode) {
+    // Tự động mở Khung Phòng + Khung Chat Messenger + Cập nhật Realtime
+    await initActiveRoomWidget(activeRoomCode);
+  }
+});
   
 </script>
 <!-- MODAL ĐỔI MẬT KHẨU -->
