@@ -2928,7 +2928,7 @@ async function handleCreateRoom() {
   const mode = document.querySelector('input[name="roomMode"]:checked')?.value || 'battle';
   const roomCode = generateRoomCode();
 
-  // Thêm phòng vào DB
+  // 1. Thêm phòng vào DB
   const { error: roomErr } = await sbClient.from('rooms').insert([{
     room_code: roomCode,
     host_id: currentUser.id,
@@ -2941,6 +2941,26 @@ async function handleCreateRoom() {
     alert("❌ Không thể tạo phòng: " + roomErr.message);
     return;
   }
+
+  // === [THÊM MỚI] 2. Tự động thêm Host (Admin) vào bảng 'room_participants' ===
+  const fullName = currentUser.user_metadata?.full_name || (currentUser.email ? currentUser.email.split('@')[0] : 'Chủ phòng');
+  
+  const { error: partErr } = await sbClient.from('room_participants').insert([{
+    room_code: roomCode,
+    user_id: currentUser.id,
+    full_name: fullName,
+    role: 'host',
+    score: 0,
+    is_finished: false
+  }]);
+
+  if (partErr) {
+    console.error("❌ Lỗi khi chèn Host vào room_participants:", partErr);
+  }
+
+  // 3. Lưu mã phòng vừa tạo vào bộ nhớ trình duyệt
+  localStorage.setItem('last_active_room', roomCode);
+  // =========================================================================
 
   closeModal('modalCreateRoom');
   await enterLobby(roomCode, true);
@@ -3267,32 +3287,36 @@ async function initActiveRoomWidget() {
     }
   }
 
-  // 1. Kiểm tra User có thuộc phòng này không
-  const { data: participant, error: partErr } = await sbClient
+  // 1. Lấy thông tin người tham gia
+  const { data: participant } = await sbClient
     .from('room_participants')
     .select('*')
     .eq('room_code', roomCode)
     .eq('user_id', currentUser.id)
     .maybeSingle();
 
-  if (!participant || partErr) {
+  if (!participant) {
     localStorage.removeItem('last_active_room');
     leaveActiveRoomWidget();
     return;
   }
 
   // 2. Tìm thông tin phòng (Thử cả cột 'code' và 'room_code')
-  let { data: room } = await sbClient.from('rooms').select('*').eq('code', roomCode).maybeSingle();
-  if (!room) {
-    const res = await sbClient.from('rooms').select('*').eq('room_code', roomCode).maybeSingle();
-    room = res.data;
+  const { data: room, error: roomErr } = await sbClient
+    .from('rooms')
+    .select('*')
+    .eq('room_code', roomCode)
+    .maybeSingle();
+
+  if (roomErr) {
+    console.error("❌ Lỗi lấy thông tin phòng:", roomErr);
   }
 
   // 3. HIỂN THỊ KHUNG WIDGET & GẮN MÃ PHÒNG
-  const container = document.getElementById('sectionActiveRoomContainer');
+const container = document.getElementById('sectionActiveRoomContainer');
   if (container) {
     container.classList.remove('hidden');
-    container.style.display = 'block'; // Đảm bảo chắc chắn không bị CSS ẩn
+    container.style.display = 'block';
   }
 
   const roomCodeEl = document.getElementById('sectionRoomCode');
@@ -3312,15 +3336,9 @@ async function initActiveRoomWidget() {
   }
 
   // 5. Nạp danh sách thành viên, tin nhắn và đăng ký Realtime
-  if (typeof renderWidgetParticipants === 'function') {
-    await renderWidgetParticipants(roomCode);
-  }
-  if (typeof loadRoomMessages === 'function') {
-    await loadRoomMessages(roomCode);
-  }
-  if (typeof subscribeRealtimeRoom === 'function') {
-    subscribeRealtimeRoom(roomCode);
-  }
+  if (typeof renderWidgetParticipants === 'function') await renderWidgetParticipants(roomCode);
+  if (typeof loadRoomMessages === 'function') await loadRoomMessages(roomCode);
+  if (typeof subscribeRealtimeRoom === 'function') subscribeRealtimeRoom(roomCode);
 }
 
 // Render Tiến Độ / Bảng Điểm Các Thành Viên Trên Widget
