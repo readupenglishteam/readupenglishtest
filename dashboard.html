@@ -2984,10 +2984,11 @@ async function joinRoom(roomCode) {
 
   // Đăng ký người tham gia
   await sbClient.from('room_participants').upsert([{
-    room_code: roomCode,
-    user_id: currentUser.id,
-    full_name: fullName
-  }], { onConflict: 'room_code, user_id' });
+  room_code: roomCode,
+  user_id: currentUser.id,
+  full_name: fullName,
+  role: room.host_id === currentUser.id ? 'host' : 'member'
+}], { onConflict: 'room_code, user_id' });
 
   await enterLobby(roomCode, room.host_id === currentUser.id);
 }
@@ -3204,46 +3205,57 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 // KHỞI TẠO KHUNG PHÒNG VÀ KHUNG CHAT WIDGET
-async function initActiveRoomWidget(roomCode) {
-  try {
-    const { data: room, error } = await sbClient
-      .from('rooms')
-      .select('*')
-      .eq('room_code', roomCode)
-      .maybeSingle();
+async function initActiveRoomWidget() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const roomCode = urlParams.get('active_room') || localStorage.getItem('last_active_room');
 
-    if (error || !room) { // Bỏ điều kiện room.status === 'finished'
-  leaveActiveRoomWidget();
-  return;
-}
-
-    localStorage.setItem('last_active_room', roomCode);
-
-    const codeEl = document.getElementById('sectionRoomCode');
-    const containerEl = document.getElementById('sectionActiveRoomContainer') || document.getElementById('activeRoomWidget');
-    
-    if (codeEl) codeEl.innerText = roomCode;
-    if (containerEl) containerEl.classList.remove('hidden');
-
-    const isHost = currentUser && currentUser.id === room.host_id;
-    const hostControls = document.getElementById('sectionHostControls');
-    const memberLeave = document.getElementById('sectionMemberLeave');
-
-    if (isHost) {
-      if (hostControls) hostControls.classList.remove('hidden');
-      if (memberLeave) memberLeave.classList.add('hidden');
-    } else {
-      if (hostControls) hostControls.classList.add('hidden');
-      if (memberLeave) memberLeave.classList.remove('hidden');
-    }
-
-    await renderWidgetParticipants(roomCode);
-    await loadChatMessages(roomCode);
-    subscribeRoomWidgetRealtime(roomCode);
-
-  } catch (err) {
-    console.error("Không thể tải thông tin phòng Widget:", err);
+  if (!roomCode || !currentUser) {
+    leaveActiveRoomWidget();
+    return;
   }
+
+  // 🔴 BƯỚC BẮT BỘC: Kiểm tra xem User này có tham gia phòng không
+  const { data: participant, error: partErr } = await sbClient
+    .from('room_participants')
+    .select('*')
+    .eq('room_code', roomCode)
+    .eq('user_id', currentUser.id)
+    .maybeSingle();
+
+  // Nếu người dùng KHÔNG thuộc phòng này -> Khóa khung, xóa cache
+  if (!participant || partErr) {
+    localStorage.removeItem('last_active_room');
+    leaveActiveRoomWidget();
+    return;
+  }
+
+  // Lấy thông tin chi tiết phòng
+  const { data: room } = await sbClient.from('rooms').select('*').eq('code', roomCode).single();
+  if (!room) {
+    leaveActiveRoomWidget();
+    return;
+  }
+
+  // ✅ Đúng người đúng phòng -> Mới hiển thị Khung Trò Chuyện
+  document.getElementById('sectionActiveRoomContainer')?.classList.remove('hidden');
+  document.getElementById('sectionRoomCode').innerText = roomCode;
+
+  // PHÂN QUYỀN: Hiện cụm nút Lưu/Xóa NẾU người dùng là HOST
+  const isHost = (room.host_id === currentUser.id) || (participant.role === 'host');
+  const hostControls = document.getElementById('sectionHostControls');
+  if (hostControls) {
+    if (isHost) {
+      hostControls.classList.remove('hidden');
+      hostControls.classList.add('flex');
+    } else {
+      hostControls.classList.add('hidden');
+      hostControls.classList.remove('flex');
+    }
+  }
+
+  // Tải danh sách thành viên (bao gồm Host) và Lắng nghe Realtime
+  loadRoomParticipants(roomCode);
+  subscribeRealtimeRoom(roomCode);
 }
 
 // Render Tiến Độ / Bảng Điểm Các Thành Viên Trên Widget
@@ -3399,6 +3411,53 @@ function toggleMainFrame(showExplicitly = null) {
   } else {
     targetFrame.classList.add('hidden');
     if (restoreBtn) restoreBtn.classList.remove('hidden');
+  }
+}
+
+// 1. LƯU PHÒNG (Chủ phòng lưu -> Cả 2 bên nhận được thông báo/kết quả)
+async function handleHostSaveRoom() {
+  const roomCode = document.getElementById('sectionRoomCode')?.innerText;
+  if (!roomCode) return;
+
+  if (!confirm("💾 Bạn có chắc muốn LƯU & KHÓA phòng này? Kết quả làm bài sẽ được đóng băng cho tất cả thành viên.")) return;
+
+  // Cập nhật status phòng thành 'finished' trên Supabase
+  const { error } = await sbClient
+    .from('rooms')
+    .update({ status: 'finished', updated_at: new Date() })
+    .eq('code', roomCode);
+
+  if (error) {
+    alert("❌ Lỗi khi lưu phòng: " + error.message);
+  } else {
+    alert("✅ Đã lưu phòng thành công!");
+  }
+}
+
+// 2. XÓA PHÒNG (Chủ phòng xóa -> Mất tất cả dữ liệu phòng)
+async function handleHostDeleteRoom() {
+  const roomCode = document.getElementById('sectionRoomCode')?.innerText;
+  if (!roomCode) return;
+
+  if (!confirm("⚠️ CẢNH BÁO: Bạn có chắc chắn muốn XÓA PHÒNG này?\nToàn bộ bảng điểm và tin nhắn trò chuyện sẽ bị xóa vĩnh viễn!")) return;
+
+  try {
+    // Xóa dữ liệu các bảng liên quan
+    await sbClient.from('room_participants').delete().eq('room_code', roomCode);
+    await sbClient.from('room_messages').delete().eq('room_code', roomCode);
+    
+    // Xóa phòng chính
+    const { error } = await sbClient.from('rooms').delete().eq('code', roomCode);
+
+    if (error) throw error;
+
+    alert("🗑️ Đã xóa toàn bộ dữ liệu phòng!");
+    localStorage.removeItem('last_active_room');
+    
+    // Ẩn khung ngay lập tức
+    leaveActiveRoomWidget();
+  } catch (err) {
+    alert("❌ Lỗi khi xóa phòng: " + err.message);
   }
 }
   
