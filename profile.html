@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadUp English - Hồ Sơ Cá Nhân</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
+  <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
+</head>
+<body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen transition-colors duration-300 flex flex-col justify-between">
+
+<!-- ================= NỀN ĐỘNG CHUYỂN ĐỘNG DÙNG CHUNG ================= -->
+<div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none select-none transition-colors duration-500 bg-slate-50 dark:bg-zinc-950">
+  <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#cf1717]/20 dark:bg-[#cf1717]/15 rounded-full blur-3xl animate-blob"></div>
+  <div class="absolute top-1/3 -right-24 w-[30rem] h-[30rem] bg-indigo-500/15 dark:bg-red-900/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+  <div class="absolute -bottom-24 left-1/3 w-96 h-96 bg-amber-500/15 dark:bg-amber-600/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+</div>
+
+<style>
+  @keyframes blob {
+    0%, 100% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.95); }
+  }
+  .animate-blob { animation: blob 10s infinite ease-in-out; }
+  .animation-delay-2000 { animation-delay: 2s; }
+  .animation-delay-4000 { animation-delay: 4s; }
+</style>
+
+<!-- ================= HEADER VỚI ICON CÁ NHÂN VÒNG TRÒN ĐỎ ================= -->
+<header class="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/60 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-950/60 transition px-4">
+  <div class="max-w-7xl mx-auto h-16 flex justify-between items-center">
+    
+    <div class="flex items-center gap-3">
+      <a href="dashboard.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
+        <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
+      </a>
+      <a href="dashboard.html" class="flex items-center gap-2 hover:opacity-90 transition">
+        <span class="text-2xl font-black text-[#cf1717] tracking-tight">ReadUp</span>
+        <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full shadow-sm">English</span>
+      </a>
+    </div>
+
+    <div class="flex items-center gap-3 relative">
+      <a href="dashboard.html" class="px-3 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-xl transition flex items-center gap-1.5">
+        <span>🏠</span> <span class="hidden sm:inline">Trang chủ</span>
+      </a>
+
+      <!-- Menu User Icon Chấm Đỏ -->
+      <div class="relative">
+        <button onclick="toggleUserDropdown()" class="relative p-1.5 rounded-full bg-red-50 dark:bg-zinc-800 border-2 border-[#cf1717] text-[#cf1717] dark:text-red-400 hover:scale-105 transition shadow-md flex items-center justify-center">
+          <svg class="w-7 h-7 fill-current" viewBox="0 0 16 16">
+            <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+            <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+          </svg>
+          <span class="absolute top-0 right-0 w-3 h-3 bg-[#cf1717] border-2 border-white dark:border-zinc-950 rounded-full animate-ping"></span>
+          <span class="absolute top-0 right-0 w-3 h-3 bg-[#cf1717] border-2 border-white dark:border-zinc-950 rounded-full"></span>
+        </button>
+
+        <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-52 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl py-2 z-50 transition-all">
+          <a href="profile.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-[#cf1717] dark:text-red-400 bg-red-50/50 dark:bg-red-950/30">
+            <span>👤</span> Trang cá nhân
+          </a>
+          <button onclick="toggleDarkMode()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
+            <span id="themeIcon">🌙</span> Đổi màu nền (Sáng/Tối)
+          </button>
+          <div class="border-t border-gray-100 dark:border-zinc-800 my-1"></div>
+          <button onclick="handleLogout()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition">
+            <span>🚪</span> Đăng xuất
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</header>
+
+<!-- ================= NỘI DUNG TRANG PROFILE ================= -->
+<main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
+  
+  <!-- Tiêu đề trang -->
+  <div class="flex items-center gap-3 border-l-4 border-[#cf1717] pl-4">
+    <div>
+      <h1 class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">👤 Hồ Sơ Học Viên</h1>
+      <p class="text-xs text-gray-500 dark:text-gray-400">Quản lý thông tin tài khoản, cập nhật email và đổi mật khẩu</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    
+    <!-- CỘT TRÁI: THẺ THÔNG TIN AVATAR & CHỈ SỐ -->
+    <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-3xl p-6 shadow-sm space-y-6 flex flex-col items-center text-center">
+      
+      <!-- Avatar lớn -->
+      <div class="relative">
+        <div class="w-28 h-28 rounded-full bg-red-100 dark:bg-red-950 border-4 border-[#cf1717] flex items-center justify-center text-[#cf1717] font-black text-4xl shadow-lg overflow-hidden" id="profileAvatarBox">
+          <span id="profileAvatarText">U</span>
+        </div>
+        <span class="absolute bottom-1 right-1 w-5 h-5 bg-emerald-500 border-2 border-white dark:border-zinc-900 rounded-full" title="Đang hoạt động"></span>
+      </div>
+
+      <!-- Tên & Email -->
+      <div class="space-y-1">
+        <h3 id="displayFullName" class="font-black text-lg text-gray-900 dark:text-white">Đang tải...</h3>
+        <p id="displayEmail" class="text-xs text-gray-500 dark:text-gray-400 font-medium">---</p>
+        <div class="pt-2 flex justify-center gap-2">
+          <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-red-100 dark:bg-red-950/80 text-[#cf1717] dark:text-red-400">Học sinh ReadUp</span>
+          <span id="authProviderBadge" class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300">Tài khoản</span>
+        </div>
+      </div>
+
+      <!-- Thống kê Streak & XP -->
+      <div class="w-full grid grid-cols-2 gap-3 pt-4 border-t border-gray-100 dark:border-zinc-800">
+        <div class="p-3 bg-red-50/50 dark:bg-red-950/20 rounded-2xl border border-red-100 dark:border-red-900/40">
+          <span class="text-xl">🔥</span>
+          <p id="profileStreak" class="font-black text-lg text-[#cf1717] dark:text-red-400">0</p>
+          <span class="text-[10px] text-gray-500 font-bold uppercase">Ngày Streak</span>
+        </div>
+        <div class="p-3 bg-amber-50/50 dark:bg-amber-950/20 rounded-2xl border border-amber-100 dark:border-amber-900/40">
+          <span class="text-xl">⚡</span>
+          <p id="profileXp" class="font-black text-lg text-amber-600 dark:text-amber-400">0</p>
+          <span class="text-[10px] text-gray-500 font-bold uppercase">Điểm XP</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CỘT PHẢI: CHỈNH SỬA THÔNG TIN & ĐỔI MẬT KHẨU -->
+    <div class="lg:col-span-2 space-y-6">
+      
+      <!-- FORM 1: CẬP NHẬT THÔNG TIN CÁ NHÂN & EMAIL -->
+      <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-3xl p-6 shadow-sm space-y-4">
+        <h3 class="font-extrabold text-base text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-100 dark:border-zinc-800 pb-3">
+          <span class="text-[#cf1717]">📝</span> Thông Tin Cá Nhân
+        </h3>
+
+        <form onsubmit="handleUpdateProfile(event)" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">HỌ VÀ TÊN</label>
+              <input type="text" id="inputFullName" required class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">SỐ ĐIỆN THOẠI</label>
+              <input type="tel" id="inputPhone" placeholder="Chưa cập nhật" class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">ĐỊA CHỈ EMAIL</label>
+            <input type="email" id="inputEmail" required class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none">
+            <p class="text-[11px] text-gray-400 mt-1">💡 Nếu bạn đăng nhập bằng Google, bạn vẫn có thể cập nhật email ở đây mà không bị mất tài khoản.</p>
+          </div>
+
+          <button type="submit" class="px-5 py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition active:scale-95 flex items-center gap-2">
+            <span>💾</span> Lưu Thay Đổi
+          </button>
+        </form>
+      </div>
+
+      <!-- FORM 2: ĐỔI MẬT KHẨU TÍCH HỢP TRỰC TIẾP -->
+      <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-3xl p-6 shadow-sm space-y-4">
+        <h3 class="font-extrabold text-base text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-100 dark:border-zinc-800 pb-3">
+          <span class="text-[#cf1717]">🔒</span> Thay Đổi Mật Khẩu
+        </h3>
+
+        <form onsubmit="handleProfileChangePassword(event)" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">MẬT KHẨU MỚI</label>
+              <input type="password" id="inputNewPassword" placeholder="Tối thiểu 6 ký tự" required class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">XÁC NHẬN MẬT KHẨU MỚI</label>
+              <input type="password" id="inputConfirmPassword" placeholder="Nhập lại mật khẩu mới" required class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none">
+            </div>
+          </div>
+
+          <button type="submit" class="px-5 py-2.5 bg-zinc-900 dark:bg-zinc-700 hover:bg-black text-white font-bold text-xs sm:text-sm rounded-xl shadow transition active:scale-95 flex items-center gap-2">
+            <span>🔑</span> Cập Nhật Mật Khẩu
+          </button>
+        </form>
+      </div>
+
+    </div>
+
+  </div>
+
+</main>
+
+<!-- ================= FOOTER CHUẨN ĐỒNG BỘ DASHBOARD ================= -->
+<footer class="bg-zinc-900 text-gray-300 pt-10 pb-8 border-t border-zinc-800 text-xs mt-auto">
+  <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+    
+    <div class="space-y-3">
+      <div class="flex items-center gap-2">
+        <a href="dashboard.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md">
+          <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
+        </a>
+        <span class="text-xl font-black text-[#cf1717]">ReadUp</span>
+        <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full">English</span>
+      </div>
+      <p class="text-gray-400 leading-relaxed">Nền tảng luyện thi IELTS Reading thông minh, tối ưu hóa vốn từ vựng theo ngữ cảnh.</p>
+      <p>📧 Email: <a href="mailto:readupenglish.team@gmail.com" class="text-white hover:underline">readupenglish.team@gmail.com</a></p>
+    </div>
+
+    <div class="space-y-3">
+      <h4 class="font-bold text-white text-sm">Hỗ Trợ Trực Tuyến 🎧</h4>
+      <p class="text-gray-400">Gặp sự cố khi làm bài hoặc cần giải đáp thắc mắc? Đội ngũ ReadUp luôn sẵn sàng hỗ trợ bạn.</p>
+      <a href="dashboard.html" class="inline-block px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl transition text-center">
+        Về Dashboard Hỗ Trợ
+      </a>
+    </div>
+
+    <div class="space-y-3">
+      <h4 class="font-bold text-white text-sm">Thông Tin Hệ Thống 📝</h4>
+      <p class="text-gray-400">ReadUp English v2.0 - Hệ thống quản lý tài khoản và tiến độ học tập tự động.</p>
+    </div>
+
+  </div>
+
+  <div class="max-w-6xl mx-auto px-4 pt-4 border-t border-zinc-800 text-center text-gray-500 text-[11px]">
+    © 2026 ReadUp English. All rights reserved.
+  </div>
+</footer>
+
+<script>
+  const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
+  const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let currentUser = null;
+
+  // 1. Tải thông tin người dùng khi mở trang
+  async function initProfile() {
+    const { data: { session } } = await sbClient.auth.getSession();
+    if (!session || !session.user) {
+      window.location.href = 'index.html';
+      return;
+    }
+
+    currentUser = session.user;
+
+    // Đổ thông tin cơ bản từ Supabase Auth
+    document.getElementById('inputEmail').value = currentUser.email || '';
+    document.getElementById('displayEmail').innerText = currentUser.email || 'N/A';
+
+    // Provider Google hay Email
+    const provider = currentUser.app_metadata?.provider || 'email';
+    document.getElementById('authProviderBadge').innerText = provider === 'google' ? 'Google Auth' : 'Tài khoản Email';
+
+    // Lấy thông tin mở rộng từ bảng `profiles`
+    const { data: profile } = await sbClient
+      .from('profiles')
+      .select('*')
+      .eq('id', currentUser.id)
+      .single();
+
+    if (profile) {
+      const fullName = profile.full_name || currentUser.user_metadata?.full_name || 'Học sinh';
+      document.getElementById('inputFullName').value = fullName;
+      document.getElementById('displayFullName').innerText = fullName;
+      document.getElementById('inputPhone').value = profile.phone || '';
+      document.getElementById('profileAvatarText').innerText = fullName.charAt(0).toUpperCase();
+
+      document.getElementById('profileStreak').innerText = profile.streak || 0;
+      document.getElementById('profileXp').innerText = profile.xp || 0;
+    }
+  }
+
+  // 2. Hàm Cập nhật Họ tên, SĐT & Email
+  async function handleUpdateProfile(e) {
+    e.preventDefault();
+    const newName = document.getElementById('inputFullName').value.trim();
+    const newPhone = document.getElementById('inputPhone').value.trim();
+    const newEmail = document.getElementById('inputEmail').value.trim();
+
+    try {
+      // Cập nhật bảng profiles
+      const { error: profileErr } = await sbClient
+        .from('profiles')
+        .upsert({
+          id: currentUser.id,
+          full_name: newName,
+          phone: newPhone,
+          updated_at: new Date()
+        });
+
+      if (profileErr) throw profileErr;
+
+      // Cập nhật Email Auth (nếu thay đổi)
+      if (newEmail !== currentUser.email) {
+        const { error: authErr } = await sbClient.auth.updateUser({ email: newEmail });
+        if (authErr) throw authErr;
+        alert("🎉 Đã cập nhật thông tin thành công! Nếu đổi Email, vui lòng kiểm tra hộp thư mới để xác nhận.");
+      } else {
+        alert("🎉 Cập nhật thông tin cá nhân thành công!");
+      }
+
+      initProfile();
+
+    } catch (err) {
+      alert("❌ Lỗi cập nhật: " + err.message);
+    }
+  }
+
+  // 3. Hàm Đổi Mật Khẩu
+  async function handleProfileChangePassword(e) {
+    e.preventDefault();
+    const newPass = document.getElementById('inputNewPassword').value;
+    const confirmPass = document.getElementById('inputConfirmPassword').value;
+
+    if (newPass.length < 6) {
+      alert("⚠️ Mật khẩu phải có tối thiểu 6 ký tự!");
+      return;
+    }
+
+    if (newPass !== confirmPass) {
+      alert("⚠️ Mật khẩu xác nhận không trùng khớp!");
+      return;
+    }
+
+    const { error } = await sbClient.auth.updateUser({ password: newPass });
+
+    if (error) {
+      alert("❌ Đổi mật khẩu thất bại: " + error.message);
+    } else {
+      alert("🎉 Đổi mật khẩu thành công!");
+      document.getElementById('inputNewPassword').value = '';
+      document.getElementById('inputConfirmPassword').value = '';
+    }
+  }
+
+  // 4. Các hàm giao diện chung
+  function toggleDarkMode() {
+    if (document.documentElement.classList.contains('dark')) {
+      document.documentElement.classList.remove('dark');
+      localStorage.theme = 'light';
+    } else {
+      document.documentElement.classList.add('dark');
+      localStorage.theme = 'dark';
+    }
+  }
+
+  function toggleUserDropdown() {
+    const menu = document.getElementById('userDropdownMenu');
+    if (menu) menu.classList.toggle('hidden');
+  }
+
+  async function handleLogout() {
+    sessionStorage.clear();
+    await sbClient.auth.signOut();
+    window.location.href = 'index.html';
+  }
+
+  window.onload = initProfile;
+</script>
+</body>
+</html>
