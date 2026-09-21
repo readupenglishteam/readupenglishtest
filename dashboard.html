@@ -433,8 +433,13 @@
       <button onclick="openJoinRoomModal()" class="px-4 py-2.5 bg-zinc-900/60 hover:bg-zinc-900 text-white font-extrabold text-xs sm:text-sm rounded-xl border border-white/30 transition active:scale-95 flex items-center gap-2">
         <span>🔑</span> Nhập Mã Phòng
       </button>
+      <!-- 1. Thêm Nút Khôi Phục Nổi (Góc dưới bên phải màn hình - Mặc định ẩn) -->
+<button id="btnRestoreFrame" onclick="toggleMainFrame(true)" class="hidden fixed bottom-5 right-5 z-50 px-4 py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-extrabold text-xs rounded-full shadow-2xl flex items-center gap-2 transition animate-bounce">
+  <span>👁️</span> Hiển thị lại khung làm bài
+</button>
     </div>
   </div>
+  
 
   <!-- ================= KHUNG PHÒNG VÀ CHAT REALTIME (NẰM TRỰC TIẾP TRONG BANNER) ================= -->
   <div id="sectionActiveRoomContainer" class="hidden pt-4 border-t border-white/20 space-y-4">
@@ -709,16 +714,32 @@ let globalTestsList = []; // Biến toàn cục lưu trữ danh sách bài thi
 let currentExamPage = 1;
 const EXAMS_PER_PAGE = 6;
 
-// --- 2. QUẢN LÝ DANH SÁCH BÀI THI ---
+// Thay thế hàm loadExams và renderExamsPage trong file JS bằng đoạn mã sau:
+let userExamResults = {}; // Lưu lịch sử làm bài theo exam_id
+
 async function loadExams() {
   const examBox = document.getElementById('examsContainer');
+  
+  // 1. Tải danh sách đề thi
   const { data: examList } = await sbClient.from('exams').select('*').order('created_at', { ascending: false });
+
+  // 2. Tải kết quả làm bài của học viên hiện tại
+  if (currentUser) {
+    const { data: results } = await sbClient
+      .from('exam_results')
+      .select('exam_id, score, submitted_at')
+      .eq('user_id', currentUser.id);
+      
+    if (results) {
+      results.forEach(res => {
+        // Lưu điểm số mới nhất của từng bài thi
+        userExamResults[res.exam_id] = res;
+      });
+    }
+  }
 
   if (!examList || examList.length === 0) {
     examBox.innerHTML = `<div class="col-span-full bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-xl p-6 text-center text-gray-400 text-xs sm:text-sm">Chưa có bài thi nào.</div>`;
-    const countElem = document.getElementById('examCount');
-    if (countElem) countElem.innerText = '0 bài làm';
-    if (document.getElementById('examsPagination')) document.getElementById('examsPagination').innerHTML = '';
     return;
   }
 
@@ -739,9 +760,17 @@ function renderExamsPage() {
   const paginatedItems = globalTestsList.slice(start, start + EXAMS_PER_PAGE);
 
   examBox.innerHTML = paginatedItems.map(exam => {
-    const hasVocab = exam.vocabulary && 
-                     exam.vocabulary !== '[]' && 
-                     (Array.isArray(exam.vocabulary) ? exam.vocabulary.length > 0 : true);
+    const result = userExamResults[exam.id]; // Kiểm tra bài thi đã có kết quả chưa
+    const hasVocab = exam.vocabulary && exam.vocabulary !== '[]';
+
+    // Tạo nút bấm tương ứng với trạng thái bài làm
+    const actionButtonHtml = result 
+      ? `<button onclick="window.location.href='result.html?exam_id=${exam.id}'" class="px-3 sm:px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow transition whitespace-nowrap">
+           🎯 Đã làm (${result.score}/10)
+         </button>`
+      : `<button onclick="window.location.href='exam.html?token=${exam.token}'" class="px-3 sm:px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs rounded-lg shadow transition whitespace-nowrap">
+           Vào làm bài ➔
+         </button>`;
 
     return `
       <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4 flex flex-col justify-between">
@@ -757,16 +786,9 @@ function renderExamsPage() {
         <div class="pt-3 border-t border-gray-100 dark:border-zinc-800 flex justify-between items-center gap-2">
           <div class="flex items-center gap-2 flex-wrap">
             <span class="text-[11px] text-gray-400">📅 ${new Date(exam.created_at).toLocaleDateString('vi-VN')}</span>
-            ${hasVocab ? `
-              <button onclick="openVocabModal('${exam.id}')" class="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 dark:bg-red-950/60 text-[#cf1717] dark:text-red-400 hover:bg-[#cf1717] hover:text-white rounded-lg text-xs font-bold transition-all shadow-sm">
-                <span>Vocabulary</span>
-              </button>
-            ` : ''}
+            ${hasVocab ? `<button onclick="openVocabModal('${exam.id}')" class="px-2.5 py-1 bg-red-50 dark:bg-red-950/60 text-[#cf1717] dark:text-red-400 hover:bg-[#cf1717] hover:text-white rounded-lg text-xs font-bold transition-all shadow-sm">Vocabulary</button>` : ''}
           </div>
-
-          <button onclick="window.location.href='exam.html?token=${exam.token}'" class="px-3 sm:px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs rounded-lg shadow transition whitespace-nowrap">
-            Vào làm bài ➔
-          </button>
+          ${actionButtonHtml}
         </div>
       </div>
     `;
@@ -1105,6 +1127,39 @@ function openVocabModal(testId) {
 function closeVocabModal() {
   document.getElementById('vocabModal')?.classList.add('hidden');
 }
+
+function renderRoomMembersList(membersList, hostUserId) {
+  const container = document.getElementById('roomMembersListContainer');
+  if (!container) return;
+
+  container.innerHTML = membersList.map(member => {
+    const isHost = member.user_id === hostUserId;
+    
+    return `
+      <div class="flex items-center justify-between p-2.5 bg-gray-50 dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700/60 mb-2">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-red-100 dark:bg-red-950 text-[#cf1717] font-black flex items-center justify-center text-xs">
+            ${member.full_name ? member.full_name.charAt(0).toUpperCase() : 'U'}
+          </div>
+          <span class="font-bold text-xs text-gray-800 dark:text-gray-100">
+            ${member.full_name || 'Học sinh'}
+          </span>
+        </div>
+
+        <!-- HIỂN THỊ BADGE HOST -->
+        ${isHost 
+          ? `<span class="px-2.5 py-0.5 text-[10px] font-black bg-amber-500 text-white rounded-full shadow-sm flex items-center gap-1">
+               👑 Chủ phòng (Host)
+             </span>` 
+          : `<span class="px-2 py-0.5 text-[10px] font-bold text-gray-400 bg-gray-200 dark:bg-zinc-700 rounded-full">
+               Thành viên
+             </span>`
+        }
+      </div>
+    `;
+  }).join('');
+}
+  
   </script>
   <!-- Pop-up Chi Tiết Thông Báo -->
 <div id="newsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-all duration-300">
@@ -3382,6 +3437,25 @@ window.addEventListener('DOMContentLoaded', async () => {
     await initActiveRoomWidget(activeRoomCode);
   }
 });
+
+// 2. Hàm Toggle Ẩn / Hiện Khung an toàn
+function toggleMainFrame(showExplicitly = null) {
+  const targetFrame = document.getElementById('mainExamSection') || document.getElementById('selectedDateContent');
+  const restoreBtn = document.getElementById('btnRestoreFrame');
+  
+  if (!targetFrame) return;
+
+  const isCurrentlyHidden = targetFrame.classList.contains('hidden');
+  const shouldShow = showExplicitly !== null ? showExplicitly : isCurrentlyHidden;
+
+  if (shouldShow) {
+    targetFrame.classList.remove('hidden');
+    if (restoreBtn) restoreBtn.classList.add('hidden');
+  } else {
+    targetFrame.classList.add('hidden');
+    if (restoreBtn) restoreBtn.classList.remove('hidden');
+  }
+}
   
 </script>
 <!-- MODAL ĐỔI MẬT KHẨU -->
