@@ -2972,33 +2972,41 @@ async function joinRoom(roomCode) {
     return;
   }
 
-  // Check phòng tồn tại
-  const { data: room, error } = await sbClient
+  // 1. Kiểm tra phòng tồn tại (Thử tìm theo cột 'code' hoặc 'room_code')
+  let { data: room, error: roomErr } = await sbClient
     .from('rooms')
     .select('*')
-    .eq('room_code', roomCode)
-    .single();
+    .eq('code', roomCode)
+    .maybeSingle();
 
-  if (error || !room) {
+  // Fallback nếu trong DB tên cột là 'room_code'
+  if (!room) {
+    const res = await sbClient.from('rooms').select('*').eq('room_code', roomCode).maybeSingle();
+    room = res.data;
+    roomErr = res.error;
+  }
+
+  if (roomErr || !room) {
+    console.error("❌ Lỗi tìm phòng:", roomErr);
     alert("❌ Mã phòng không tồn tại hoặc đã bị đóng!");
     return;
   }
 
-  // Lấy tên hiển thị học viên
   const fullName = currentUser.user_metadata?.full_name || (currentUser.email ? currentUser.email.split('@')[0] : 'Người dùng');
 
-  // Đăng ký người tham gia (An toàn: Kiểm tra trước - Chèn sau, không dùng upsert)
+  // 2. Thêm người dùng vào danh sách tham gia
   try {
-    const { data: existing } = await sbClient
+    const { data: existing, error: selectErr } = await sbClient
       .from('room_participants')
       .select('id')
       .eq('room_code', roomCode)
       .eq('user_id', currentUser.id)
       .maybeSingle();
 
+    if (selectErr) console.error("❌ Lỗi kiểm tra thành viên:", selectErr);
+
     if (!existing) {
-      // Nếu chưa có trong phòng -> Thêm mới
-      await sbClient.from('room_participants').insert([{
+      const { error: insertErr } = await sbClient.from('room_participants').insert([{
         room_code: roomCode,
         user_id: currentUser.id,
         full_name: fullName,
@@ -3006,25 +3014,24 @@ async function joinRoom(roomCode) {
         score: 0,
         is_finished: false
       }]);
-    } else {
-      // Nếu đã ở trong phòng -> Cập nhật lại thông tin tên
-      await sbClient.from('room_participants').update({
-        full_name: fullName
-      }).eq('id', existing.id);
+
+      if (insertErr) {
+        console.error("❌ Lỗi Thêm Thành Viên (Supabase Insert Error):", insertErr);
+        alert("Lỗi tham gia phòng: " + insertErr.message);
+        return;
+      }
     }
   } catch (err) {
-    console.error("❌ Lỗi đăng ký người tham gia:", err);
+    console.error("❌ Lỗi ngoại lệ:", err);
   }
 
-  // Lưu lại mã phòng hiện tại vào bộ nhớ trình duyệt
+  // 3. Lưu cache & Cập nhật lại giao diện
   localStorage.setItem('last_active_room', roomCode);
 
-  // Cập nhật lại giao diện danh sách người chơi
   if (typeof renderWidgetParticipants === 'function') {
     await renderWidgetParticipants(roomCode);
   }
 
-  // Chuyển vào Lobby phòng
   await enterLobby(roomCode, room.host_id === currentUser.id);
 }
 
