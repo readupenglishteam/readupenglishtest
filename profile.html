@@ -145,29 +145,39 @@
           <span class="text-[#cf1717]">📝</span> Thông Tin Cá Nhân
         </h3>
 
-        <form onsubmit="handleUpdateProfile(event)" class="space-y-4">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">HỌ VÀ TÊN</label>
-              <input type="text" id="inputFullName" required class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none">
-            </div>
+<form onsubmit="handleUpdateProfile(event)" class="space-y-4">
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <!-- Họ và tên -->
+    <div>
+      <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">HỌ VÀ TÊN</label>
+      <input type="text" id="inputFullName" required class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none">
+    </div>
 
-            <div>
-              <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">SỐ ĐIỆN THOẠI</label>
-              <input type="tel" id="inputPhone" placeholder="Chưa cập nhật" class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none">
-            </div>
-          </div>
+    <!-- Số điện thoại -->
+    <div>
+      <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">SỐ ĐIỆN THOẠI</label>
+      <input type="tel" id="inputPhone" placeholder="Chưa cập nhật" class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none">
+    </div>
 
-          <div>
-            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">ĐỊA CHỈ EMAIL</label>
-            <input type="email" id="inputEmail" required class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none">
-            <p class="text-[11px] text-gray-400 mt-1">💡 Nếu bạn đăng nhập bằng Google, bạn vẫn có thể cập nhật email ở đây mà không bị mất tài khoản.</p>
-          </div>
+    <!-- Ngày tháng năm sinh -->
+    <div>
+      <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">NGÀY THÁNG NĂM SINH</label>
+      <input type="date" id="inputDob" class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none">
+    </div>
 
-          <button type="submit" class="px-5 py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition active:scale-95 flex items-center gap-2">
-            <span>💾</span> Lưu Thay Đổi
-          </button>
-        </form>
+    <!-- Email -->
+    <div>
+      <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">ĐỊA CHỈ EMAIL</label>
+      <input type="email" id="inputEmail" required class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none">
+    </div>
+  </div>
+
+  <p class="text-[11px] text-gray-400 mt-1">💡 Nếu bạn đăng nhập bằng Google, bạn vẫn có thể cập nhật thông tin ở đây mà không bị mất tài khoản.</p>
+
+  <button type="submit" class="px-5 py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition active:scale-95 flex items-center gap-2">
+    <span>💾</span> Lưu Thay Đổi
+  </button>
+</form>
       </div>
 
       <!-- FORM 2: ĐỔI MẬT KHẨU TÍCH HỢP TRỰC TIẾP -->
@@ -245,86 +255,79 @@
   let currentUser = null;
 
   // 1. Tải thông tin người dùng khi mở trang
-  async function initProfile() {
-    const { data: { session } } = await sbClient.auth.getSession();
-    if (!session || !session.user) {
-      window.location.href = 'index.html';
-      return;
-    }
-
-    currentUser = session.user;
-
-    // Đổ thông tin cơ bản từ Supabase Auth
-    document.getElementById('inputEmail').value = currentUser.email || '';
-    document.getElementById('displayEmail').innerText = currentUser.email || 'N/A';
-
-    // Provider Google hay Email
-    const provider = currentUser.app_metadata?.provider || 'email';
-    document.getElementById('authProviderBadge').innerText = provider === 'google' ? 'Google Auth' : 'Tài khoản Email';
-
-    // Lấy thông tin mở rộng từ bảng `profiles`
-    const { data: profile } = await sbClient
-      .from('profiles')
-      .select('*')
-      .eq('id', currentUser.id)
-      .single();
-
-    if (profile) {
-      const fullName = profile.full_name || currentUser.user_metadata?.full_name || 'Học sinh';
-      document.getElementById('inputFullName').value = fullName;
-      document.getElementById('displayFullName').innerText = fullName;
-      document.getElementById('inputPhone').value = profile.phone || '';
-      document.getElementById('profileAvatarText').innerText = fullName.charAt(0).toUpperCase();
-
-      document.getElementById('profileStreak').innerText = profile.streak || 0;
-      document.getElementById('profileXp').innerText = profile.xp || 0;
-    }
+  // 1. Hàm tải thông tin người dùng
+async function initProfile() {
+  const { data: { session } } = await sbClient.auth.getSession();
+  if (!session || !session.user) {
+    window.location.href = 'index.html';
+    return;
   }
 
+  currentUser = session.user;
+
+  document.getElementById('inputEmail').value = currentUser.email || '';
+  document.getElementById('displayEmail').innerText = currentUser.email || 'N/A';
+
+  const provider = currentUser.app_metadata?.provider || 'email';
+  document.getElementById('authProviderBadge').innerText = provider === 'google' ? 'Google Auth' : 'Tài khoản Email';
+
+  // Lấy dữ liệu từ bảng profiles
+  const { data: profile } = await sbClient
+    .from('profiles')
+    .select('*')
+    .eq('id', currentUser.id)
+    .single();
+
+  if (profile) {
+    const fullName = profile.full_name || currentUser.user_metadata?.full_name || 'Học sinh';
+    document.getElementById('inputFullName').value = fullName;
+    document.getElementById('displayFullName').innerText = fullName;
+    document.getElementById('inputPhone').value = profile.phone || '';
+    document.getElementById('inputDob').value = profile.dob || ''; // Dùng cột 'dob' từ Supabase
+    document.getElementById('profileAvatarText').innerText = fullName.charAt(0).toUpperCase();
+
+    document.getElementById('profileStreak').innerText = profile.streak || 0;
+    document.getElementById('profileXp').innerText = profile.xp || 0;
+  }
+}
+
   // 2. Hàm Cập nhật Họ tên, SĐT & Email
-  async function handleUpdateProfile(e) {
+// 2. Hàm lưu thông tin cá nhân
+async function handleUpdateProfile(e) {
   e.preventDefault();
   const newName = document.getElementById('inputFullName').value.trim();
   const newPhone = document.getElementById('inputPhone').value.trim();
+  const newDob = document.getElementById('inputDob').value; 
   const newEmail = document.getElementById('inputEmail').value.trim();
 
   try {
-    // 1. Cập nhật bảng profiles với định dạng ISO cho ngày tháng
-    const { data, error: profileErr } = await sbClient
+    const { error: profileErr } = await sbClient
       .from('profiles')
       .upsert(
         {
           id: currentUser.id,
           full_name: newName,
           phone: newPhone,
+          dob: newDob || null, // Gửi lên cột 'dob' khớp với cơ sở dữ liệu
           updated_at: new Date().toISOString()
         },
         { onConflict: 'id' }
-      )
-      .select();
+      );
 
-    if (profileErr) {
-      console.error("Chi tiết lỗi Supabase Profiles:", profileErr);
-      throw profileErr;
-    }
+    if (profileErr) throw profileErr;
 
-    // 2. Cập nhật Email Auth (nếu người dùng đổi email)
     if (newEmail !== currentUser.email) {
       const { error: authErr } = await sbClient.auth.updateUser({ email: newEmail });
-      if (authErr) {
-        console.error("Chi tiết lỗi Auth Email:", authErr);
-        throw authErr;
-      }
-      alert("🎉 Đã lưu thông tin! Vui lòng kiểm tra hộp thư mới để xác nhận thay đổi email.");
+      if (authErr) throw authErr;
+      alert("🎉 Đã lưu thông tin! Vui lòng kiểm tra hộp thư mới nếu bạn chọn thay đổi email.");
     } else {
       alert("🎉 Cập nhật thông tin cá nhân thành công!");
     }
 
-    // Tải lại dữ liệu hiển thị trên giao diện
     initProfile();
 
   } catch (err) {
-    alert("❌ Lỗi cập nhật: " + (err.message || "Không thể lưu dữ liệu. Hãy kiểm tra Console (F12)"));
+    alert("❌ Lỗi cập nhật: " + err.message);
   }
 }
 
