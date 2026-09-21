@@ -714,32 +714,16 @@ let globalTestsList = []; // Biến toàn cục lưu trữ danh sách bài thi
 let currentExamPage = 1;
 const EXAMS_PER_PAGE = 6;
 
-// Thay thế hàm loadExams và renderExamsPage trong file JS bằng đoạn mã sau:
-let userExamResults = {}; // Lưu lịch sử làm bài theo exam_id
-
+// --- 2. QUẢN LÝ DANH SÁCH BÀI THI ---
 async function loadExams() {
   const examBox = document.getElementById('examsContainer');
-  
-  // 1. Tải danh sách đề thi
   const { data: examList } = await sbClient.from('exams').select('*').order('created_at', { ascending: false });
-
-  // 2. Tải kết quả làm bài của học viên hiện tại
-  if (currentUser) {
-    const { data: results } = await sbClient
-      .from('exam_results')
-      .select('exam_id, score, submitted_at')
-      .eq('user_id', currentUser.id);
-      
-    if (results) {
-      results.forEach(res => {
-        // Lưu điểm số mới nhất của từng bài thi
-        userExamResults[res.exam_id] = res;
-      });
-    }
-  }
 
   if (!examList || examList.length === 0) {
     examBox.innerHTML = `<div class="col-span-full bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-xl p-6 text-center text-gray-400 text-xs sm:text-sm">Chưa có bài thi nào.</div>`;
+    const countElem = document.getElementById('examCount');
+    if (countElem) countElem.innerText = '0 bài làm';
+    if (document.getElementById('examsPagination')) document.getElementById('examsPagination').innerHTML = '';
     return;
   }
 
@@ -760,17 +744,9 @@ function renderExamsPage() {
   const paginatedItems = globalTestsList.slice(start, start + EXAMS_PER_PAGE);
 
   examBox.innerHTML = paginatedItems.map(exam => {
-    const result = userExamResults[exam.id]; // Kiểm tra bài thi đã có kết quả chưa
-    const hasVocab = exam.vocabulary && exam.vocabulary !== '[]';
-
-    // Tạo nút bấm tương ứng với trạng thái bài làm
-    const actionButtonHtml = result 
-      ? `<button onclick="window.location.href='result.html?exam_id=${exam.id}'" class="px-3 sm:px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow transition whitespace-nowrap">
-           🎯 Đã làm (${result.score}/10)
-         </button>`
-      : `<button onclick="window.location.href='exam.html?token=${exam.token}'" class="px-3 sm:px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs rounded-lg shadow transition whitespace-nowrap">
-           Vào làm bài ➔
-         </button>`;
+    const hasVocab = exam.vocabulary && 
+                     exam.vocabulary !== '[]' && 
+                     (Array.isArray(exam.vocabulary) ? exam.vocabulary.length > 0 : true);
 
     return `
       <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4 flex flex-col justify-between">
@@ -786,9 +762,16 @@ function renderExamsPage() {
         <div class="pt-3 border-t border-gray-100 dark:border-zinc-800 flex justify-between items-center gap-2">
           <div class="flex items-center gap-2 flex-wrap">
             <span class="text-[11px] text-gray-400">📅 ${new Date(exam.created_at).toLocaleDateString('vi-VN')}</span>
-            ${hasVocab ? `<button onclick="openVocabModal('${exam.id}')" class="px-2.5 py-1 bg-red-50 dark:bg-red-950/60 text-[#cf1717] dark:text-red-400 hover:bg-[#cf1717] hover:text-white rounded-lg text-xs font-bold transition-all shadow-sm">Vocabulary</button>` : ''}
+            ${hasVocab ? `
+              <button onclick="openVocabModal('${exam.id}')" class="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 dark:bg-red-950/60 text-[#cf1717] dark:text-red-400 hover:bg-[#cf1717] hover:text-white rounded-lg text-xs font-bold transition-all shadow-sm">
+                <span>Vocabulary</span>
+              </button>
+            ` : ''}
           </div>
-          ${actionButtonHtml}
+
+          <button onclick="window.location.href='exam.html?token=${exam.token}'" class="px-3 sm:px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs rounded-lg shadow transition whitespace-nowrap">
+            Vào làm bài ➔
+          </button>
         </div>
       </div>
     `;
