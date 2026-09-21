@@ -70,40 +70,54 @@
   
   <!-- Header Navbar -->
   <!-- ================= HEADER DASHBOARD HIỆU ỨNG KÍNH MỜ (FROSTED GLASS) ================= -->
+<!-- ================= HEADER DASHBOARD VỚI ICON AVATAR PROFILE ================= -->
 <header class="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/60 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-950/60 transition px-4">
   <div class="max-w-7xl mx-auto h-16 flex justify-between items-center">
     
-    <!-- 1. KHU VỰC LOGO TRÒN & TIÊU ĐỀ (Link về Landing Page index.html) -->
+    <!-- 1. KHU VỰC LOGO TRÒN & TIÊU ĐỀ -->
     <div class="flex items-center gap-3">
-      <!-- Khung Logo Tròn Đỏ -->
       <a href="dashboard.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
         <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
       </a>
       
-      <!-- Tên Thương Hiệu + Badge English -->
       <a href="dashboard.html" class="flex items-center gap-2 hover:opacity-90 transition">
         <span class="text-2xl font-black text-[#cf1717] tracking-tight">ReadUp</span>
         <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full shadow-sm">English</span>
       </a>
     </div>
 
-    <!-- 2. KHU VỰC THÔNG TIN & THAO TÁC HỌC VIÊN -->
-    <div class="flex items-center gap-2 sm:gap-3">
+    <!-- 2. KHU VỰC THÔNG TIN & MENU TRANG CÁ NHÂN -->
+    <div class="flex items-center gap-3 relative">
       <!-- Tên Sinh Viên -->
-      <span id="welcomeUser" class="text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-200 hidden sm:inline-block mr-1">👋 Chào mừng sinh viên</span>
-      <!-- Đổi mật khẩu -->
-       <button onclick="togglePasswordModal(true)" class="px-3 py-2 text-xs font-bold text-[#cf1717] dark:text-red-400 bg-red-50 dark:bg-red-950/40 hover:bg-[#cf1717] hover:text-white dark:hover:bg-[#cf1717] dark:hover:text-white rounded-xl border border-red-200/60 dark:border-red-900/50 transition flex items-center gap-1 shadow-sm">
-        <span>🔒</span><span class="hidden sm:inline">Đổi mật khẩu</span></button> 
+      <span id="welcomeUser" class="text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-200 hidden sm:inline-block">👋 Chào mừng sinh viên</span>
 
-      <!-- Nút Đăng xuất -->
-      <button onclick="handleLogout()" class="px-3 py-2 text-xs font-bold bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-red-100 dark:hover:bg-red-950/50 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] dark:hover:text-red-400 rounded-xl transition border border-gray-200/50 dark:border-zinc-700/50">
-        Đăng xuất
-      </button>
+      <!-- Nút Avatar Icon có Chấm Đỏ Rực Rỡ -->
+      <div class="relative">
+        <button onclick="toggleUserDropdown()" class="relative p-1.5 rounded-full bg-red-50 dark:bg-zinc-800 border-2 border-[#cf1717] text-[#cf1717] dark:text-red-400 hover:scale-105 transition shadow-md flex items-center justify-center">
+          <!-- Icon bi-person-circle -->
+          <svg class="w-7 h-7 fill-current" viewBox="0 0 16 16">
+            <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+            <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+          </svg>
+          <!-- Chấm tròn màu đỏ thông báo/trạng thái -->
+          <span class="absolute top-0 right-0 w-3 h-3 bg-[#cf1717] border-2 border-white dark:border-zinc-950 rounded-full animate-ping"></span>
+          <span class="absolute top-0 right-0 w-3 h-3 bg-[#cf1717] border-2 border-white dark:border-zinc-950 rounded-full"></span>
+        </button>
 
-      <!-- Nút Chuyển Chế Độ Sáng / Tối -->
-      <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50">
-        <span id="themeIcon">🌙</span>
-      </button>
+        <!-- Menu Dropdown Xổ Xuống -->
+        <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-52 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl py-2 z-50 transition-all">
+          <a href="profile.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
+            <span>👤</span> Trang cá nhân
+          </a>
+          <button onclick="toggleDarkMode()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
+            <span id="themeIcon">🌙</span> Đổi màu nền (Sáng/Tối)
+          </button>
+          <div class="border-t border-gray-100 dark:border-zinc-800 my-1"></div>
+          <button onclick="handleLogout()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition">
+            <span>🚪</span> Đăng xuất
+          </button>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -3553,6 +3567,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+function toggleUserDropdown() {
+    const menu = document.getElementById('userDropdownMenu');
+    if (menu) menu.classList.toggle('hidden');
+  }
+
+  // Đóng dropdown khi click ra ngoài
+  window.addEventListener('click', function(e) {
+    const btn = e.target.closest('button[onclick="toggleUserDropdown()"]');
+    const menu = document.getElementById('userDropdownMenu');
+    if (!btn && menu && !menu.contains(e.target)) {
+      menu.classList.add('hidden');
+    }
+  });
   
 </script>
 <!-- MODAL ĐỔI MẬT KHẨU -->
