@@ -2973,7 +2973,12 @@ async function joinRoom(roomCode) {
   }
 
   // Check phòng tồn tại
-  const { data: room, error } = await sbClient.from('rooms').select('*').eq('room_code', roomCode).single();
+  const { data: room, error } = await sbClient
+    .from('rooms')
+    .select('*')
+    .eq('room_code', roomCode)
+    .single();
+
   if (error || !room) {
     alert("❌ Mã phòng không tồn tại hoặc đã bị đóng!");
     return;
@@ -2982,14 +2987,44 @@ async function joinRoom(roomCode) {
   // Lấy tên hiển thị học viên
   const fullName = currentUser.user_metadata?.full_name || (currentUser.email ? currentUser.email.split('@')[0] : 'Người dùng');
 
-  // Đăng ký người tham gia
-  await sbClient.from('room_participants').upsert([{
-  room_code: roomCode,
-  user_id: currentUser.id,
-  full_name: fullName,
-  role: room.host_id === currentUser.id ? 'host' : 'member'
-}], { onConflict: 'room_code, user_id' });
+  // Đăng ký người tham gia (An toàn: Kiểm tra trước - Chèn sau, không dùng upsert)
+  try {
+    const { data: existing } = await sbClient
+      .from('room_participants')
+      .select('id')
+      .eq('room_code', roomCode)
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
 
+    if (!existing) {
+      // Nếu chưa có trong phòng -> Thêm mới
+      await sbClient.from('room_participants').insert([{
+        room_code: roomCode,
+        user_id: currentUser.id,
+        full_name: fullName,
+        role: room.host_id === currentUser.id ? 'host' : 'member',
+        score: 0,
+        is_finished: false
+      }]);
+    } else {
+      // Nếu đã ở trong phòng -> Cập nhật lại thông tin tên
+      await sbClient.from('room_participants').update({
+        full_name: fullName
+      }).eq('id', existing.id);
+    }
+  } catch (err) {
+    console.error("❌ Lỗi đăng ký người tham gia:", err);
+  }
+
+  // Lưu lại mã phòng hiện tại vào bộ nhớ trình duyệt
+  localStorage.setItem('last_active_room', roomCode);
+
+  // Cập nhật lại giao diện danh sách người chơi
+  if (typeof renderWidgetParticipants === 'function') {
+    await renderWidgetParticipants(roomCode);
+  }
+
+  // Chuyển vào Lobby phòng
   await enterLobby(roomCode, room.host_id === currentUser.id);
 }
 
