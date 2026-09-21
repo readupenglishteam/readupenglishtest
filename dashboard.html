@@ -3088,35 +3088,74 @@ window.addEventListener('DOMContentLoaded', async () => {
 // ================= KIỂM TRA VÀ DUY TRÌ PHÒNG BẢO LƯU KHI QUAY VỀ DASHBOARD =================
 let activeWidgetChannel = null;
 
+// ================= TỰ ĐỘNG KHÔI PHỤC PHÒNG & KHUNG CHAT KHI LOAD TRANG =================
 window.addEventListener('DOMContentLoaded', async () => {
+  // 1. Lấy mã phòng từ URL hoặc localStorage
   const urlParams = new URLSearchParams(window.location.search);
   const activeRoomCode = urlParams.get('active_room') || localStorage.getItem('last_active_room');
 
-  if (activeRoomCode) {
+  if (!activeRoomCode) return;
+
+  // 2. Chờ Supabase xác thực Auth xong rồi mới gọi lấy dữ liệu phòng
+  try {
+    const { data: { session } } = await sbClient.auth.getSession();
+    currentUser = session?.user || null;
+
+    // Tiến hành hiển thị Khung phòng & Chat trong Banner
     await initActiveRoomWidget(activeRoomCode);
+  } catch (err) {
+    console.error("Lỗi khi khôi phục phòng:", err);
   }
 });
 
+// HÀM KHỞI TẠO KHUNG PHÒNG (ĐÃ BỌC CATCH CHỐNG VĂN LỖI PROMISE)
 async function initActiveRoomWidget(roomCode) {
-  // Kiểm tra phòng có tồn tại không
-  const { data: room } = await sbClient.from('rooms').select('*').eq('room_code', roomCode).single();
-  if (!room) return;
+  try {
+    const { data: room, error } = await sbClient
+      .from('rooms')
+      .select('*')
+      .eq('room_code', roomCode)
+      .maybeSingle();
 
-  // Lưu lại phòng gần nhất
-  localStorage.setItem('last_active_room', roomCode);
-  document.getElementById('widgetRoomCode').innerText = roomCode;
-  document.getElementById('activeRoomWidget').classList.remove('hidden');
+    // Nếu phòng không tồn tại hoặc đã bị xóa -> Dọn dẹp bộ nhớ
+    if (error || !room || room.status === 'finished') {
+      leaveActiveRoomWidget();
+      return;
+    }
 
-  // Lấy danh sách bạn bè & hiển thị lần đầu
-  await renderWidgetParticipants(roomCode);
+    // Lưu mã phòng hoạt động
+    localStorage.setItem('last_active_room', roomCode);
+    
+    // Gán dữ liệu lên giao diện Banner
+    const codeEl = document.getElementById('sectionRoomCode');
+    const containerEl = document.getElementById('sectionActiveRoomContainer');
+    
+    if (codeEl) codeEl.innerText = roomCode;
+    if (containerEl) containerEl.classList.remove('hidden');
 
-  // Kích hoạt Realtime cập nhật tức thì ai đang làm / ai đã làm xong + xếp hạng
-  if (activeWidgetChannel) sbClient.removeChannel(activeWidgetChannel);
-  activeWidgetChannel = sbClient.channel(`widget_${roomCode}`)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'room_participants', filter: `room_code=eq.${roomCode}` }, () => {
-      renderWidgetParticipants(roomCode);
-    })
-    .subscribe();
+    // Phân quyền Chủ phòng / Thành viên
+    const isHost = currentUser && currentUser.id === room.host_id;
+    const hostControls = document.getElementById('sectionHostControls');
+    const memberLeave = document.getElementById('sectionMemberLeave');
+
+    if (isHost) {
+      if (hostControls) hostControls.classList.remove('hidden');
+      if (memberLeave) memberLeave.classList.add('hidden');
+    } else {
+      if (hostControls) hostControls.classList.add('hidden');
+      if (memberLeave) memberLeave.classList.remove('hidden');
+    }
+
+    // Tải thông tin người chơi & Chat
+    await renderWidgetParticipants(roomCode);
+    await loadChatMessages(roomCode);
+    
+    // Kích hoạt Realtime
+    subscribeRoomWidgetRealtime(roomCode);
+
+  } catch (err) {
+    console.error("Không thể tải thông tin phòng:", err);
+  }
 }
 
 async function renderWidgetParticipants(roomCode) {
