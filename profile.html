@@ -283,39 +283,50 @@
 
   // 2. Hàm Cập nhật Họ tên, SĐT & Email
   async function handleUpdateProfile(e) {
-    e.preventDefault();
-    const newName = document.getElementById('inputFullName').value.trim();
-    const newPhone = document.getElementById('inputPhone').value.trim();
-    const newEmail = document.getElementById('inputEmail').value.trim();
+  e.preventDefault();
+  const newName = document.getElementById('inputFullName').value.trim();
+  const newPhone = document.getElementById('inputPhone').value.trim();
+  const newEmail = document.getElementById('inputEmail').value.trim();
 
-    try {
-      // Cập nhật bảng profiles
-      const { error: profileErr } = await sbClient
-        .from('profiles')
-        .upsert({
+  try {
+    // 1. Cập nhật bảng profiles với định dạng ISO cho ngày tháng
+    const { data, error: profileErr } = await sbClient
+      .from('profiles')
+      .upsert(
+        {
           id: currentUser.id,
           full_name: newName,
           phone: newPhone,
-          updated_at: new Date()
-        });
+          updated_at: new Date().toISOString()
+        },
+        { onConflict: 'id' }
+      )
+      .select();
 
-      if (profileErr) throw profileErr;
-
-      // Cập nhật Email Auth (nếu thay đổi)
-      if (newEmail !== currentUser.email) {
-        const { error: authErr } = await sbClient.auth.updateUser({ email: newEmail });
-        if (authErr) throw authErr;
-        alert("🎉 Đã cập nhật thông tin thành công! Nếu đổi Email, vui lòng kiểm tra hộp thư mới để xác nhận.");
-      } else {
-        alert("🎉 Cập nhật thông tin cá nhân thành công!");
-      }
-
-      initProfile();
-
-    } catch (err) {
-      alert("❌ Lỗi cập nhật: " + err.message);
+    if (profileErr) {
+      console.error("Chi tiết lỗi Supabase Profiles:", profileErr);
+      throw profileErr;
     }
+
+    // 2. Cập nhật Email Auth (nếu người dùng đổi email)
+    if (newEmail !== currentUser.email) {
+      const { error: authErr } = await sbClient.auth.updateUser({ email: newEmail });
+      if (authErr) {
+        console.error("Chi tiết lỗi Auth Email:", authErr);
+        throw authErr;
+      }
+      alert("🎉 Đã lưu thông tin! Vui lòng kiểm tra hộp thư mới để xác nhận thay đổi email.");
+    } else {
+      alert("🎉 Cập nhật thông tin cá nhân thành công!");
+    }
+
+    // Tải lại dữ liệu hiển thị trên giao diện
+    initProfile();
+
+  } catch (err) {
+    alert("❌ Lỗi cập nhật: " + (err.message || "Không thể lưu dữ liệu. Hãy kiểm tra Console (F12)"));
   }
+}
 
   // 3. Hàm Đổi Mật Khẩu
   async function handleProfileChangePassword(e) {
