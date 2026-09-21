@@ -3212,10 +3212,10 @@ async function initActiveRoomWidget(roomCode) {
       .eq('room_code', roomCode)
       .maybeSingle();
 
-    if (error || !room || room.status === 'finished') {
-      leaveActiveRoomWidget();
-      return;
-    }
+    if (error || !room) { // Bỏ điều kiện room.status === 'finished'
+  leaveActiveRoomWidget();
+  return;
+}
 
     localStorage.setItem('last_active_room', roomCode);
 
