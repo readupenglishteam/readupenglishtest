@@ -140,70 +140,90 @@
     <div class="lg:col-span-2 space-y-6">
       
       <!-- FORM 1: CẬP NHẬT THÔNG TIN CÁ NHÂN & EMAIL -->
-      <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-3xl p-6 shadow-sm space-y-4">
-        <h3 class="font-extrabold text-base text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-100 dark:border-zinc-800 pb-3">
-          <span class="text-[#cf1717]">📝</span> Thông Tin Cá Nhân
-        </h3>
-
-<form onsubmit="handleUpdateProfile(event)" class="space-y-4">
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    <!-- Họ và tên -->
-    <div>
-      <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">HỌ VÀ TÊN</label>
-      <input type="text" id="inputFullName" required class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none">
-    </div>
-
-    <!-- Số điện thoại -->
-    <div>
-      <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">SỐ ĐIỆN THOẠI</label>
-      <input type="tel" id="inputPhone" placeholder="Chưa cập nhật" class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none">
-    </div>
-
-    <!-- Ngày tháng năm sinh -->
-    <div>
-      <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">NGÀY THÁNG NĂM SINH</label>
-      <input type="date" id="inputDob" class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none">
-    </div>
-
-    <!-- Email -->
-    <div>
-      <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">ĐỊA CHỈ EMAIL</label>
-      <input type="email" id="inputEmail" required class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none">
-    </div>
+<!-- KHOẢNG THÔNG TIN CÁ NHÂN -->
+<div class="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800 mb-6">
+  <div class="flex justify-between items-center mb-4">
+    <h3 class="text-base font-bold text-gray-800 dark:text-white flex items-center gap-2">
+      <span>👤</span> Thông Tin Cá Nhân
+    </h3>
+    <!-- Nút kích hoạt chế độ chỉnh sửa -->
+    <button id="btnEditProfile" type="button" onclick="toggleProfileEdit(true)" class="px-3 py-1.5 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 text-gray-700 dark:text-gray-200 font-semibold text-xs rounded-lg transition">
+      ✏️ Chỉnh sửa
+    </button>
   </div>
 
-  <p class="text-[11px] text-gray-400 mt-1">💡 Nếu bạn đăng nhập bằng Google, bạn vẫn có thể cập nhật thông tin ở đây mà không bị mất tài khoản.</p>
-
-  <button type="submit" class="px-5 py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition active:scale-95 flex items-center gap-2">
-    <span>💾</span> Lưu Thay Đổi
-  </button>
-</form>
+  <form onsubmit="handleUpdateProfile(event)" class="space-y-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <!-- Họ và tên -->
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-1">HỌ VÀ TÊN</label>
+        <input type="text" id="inputFullName" disabled required class="w-full p-3 bg-gray-50 dark:bg-zinc-800 disabled:opacity-60 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-500">
       </div>
 
-      <!-- FORM 2: ĐỔI MẬT KHẨU TÍCH HỢP TRỰC TIẾP -->
-      <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-3xl p-6 shadow-sm space-y-4">
-        <h3 class="font-extrabold text-base text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-100 dark:border-zinc-800 pb-3">
-          <span class="text-[#cf1717]">🔒</span> Thay Đổi Mật Khẩu
-        </h3>
-
-        <form onsubmit="handleProfileChangePassword(event)" class="space-y-4">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">MẬT KHẨU MỚI</label>
-              <input type="password" id="inputNewPassword" placeholder="Tối thiểu 6 ký tự" required class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none">
-            </div>
-
-            <div>
-              <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">XÁC NHẬN MẬT KHẨU MỚI</label>
-              <input type="password" id="inputConfirmPassword" placeholder="Nhập lại mật khẩu mới" required class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none">
-            </div>
-          </div>
-
-          <button type="submit" class="px-5 py-2.5 bg-zinc-900 dark:bg-zinc-700 hover:bg-black text-white font-bold text-xs sm:text-sm rounded-xl shadow transition active:scale-95 flex items-center gap-2">
-            <span>🔑</span> Cập Nhật Mật Khẩu
-          </button>
-        </form>
+      <!-- Số điện thoại -->
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-1">SỐ ĐIỆN THOẠI</label>
+        <input type="tel" id="inputPhone" disabled placeholder="Chưa cập nhật" class="w-full p-3 bg-gray-50 dark:bg-zinc-800 disabled:opacity-60 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-500">
       </div>
+
+      <!-- Ngày tháng năm sinh (Kiểu Việt Nam DD/MM/YYYY) -->
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-1">NGÀY THÁNG NĂM SINH (DD/MM/YYYY)</label>
+        <input type="text" id="inputDob" disabled placeholder="dd/mm/yyyy" maxlength="10" class="w-full p-3 bg-gray-50 dark:bg-zinc-800 disabled:opacity-60 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-500">
+      </div>
+
+      <!-- Email -->
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-1">ĐỊA CHỈ EMAIL</label>
+        <input type="email" id="inputEmail" disabled required class="w-full p-3 bg-gray-50 dark:bg-zinc-800 disabled:opacity-60 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-500">
+      </div>
+    </div>
+
+    <!-- Nút hành động khi ở chế độ chỉnh sửa -->
+    <div id="profileActionBtns" class="hidden flex items-center gap-2 pt-2">
+      <button type="submit" class="px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition">
+        💾 Lưu Thay Đổi
+      </button>
+      <button type="button" onclick="toggleProfileEdit(false)" class="px-4 py-2 bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-gray-200 font-bold text-xs sm:text-sm rounded-xl transition">
+        ❌ Hủy
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- KHOẢNG THAY ĐỔI MẬT KHẨU -->
+<div class="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800">
+  <div class="flex justify-between items-center mb-4">
+    <h3 class="text-base font-bold text-gray-800 dark:text-white flex items-center gap-2">
+      <span>🔒</span> Thay Đổi Mật Khẩu
+    </h3>
+    <button id="btnEditPassword" type="button" onclick="togglePasswordEdit(true)" class="px-3 py-1.5 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 text-gray-700 dark:text-gray-200 font-semibold text-xs rounded-lg transition">
+      ✏️ Đổi Mật Khẩu
+    </button>
+  </div>
+
+  <form onsubmit="handleProfileChangePassword(event)" class="space-y-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-1">MẬT KHẨU MỚI</label>
+        <input type="password" id="inputNewPassword" disabled placeholder="Tối thiểu 6 ký tự" minlength="6" required class="w-full p-3 bg-gray-50 dark:bg-zinc-800 disabled:opacity-60 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-500">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-1">XÁC NHẬN MẬT KHẨU MỚI</label>
+        <input type="password" id="inputConfirmPassword" disabled placeholder="Nhập lại mật khẩu mới" minlength="6" required class="w-full p-3 bg-gray-50 dark:bg-zinc-800 disabled:opacity-60 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-500">
+      </div>
+    </div>
+
+    <div id="passwordActionBtns" class="hidden flex items-center gap-2 pt-2">
+      <button type="submit" class="px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition">
+        🔑 Cập Nhật Mật Khẩu
+      </button>
+      <button type="button" onclick="togglePasswordEdit(false)" class="px-4 py-2 bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-gray-200 font-bold text-xs sm:text-sm rounded-xl transition">
+        ❌ Hủy
+      </button>
+    </div>
+  </form>
+</div>
 
     </div>
 
@@ -254,8 +274,70 @@
 
   let currentUser = null;
 
-  // 1. Tải thông tin người dùng khi mở trang
-  // 1. Hàm tải thông tin người dùng
+let rawProfileData = null; // Lưu trữ dữ liệu tạm để khôi phục khi ấn Hủy
+
+// --- HÀM HỖ TRỢ CHUYỂN ĐỔI NGÀY VIỆT NAM (DD/MM/YYYY <-> YYYY-MM-DD) ---
+function formatToVN(isoDateStr) {
+  if (!isoDateStr) return '';
+  const parts = isoDateStr.split('-');
+  if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  return isoDateStr;
+}
+
+function formatToISO(vnDateStr) {
+  if (!vnDateStr) return null;
+  const parts = vnDateStr.trim().split('/');
+  if (parts.length === 3) {
+    const day = parts[0].padStart(2, '0');
+    const month = parts[1].padStart(2, '0');
+    const year = parts[2];
+    return `${year}-${month}-${day}`;
+  }
+  return null;
+}
+
+// --- LOGIC BẬT / TẮT CHẾ ĐỘ CHỈNH SỬA THÔNG TIN CÁ NHÂN ---
+function toggleProfileEdit(enable) {
+  const fields = ['inputFullName', 'inputPhone', 'inputDob', 'inputEmail'];
+  fields.forEach(id => {
+    document.getElementById(id).disabled = !enable;
+  });
+
+  document.getElementById('btnEditProfile').classList.toggle('hidden', enable);
+  document.getElementById('profileActionBtns').classList.toggle('hidden', !enable);
+
+  if (!enable && rawProfileData) {
+    // Nếu bấm Hủy, khôi phục lại dữ liệu ban đầu
+    populateForm(rawProfileData);
+  }
+}
+
+// --- LOGIC BẬT / TẮT CHẾ ĐỘ CHỈNH SỬA MẬT KHẨU ---
+function togglePasswordEdit(enable) {
+  const fields = ['inputNewPassword', 'inputConfirmPassword'];
+  fields.forEach(id => {
+    const input = document.getElementById(id);
+    input.disabled = !enable;
+    if (!enable) input.value = '';
+  });
+
+  document.getElementById('btnEditPassword').classList.toggle('hidden', enable);
+  document.getElementById('passwordActionBtns').classList.toggle('hidden', !enable);
+}
+
+// --- HÀM TẢI VÀ HIỂN THỊ DỮ LIỆU ---
+function populateForm(profile) {
+  const fullName = profile?.full_name || currentUser.user_metadata?.full_name || 'Học sinh';
+  document.getElementById('inputFullName').value = fullName;
+  document.getElementById('displayFullName').innerText = fullName;
+  document.getElementById('inputPhone').value = profile?.phone || '';
+  document.getElementById('inputDob').value = formatToVN(profile?.dob); // Định dạng hiển thị DD/MM/YYYY
+  document.getElementById('profileAvatarText').innerText = fullName.charAt(0).toUpperCase();
+
+  document.getElementById('profileStreak').innerText = profile?.streak || 0;
+  document.getElementById('profileXp').innerText = profile?.xp || 0;
+}
+
 async function initProfile() {
   const { data: { session } } = await sbClient.auth.getSession();
   if (!session || !session.user) {
@@ -264,41 +346,41 @@ async function initProfile() {
   }
 
   currentUser = session.user;
-
   document.getElementById('inputEmail').value = currentUser.email || '';
   document.getElementById('displayEmail').innerText = currentUser.email || 'N/A';
 
   const provider = currentUser.app_metadata?.provider || 'email';
   document.getElementById('authProviderBadge').innerText = provider === 'google' ? 'Google Auth' : 'Tài khoản Email';
 
-  // Lấy dữ liệu từ bảng profiles
   const { data: profile } = await sbClient
     .from('profiles')
     .select('*')
     .eq('id', currentUser.id)
     .single();
 
-  if (profile) {
-    const fullName = profile.full_name || currentUser.user_metadata?.full_name || 'Học sinh';
-    document.getElementById('inputFullName').value = fullName;
-    document.getElementById('displayFullName').innerText = fullName;
-    document.getElementById('inputPhone').value = profile.phone || '';
-    document.getElementById('inputDob').value = profile.dob || ''; // Dùng cột 'dob' từ Supabase
-    document.getElementById('profileAvatarText').innerText = fullName.charAt(0).toUpperCase();
-
-    document.getElementById('profileStreak').innerText = profile.streak || 0;
-    document.getElementById('profileXp').innerText = profile.xp || 0;
-  }
+  rawProfileData = profile;
+  populateForm(profile);
+  toggleProfileEdit(false); // Mặc định ở chế độ Xem (Khoá các ô)
+  togglePasswordEdit(false);
 }
 
-  // 2. Hàm Cập nhật Họ tên, SĐT & Email
-// 2. Hàm lưu thông tin cá nhân
+// --- HÀM LƯU THÔNG TIN CÁ NHÂN ---
 async function handleUpdateProfile(e) {
   e.preventDefault();
   const newName = document.getElementById('inputFullName').value.trim();
   const newPhone = document.getElementById('inputPhone').value.trim();
-  const newDob = document.getElementById('inputDob').value; 
+  const rawDob = document.getElementById('inputDob').value.trim();
   const newEmail = document.getElementById('inputEmail').value.trim();
+
+  // Kiểm tra định dạng ngày sinh nếu có nhập
+  let isoDob = null;
+  if (rawDob) {
+    isoDob = formatToISO(rawDob);
+    if (!isoDob) {
+      alert("⚠️ Định dạng ngày sinh không hợp lệ! Vui lòng nhập theo dạng DD/MM/YYYY (Ví dụ: 25/12/2005)");
+      return;
+    }
+  }
 
   try {
     const { error: profileErr } = await sbClient
@@ -308,7 +390,7 @@ async function handleUpdateProfile(e) {
           id: currentUser.id,
           full_name: newName,
           phone: newPhone,
-          dob: newDob || null, // Gửi lên cột 'dob' khớp với cơ sở dữ liệu
+          dob: isoDob, // Lưu ISO xuống DB để chuẩn dữ liệu, hiển thị dạng VN
           updated_at: new Date().toISOString()
         },
         { onConflict: 'id' }
@@ -319,44 +401,40 @@ async function handleUpdateProfile(e) {
     if (newEmail !== currentUser.email) {
       const { error: authErr } = await sbClient.auth.updateUser({ email: newEmail });
       if (authErr) throw authErr;
-      alert("🎉 Đã lưu thông tin! Vui lòng kiểm tra hộp thư mới nếu bạn chọn thay đổi email.");
+      alert("🎉 Đã lưu thông tin! Vui lòng kiểm tra email mới để xác nhận.");
     } else {
       alert("🎉 Cập nhật thông tin cá nhân thành công!");
     }
 
-    initProfile();
+    await initProfile(); // Tải lại dữ liệu và khóa ô nhập liệu lại
 
   } catch (err) {
-    alert("❌ Lỗi cập nhật: " + err.message);
+    alert("❌ Lỗi cập nhật: " + (err.message || "Không thể lưu dữ liệu"));
   }
 }
 
-  // 3. Hàm Đổi Mật Khẩu
-  async function handleProfileChangePassword(e) {
-    e.preventDefault();
-    const newPass = document.getElementById('inputNewPassword').value;
-    const confirmPass = document.getElementById('inputConfirmPassword').value;
+// --- HÀM CẬP NHẬT MẬT KHẨU ---
+async function handleUpdatePassword(e) {
+  e.preventDefault();
+  const newPassword = document.getElementById('inputNewPassword').value;
+  const confirmPassword = document.getElementById('inputConfirmPassword').value;
 
-    if (newPass.length < 6) {
-      alert("⚠️ Mật khẩu phải có tối thiểu 6 ký tự!");
-      return;
-    }
-
-    if (newPass !== confirmPass) {
-      alert("⚠️ Mật khẩu xác nhận không trùng khớp!");
-      return;
-    }
-
-    const { error } = await sbClient.auth.updateUser({ password: newPass });
-
-    if (error) {
-      alert("❌ Đổi mật khẩu thất bại: " + error.message);
-    } else {
-      alert("🎉 Đổi mật khẩu thành công!");
-      document.getElementById('inputNewPassword').value = '';
-      document.getElementById('inputConfirmPassword').value = '';
-    }
+  if (newPassword !== confirmPassword) {
+    alert("⚠️ Mật khẩu xác nhận không trùng khớp!");
+    return;
   }
+
+  try {
+    const { error } = await sbClient.auth.updateUser({ password: newPassword });
+    if (error) throw error;
+
+    alert("🎉 Đổi mật khẩu thành công!");
+    togglePasswordEdit(false); // Khóa lại và xóa ô nhập
+
+  } catch (err) {
+    alert("❌ Không thể đổi mật khẩu: " + err.message);
+  }
+}
 
   // 4. Các hàm giao diện chung
   function toggleDarkMode() {
