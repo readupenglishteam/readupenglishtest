@@ -2821,19 +2821,37 @@ async function checkNewUpdatesInLast3Days() {
 }
 
 // ================= HỆ THỐNG PHÒNG HỌC NHÓM REALTIME =================
-let activeRoom = null;       // Lưu thông tin phòng { id, code, isHost }
-let roomChannel = null;      // Channel Realtime cách ly theo phòng
+let currentUser = null;
+let activeRoomCode = null;
+let roomRealtimeChannel = null;
+let activeWidgetChannel = null;
+let chatRealtimeChannel = null;
 let html5QrCodeScanner = null;
 
-// Helper đóng/mở Modal & Ép kiểu HTML an toàn
-function openModal(id) { document.getElementById(id)?.classList.remove('hidden'); }
-function closeModal(id) { document.getElementById(id)?.classList.add('hidden'); }
+// Helper chống XSS
 function escapeHtml(str) {
   if (!str) return '';
-  return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
-// 1. MỞ MODAL TẠO PHÒNG & NỐI DỮ LIỆU ĐỀ READING
+// Helper đóng/mở Modal
+function openModal(id) { document.getElementById(id)?.classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id)?.classList.add('hidden'); }
+
+// 1. TẠO MÃ REA-XXXX
+function generateRoomCode() {
+  const chars = '0123456789';
+  let rand = '';
+  for (let i = 0; i < 4; i++) rand += chars.charAt(Math.floor(Math.random() * chars.length));
+  return `READ-${rand}`;
+}
+
+// 2. MỞ MODAL TẠO PHÒNG & NỐI DỮ LIỆU ĐỀ READING
 function openCreateRoomModal() {
   if (!currentUser) {
     alert("⚠️ Bạn cần đăng nhập tài khoản để khởi tạo phòng học!");
@@ -2846,7 +2864,7 @@ function openCreateRoomModal() {
   let optionsHtml = `<option value="">-- Chọn bài Reading --</option>`;
   optionsHtml += `<option value="PRONUNCIATION_DEV">🎙️ Bài Luyện Phát Âm (Đang phát triển)</option>`;
 
-  if (typeof globalTestsList !== 'undefined' && globalTestsList && globalTestsList.length > 0) {
+  if (typeof globalTestsList !== 'undefined' && Array.isArray(globalTestsList) && globalTestsList.length > 0) {
     globalTestsList.forEach(test => {
       optionsHtml += `<option value="${test.token}">${escapeHtml(test.title)} (${test.time_limit || 60} phút)</option>`;
     });
@@ -2857,19 +2875,20 @@ function openCreateRoomModal() {
   openModal('modalCreateRoom');
 }
 
-// 2. XỬ LÝ CHỌN BÀI LUYỆN
+// 3. XỬ LÝ CHỌN BÀI LUYỆN
 function handleExamTypeSelect(token) {
   const detailsCard = document.getElementById('roomExamCardDetails');
   if (!detailsCard) return;
 
   if (token === 'PRONUNCIATION_DEV') {
     alert("ℹ️ Tính năng Luyện Phát Âm Nhóm đang được phát triển. Vui lòng chọn bài Reading!");
-    document.getElementById('roomExamSelect').value = '';
+    const select = document.getElementById('roomExamSelect');
+    if (select) select.value = '';
     detailsCard.classList.add('hidden');
     return;
   }
 
-  const exam = globalTestsList.find(t => t.token === token);
+  const exam = (typeof globalTestsList !== 'undefined') ? globalTestsList.find(t => t.token === token) : null;
   if (exam) {
     let vocabCount = 0;
     try {
@@ -2877,328 +2896,249 @@ function handleExamTypeSelect(token) {
       vocabCount = Array.isArray(v) ? v.length : 0;
     } catch (e) {}
 
-    document.getElementById('roomCardTitle').innerText = exam.title;
-    document.getElementById('roomCardQuestions').innerText = `❓ ${exam.questions_count || 10} câu hỏi`;
-    document.getElementById('roomCardTime').innerText = `⏱️ ${exam.time_limit || 60} phút`;
-    document.getElementById('roomCardVocab').innerText = `📚 ${vocabCount} từ vựng`;
+    const titleEl = document.getElementById('roomCardTitle');
+    const qEl = document.getElementById('roomCardQuestions');
+    const timeEl = document.getElementById('roomCardTime');
+    const vocabEl = document.getElementById('roomCardVocab');
+
+    if (titleEl) titleEl.innerText = exam.title;
+    if (qEl) qEl.innerText = `❓ ${exam.questions_count || 10} câu hỏi`;
+    if (timeEl) timeEl.innerText = `⏱️ ${exam.time_limit || 60} phút`;
+    if (vocabEl) vocabEl.innerText = `📚 ${vocabCount} từ vựng`;
+
     detailsCard.classList.remove('hidden');
   } else {
     detailsCard.classList.add('hidden');
   }
 }
 
-// 3. TẠO PHÒNG THI ĐẤU MỚI (CHỦ PHÒNG - HOST)
-async function handleCreateRoom(examId) {
-  if (!currentUser) return alert("Vui lòng đăng nhập để tạo phòng!");
-
-  const roomCode = 'READ-' + Math.floor(1000 + Math.random() * 9000);
-  
-  const { data: room, error } = await sbClient
-    .from('rooms')
-    .insert([{
-      code: roomCode,
-      host_id: currentUser.id,
-      exam_id: examId || null,
-      status: 'active'
-    }])
-    .select().single();
-
-  if (error) {
-    alert("❌ Lỗi tạo phòng: " + error.message);
+// 4. CHỦ PHÒNG TẠO PHÒNG LÊN SUPABASE
+async function handleCreateRoom() {
+  if (!currentUser) {
+    alert("⚠️ Bạn cần đăng nhập tài khoản!");
     return;
   }
 
-  await joinRoomById(room.id, roomCode, true);
+  const select = document.getElementById('roomExamSelect');
+  const token = select ? select.value : '';
+  if (!token || token === 'PRONUNCIATION_DEV') {
+    alert("Vui lòng chọn bài Reading hợp lệ!");
+    return;
+  }
+
+  const mode = document.querySelector('input[name="roomMode"]:checked')?.value || 'battle';
+  const roomCode = generateRoomCode();
+
+  // Thêm phòng vào DB
+  const { error: roomErr } = await sbClient.from('rooms').insert([{
+    room_code: roomCode,
+    host_id: currentUser.id,
+    exam_token: token,
+    mode: mode,
+    status: 'waiting'
+  }]);
+
+  if (roomErr) {
+    alert("❌ Không thể tạo phòng: " + roomErr.message);
+    return;
+  }
+
+  closeModal('modalCreateRoom');
+  await enterLobby(roomCode, true);
 }
 
-// 4. NHẬP MÃ THAM GIA PHÒNG (THÀNH VIÊN)
-async function handleJoinRoomByCode(code) {
-  if (!code || !code.trim()) return alert("Vui lòng nhập mã phòng!");
-  const formattedCode = code.trim().toUpperCase();
+// 5. THAM GIA PHÒNG THÔNG QUA MÃ
+function openJoinRoomModal() {
+  if (!currentUser) {
+    alert("⚠️ Bạn cần đăng nhập tài khoản sinh viên để tham gia phòng!");
+    return;
+  }
+  openModal('modalJoinRoom');
+}
 
-  const { data: room, error } = await sbClient
-    .from('rooms')
-    .select('*')
-    .eq('code', formattedCode)
-    .eq('status', 'active')
-    .single();
+async function submitJoinCode() {
+  const input = document.getElementById('inputJoinCode');
+  const rawCode = input ? input.value.trim().toUpperCase() : '';
+  if (!rawCode) {
+    alert("Vui lòng nhập mã phòng!");
+    return;
+  }
+  closeModal('modalJoinRoom');
+  await joinRoom(rawCode);
+}
 
+async function joinRoom(roomCode) {
+  if (!currentUser) {
+    alert("⚠️ Bạn cần đăng nhập để tham gia phòng!");
+    return;
+  }
+
+  // Check phòng tồn tại
+  const { data: room, error } = await sbClient.from('rooms').select('*').eq('room_code', roomCode).single();
   if (error || !room) {
-    alert("❌ Không tìm thấy phòng hoặc phòng đã đóng!");
+    alert("❌ Mã phòng không tồn tại hoặc đã bị đóng!");
     return;
   }
 
-  const isHost = currentUser && room.host_id === currentUser.id;
-  await joinRoomById(room.id, room.code, isHost);
-}
+  // Lấy tên hiển thị học viên
+  const fullName = currentUser.user_metadata?.full_name || (currentUser.email ? currentUser.email.split('@')[0] : 'Người dùng');
 
-// Hàm bổ trợ gọi tắt cho Camera / Upload QR
-async function joinRoom(code) {
-  await handleJoinRoomByCode(code);
-}
-
-// 5. KÍCH HOẠT PHÒNG & LẮNG NGHE KÊNH REAL-TIME TÁCH BIỆT (ISOLATED)
-async function joinRoomById(roomId, roomCode, isHost) {
-  activeRoom = { id: roomId, code: roomCode, isHost: isHost };
-  localStorage.setItem('last_active_room', roomCode);
-
-  // Đăng ký/Cập nhật bản thân vào room_participants
+  // Đăng ký người tham gia
   await sbClient.from('room_participants').upsert([{
-    room_id: roomId,
+    room_code: roomCode,
     user_id: currentUser.id,
-    full_name: currentUser.user_metadata?.full_name || currentUser.email.split('@')[0],
-    status: 'doing',
-    score: null
-  }], { onConflict: 'room_id,user_id' });
+    full_name: fullName
+  }], { onConflict: 'room_code, user_id' });
 
-  // Hiển thị Banner giao diện phòng
-  const roomContainer = document.getElementById('sectionActiveRoomContainer');
-  if (roomContainer) roomContainer.classList.remove('hidden');
+  await enterLobby(roomCode, room.host_id === currentUser.id);
+}
 
-  const codeElem = document.getElementById('sectionRoomCode');
-  if (codeElem) codeElem.innerText = roomCode;
+// 6. VÀO SẢNH CHỜ & LẮNG NGHE REALTIME
+async function enterLobby(roomCode, isHost) {
+  activeRoomCode = roomCode;
 
-  // Cấu hình nút quyền Host / Member
-  const hostControls = document.getElementById('sectionHostControls');
-  const memberLeave = document.getElementById('sectionMemberLeave');
-  if (isHost) {
-    if (hostControls) hostControls.classList.remove('hidden');
-    if (memberLeave) memberLeave.classList.add('hidden');
-  } else {
-    if (hostControls) hostControls.classList.add('hidden');
-    if (memberLeave) memberLeave.classList.remove('hidden');
+  // Lấy thông tin phòng
+  const { data: room } = await sbClient.from('rooms').select('*').eq('room_code', roomCode).single();
+  if (!room) return;
+
+  const codeEl = document.getElementById('lobbyRoomCode');
+  const modeEl = document.getElementById('lobbyModeBadge');
+  if (codeEl) codeEl.innerText = roomCode;
+  if (modeEl) modeEl.innerText = room.mode === 'battle' ? '⚔️ Battle Mode' : '☕ Co-working Mode';
+  
+  const btnStart = document.getElementById('btnStartGame');
+  if (btnStart) {
+    if (isHost) btnStart.classList.remove('hidden');
+    else btnStart.classList.add('hidden');
   }
 
-  // Tải danh sách & Tin nhắn
-  await loadRoomParticipants(roomId);
-  await loadRoomChatMessages(roomId);
+  // Vẽ Mã QR
+  const qrContainer = document.getElementById('lobbyQrCanvas');
+  if (qrContainer) {
+    qrContainer.innerHTML = '';
+    const joinUrl = `${window.location.origin}${window.location.pathname}?join_code=${roomCode}`;
+    if (typeof QRCode !== 'undefined') {
+      new QRCode(qrContainer, { text: joinUrl, width: 120, height: 120 });
+    }
+  }
 
-  // Huỷ subscribe kênh cũ nếu có
-  if (roomChannel) sbClient.removeChannel(roomChannel);
+  openModal('modalLobby');
+  
+  // Tải danh sách người tham gia ban đầu & Kích hoạt Realtime
+  await fetchParticipants(roomCode);
+  subscribeRoomRealtime(roomCode, isHost, room.exam_token);
+}
 
-  // Đăng ký Realtime cách ly theo room_id
-  roomChannel = sbClient.channel(`room_private_${roomId}`)
-    .on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'room_participants',
-      filter: `room_id=eq.${roomId}`
-    }, () => {
-      loadRoomParticipants(roomId);
+async function fetchParticipants(roomCode) {
+  const { data: list } = await sbClient.from('room_participants').select('*').eq('room_code', roomCode);
+  if (!list) return;
+
+  const countEl = document.getElementById('lobbyCount');
+  if (countEl) countEl.innerText = `${list.length}/10`;
+  
+  const container = document.getElementById('lobbyParticipantList');
+  if (!container) return;
+
+  container.innerHTML = list.map(p => `
+    <div class="p-2.5 bg-gray-50 dark:bg-zinc-800 rounded-xl flex items-center justify-between text-xs font-bold">
+      <span class="text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
+        <span>👤</span> ${escapeHtml(p.full_name)}
+      </span>
+      ${p.is_finished ? '<span class="text-green-600 dark:text-green-400">✅ Đã xong</span>' : '<span class="text-amber-500">⏳ Đang chờ</span>'}
+    </div>
+  `).join('');
+}
+
+// LẮNG NGHE THAY ĐỔI REALTIME TỪ SUPABASE
+function subscribeRoomRealtime(roomCode, isHost, examToken) {
+  if (roomRealtimeChannel) {
+    try { sbClient.removeChannel(roomRealtimeChannel); } catch (e) {}
+  }
+
+  roomRealtimeChannel = sbClient.channel(`room_${roomCode}`)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'room_participants', filter: `room_code=eq.${roomCode}` }, () => {
+      fetchParticipants(roomCode);
     })
-    .on('postgres_changes', {
-      event: 'INSERT',
-      schema: 'public',
-      table: 'room_messages',
-      filter: `room_id=eq.${roomId}`
-    }, (payload) => {
-      appendChatMessage(payload.new);
-    })
-    .on('postgres_changes', {
-      event: 'DELETE',
-      schema: 'public',
-      table: 'rooms',
-      filter: `id=eq.${roomId}`
-    }, () => {
-      alert("⚠️ Chủ phòng đã đóng hoặc xóa phòng này!");
-      leaveActiveRoomWidget();
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `room_code=eq.${roomCode}` }, (payload) => {
+      if (payload.new.status === 'playing') {
+        window.location.href = `exam.html?token=${examToken}&room_code=${roomCode}`;
+      }
     })
     .subscribe();
 }
 
-// 6. CẬP NHẬT TRẠNG THÁI KHI NỘP BÀI THI
-async function updateParticipantStatusOnSubmit(finalScore) {
-  if (!activeRoom) return;
+// 7. CHỦ PHÒNG BẤM BẮT ĐẦU
+async function handleStartGame() {
+  if (!activeRoomCode) return;
+  await sbClient.from('rooms').update({ status: 'playing' }).eq('room_code', activeRoomCode);
+}
 
-  const { error } = await sbClient
-    .from('room_participants')
-    .update({
-      status: 'completed',
-      score: finalScore,
-      finished_at: new Date().toISOString()
-    })
-    .eq('room_id', activeRoom.id)
-    .eq('user_id', currentUser.id);
-
-  if (!error) {
-    await loadRoomParticipants(activeRoom.id);
+// 8. RỜI PHÒNG
+async function handleLeaveRoom() {
+  if (activeRoomCode && currentUser) {
+    await sbClient.from('room_participants').delete().eq('room_code', activeRoomCode).eq('user_id', currentUser.id);
+  }
+  closeModal('modalLobby');
+  if (roomRealtimeChannel) {
+    try { sbClient.removeChannel(roomRealtimeChannel); } catch (e) {}
   }
 }
 
-// 7. HIỂN THỊ DANH SÁCH THÀNH VIÊN REALTIME
-async function loadRoomParticipants(roomId) {
-  const { data: participants } = await sbClient
-    .from('room_participants')
-    .select('*')
-    .eq('room_id', roomId)
-    .order('score', { ascending: false, nullsFirst: false });
-
-  if (!participants) return;
-
-  const listContainer = document.getElementById('sectionParticipantsList');
-  const countElem = document.getElementById('sectionParticipantCount');
-  if (countElem) countElem.innerText = `${participants.length}/10`;
-
-  if (!listContainer) return;
-
-  listContainer.innerHTML = participants.map((p, index) => {
-    const isCompleted = p.status === 'completed';
-    const isMe = currentUser && p.user_id === currentUser.id;
-
-    return `
-      <div class="flex items-center justify-between p-2.5 bg-white/10 dark:bg-zinc-800/80 rounded-xl border border-white/10 ${isMe ? 'ring-1 ring-amber-400' : ''}">
-        <div class="flex items-center gap-2.5">
-          <span class="font-mono font-bold text-xs ${index === 0 && isCompleted ? 'text-amber-300' : 'text-gray-300'}">#${index + 1}</span>
-          <div>
-            <p class="text-xs font-bold text-white flex items-center gap-1">
-              ${escapeHtml(p.full_name)}
-              ${isMe ? '<span class="text-[10px] text-amber-300">(Tôi)</span>' : ''}
-            </p>
-            <p class="text-[10px] text-gray-300">
-              ${isCompleted ? `Điểm số: <strong class="text-emerald-400 font-bold">${p.score ?? 0}/10</strong>` : 'Đang làm bài...'}
-            </p>
-          </div>
-        </div>
-
-        <div>
-          ${isCompleted 
-            ? `<span class="px-2.5 py-1 text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-full flex items-center gap-1">
-                 ✅ Đã hoàn thành
-               </span>` 
-            : `<span class="px-2.5 py-1 text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-full flex items-center gap-1 animate-pulse">
-                 ⏳ Đang làm bài
-               </span>`
-          }
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-// 8. KHUNG CHAT RIÊNG PHÒNG
-async function loadRoomChatMessages(roomId) {
-  const { data: messages } = await sbClient
-    .from('room_messages')
-    .select('*')
-    .eq('room_id', roomId)
-    .order('created_at', { ascending: true });
-
-  const chatBox = document.getElementById('sectionChatBox');
-  if (!chatBox) return;
-
-  chatBox.innerHTML = '';
-  if (messages) {
-    messages.forEach(msg => appendChatMessage(msg));
-  }
-}
-
-function appendChatMessage(msg) {
-  const chatBox = document.getElementById('sectionChatBox');
-  if (!chatBox) return;
-
-  const isMyMsg = currentUser && msg.user_id === currentUser.id;
-  const msgElem = document.createElement('div');
-  msgElem.className = `flex flex-col ${isMyMsg ? 'items-end' : 'items-start'} mb-2`;
-
-  msgElem.innerHTML = `
-    <span class="text-[10px] text-red-200/80 mb-0.5 px-1">${escapeHtml(msg.sender_name || msg.user_name)}</span>
-    <div class="px-3 py-1.5 rounded-2xl max-w-[85%] text-xs font-medium ${
-      isMyMsg 
-        ? 'bg-amber-400 text-zinc-900 font-semibold rounded-tr-none shadow-sm' 
-        : 'bg-white/20 text-white rounded-tl-none border border-white/10'
-    }">
-      ${escapeHtml(msg.message)}
-    </div>
-  `;
-
-  chatBox.appendChild(msgElem);
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-async function handleSendChatMessage(e) {
-  if (e) e.preventDefault();
-  if (!activeRoom) return;
-
-  const input = document.getElementById('sectionInputChat');
-  if (!input) return;
-
-  const message = input.value.trim();
-  if (!message) return;
-
-  input.value = '';
-
-  await sbClient.from('room_messages').insert([{
-    room_id: activeRoom.id,
-    user_id: currentUser.id,
-    sender_name: currentUser.user_metadata?.full_name || currentUser.email.split('@')[0],
-    message: message
-  }]);
-}
-
-// 9. THOÁT / RỜI PHÒNG & DỌN BỘ NHỚ WIDGET
-async function leaveActiveRoomWidget() {
-  localStorage.removeItem('last_active_room');
-  if (roomChannel) {
-    sbClient.removeChannel(roomChannel);
-    roomChannel = null;
-  }
-  activeRoom = null;
-  const container = document.getElementById('sectionActiveRoomContainer');
-  if (container) container.classList.add('hidden');
-}
-
+// 9. COPIED TOKEN CODE & MÃ QR CAMERA
 function copyRoomCode() {
-  if (!activeRoom) return;
-  navigator.clipboard.writeText(activeRoom.code);
+  if (!activeRoomCode) return;
+  navigator.clipboard.writeText(activeRoomCode);
   alert("📋 Đã sao chép mã phòng!");
 }
 
-// 10. QUÉT CAMERA & TẢI ẢNH QR CÓ PHẢN HỒI RUNG (VIBRATE)
-function toggleQrScanner() {
+// QUÉT QR CAMERA CỰC NHANH + PHẢN HỒI RUNG
+async function toggleQrScanner() {
   const container = document.getElementById('qrReaderContainer');
   if (!container) return;
 
   if (container.classList.contains('hidden')) {
     container.classList.remove('hidden');
-    html5QrCodeScanner = new Html5Qrcode("qrReaderContainer");
-    
-    html5QrCodeScanner.start(
-      { facingMode: "environment" },
-      { fps: 25, qrbox: { width: 220, height: 220 } },
-      async (decodedText) => {
-        if (navigator.vibrate) navigator.vibrate(150);
+    if (typeof Html5Qrcode !== 'undefined') {
+      html5QrCodeScanner = new Html5Qrcode("qrReaderContainer");
+      try {
+        await html5QrCodeScanner.start(
+          { facingMode: "environment" },
+          { fps: 25, qrbox: { width: 220, height: 220 } },
+          async (decodedText) => {
+            if (navigator.vibrate) navigator.vibrate(150);
+            try { await html5QrCodeScanner.stop(); } catch (e) {}
+            container.classList.add('hidden');
 
-        await html5QrCodeScanner.stop();
+            let joinCode = decodedText;
+            try {
+              const parsedUrl = new URL(decodedText);
+              joinCode = parsedUrl.searchParams.get('join_code') || decodedText;
+            } catch (e) {}
+
+            closeModal('modalJoinRoom');
+            await joinRoom(joinCode);
+          },
+          () => {} // Bỏ qua thông báo lỗi khi không thấy mã QR trong khung
+        );
+      } catch (err) {
+        console.error("Không thể khởi động camera quét QR:", err);
         container.classList.add('hidden');
-        
-        let joinCode = decodedText;
-        try {
-          const parsedUrl = new URL(decodedText);
-          joinCode = parsedUrl.searchParams.get('join_code') || decodedText;
-        } catch (e) {}
-
-        closeModal('modalJoinRoom');
-        await joinRoom(joinCode);
       }
-    );
+    }
   } else {
-    if (html5QrCodeScanner) html5QrCodeScanner.stop();
+    if (html5QrCodeScanner) {
+      try { await html5QrCodeScanner.stop(); } catch (e) {}
+    }
     container.classList.add('hidden');
   }
 }
 
-function triggerQrFileUpload() {
-  if (html5QrCodeScanner && html5QrCodeScanner.isScanning) {
-    html5QrCodeScanner.stop();
-    document.getElementById('qrReaderContainer')?.classList.add('hidden');
-  }
-  document.getElementById('qrFileInput')?.click();
-}
-
+// GIẢI MÃ QR TỪ ẢNH UPLOAD + PHẢN HỒI RUNG
 async function handleQrImageUpload(event) {
-  const file = event.target.files[0];
+  const file = event.target?.files?.[0];
   if (!file) return;
 
+  if (typeof Html5Qrcode === 'undefined') return;
   const html5QrCode = new Html5Qrcode("qrReaderContainer");
 
   try {
@@ -3218,11 +3158,233 @@ async function handleQrImageUpload(event) {
   } catch (err) {
     alert("❌ Không tìm thấy mã QR hợp lệ trong ảnh này. Vui lòng chọn ảnh chụp rõ nét hơn!");
   } finally {
+    try { await html5QrCode.clear(); } catch(e) {}
     event.target.value = '';
   }
 }
 
-// 11. KHUNG GIAO DIỆN CHÍNH (TOGGLE MAIN FRAME)
+// Kích hoạt mở Thư viện ảnh của thiết bị
+async function triggerQrFileUpload() {
+  if (html5QrCodeScanner) {
+    try { await html5QrCodeScanner.stop(); } catch (e) {}
+    document.getElementById('qrReaderContainer')?.classList.add('hidden');
+  }
+  document.getElementById('qrFileInput')?.click();
+}
+
+// ================= TỰ ĐỘNG KHÔI PHỤC PHÒNG & KHUNG CHAT KHI LOAD TRANG =================
+window.addEventListener('DOMContentLoaded', async () => {
+  // 1. Kiểm tra Auth Session
+  try {
+    if (typeof sbClient !== 'undefined') {
+      const { data: { session } } = await sbClient.auth.getSession();
+      currentUser = session?.user || null;
+    }
+  } catch (err) {
+    console.error("Lỗi khi kiểm tra phiên đăng nhập:", err);
+  }
+
+  // 2. Xử lý tham số ?join_code=...
+  const urlParams = new URLSearchParams(window.location.search);
+  const joinCodeParam = urlParams.get('join_code');
+
+  if (joinCodeParam) {
+    if (currentUser) {
+      await joinRoom(joinCodeParam);
+    } else {
+      alert("⚠️ Bạn đã mở liên kết vào phòng! Vui lòng đăng nhập tài khoản để vào phòng thi đấu.");
+    }
+    return;
+  }
+
+  // 3. Khôi phục phòng đang hoạt động
+  const activeRoomCodeParam = urlParams.get('active_room') || localStorage.getItem('last_active_room');
+  if (activeRoomCodeParam) {
+    await initActiveRoomWidget(activeRoomCodeParam);
+  }
+});
+
+// KHỞI TẠO KHUNG PHÒNG VÀ KHUNG CHAT WIDGET
+async function initActiveRoomWidget(roomCode) {
+  try {
+    const { data: room, error } = await sbClient
+      .from('rooms')
+      .select('*')
+      .eq('room_code', roomCode)
+      .maybeSingle();
+
+    if (error || !room || room.status === 'finished') {
+      leaveActiveRoomWidget();
+      return;
+    }
+
+    localStorage.setItem('last_active_room', roomCode);
+
+    const codeEl = document.getElementById('sectionRoomCode');
+    const containerEl = document.getElementById('sectionActiveRoomContainer') || document.getElementById('activeRoomWidget');
+    
+    if (codeEl) codeEl.innerText = roomCode;
+    if (containerEl) containerEl.classList.remove('hidden');
+
+    const isHost = currentUser && currentUser.id === room.host_id;
+    const hostControls = document.getElementById('sectionHostControls');
+    const memberLeave = document.getElementById('sectionMemberLeave');
+
+    if (isHost) {
+      if (hostControls) hostControls.classList.remove('hidden');
+      if (memberLeave) memberLeave.classList.add('hidden');
+    } else {
+      if (hostControls) hostControls.classList.add('hidden');
+      if (memberLeave) memberLeave.classList.remove('hidden');
+    }
+
+    await renderWidgetParticipants(roomCode);
+    await loadChatMessages(roomCode);
+    subscribeRoomWidgetRealtime(roomCode);
+
+  } catch (err) {
+    console.error("Không thể tải thông tin phòng Widget:", err);
+  }
+}
+
+// Render Tiến Độ / Bảng Điểm Các Thành Viên Trên Widget
+async function renderWidgetParticipants(roomCode) {
+  const { data: list } = await sbClient
+    .from('room_participants')
+    .select('*')
+    .eq('room_code', roomCode)
+    .order('score', { ascending: false })
+    .order('completion_time', { ascending: true });
+
+  if (!list) return;
+
+  const countEl = document.getElementById('sectionParticipantCount');
+  if (countEl) countEl.innerText = `${list.length}/10`;
+
+  const container = document.getElementById('sectionParticipantsList') || document.getElementById('widgetParticipantsList');
+  if (!container) return;
+
+  let rank = 1;
+  container.innerHTML = list.map(p => {
+    let statusBadge = '';
+    if (p.is_finished) {
+      let medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+      statusBadge = `
+        <span class="text-[11px] font-black text-emerald-300 bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-500/30">
+          ${medal} ${p.score || 0}đ (${p.completion_time || 0}s)
+        </span>`;
+      rank++;
+    } else {
+      statusBadge = `
+        <span class="text-[10px] font-bold text-amber-300 bg-amber-950/60 px-2 py-1 rounded-lg animate-pulse border border-amber-500/30">
+          ⏳ Đang làm...
+        </span>`;
+    }
+
+    return `
+      <div class="p-2 bg-black/20 rounded-xl flex items-center justify-between border border-white/5">
+        <span class="text-xs font-bold text-white flex items-center gap-1.5 truncate">
+          <span>👤</span> ${escapeHtml(p.full_name)}
+        </span>
+        ${statusBadge}
+      </div>
+    `;
+  }).join('');
+}
+
+// Tải & Render Tin Nhắn Chat
+async function loadChatMessages(roomCode) {
+  const { data: messages } = await sbClient
+    .from('room_messages')
+    .select('*')
+    .eq('room_code', roomCode)
+    .order('created_at', { ascending: true });
+
+  const box = document.getElementById('sectionChatBox');
+  if (!box) return;
+
+  box.innerHTML = '';
+  if (messages) messages.forEach(msg => appendSingleChatMessage(msg));
+}
+
+function appendSingleChatMessage(msg) {
+  const box = document.getElementById('sectionChatBox');
+  if (!box) return;
+
+  const isMe = currentUser && currentUser.id === msg.user_id;
+  const msgEl = document.createElement('div');
+  msgEl.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+
+  msgEl.innerHTML = `
+    <span class="text-[9px] text-red-200/70 px-1">${escapeHtml(msg.user_name)}</span>
+    <div class="max-w-[85%] px-3 py-1.5 rounded-2xl ${
+      isMe 
+        ? 'bg-white text-[#cf1717] font-bold rounded-tr-none shadow' 
+        : 'bg-black/40 text-white rounded-tl-none border border-white/10'
+    }">
+      ${escapeHtml(msg.message)}
+    </div>
+  `;
+
+  box.appendChild(msgEl);
+  box.scrollTop = box.scrollHeight;
+}
+
+// Gửi Tin Nhắn Chat
+async function handleSendChatMessage(e) {
+  if (e) e.preventDefault();
+  const input = document.getElementById('sectionInputChat');
+  if (!input) return;
+
+  const text = input.value.trim();
+  const roomCode = localStorage.getItem('last_active_room');
+
+  if (!text || !roomCode || !currentUser) return;
+
+  input.value = '';
+  const fullName = currentUser.user_metadata?.full_name || (currentUser.email ? currentUser.email.split('@')[0] : 'Người dùng');
+
+  await sbClient.from('room_messages').insert([{
+    room_code: roomCode,
+    user_id: currentUser.id,
+    user_name: fullName,
+    message: text
+  }]);
+}
+
+// Lắng Nghe Realtime Widget & Chat
+function subscribeRoomWidgetRealtime(roomCode) {
+  if (chatRealtimeChannel) {
+    try { sbClient.removeChannel(chatRealtimeChannel); } catch (e) {}
+  }
+
+  chatRealtimeChannel = sbClient.channel(`section_room_${roomCode}`)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'room_participants', filter: `room_code=eq.${roomCode}` }, () => {
+      renderWidgetParticipants(roomCode);
+    })
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'room_messages', filter: `room_code=eq.${roomCode}` }, (payload) => {
+      appendSingleChatMessage(payload.new);
+    })
+    .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'rooms', filter: `room_code=eq.${roomCode}` }, () => {
+      alert("⚠️ Chủ phòng đã hủy và xóa phòng này!");
+      leaveActiveRoomWidget();
+    })
+    .subscribe();
+}
+
+// Rời khỏi Widget Phòng
+function leaveActiveRoomWidget() {
+  localStorage.removeItem('last_active_room');
+  
+  const container = document.getElementById('sectionActiveRoomContainer') || document.getElementById('activeRoomWidget');
+  if (container) container.classList.add('hidden');
+
+  if (chatRealtimeChannel) {
+    try { sbClient.removeChannel(chatRealtimeChannel); } catch (e) {}
+  }
+}
+
+// Hàm Toggle Ẩn / Hiện Khung An Toàn
 function toggleMainFrame(showExplicitly = null) {
   const targetFrame = document.getElementById('mainExamSection') || document.getElementById('selectedDateContent');
   const restoreBtn = document.getElementById('btnRestoreFrame');
@@ -3240,36 +3402,6 @@ function toggleMainFrame(showExplicitly = null) {
     if (restoreBtn) restoreBtn.classList.remove('hidden');
   }
 }
-
-// 12. KHỞI TẠO TỰ ĐỘNG KHI TẢI TRANG (DOMCONTENTLOADED UNIFIED)
-window.addEventListener('DOMContentLoaded', async () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const joinCodeParam = urlParams.get('join_code');
-  const activeRoomCode = urlParams.get('active_room') || localStorage.getItem('last_active_room');
-
-  try {
-    const { data: { session } } = await sbClient.auth.getSession();
-    currentUser = session?.user || null;
-
-    if (joinCodeParam) {
-      if (currentUser) {
-        await joinRoom(joinCodeParam);
-      } else {
-        alert("⚠️ Bạn đã mở liên kết vào phòng! Vui lòng đăng nhập tài khoản để vào phòng thi đấu.");
-      }
-    } else if (activeRoomCode) {
-      const { data: room } = await sbClient.from('rooms').select('*').eq('code', activeRoomCode).maybeSingle();
-      if (room && room.status === 'active') {
-        const isHost = currentUser && room.host_id === currentUser.id;
-        await joinRoomById(room.id, room.code, isHost);
-      } else {
-        leaveActiveRoomWidget();
-      }
-    }
-  } catch (err) {
-    console.error("Lỗi khi khôi phục phòng/phiên làm việc:", err);
-  }
-});
   
 </script>
 <!-- MODAL ĐỔI MẬT KHẨU -->
