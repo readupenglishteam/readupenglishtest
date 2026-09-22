@@ -481,7 +481,7 @@
       </div>
 
       <!-- Nút Ẩn Khung cho Thành viên -->
-      <button id="sectionMemberLeave" onclick="leaveActiveRoomWidget()" class="text-xs text-red-100 hover:text-white font-bold px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-xl transition">
+      <button id="btnToggleWidget" onclick="leaveActiveRoomWidget()" class="text-xs text-red-100 hover:text-white font-bold px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-xl transition">
         Ẩn Khung ✕
       </button>
     </div>
@@ -617,6 +617,7 @@
 
     let currentUser = null;
 
+// KHỞI TẠO DASHBOARD SONG SONG SIÊU TỐC
 async function initDashboard() {
   // 1. Dựng khung Lịch ngay tức thì (0ms delay)
   if (typeof initCalendar === 'function') initCalendar();
@@ -647,8 +648,14 @@ async function initDashboard() {
       // Tác vụ 3: Tải Bài thi (nếu có hàm)
       typeof loadExams === 'function' ? loadExams() : Promise.resolve(),
 
-      // Tác vụ 4: Tải Lịch sử làm bài (nếu có hàm)
-      typeof loadStudentHistory === 'function' ? loadStudentHistory() : Promise.resolve()
+      // Tác vụ 4: Tải Lịch sử làm bài cá nhân (nếu có hàm)
+      typeof loadStudentHistory === 'function' ? loadStudentHistory() : Promise.resolve(),
+
+      // 🚀 TÁC VỤ 5 BỔ SUNG: Khởi tạo Phòng đấu đang chạy (Khung Chat + Điểm Realtime)
+      typeof initActiveRoomWidget === 'function' ? initActiveRoomWidget() : Promise.resolve(),
+
+      // 🚀 TÁC VỤ 6 BỔ SUNG: Tải Lịch sử các phòng đấu cũ (3 phòng/trang)
+      typeof loadRoomHistory === 'function' ? loadRoomHistory(1) : Promise.resolve()
     ]);
   } catch (error) {
     console.error("Lỗi khi tải dữ liệu Dashboard:", error);
@@ -657,8 +664,11 @@ async function initDashboard() {
     if (typeof renderCalendar === 'function') renderCalendar();
     if (typeof updateSelectedDateDetails === 'function') updateSelectedDateDetails();
   }
-  if (!sessionStorage.getItem('hasShownNewUpdateToast')) {checkNewUpdatesInLast3Days();  // Đánh dấu là đã hiển thị thông báo trong phiên này rồi
-                                                          sessionStorage.setItem('hasShownNewUpdateToast', 'true'); }
+
+  if (!sessionStorage.getItem('hasShownNewUpdateToast')) {
+    checkNewUpdatesInLast3Days(); // Đánh dấu là đã hiển thị thông báo trong phiên này rồi
+    sessionStorage.setItem('hasShownNewUpdateToast', 'true'); 
+  }
 }
 // Biến toàn cục lưu trữ danh sách tin tức để Pop-up đọc dữ liệu
 let globalNewsList = [];
@@ -3501,17 +3511,6 @@ function subscribeRoomWidgetRealtime(roomCode) {
     .subscribe();
 }
 
-// 6. Rời khỏi Widget Phòng
-function leaveActiveRoomWidget() {
-  localStorage.removeItem('last_active_room');
-  
-  const container = document.getElementById('sectionActiveRoomContainer') || document.getElementById('activeRoomWidget');
-  if (container) container.classList.add('hidden');
-
-  if (chatRealtimeChannel) {
-    try { sbClient.removeChannel(chatRealtimeChannel); } catch (e) {}
-  }
-}
 
 // Hàm Toggle Ẩn / Hiện Khung An Toàn
 function toggleMainFrame(showExplicitly = null) {
@@ -3533,49 +3532,65 @@ function toggleMainFrame(showExplicitly = null) {
 }
 
 // 1. LƯU PHÒNG (Chủ phòng lưu -> Cả 2 bên nhận được thông báo/kết quả)
+// 1. LƯU PHÒNG (Chủ phòng bấm -> Phòng đóng lại và chuyển xuống Lịch sử)
 async function handleHostSaveRoom() {
-  const roomCode = document.getElementById('sectionRoomCode')?.innerText;
+  const roomCode = localStorage.getItem('last_active_room') || document.getElementById('sectionRoomCode')?.innerText;
   if (!roomCode) return;
 
-  if (!confirm("💾 Bạn có chắc muốn LƯU & KHÓA phòng này? Kết quả làm bài sẽ được đóng băng cho tất cả thành viên.")) return;
+  if (!confirm("💾 Bạn có chắc muốn LƯU & KHÓA phòng này? Kết quả sẽ được chuyển vào Lịch sử bài làm.")) return;
 
-  // Cập nhật status phòng thành 'finished' trên Supabase
+  // Cập nhật status thành 'finished' (Đã sửa cột 'code' -> 'room_code')
   const { error } = await sbClient
     .from('rooms')
-    .update({ status: 'finished', updated_at: new Date() })
-    .eq('code', roomCode);
+    .update({ status: 'finished' })
+    .eq('room_code', roomCode);
 
   if (error) {
     alert("❌ Lỗi khi lưu phòng: " + error.message);
-  } else {
-    alert("✅ Đã lưu phòng thành công!");
+    return;
   }
+
+  alert("✅ Đã lưu phòng thành công vào Lịch sử!");
+  leaveActiveRoomWidget(); // Ẩn widget phòng
+  if (typeof loadRoomHistory === 'function') loadRoomHistory(1); // Tải lại bảng lịch sử 3 phòng/trang
 }
 
-// 2. XÓA PHÒNG (Chủ phòng xóa -> Mất tất cả dữ liệu phòng)
+
+// 2. XÓA PHÒNG (Chủ phòng bấm -> Xóa vĩnh viễn dữ liệu trên Supabase)
 async function handleHostDeleteRoom() {
-  const roomCode = document.getElementById('sectionRoomCode')?.innerText;
+  const roomCode = localStorage.getItem('last_active_room') || document.getElementById('sectionRoomCode')?.innerText;
   if (!roomCode) return;
 
-  if (!confirm("⚠️ CẢNH BÁO: Bạn có chắc chắn muốn XÓA PHÒNG này?\nToàn bộ bảng điểm và tin nhắn trò chuyện sẽ bị xóa vĩnh viễn!")) return;
+  if (!confirm("⚠️ CẢNH BÁO: Bạn có chắc chắn muốn XÓA PHÒNG này?\nToàn bộ dữ liệu điểm và chat sẽ bị xóa vĩnh viễn!")) return;
 
   try {
     // Xóa dữ liệu các bảng liên quan
     await sbClient.from('room_participants').delete().eq('room_code', roomCode);
     await sbClient.from('room_messages').delete().eq('room_code', roomCode);
     
-    // Xóa phòng chính
-    const { error } = await sbClient.from('rooms').delete().eq('code', roomCode);
+    // Xóa phòng chính (Đã sửa cột 'code' -> 'room_code')
+    const { error } = await sbClient.from('rooms').delete().eq('room_code', roomCode);
 
     if (error) throw error;
 
     alert("🗑️ Đã xóa toàn bộ dữ liệu phòng!");
-    localStorage.removeItem('last_active_room');
-    
-    // Ẩn khung ngay lập tức
-    leaveActiveRoomWidget();
+    leaveActiveRoomWidget(); // Ẩn widget phòng
+    if (typeof loadRoomHistory === 'function') loadRoomHistory(1); // Tải lại danh sách
   } catch (err) {
     alert("❌ Lỗi khi xóa phòng: " + err.message);
+  }
+}
+
+// 3. ẨN / HIỆN KHUNG PHÒNG TRỰC TIẾP (Dành cho cả Host & Thành viên)
+function leaveActiveRoomWidget() {
+  const body = document.getElementById('sectionActiveRoomBody'); // Phần chứa xếp hạng + chat
+  const btn = document.getElementById('btnToggleWidget');
+
+  if (body) {
+    body.classList.toggle('hidden');
+    if (btn) {
+      btn.innerText = body.classList.contains('hidden') ? '👁️ Hiện Khung' : 'Ẩn Khung ✕';
+    }
   }
 }
 // Đặt đoạn này ở cuối file JS Dashboard của bạn
@@ -3605,6 +3620,93 @@ document.addEventListener('click', function(e) {
   }
 });
 
+// ĐỔI TÊN BIẾN RIÊNG CHO LỊCH SỬ PHÒNG ĐẤU (Không bị lặp với lịch sử cá nhân)
+let globalRoomHistoryList = [];
+let currentRoomHistoryPage = 1;
+const ROOM_HISTORY_PER_PAGE = 3; // Chỉ hiển thị đúng 3 phòng/trang
+
+// 1. Tải lịch sử phòng đấu
+async function loadRoomHistory(page = 1) {
+  if (!currentUser) return;
+  currentRoomHistoryPage = page;
+
+  const { data, error } = await sbClient
+    .from('room_participants')
+    .select('room_code, score, joined_at, rooms(room_code, exam_token, status, created_at)')
+    .eq('user_id', currentUser.id)
+    .order('joined_at', { ascending: false });
+
+  if (error || !data) return;
+
+  globalRoomHistoryList = data;
+  renderRoomHistoryUI(currentRoomHistoryPage);
+}
+
+// 2. Render giao diện Lịch sử phòng đấu
+function renderRoomHistoryUI(page) {
+  const container = document.getElementById('historyListContainer'); 
+  const paginationBox = document.getElementById('historyPaginationContainer'); 
+  if (!container) return;
+
+  const totalPages = Math.ceil(globalRoomHistoryList.length / ROOM_HISTORY_PER_PAGE) || 1;
+  const start = (page - 1) * ROOM_HISTORY_PER_PAGE;
+  const pageItems = globalRoomHistoryList.slice(start, start + ROOM_HISTORY_PER_PAGE);
+
+  container.innerHTML = '';
+
+  if (pageItems.length === 0) {
+    container.innerHTML = `<div class="text-center py-6 text-gray-400 text-xs">Chưa có lịch sử phòng làm bài nào.</div>`;
+    if (paginationBox) paginationBox.innerHTML = '';
+    return;
+  }
+
+  pageItems.forEach(item => {
+    const room = item.rooms || {};
+    const card = document.createElement('div');
+    card.className = "p-4 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-2xl flex items-center justify-between shadow-sm hover:border-red-500 cursor-pointer transition active:scale-[0.99] my-2";
+    
+    // Bấm vào card -> Mở lại phòng
+    card.onclick = () => openRoomFromHistory(item.room_code);
+
+    const dateStr = new Date(item.joined_at).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) + ' ' + new Date(item.joined_at).toLocaleDateString('vi-VN');
+
+    card.innerHTML = `
+      <div>
+        <h4 class="font-black text-sm text-gray-800 dark:text-white uppercase">${escapeHtml(room.exam_token || 'BÀI THI')} (${item.room_code})</h4>
+        <span class="text-xs text-gray-400">Nộp lúc: ${dateStr}</span>
+      </div>
+      <div class="text-right">
+        <span class="text-base font-black text-red-600">${item.score || 0} điểm</span>
+        <span class="block text-[10px] text-gray-400">Bấm để xem lại chat</span>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  // Nút phân trang tự động cuộn (1, 2, 3...)
+  if (paginationBox) {
+    renderPaginationControls(paginationBox, page, totalPages, 'renderRoomHistoryUI');
+  }
+}
+  // Bấm vào phòng trong lịch sử -> Mở lại Khung phòng và Chat
+async function openRoomFromHistory(roomCode) {
+  localStorage.setItem('last_active_room', roomCode);
+  
+  const container = document.getElementById('sectionActiveRoomContainer') || document.getElementById('activeRoomWidget');
+  if (container) container.classList.remove('hidden');
+
+  // Cập nhật tiêu đề phòng
+  const codeEl = document.getElementById('sectionRoomCode');
+  if (codeEl) codeEl.innerText = roomCode;
+
+  // Tải bảng điểm & tin nhắn chat của phòng này
+  if (typeof renderWidgetParticipants === 'function') renderWidgetParticipants(roomCode);
+  await loadChatMessages(roomCode);
+  subscribeRoomWidgetRealtime(roomCode);
+
+  window.scrollTo({ top: 0, behavior: 'smooth' }); // Cuộn lên đầu trang xem phòng
+}
+  
 </script>
 <!-- MODAL ĐỔI MẬT KHẨU -->
 <div id="passwordModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
