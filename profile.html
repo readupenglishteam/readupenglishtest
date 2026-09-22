@@ -63,7 +63,7 @@
 
       <!-- Menu User Icon Chấm Đỏ -->
       <div class="relative">
-        <button onclick="toggleUserDropdown()" class="relative p-1.5 rounded-full bg-red-50 dark:bg-zinc-800 border-2 border-[#cf1717] text-[#cf1717] dark:text-red-400 hover:scale-105 transition shadow-md flex items-center justify-center">
+        <button onclick="toggleUserDropdown(event)" class="relative p-1.5 rounded-full bg-red-50 dark:bg-zinc-800 border-2 border-[#cf1717] text-[#cf1717] dark:text-red-400 hover:scale-105 transition shadow-md flex items-center justify-center">
           <svg class="w-7 h-7 fill-current" viewBox="0 0 16 16">
             <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
             <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
@@ -74,7 +74,7 @@
 
         <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-52 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl py-2 z-50 transition-all">
           <a href="profile.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-[#cf1717] dark:text-red-400 bg-red-50/50 dark:bg-red-950/30">
-            <span>👤</span> Trang cá nhân
+            <span>👤</span><span id="dropdownUserName">Trang cá nhân</span>
           </a>
           <button onclick="toggleDarkMode()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
             <span id="themeIcon">🌙</span> Sáng/Tối
@@ -402,11 +402,17 @@ async function initProfile() {
   }
 
   currentUser = session.user;
-  document.getElementById('inputEmail').value = currentUser.email || '';
-  document.getElementById('displayEmail').innerText = currentUser.email || 'N/A';
+  
+  // Kiểm tra an toàn trước khi gán value/innerText
+  const inputEmailElem = document.getElementById('inputEmail');
+  if (inputEmailElem) inputEmailElem.value = currentUser.email || '';
+  
+  const displayEmailElem = document.getElementById('displayEmail');
+  if (displayEmailElem) displayEmailElem.innerText = currentUser.email || 'N/A';
 
   const provider = currentUser.app_metadata?.provider || 'email';
-  document.getElementById('authProviderBadge').innerText = provider === 'google' ? 'Google Auth' : 'Tài khoản Email';
+  const badgeElem = document.getElementById('authProviderBadge');
+  if (badgeElem) badgeElem.innerText = provider === 'google' ? 'Google Auth' : 'Tài khoản Email';
 
   // 1. Lấy thông tin Profile
   const { data: profile } = await sbClient
@@ -414,6 +420,18 @@ async function initProfile() {
     .select('*')
     .eq('id', currentUser.id)
     .maybeSingle();
+
+  // --- [ĐỌC VÀ GÁN TÊN VÀO DROPDOWN MENU] ---
+  const displayName = profile?.full_name 
+    || currentUser.user_metadata?.full_name 
+    || currentUser.email?.split('@')[0] 
+    || 'Người dùng';
+
+  const dropdownNameElem = document.getElementById('dropdownUserName');
+  if (dropdownNameElem) {
+    dropdownNameElem.innerText = displayName;
+  }
+  // ------------------------------------------
 
   // 2. Lấy hoặc tự tạo mới dòng dữ liệu trong user_stats nếu chưa có
   let { data: stats } = await sbClient
@@ -435,12 +453,13 @@ async function initProfile() {
   rawProfileData = profile;
   
   // 3. Đổ dữ liệu ra giao diện
-  populateForm(profile, stats);
+  if (typeof populateForm === 'function') {
+    populateForm(profile, stats);
+  }
   
-  toggleProfileEdit(false); // Mặc định ở chế độ Xem (Khoá các ô)
-  togglePasswordEdit(false);
+  if (typeof toggleProfileEdit === 'function') toggleProfileEdit(false);
+  if (typeof togglePasswordEdit === 'function') togglePasswordEdit(false);
 }
-
 async function handleUpdateProfile(e) {
   e.preventDefault();
   const newName = document.getElementById('inputFullName').value.trim();
@@ -538,7 +557,7 @@ async function handleLogout() {
   await sbClient.auth.signOut();
   window.location.href = 'index.html';
 }
-
+  
 window.onload = initProfile;
 
 // Đóng dropdown khi click bất kỳ đâu bên ngoài
