@@ -361,10 +361,27 @@ function populateForm(profile, stats) {
   // Đổ Ngày sinh (DD/MM/YYYY)
   document.getElementById('inputDob').value = formatToVN(rawDob);
   document.getElementById('profileAvatarText').innerText = fullName.charAt(0).toUpperCase();
+  
+// Lấy hoặc tự tạo mới dòng dữ liệu trong user_stats nếu chưa có
+let { data: stats } = await sbClient
+  .from('user_stats')
+  .select('streak_count, total_xp')
+  .eq('user_id', currentUser.id)
+  .maybeSingle();
 
-  // Đổ Streak & XP lấy từ bảng user_stats trên Supabase
-  document.getElementById('profileStreak').innerText = stats?.streak_count || 0;
-  document.getElementById('profileXp').innerText = stats?.total_xp || 0;
+// Nếu chưa có trong bảng user_stats, tự động tạo mới 1 hàng ban đầu
+if (!stats) {
+  const { data: newStats } = await sbClient
+    .from('user_stats')
+    .insert([{ user_id: currentUser.id, streak_count: 0, total_xp: 0 }])
+    .select()
+    .single();
+  stats = newStats;
+}
+
+// Cập nhật lên giao diện
+document.getElementById('profileStreak').innerText = stats?.streak_count || 0;
+document.getElementById('profileXp').innerText = stats?.total_xp || 0;
 }
 
 async function initProfile() {
@@ -499,6 +516,15 @@ async function handleUpdatePassword(e) {
   }
 
   window.onload = initProfile;
+document.addEventListener('click', (e) => {
+  const avatarBtn = document.querySelector('[onclick*="toggleMenu"]') || document.getElementById('avatarBtn');
+  const userDropdown = document.getElementById('userDropdown') || document.getElementById('profileMenu');
+  if (userDropdown && !userDropdown.classList.contains('hidden')) {
+    if (avatarBtn && !avatarBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+      userDropdown.classList.add('hidden');
+    }
+  }
+});
 </script>
 </body>
 </html>
