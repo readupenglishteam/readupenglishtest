@@ -93,7 +93,7 @@
 
       <!-- Nút Avatar Icon có Chấm Đỏ Rực Rỡ -->
       <div class="relative">
-        <button onclick="toggleUserDropdown()" class="relative p-1.5 rounded-full bg-red-50 dark:bg-zinc-800 border-2 border-[#cf1717] text-[#cf1717] dark:text-red-400 hover:scale-105 transition shadow-md flex items-center justify-center">
+        <button onclick="toggleUserDropdown(event)" class="relative p-1.5 rounded-full bg-red-50 dark:bg-zinc-800 border-2 border-[#cf1717] text-[#cf1717] dark:text-red-400 hover:scale-105 transition shadow-md flex items-center justify-center">
           <!-- Icon bi-person-circle -->
           <svg class="w-7 h-7 fill-current" viewBox="0 0 16 16">
             <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
@@ -110,7 +110,7 @@
             <span>👤</span> Trang cá nhân
           </a>
           <button onclick="toggleDarkMode()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
-            <span id="themeIcon">🌙</span> Đổi màu nền (Sáng/Tối)
+            <span id="themeIcon">🌙</span> Sáng/Tối
           </button>
           <div class="border-t border-gray-100 dark:border-zinc-800 my-1"></div>
           <button onclick="handleLogout()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition">
@@ -3568,20 +3568,22 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-function toggleUserDropdown() {
-    const menu = document.getElementById('userDropdownMenu');
-    if (menu) menu.classList.toggle('hidden');
-  }
-
-  // Đóng dropdown khi click ra ngoài
-  window.addEventListener('click', function(e) {
-    const btn = e.target.closest('button[onclick="toggleUserDropdown()"]');
-    const menu = document.getElementById('userDropdownMenu');
-    if (!btn && menu && !menu.contains(e.target)) {
-      menu.classList.add('hidden');
-    }
-  });
+function toggleUserDropdown(e) {
+  // Ngăn không cho sự kiện click vào Avatar lan ra ngoài window
+  if (e) e.stopPropagation(); 
   
+  const menu = document.getElementById('userDropdownMenu');
+  if (menu) menu.classList.toggle('hidden');
+}
+
+// Đóng dropdown khi click bất kỳ đâu bên ngoài
+document.addEventListener('click', function(e) {
+  const menu = document.getElementById('userDropdownMenu');
+  if (menu && !menu.contains(e.target)) {
+    menu.classList.add('hidden');
+  }
+});
+
 </script>
 <!-- MODAL ĐỔI MẬT KHẨU -->
 <div id="passwordModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
