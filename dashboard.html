@@ -3123,6 +3123,8 @@ async function enterLobby(roomCode, isHost) {
   // Tải danh sách người tham gia ban đầu & Kích hoạt Realtime
   await fetchParticipants(roomCode);
   subscribeRoomRealtime(roomCode, isHost, room.exam_token);
+  // [BỔ SUNG] Khởi tạo kênh Realtime ngay khi vào sảnh chờ, để gửi tin nhắn & nhận thông báo Lưu/Xóa phòng hoạt động ngay từ đầu
+  if (typeof initRoomRealtime === 'function') initRoomRealtime(roomCode);
 }
 
 async function fetchParticipants(roomCode) {
@@ -3371,8 +3373,12 @@ const container = document.getElementById('sectionActiveRoomContainer');
 
   // 5. Nạp danh sách thành viên, tin nhắn và đăng ký Realtime
   if (typeof renderWidgetParticipants === 'function') await renderWidgetParticipants(roomCode);
-  if (typeof loadRoomMessages === 'function') await loadRoomMessages(roomCode);
-  if (typeof subscribeRealtimeRoom === 'function') subscribeRealtimeRoom(roomCode);
+  // [FIX] Tên hàm đúng là loadChatMessages (trước đây gọi nhầm loadRoomMessages nên không tồn tại -> không tải được lịch sử chat)
+  if (typeof loadChatMessages === 'function') await loadChatMessages(roomCode);
+  // [FIX] Tên hàm đúng là subscribeRoomWidgetRealtime (trước đây gọi nhầm subscribeRealtimeRoom nên không tồn tại -> Host Lưu/Xóa phòng không báo được cho thành viên)
+  if (typeof subscribeRoomWidgetRealtime === 'function') subscribeRoomWidgetRealtime(roomCode);
+  // [BỔ SUNG] Khởi tạo kênh Realtime gửi/nhận tin nhắn Chat 2 chiều + nhận broadcast Xóa phòng (hàm này đã có sẵn trong file nhưng chưa từng được gọi)
+  if (typeof initRoomRealtime === 'function') initRoomRealtime(roomCode);
 }
 
 // Render Tiến Độ / Bảng Điểm Các Thành Viên Trên Widget
@@ -3628,8 +3634,9 @@ async function handleHostDeleteRoom() {
   }
 
   // Xóa record phòng trong Supabase DB
+  // [FIX] Sửa đúng tên cột 'room_code' (trước đây dùng nhầm cột 'code' không tồn tại trong bảng rooms -> phòng không bị xóa thật trong DB)
   if (currentRoomCode) {
-    await sbClient.from('rooms').delete().eq('code', currentRoomCode);
+    await sbClient.from('rooms').delete().eq('room_code', currentRoomCode);
   }
 
   // Chạy hiệu ứng xóa phòng trên màn hình Host
@@ -3841,6 +3848,8 @@ async function openRoomFromHistory(roomCode) {
   if (typeof renderWidgetParticipants === 'function') renderWidgetParticipants(roomCode);
   await loadChatMessages(roomCode);
   subscribeRoomWidgetRealtime(roomCode);
+  // [BỔ SUNG] Khởi tạo kênh Realtime để gửi tin nhắn & nhận thông báo Lưu/Xóa phòng khi mở lại từ Lịch sử
+  if (typeof initRoomRealtime === 'function') initRoomRealtime(roomCode);
 
   window.scrollTo({ top: 0, behavior: 'smooth' }); // Cuộn lên đầu trang xem phòng
 }
