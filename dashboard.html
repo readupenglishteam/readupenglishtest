@@ -107,7 +107,7 @@
         <!-- Menu Dropdown Xổ Xuống -->
         <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-52 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl py-2 z-50 transition-all">
           <a href="profile.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
-            <span>👤</span><span id="welcomeUser">Trang cá nhân</span>
+            <span>👤</span><span id="dropdownUserName">Trang cá nhân</span>
           </a>
           <button onclick="toggleDarkMode()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
             <span id="themeIcon">🌙</span> Sáng/Tối
@@ -623,7 +623,7 @@ async function initDashboard() {
   // 1. Dựng khung Lịch ngay tức thì (0ms delay)
   if (typeof initCalendar === 'function') initCalendar();
 
-  // 2. Kiểm tra Auth siêu nhanh từ Session Local (không tốn time chờ Server Auth)
+  // 2. Kiểm tra Auth từ Session Local
   const { data: { session } } = await sbClient.auth.getSession();
   if (!session || !session.user) {
     window.location.href = 'index.html';
@@ -631,43 +631,52 @@ async function initDashboard() {
   }
   currentUser = session.user;
 
-  // 3. TẢI SONG SONG TẤT CẢ DỮ LIỆU CÙNG 1 LÚC (Nhanh gấp 3 - 4 lần)
+  // 3. TẢI SONG SONG TẤT CẢ DỮ LIỆU CÙNG 1 LÚC
   try {
     await Promise.all([
-      // Tác vụ 1: Lấy Profile người dùng
-      sbClient.from('profiles').select('full_name').eq('id', currentUser.id).single()
+      // 🚀 TÁC VỤ 1 CẬP NHẬT: Lấy Profile & Hiển thị tên ở CẢ Welcome lẫn Dropdown Menu
+      sbClient.from('profiles').select('full_name').eq('id', currentUser.id).maybeSingle()
         .then(({ data: profile }) => {
-          if (profile?.full_name) {
-            const welcomeElem = document.getElementById('welcomeUser');
-            if (welcomeElem) welcomeElem.innerText = `👋 Chào, ${profile.full_name}`;
-          }
+          // Lấy tên ưu tiên: Profile -> User Metadata -> Tên Email -> "Người dùng"
+          const displayName = profile?.full_name 
+            || currentUser.user_metadata?.full_name 
+            || currentUser.email?.split('@')[0] 
+            || 'Người dùng';
+
+          // 1. Cập nhật dòng chào "👋 Chào, Tên"
+          const welcomeElem = document.getElementById('welcomeUser');
+          if (welcomeElem) welcomeElem.innerText = `👋 Chào, ${displayName}`;
+
+          // 2. Cập nhật tên ở Dropdown Menu
+          const dropdownNameElem = document.getElementById('dropdownUserName');
+          if (dropdownNameElem) dropdownNameElem.innerText = displayName;
         }),
 
-      // Tác vụ 2: Tải Tin tức (nếu có hàm)
+      // Tác vụ 2: Tải Tin tức
       typeof loadNews === 'function' ? loadNews() : Promise.resolve(),
 
-      // Tác vụ 3: Tải Bài thi (nếu có hàm)
+      // Tác vụ 3: Tải Bài thi
       typeof loadExams === 'function' ? loadExams() : Promise.resolve(),
 
-      // Tác vụ 4: Tải Lịch sử làm bài cá nhân (nếu có hàm)
+      // Tác vụ 4: Tải Lịch sử làm bài cá nhân
       typeof loadStudentHistory === 'function' ? loadStudentHistory() : Promise.resolve(),
 
-      // 🚀 TÁC VỤ 5 BỔ SUNG: Khởi tạo Phòng đấu đang chạy (Khung Chat + Điểm Realtime)
+      // Tác vụ 5: Khởi tạo Phòng đấu đang chạy
       typeof initActiveRoomWidget === 'function' ? initActiveRoomWidget() : Promise.resolve(),
 
-      // 🚀 TÁC VỤ 6 BỔ SUNG: Tải Lịch sử các phòng đấu cũ (3 phòng/trang)
+      // Tác vụ 6: Tải Lịch sử các phòng đấu cũ
       typeof loadRoomHistory === 'function' ? loadRoomHistory(1) : Promise.resolve()
     ]);
   } catch (error) {
     console.error("Lỗi khi tải dữ liệu Dashboard:", error);
   } finally {
-    // 4. CHỐNG CHỜ ĐỜI: Khi TẤT CẢ dữ liệu đã về đủ -> Vẽ Lịch & Chấm đỏ tự động bật lên 100%!
+    // 4. Vẽ Lịch & Chấm đỏ
     if (typeof renderCalendar === 'function') renderCalendar();
     if (typeof updateSelectedDateDetails === 'function') updateSelectedDateDetails();
   }
 
   if (!sessionStorage.getItem('hasShownNewUpdateToast')) {
-    checkNewUpdatesInLast3Days(); // Đánh dấu là đã hiển thị thông báo trong phiên này rồi
+    checkNewUpdatesInLast3Days();
     sessionStorage.setItem('hasShownNewUpdateToast', 'true'); 
   }
 }
