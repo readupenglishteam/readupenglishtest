@@ -152,21 +152,22 @@
   let currentMode = 'login';
 
   function switchTab(mode) {
-    currentMode = mode;
-    const isReg = currentMode === 'register';
+  currentMode = mode;
+  const isReg = currentMode === 'register';
 
-    document.getElementById('fullNameGroup').classList.toggle('hidden', !isReg);
-    document.getElementById('dobGroup').classList.toggle('hidden', !isReg);
-    document.getElementById('submitBtn').innerText = isReg ? 'Tạo Tài Khoản Đăng Ký' : 'Đăng Nhập';
+  document.getElementById('fullNameGroup')?.classList.toggle('hidden', !isReg);
+  document.getElementById('dobGroup')?.classList.toggle('hidden', !isReg);
+  document.getElementById('phoneGroup')?.classList.toggle('hidden', !isReg); // 👈 Sửa !isRegister thành !isReg ở đây
+  document.getElementById('submitBtn').innerText = isReg ? 'Tạo Tài Khoản Đăng Ký' : 'Đăng Nhập';
 
-    document.getElementById('tabLogin').className = isReg 
-      ? 'w-1/2 py-2.5 text-center font-bold text-gray-400 hover:text-gray-600 transition' 
-      : 'w-1/2 py-2.5 text-center font-bold text-[#cf1717] border-b-2 border-[#cf1717] transition';
-    
-    document.getElementById('tabRegister').className = isReg 
-      ? 'w-1/2 py-2.5 text-center font-bold text-[#cf1717] border-b-2 border-[#cf1717] transition' 
-      : 'w-1/2 py-2.5 text-center font-bold text-gray-400 hover:text-gray-600 transition';
-  }
+  document.getElementById('tabLogin').className = isReg 
+    ? 'w-1/2 py-2.5 text-center font-bold text-gray-400 hover:text-gray-600 transition' 
+    : 'w-1/2 py-2.5 text-center font-bold text-[#cf1717] border-b-2 border-[#cf1717] transition';
+  
+  document.getElementById('tabRegister').className = isReg 
+    ? 'w-1/2 py-2.5 text-center font-bold text-[#cf1717] border-b-2 border-[#cf1717] transition' 
+    : 'w-1/2 py-2.5 text-center font-bold text-gray-400 hover:text-gray-600 transition';
+}
 
 // 3. Hàm Xử lý Đăng ký / Đăng nhập
 async function handleAuth(e) {
@@ -368,6 +369,7 @@ document.addEventListener("DOMContentLoaded", () => {
     altInput: true,
     altFormat: "d/m/Y",   // Hiển thị cho người dùng xem: DD/MM/YYYY
     dateFormat: "Y-m-d",   // Giá trị thực tế lấy gửi Supabase: YYYY-MM-DD
+    disableMobile: true,
     allowInput: true,
     maxDate: "today"
   });
