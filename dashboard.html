@@ -3401,31 +3401,40 @@ async function renderWidgetParticipants(roomCode) {
 }
 
 // Tải & Render Tin Nhắn Chat
+// 2. Tải & Render Tin Nhắn Chat
 async function loadChatMessages(roomCode) {
-  const { data: messages } = await sbClient
+  const box = document.getElementById('sectionChatBox');
+  if (!box) return;
+
+  const { data: messages, error } = await sbClient
     .from('room_messages')
     .select('*')
     .eq('room_code', roomCode)
     .order('created_at', { ascending: true });
 
-  const box = document.getElementById('sectionChatBox');
-  if (!box) return;
+  if (error) {
+    console.error("Lỗi lấy lịch sử chat:", error);
+    return;
+  }
 
   box.innerHTML = '';
-  if (messages) messages.forEach(msg => appendSingleChatMessage(msg));
+  if (messages && messages.length > 0) {
+    messages.forEach(msg => appendSingleChatMessage(msg));
+  }
 }
 
+// 3. Hiển thị 1 tin nhắn lên khung Chat
 function appendSingleChatMessage(msg) {
   const box = document.getElementById('sectionChatBox');
   if (!box) return;
 
   const isMe = currentUser && currentUser.id === msg.user_id;
   const msgEl = document.createElement('div');
-  msgEl.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+  msgEl.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} my-1`;
 
   msgEl.innerHTML = `
-    <span class="text-[9px] text-red-200/70 px-1">${escapeHtml(msg.user_name)}</span>
-    <div class="max-w-[85%] px-3 py-1.5 rounded-2xl ${
+    <span class="text-[9px] text-red-200/70 px-1 mb-0.5">${escapeHtml(msg.user_name || 'Học viên')}</span>
+    <div class="max-w-[85%] px-3 py-1.5 rounded-2xl text-xs ${
       isMe 
         ? 'bg-white text-[#cf1717] font-bold rounded-tr-none shadow' 
         : 'bg-black/40 text-white rounded-tl-none border border-white/10'
@@ -3435,10 +3444,10 @@ function appendSingleChatMessage(msg) {
   `;
 
   box.appendChild(msgEl);
-  box.scrollTop = box.scrollHeight;
+  box.scrollTop = box.scrollHeight; // Tự động cuộn xuống tin nhắn mới nhất
 }
 
-// Gửi Tin Nhắn Chat
+// 4. Gửi Tin Nhắn Chat (Hiển thị ngay + Lưu Supabase)
 async function handleSendChatMessage(e) {
   if (e) e.preventDefault();
   const input = document.getElementById('sectionInputChat');
@@ -3449,18 +3458,27 @@ async function handleSendChatMessage(e) {
 
   if (!text || !roomCode || !currentUser) return;
 
-  input.value = '';
+  input.value = ''; // Reset ô nhập liệu ngay lập tức
   const fullName = currentUser.user_metadata?.full_name || (currentUser.email ? currentUser.email.split('@')[0] : 'Người dùng');
 
-  await sbClient.from('room_messages').insert([{
+  const newMsgObj = {
     room_code: roomCode,
     user_id: currentUser.id,
     user_name: fullName,
     message: text
-  }]);
+  };
+
+  // VẼ NGAY LÊN MÀN HÌNH NGƯỜI GỬI (Không chờ Realtime)
+  appendSingleChatMessage(newMsgObj);
+
+  // Đẩy dữ liệu lưu vào Supabase
+  const { error } = await sbClient.from('room_messages').insert([newMsgObj]);
+  if (error) {
+    console.error("Lỗi gửi tin nhắn Supabase:", error);
+  }
 }
 
-// Lắng Nghe Realtime Widget & Chat
+// 5. Lắng Nghe Realtime Widget & Chat
 function subscribeRoomWidgetRealtime(roomCode) {
   if (chatRealtimeChannel) {
     try { sbClient.removeChannel(chatRealtimeChannel); } catch (e) {}
@@ -3468,10 +3486,13 @@ function subscribeRoomWidgetRealtime(roomCode) {
 
   chatRealtimeChannel = sbClient.channel(`section_room_${roomCode}`)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'room_participants', filter: `room_code=eq.${roomCode}` }, () => {
-      renderWidgetParticipants(roomCode);
+      if (typeof renderWidgetParticipants === 'function') renderWidgetParticipants(roomCode);
     })
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'room_messages', filter: `room_code=eq.${roomCode}` }, (payload) => {
-      appendSingleChatMessage(payload.new);
+      // Chỉ vẽ tin nhắn nhận được từ NGƯỜI KHÁC (để tránh lặp tin nhắn của mình)
+      if (payload.new.user_id !== currentUser?.id) {
+        appendSingleChatMessage(payload.new);
+      }
     })
     .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'rooms', filter: `room_code=eq.${roomCode}` }, () => {
       alert("⚠️ Chủ phòng đã hủy và xóa phòng này!");
@@ -3480,7 +3501,7 @@ function subscribeRoomWidgetRealtime(roomCode) {
     .subscribe();
 }
 
-// Rời khỏi Widget Phòng
+// 6. Rời khỏi Widget Phòng
 function leaveActiveRoomWidget() {
   localStorage.removeItem('last_active_room');
   
