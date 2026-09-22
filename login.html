@@ -12,7 +12,14 @@
   <!-- Thêm Bootstrap Icons CDN để hiển thị các icon trong thông báo -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
-</head>
+  <!-- 1. Lịch -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://npmcdn.com/flatpickr/dist/l10n/vn.js"></script>
+  <!-- 2. Thư viện Số điện thoại (+84 & Lá cờ) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/css/intlTelInput.css">
+  <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/intlTelInput.min.js"></script>
+  </head>
 <body class="bg-gradient-to-br from-red-50 via-white to-gray-100 dark:bg-zinc-950 dark:text-white min-h-screen transition-colors duration-300">
 
 <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none select-none transition-colors duration-500 bg-slate-50 dark:bg-zinc-950">
@@ -35,6 +42,9 @@
     100% { opacity: 1; transform: translateY(0); }
   }
   .animate-slide-down { animation: slideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  /* Tuỳ chỉnh chiều rộng ô nhập SĐT cho khớp với Tailwind */
+  .iti { width: 100%; }
+  .dark .iti__country-list { background-color: #27272a; color: #fff; }
 </style> 
 
 <header class="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/60 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-950/60 transition px-4">
@@ -79,19 +89,20 @@
         <input type="text" id="fullName" placeholder="Nguyễn Văn A" class="w-full p-3 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
       </div>
 
-      <div id="dobGroup" class="hidden">
-        <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Ngày tháng năm sinh (DD/MM/YYYY)</label>
-        <input type="text" id="dob" placeholder="dd/mm/yyyy" maxlength="10" class="w-full p-3 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
-    </div>
+<!-- Ô chọn Ngày sinh -->
+      <div id="dobGroup" class="hidden mb-4">
+      <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Ngày sinh:</label>
+      <input type="text" id="dob" placeholder="dd/mm/yyyy" class="w-full p-3 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
+</div>
+      <!-- Ô nhập Số điện thoại -->
+<div id="phoneGroup" class="hidden mb-4">
+  <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Số điện thoại:</label>
+  <input type="tel" id="phone" class="w-full p-3 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
+</div>
 
       <div>
         <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Email</label>
         <input type="email" id="email" required placeholder="student@example.com" class="w-full p-3 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
-      </div>
-
-      <div id="phoneGroup" class="hidden">
-      <label class="block text-xs font-bold uppercase mb-1 text-gray-600 dark:text-gray-300">Số điện thoại</label>
-      <input type="tel" id="phone" placeholder="0912345678" class="w-full p-3 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
       </div>
 
       <div>
@@ -157,21 +168,26 @@
       : 'w-1/2 py-2.5 text-center font-bold text-gray-400 hover:text-gray-600 transition';
   }
 
+// 3. Hàm Xử lý Đăng ký / Đăng nhập
 async function handleAuth(e) {
   e.preventDefault();
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
-  const fullName = document.getElementById('fullName').value.trim();
-  const phone = document.getElementById('phone')?.value?.trim() || '';
-  const rawDob = document.getElementById('dob')?.value?.trim() || ''; 
+  const fullName = document.getElementById('fullName')?.value?.trim() || '';
+  
+  // Lấy SĐT đầy đủ có mã quốc gia (VD: +84912345678)
+  const phone = phoneInputIti ? phoneInputIti.getNumber() : document.getElementById('phone')?.value?.trim();
+  
+  // Flatpickr tự động chuyển giá trị #dob thành YYYY-MM-DD chuẩn Supabase
+  const isoDob = document.getElementById('dob')?.value?.trim() || ''; 
   const msg = document.getElementById('authMsg');
 
   msg.innerText = "⏳ Đang xử lý...";
   msg.className = "mt-4 text-center text-sm font-semibold text-gray-500";
 
   if (currentMode === 'register') {
-    if (!fullName || !rawDob) {
-      msg.innerText = "⚠️ Vui lòng nhập đầy đủ Họ tên và Ngày sinh!";
+    if (!fullName || !isoDob) {
+      msg.innerText = "⚠️ Vui lòng nhập đầy đủ Họ tên và Chọn ngày sinh!";
       msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
       return;
     }
@@ -181,59 +197,56 @@ async function handleAuth(e) {
       return;
     }
 
-    // Chuyển đổi định dạng ngày sinh
-    const isoDob = formatToISO(rawDob);
-    if (!isoDob) {
-      msg.innerText = "⚠️ Ngày sinh không hợp lệ! Vui lòng nhập đúng định dạng DD/MM/YYYY (Ví dụ: 25/12/2005)";
-      msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
-      return;
-    }
-
     const { data, error } = await sbClient.auth.signUp({
       email,
       password,
       options: {
-        data: { full_name: fullName, phone: phone, dob: isoDob, role: 'student' }
+        data: { 
+          full_name: fullName, 
+          phone: phone, 
+          dob: isoDob, 
+          role: 'student' 
+        }
       }
     });
 
+    if (error) {
+      msg.innerHTML = '<i class="bi bi-dash-circle-fill"></i> Lỗi đăng ký: ' + error.message;
+      msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
+    } else {
+      msg.innerHTML = '<i class="bi bi-check-circle"></i> Đăng ký thành công!';
+      msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
+      setTimeout(() => window.location.href = 'dashboard.html', 1500);
+    }
+  } else {
+    // Luồng Đăng nhập
+    const { data: authData, error: authError } = await sbClient.auth.signInWithPassword({ email, password });
     
-      if (error) {
-        msg.innerHTML = '<i class="bi bi-dash-circle-fill"></i> Lỗi đăng ký: ' + error.message;
-        msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
-      } else {
-        msg.innerHTML = '<i class="bi bi-check-circle"></i> Đăng ký thành công!';
-        msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
-        setTimeout(() => window.location.href = 'dashboard.html', 1500);
-      }
-    } else {
-      const { data: authData, error: authError } = await sbClient.auth.signInWithPassword({ email, password });
-      
-      if (authError) {
-        msg.innerText = "❌ Đăng nhập thất bại: " + authError.message;
-        msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
-        return;
-      }
+    if (authError) {
+      msg.innerText = "❌ Đăng nhập thất bại: " + authError.message;
+      msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
+      return;
+    }
 
-      const { data: profile } = await sbClient
-        .from('profiles')
-        .select('role')
-        .eq('id', authData.user.id)
-        .single();
+    const { data: profile } = await sbClient
+      .from('profiles')
+      .select('role')
+      .eq('id', authData.user.id)
+      .single();
 
-      const role = profile?.role?.trim().toLowerCase();
+    const role = profile?.role?.trim().toLowerCase();
 
-      if (role === 'admin') {
-        msg.innerHTML = '<i class="bi bi-gear"></i> Đăng nhập Admin thành công';
-        msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
-        setTimeout(() => window.location.href = 'admin.html', 1000);
-      } else {
-        msg.innerHTML = '<i class="bi bi-check-circle"></i> Đăng nhập thành công';
-        msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
-        setTimeout(() => window.location.href = 'dashboard.html', 1000);
-      }
-    }
-  }
+    if (role === 'admin') {
+      msg.innerHTML = '<i class="bi bi-gear"></i> Đăng nhập Admin thành công';
+      msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
+      setTimeout(() => window.location.href = 'admin.html', 1000);
+    } else {
+      msg.innerHTML = '<i class="bi bi-check-circle"></i> Đăng nhập thành công';
+      msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
+      setTimeout(() => window.location.href = 'dashboard.html', 1000);
+    }
+  }
+}
 
   // 1. ĐĂNG NHẬP BẰNG GOOGLE
   async function loginWithGoogle() {
@@ -338,6 +351,27 @@ async function handleAuth(e) {
   }
   return null;
 }
+  let phoneInputIti;
+document.addEventListener("DOMContentLoaded", () => {
+  const phoneInputField = document.getElementById("phone");
+  if (phoneInputField) {
+    phoneInputIti = window.intlTelInput(phoneInputField, {
+      initialCountry: "vn",
+      separateDialCode: true,
+      utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js",
+    });
+  }
+
+  // 2. Khởi tạo Bảng chọn Lịch ngày sinh (Định dạng hiển thị dd/mm/yyyy)
+  flatpickr("#dob", {
+    locale: "vn",
+    altInput: true,
+    altFormat: "d/m/Y",   // Hiển thị cho người dùng xem: DD/MM/YYYY
+    dateFormat: "Y-m-d",   // Giá trị thực tế lấy gửi Supabase: YYYY-MM-DD
+    allowInput: true,
+    maxDate: "today"
+  });
+});
 </script>
 </body>
 </html>
