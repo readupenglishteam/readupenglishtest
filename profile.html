@@ -342,7 +342,6 @@ function togglePasswordEdit(enable) {
   document.getElementById('passwordActionBtns').classList.toggle('hidden', !enable);
 }
 
-// --- HÀM TẢI VÀ HIỂN THỊ DỮ LIỆU ---
 function populateForm(profile, stats) {
   const fullName = profile?.full_name || currentUser?.user_metadata?.full_name || 'Học sinh';
   const rawPhone = profile?.phone || currentUser?.user_metadata?.phone || '';
@@ -359,29 +358,16 @@ function populateForm(profile, stats) {
   }
 
   // Đổ Ngày sinh (DD/MM/YYYY)
-  document.getElementById('inputDob').value = formatToVN(rawDob);
-  document.getElementById('profileAvatarText').innerText = fullName.charAt(0).toUpperCase();
-  
-// Lấy hoặc tự tạo mới dòng dữ liệu trong user_stats nếu chưa có
-let { data: stats } = await sbClient
-  .from('user_stats')
-  .select('streak_count, total_xp')
-  .eq('user_id', currentUser.id)
-  .maybeSingle();
+  if (document.getElementById('inputDob')) {
+    document.getElementById('inputDob').value = formatToVN(rawDob);
+  }
+  if (document.getElementById('profileAvatarText')) {
+    document.getElementById('profileAvatarText').innerText = fullName.charAt(0).toUpperCase();
+  }
 
-// Nếu chưa có trong bảng user_stats, tự động tạo mới 1 hàng ban đầu
-if (!stats) {
-  const { data: newStats } = await sbClient
-    .from('user_stats')
-    .insert([{ user_id: currentUser.id, streak_count: 0, total_xp: 0 }])
-    .select()
-    .single();
-  stats = newStats;
-}
-
-// Cập nhật lên giao diện
-document.getElementById('profileStreak').innerText = stats?.streak_count || 0;
-document.getElementById('profileXp').innerText = stats?.total_xp || 0;
+  // Cập nhật Streak & XP từ dữ liệu stats truyền vào
+  document.getElementById('profileStreak').innerText = stats?.streak_count || 0;
+  document.getElementById('profileXp').innerText = stats?.total_xp || 0;
 }
 
 async function initProfile() {
@@ -403,19 +389,30 @@ async function initProfile() {
     .from('profiles')
     .select('*')
     .eq('id', currentUser.id)
-    .single();
+    .maybeSingle();
 
-  // 2. Lấy dữ liệu Streak & XP từ bảng user_stats
-  const { data: stats } = await sbClient
+  // 2. Lấy hoặc tự tạo mới dòng dữ liệu trong user_stats nếu chưa có
+  let { data: stats } = await sbClient
     .from('user_stats')
     .select('streak_count, total_xp')
     .eq('user_id', currentUser.id)
-    .maybeSingle(); // Dùng maybeSingle để không bị bắn lỗi đỏ nếu tài khoản chưa học buổi nào
+    .maybeSingle();
+
+  // Nếu chưa có trong bảng user_stats, tự động tạo mới 1 hàng ban đầu
+  if (!stats) {
+    const { data: newStats } = await sbClient
+      .from('user_stats')
+      .insert([{ user_id: currentUser.id, streak_count: 0, total_xp: 0 }])
+      .select()
+      .maybeSingle();
+    stats = newStats;
+  }
 
   rawProfileData = profile;
   
-  // 3. Đổ cả dữ liệu Profile lẫn Streak/XP ra màn hình
+  // 3. Đổ dữ liệu ra giao diện
   populateForm(profile, stats);
+  
   toggleProfileEdit(false); // Mặc định ở chế độ Xem (Khoá các ô)
   togglePasswordEdit(false);
 }
