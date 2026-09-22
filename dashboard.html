@@ -427,22 +427,103 @@
 
     <!-- KHU VỰC PHÒNG THI ĐẤU & HỌC NHÓM -->
 <!-- ================= SECTION TÍNH NĂNG NHÓM + KHUNG PHÒNG & CHAT TÍCH HỢP ================= -->
-<!-- ================= SECTION PHÒNG HỌC NHÓM & CÙNG LÀM BÀI ================= -->
-<section class="bg-gradient-to-r from-[#cf1717] to-red-700 rounded-3xl p-6 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 my-8">
-  <div class="space-y-2 text-center md:text-left">
-    <span class="text-[10px] font-black uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full text-red-100">
-      👥 TÍNH NĂNG NHÓM HỌC TẬP
-    </span>
-    <h3 class="text-xl sm:text-2xl font-black">Luyện Thi IELTS Reading Cùng Bạn Bè</h3>
-    <p class="text-xs text-red-100 max-w-xl leading-relaxed">
-      Tạo phòng thi đấu tốc độ, quét mã QR tham gia nhóm, cùng làm bài Reading và trò chuyện trực tiếp cực đơn giản.
-    </p>
-  </div>
+<section class="bg-gradient-to-r from-red-600 to-[#cf1717] rounded-3xl p-5 sm:p-6 text-white shadow-xl space-y-5">
+  
+  <!-- HEADER BANNER: Tiêu đề & Nút Tạo/Nhập mã -->
+  <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+    <div>
+      <span class="text-xs font-bold uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full">Tính năng nhóm</span>
+      <h2 class="text-xl sm:text-2xl font-black mt-1">👥 Luyện Tập Cùng Bạn Bè</h2>
+      <p class="text-xs text-red-100">Tạo phòng thi đấu tốc độ hoặc cày bài nhóm chung Token real-time</p>
+    </div>
+    
+    <div class="flex items-center gap-3">
+      <!-- Nút Tạo Phòng (Host) -->
+      <button onclick="openCreateRoomModal()" class="px-4 py-2.5 bg-white text-[#cf1717] hover:bg-red-50 font-extrabold text-xs sm:text-sm rounded-xl shadow transition active:scale-95 flex items-center gap-2">
+        <span>➕</span> Tạo Phòng Thi Đấu
+      </button>
 
-  <div class="flex items-center gap-3">
-    <a href="room.html" class="px-5 py-3 bg-white text-[#cf1717] hover:bg-red-50 font-black text-xs sm:text-sm rounded-2xl shadow-lg transition active:scale-95 flex items-center gap-2">
-      <span>🚀</span> Đến Sảnh Phòng Học
-    </a>
+      <!-- Nút Nhập Mã Phòng (Participant) -->
+      <button onclick="openJoinRoomModal()" class="px-4 py-2.5 bg-zinc-900/60 hover:bg-zinc-900 text-white font-extrabold text-xs sm:text-sm rounded-xl border border-white/30 transition active:scale-95 flex items-center gap-2">
+        <span>🔑</span> Nhập Mã Phòng
+      </button>
+      <!-- 1. Thêm Nút Khôi Phục Nổi (Góc dưới bên phải màn hình - Mặc định ẩn) -->
+<button id="btnRestoreFrame" onclick="toggleMainFrame(true)" class="hidden fixed bottom-5 right-5 z-50 px-4 py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-extrabold text-xs rounded-full shadow-2xl flex items-center gap-2 transition animate-bounce">
+  <span>👁️</span> Hiển thị lại khung làm bài
+</button>
+    </div>
+  </div>
+  
+
+  <!-- ================= KHUNG PHÒNG VÀ CHAT REALTIME (NẰM TRỰC TIẾP TRONG BANNER) ================= -->
+  <div id="sectionActiveRoomContainer" class="hidden pt-4 border-t border-white/20 space-y-4">
+    
+    <!-- Thanh Bar Thông tin phòng & Quyền Host -->
+    <div class="flex flex-wrap items-center justify-between gap-2 bg-black/20 backdrop-blur-md p-3 rounded-2xl border border-white/10">
+      <div class="flex items-center gap-2">
+        <span class="relative flex h-3 w-3">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+        </span>
+        <span class="font-black text-xs sm:text-sm uppercase tracking-wider flex items-center gap-1.5">
+          PHÒNG TRỰC TIẾP: <span id="sectionRoomCode" class="text-amber-300 font-mono text-base">READ-0000</span>
+        </span>
+      </div>
+
+      <!-- Cụm nút bấm dành cho CHỦ PHÒNG -->
+      <div id="sectionHostControls" class="hidden flex items-center gap-2">
+        <button onclick="handleHostSaveRoom()" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow transition active:scale-95" title="Lưu lại kết quả bài làm">
+          💾 Lưu Phòng
+        </button>
+        <button onclick="handleHostDeleteRoom()" class="px-3 py-1.5 bg-black/40 hover:bg-black/60 text-red-200 font-bold text-xs rounded-xl border border-red-400/40 shadow transition active:scale-95" title="Xóa toàn bộ dữ liệu phòng">
+          🗑️ Xóa Phòng
+        </button>
+      </div>
+
+      <!-- Nút Ẩn Khung cho Thành viên -->
+      <button id="sectionMemberLeave" onclick="leaveActiveRoomWidget()" class="text-xs text-red-100 hover:text-white font-bold px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-xl transition">
+        Ẩn Khung ✕
+      </button>
+    </div>
+
+    <!-- Nội dung chính: Tiến độ/Xếp hạng + Khung Chat Messenger -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      
+      <!-- CỘT 1: Tiến Độ / Bảng Điểm Các Bạn Trong Phòng -->
+      <div class="bg-black/20 backdrop-blur-md p-3.5 rounded-2xl border border-white/10 flex flex-col justify-between">
+        <div>
+          <h4 class="text-xs font-black uppercase tracking-wider text-red-100 mb-2 flex justify-between items-center">
+            <span>📊 Tiến Độ / Xếp Hạng</span>
+            <span id="sectionParticipantCount" class="text-amber-300 font-bold">0/10</span>
+          </h4>
+          <div id="sectionParticipantsList" class="space-y-2 max-h-52 overflow-y-auto pr-1">
+            <!-- Render danh sách người chơi Realtime -->
+          </div>
+        </div>
+      </div>
+
+      <!-- CỘT 2: Khung Chat Messenger Trực Tiếp -->
+      <div class="bg-black/20 backdrop-blur-md p-3.5 rounded-2xl border border-white/10 flex flex-col h-64">
+        <h4 class="text-xs font-black uppercase tracking-wider text-red-100 mb-2 flex items-center gap-1.5">
+          <span>💬 Trò Chuyện Trong Phòng</span>
+        </h4>
+
+        <!-- Hộp hiển thị tin nhắn -->
+        <div id="sectionChatBox" class="flex-1 overflow-y-auto space-y-2 pr-1 mb-2 text-xs">
+          <!-- Render tin nhắn Chat Realtime -->
+        </div>
+
+        <!-- Ô nhập tin nhắn -->
+        <form onsubmit="handleSendChatMessage(event)" class="flex gap-1.5 pt-1.5 border-t border-white/10">
+          <input type="text" id="sectionInputChat" placeholder="Nhập tin nhắn..." class="flex-1 px-3 py-2 bg-white/10 text-white placeholder-red-200/60 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-white/50">
+          <button type="submit" class="px-3.5 py-2 bg-white hover:bg-red-50 text-[#cf1717] font-black rounded-xl text-xs transition active:scale-95 shadow">
+            Gửi
+          </button>
+        </form>
+      </div>
+
+    </div>
+
   </div>
 </section>
     
@@ -1043,6 +1124,38 @@ function openVocabModal(testId) {
 
 function closeVocabModal() {
   document.getElementById('vocabModal')?.classList.add('hidden');
+}
+
+function renderRoomMembersList(membersList, hostUserId) {
+  const container = document.getElementById('roomMembersListContainer');
+  if (!container) return;
+
+  container.innerHTML = membersList.map(member => {
+    const isHost = member.user_id === hostUserId;
+    
+    return `
+      <div class="flex items-center justify-between p-2.5 bg-gray-50 dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700/60 mb-2">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-red-100 dark:bg-red-950 text-[#cf1717] font-black flex items-center justify-center text-xs">
+            ${member.full_name ? member.full_name.charAt(0).toUpperCase() : 'U'}
+          </div>
+          <span class="font-bold text-xs text-gray-800 dark:text-gray-100">
+            ${member.full_name || 'Học sinh'}
+          </span>
+        </div>
+
+        <!-- HIỂN THỊ BADGE HOST -->
+        ${isHost 
+          ? `<span class="px-2.5 py-0.5 text-[10px] font-black bg-amber-500 text-white rounded-full shadow-sm flex items-center gap-1">
+               👑 Chủ phòng (Host)
+             </span>` 
+          : `<span class="px-2 py-0.5 text-[10px] font-bold text-gray-400 bg-gray-200 dark:bg-zinc-700 rounded-full">
+               Thành viên
+             </span>`
+        }
+      </div>
+    `;
+  }).join('');
 }
   
   </script>
@@ -1698,7 +1811,7 @@ async function renderPronunChart() {
     }
   });
 }
-  <script>
+  
 // Khởi tạo tính năng khi tải trang
 document.addEventListener('DOMContentLoaded', () => {
   loadStudentPronunPhrases();
@@ -2721,6 +2834,740 @@ async function checkNewUpdatesInLast3Days() {
   }
 }
 
+// ================= HỆ THỐNG PHÒNG HỌC NHÓM REALTIME =================
+let activeRoomCode = null;
+let roomRealtimeChannel = null;
+let activeWidgetChannel = null;
+let chatRealtimeChannel = null;
+let html5QrCodeScanner = null;
+
+// Helper chống XSS
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Helper đóng/mở Modal
+function openModal(id) { document.getElementById(id)?.classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id)?.classList.add('hidden'); }
+
+// 1. TẠO MÃ REA-XXXX
+function generateRoomCode() {
+  const chars = '0123456789';
+  let rand = '';
+  for (let i = 0; i < 4; i++) rand += chars.charAt(Math.floor(Math.random() * chars.length));
+  return `READ-${rand}`;
+}
+
+// 2. MỞ MODAL TẠO PHÒNG & NỐI DỮ LIỆU ĐỀ READING
+function openCreateRoomModal() {
+  if (!currentUser) {
+    alert("⚠️ Bạn cần đăng nhập tài khoản để khởi tạo phòng học!");
+    return;
+  }
+
+  const select = document.getElementById('roomExamSelect');
+  if (!select) return;
+
+  let optionsHtml = `<option value="">-- Chọn bài Reading --</option>`;
+  optionsHtml += `<option value="PRONUNCIATION_DEV">🎙️ Bài Luyện Phát Âm (Đang phát triển)</option>`;
+
+  if (typeof globalTestsList !== 'undefined' && Array.isArray(globalTestsList) && globalTestsList.length > 0) {
+    globalTestsList.forEach(test => {
+      optionsHtml += `<option value="${test.token}">${escapeHtml(test.title)} (${test.time_limit || 60} phút)</option>`;
+    });
+  }
+
+  select.innerHTML = optionsHtml;
+  document.getElementById('roomExamCardDetails')?.classList.add('hidden');
+  openModal('modalCreateRoom');
+}
+
+// 3. XỬ LÝ CHỌN BÀI LUYỆN
+function handleExamTypeSelect(token) {
+  const detailsCard = document.getElementById('roomExamCardDetails');
+  if (!detailsCard) return;
+
+  if (token === 'PRONUNCIATION_DEV') {
+    alert("ℹ️ Tính năng Luyện Phát Âm Nhóm đang được phát triển. Vui lòng chọn bài Reading!");
+    const select = document.getElementById('roomExamSelect');
+    if (select) select.value = '';
+    detailsCard.classList.add('hidden');
+    return;
+  }
+
+  const exam = (typeof globalTestsList !== 'undefined') ? globalTestsList.find(t => t.token === token) : null;
+  if (exam) {
+    let vocabCount = 0;
+    try {
+      const v = typeof exam.vocabulary === 'string' ? JSON.parse(exam.vocabulary) : exam.vocabulary;
+      vocabCount = Array.isArray(v) ? v.length : 0;
+    } catch (e) {}
+
+    const titleEl = document.getElementById('roomCardTitle');
+    const qEl = document.getElementById('roomCardQuestions');
+    const timeEl = document.getElementById('roomCardTime');
+    const vocabEl = document.getElementById('roomCardVocab');
+
+    if (titleEl) titleEl.innerText = exam.title;
+    if (qEl) qEl.innerText = `❓ ${exam.questions_count || 10} câu hỏi`;
+    if (timeEl) timeEl.innerText = `⏱️ ${exam.time_limit || 60} phút`;
+    if (vocabEl) vocabEl.innerText = `📚 ${vocabCount} từ vựng`;
+
+    detailsCard.classList.remove('hidden');
+  } else {
+    detailsCard.classList.add('hidden');
+  }
+}
+
+// 4. CHỦ PHÒNG TẠO PHÒNG LÊN SUPABASE
+async function handleCreateRoom() {
+  if (!currentUser) {
+    alert("⚠️ Bạn cần đăng nhập tài khoản!");
+    return;
+  }
+
+  const select = document.getElementById('roomExamSelect');
+  const token = select ? select.value : '';
+  if (!token || token === 'PRONUNCIATION_DEV') {
+    alert("Vui lòng chọn bài Reading hợp lệ!");
+    return;
+  }
+
+  const mode = document.querySelector('input[name="roomMode"]:checked')?.value || 'battle';
+  const roomCode = generateRoomCode();
+
+  // 1. Thêm phòng vào DB
+  const { error: roomErr } = await sbClient.from('rooms').insert([{
+    room_code: roomCode,
+    host_id: currentUser.id,
+    exam_token: token,
+    mode: mode,
+    status: 'waiting'
+  }]);
+
+  if (roomErr) {
+    alert("❌ Không thể tạo phòng: " + roomErr.message);
+    return;
+  }
+
+  // === [THÊM MỚI] 2. Tự động thêm Host (Admin) vào bảng 'room_participants' ===
+  const fullName = currentUser.user_metadata?.full_name || (currentUser.email ? currentUser.email.split('@')[0] : 'Chủ phòng');
+  
+  const { error: partErr } = await sbClient.from('room_participants').insert([{
+    room_code: roomCode,
+    user_id: currentUser.id,
+    full_name: fullName,
+    role: 'host',
+    score: 0,
+    is_finished: false
+  }]);
+
+  if (partErr) {
+    console.error("❌ Lỗi khi chèn Host vào room_participants:", partErr);
+  }
+
+  // 3. Lưu mã phòng vừa tạo vào bộ nhớ trình duyệt
+  localStorage.setItem('last_active_room', roomCode);
+  // =========================================================================
+
+  closeModal('modalCreateRoom');
+  await enterLobby(roomCode, true);
+}
+
+// 5. THAM GIA PHÒNG THÔNG QUA MÃ
+function openJoinRoomModal() {
+  if (!currentUser) {
+    alert("⚠️ Bạn cần đăng nhập tài khoản sinh viên để tham gia phòng!");
+    return;
+  }
+  openModal('modalJoinRoom');
+}
+
+async function submitJoinCode() {
+  const input = document.getElementById('inputJoinCode');
+  const rawCode = input ? input.value.trim().toUpperCase() : '';
+  if (!rawCode) {
+    alert("Vui lòng nhập mã phòng!");
+    return;
+  }
+  closeModal('modalJoinRoom');
+  await joinRoom(rawCode);
+}
+
+async function joinRoom(roomCode) {
+  if (!currentUser) {
+    alert("⚠️ Bạn cần đăng nhập để tham gia phòng!");
+    return;
+  }
+
+  // 1. Kiểm tra phòng tồn tại (Thử tìm theo cột 'code' hoặc 'room_code')
+  let { data: room, error: roomErr } = await sbClient
+    .from('rooms')
+    .select('*')
+    .eq('code', roomCode)
+    .maybeSingle();
+
+  // Fallback nếu trong DB tên cột là 'room_code'
+  if (!room) {
+    const res = await sbClient.from('rooms').select('*').eq('room_code', roomCode).maybeSingle();
+    room = res.data;
+    roomErr = res.error;
+  }
+
+  if (roomErr || !room) {
+    console.error("❌ Lỗi tìm phòng:", roomErr);
+    alert("❌ Mã phòng không tồn tại hoặc đã bị đóng!");
+    return;
+  }
+
+  const fullName = currentUser.user_metadata?.full_name || (currentUser.email ? currentUser.email.split('@')[0] : 'Người dùng');
+
+  // 2. Thêm người dùng vào danh sách tham gia
+  try {
+    const { data: existing, error: selectErr } = await sbClient
+      .from('room_participants')
+      .select('id')
+      .eq('room_code', roomCode)
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+
+    if (selectErr) console.error("❌ Lỗi kiểm tra thành viên:", selectErr);
+
+    if (!existing) {
+      const { error: insertErr } = await sbClient.from('room_participants').insert([{
+        room_code: roomCode,
+        user_id: currentUser.id,
+        full_name: fullName,
+        role: room.host_id === currentUser.id ? 'host' : 'member',
+        score: 0,
+        is_finished: false
+      }]);
+
+      if (insertErr) {
+        console.error("❌ Lỗi Thêm Thành Viên (Supabase Insert Error):", insertErr);
+        alert("Lỗi tham gia phòng: " + insertErr.message);
+        return;
+      }
+    }
+  } catch (err) {
+    console.error("❌ Lỗi ngoại lệ:", err);
+  }
+
+  // 3. Lưu cache & Cập nhật lại giao diện
+  localStorage.setItem('last_active_room', roomCode);
+
+  if (typeof renderWidgetParticipants === 'function') {
+    await renderWidgetParticipants(roomCode);
+  }
+
+  await enterLobby(roomCode, room.host_id === currentUser.id);
+}
+
+// 6. VÀO SẢNH CHỜ & LẮNG NGHE REALTIME
+async function enterLobby(roomCode, isHost) {
+  activeRoomCode = roomCode;
+
+  // Lấy thông tin phòng
+  const { data: room } = await sbClient.from('rooms').select('*').eq('room_code', roomCode).single();
+  if (!room) return;
+
+  const codeEl = document.getElementById('lobbyRoomCode');
+  const modeEl = document.getElementById('lobbyModeBadge');
+  if (codeEl) codeEl.innerText = roomCode;
+  if (modeEl) modeEl.innerText = room.mode === 'battle' ? '⚔️ Battle Mode' : '☕ Co-working Mode';
+  
+  const btnStart = document.getElementById('btnStartGame');
+  if (btnStart) {
+    if (isHost) btnStart.classList.remove('hidden');
+    else btnStart.classList.add('hidden');
+  }
+
+  // Vẽ Mã QR
+  const qrContainer = document.getElementById('lobbyQrCanvas');
+  if (qrContainer) {
+    qrContainer.innerHTML = '';
+    const joinUrl = `${window.location.origin}${window.location.pathname}?join_code=${roomCode}`;
+    if (typeof QRCode !== 'undefined') {
+      new QRCode(qrContainer, { text: joinUrl, width: 120, height: 120 });
+    }
+  }
+
+  openModal('modalLobby');
+  
+  // Tải danh sách người tham gia ban đầu & Kích hoạt Realtime
+  await fetchParticipants(roomCode);
+  subscribeRoomRealtime(roomCode, isHost, room.exam_token);
+}
+
+async function fetchParticipants(roomCode) {
+  const { data: list } = await sbClient.from('room_participants').select('*').eq('room_code', roomCode);
+  if (!list) return;
+
+  const countEl = document.getElementById('lobbyCount');
+  if (countEl) countEl.innerText = `${list.length}/10`;
+  
+  const container = document.getElementById('lobbyParticipantList');
+  if (!container) return;
+
+  container.innerHTML = list.map(p => `
+    <div class="p-2.5 bg-gray-50 dark:bg-zinc-800 rounded-xl flex items-center justify-between text-xs font-bold">
+      <span class="text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
+        <span>👤</span> ${escapeHtml(p.full_name)}
+      </span>
+      ${p.is_finished ? '<span class="text-green-600 dark:text-green-400">✅ Đã xong</span>' : '<span class="text-amber-500">⏳ Đang chờ</span>'}
+    </div>
+  `).join('');
+}
+
+// LẮNG NGHE THAY ĐỔI REALTIME TỪ SUPABASE
+function subscribeRoomRealtime(roomCode, isHost, examToken) {
+  if (roomRealtimeChannel) {
+    try { sbClient.removeChannel(roomRealtimeChannel); } catch (e) {}
+  }
+
+  roomRealtimeChannel = sbClient.channel(`room_${roomCode}`)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'room_participants', filter: `room_code=eq.${roomCode}` }, () => {
+      fetchParticipants(roomCode);
+    })
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `room_code=eq.${roomCode}` }, (payload) => {
+      if (payload.new.status === 'playing') {
+        window.location.href = `exam.html?token=${examToken}&room_code=${roomCode}`;
+      }
+    })
+    .subscribe();
+}
+
+// 7. CHỦ PHÒNG BẤM BẮT ĐẦU
+async function handleStartGame() {
+  if (!activeRoomCode) return;
+  await sbClient.from('rooms').update({ status: 'playing' }).eq('room_code', activeRoomCode);
+}
+
+// 8. RỜI PHÒNG
+async function handleLeaveRoom() {
+  if (activeRoomCode && currentUser) {
+    await sbClient.from('room_participants').delete().eq('room_code', activeRoomCode).eq('user_id', currentUser.id);
+  }
+  closeModal('modalLobby');
+  if (roomRealtimeChannel) {
+    try { sbClient.removeChannel(roomRealtimeChannel); } catch (e) {}
+  }
+}
+
+// 9. COPIED TOKEN CODE & MÃ QR CAMERA
+function copyRoomCode() {
+  if (!activeRoomCode) return;
+  navigator.clipboard.writeText(activeRoomCode);
+  alert("📋 Đã sao chép mã phòng!");
+}
+
+// QUÉT QR CAMERA CỰC NHANH + PHẢN HỒI RUNG
+async function toggleQrScanner() {
+  const container = document.getElementById('qrReaderContainer');
+  if (!container) return;
+
+  if (container.classList.contains('hidden')) {
+    container.classList.remove('hidden');
+    if (typeof Html5Qrcode !== 'undefined') {
+      html5QrCodeScanner = new Html5Qrcode("qrReaderContainer");
+      try {
+        await html5QrCodeScanner.start(
+          { facingMode: "environment" },
+          { fps: 25, qrbox: { width: 220, height: 220 } },
+          async (decodedText) => {
+            if (navigator.vibrate) navigator.vibrate(150);
+            try { await html5QrCodeScanner.stop(); } catch (e) {}
+            container.classList.add('hidden');
+
+            let joinCode = decodedText;
+            try {
+              const parsedUrl = new URL(decodedText);
+              joinCode = parsedUrl.searchParams.get('join_code') || decodedText;
+            } catch (e) {}
+
+            closeModal('modalJoinRoom');
+            await joinRoom(joinCode);
+          },
+          () => {} // Bỏ qua thông báo lỗi khi không thấy mã QR trong khung
+        );
+      } catch (err) {
+        console.error("Không thể khởi động camera quét QR:", err);
+        container.classList.add('hidden');
+      }
+    }
+  } else {
+    if (html5QrCodeScanner) {
+      try { await html5QrCodeScanner.stop(); } catch (e) {}
+    }
+    container.classList.add('hidden');
+  }
+}
+
+// GIẢI MÃ QR TỪ ẢNH UPLOAD + PHẢN HỒI RUNG
+async function handleQrImageUpload(event) {
+  const file = event.target?.files?.[0];
+  if (!file) return;
+
+  if (typeof Html5Qrcode === 'undefined') return;
+  const html5QrCode = new Html5Qrcode("qrReaderContainer");
+
+  try {
+    const decodedText = await html5QrCode.scanFile(file, true);
+
+    if (navigator.vibrate) navigator.vibrate(150);
+
+    let joinCode = decodedText;
+    try {
+      const parsedUrl = new URL(decodedText);
+      joinCode = parsedUrl.searchParams.get('join_code') || decodedText;
+    } catch (e) {}
+
+    closeModal('modalJoinRoom');
+    await joinRoom(joinCode);
+
+  } catch (err) {
+    alert("❌ Không tìm thấy mã QR hợp lệ trong ảnh này. Vui lòng chọn ảnh chụp rõ nét hơn!");
+  } finally {
+    try { await html5QrCode.clear(); } catch(e) {}
+    event.target.value = '';
+  }
+}
+
+// Kích hoạt mở Thư viện ảnh của thiết bị
+async function triggerQrFileUpload() {
+  if (html5QrCodeScanner) {
+    try { await html5QrCodeScanner.stop(); } catch (e) {}
+    document.getElementById('qrReaderContainer')?.classList.add('hidden');
+  }
+  document.getElementById('qrFileInput')?.click();
+}
+
+// ================= TỰ ĐỘNG KHÔI PHỤC PHÒNG & KHUNG CHAT KHI LOAD TRANG =================
+window.addEventListener('DOMContentLoaded', async () => {
+  // 1. Kiểm tra Auth Session
+  try {
+    if (typeof sbClient !== 'undefined') {
+      const { data: { session } } = await sbClient.auth.getSession();
+      currentUser = session?.user || null;
+    }
+  } catch (err) {
+    console.error("Lỗi khi kiểm tra phiên đăng nhập:", err);
+  }
+
+  // 2. Xử lý tham số ?join_code=...
+  const urlParams = new URLSearchParams(window.location.search);
+  const joinCodeParam = urlParams.get('join_code');
+
+  if (joinCodeParam) {
+    if (currentUser) {
+      await joinRoom(joinCodeParam);
+    } else {
+      alert("⚠️ Bạn đã mở liên kết vào phòng! Vui lòng đăng nhập tài khoản để vào phòng thi đấu.");
+    }
+    return;
+  }
+
+  // 3. Khôi phục phòng đang hoạt động
+  const activeRoomCodeParam = urlParams.get('active_room') || localStorage.getItem('last_active_room');
+  if (activeRoomCodeParam) {
+    await initActiveRoomWidget(activeRoomCodeParam);
+  }
+});
+
+// KHỞI TẠO KHUNG PHÒNG VÀ KHUNG CHAT WIDGET
+async function initActiveRoomWidget() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const roomCode = urlParams.get('active_room') || localStorage.getItem('last_active_room');
+
+  // Nếu không có mã phòng thì ẩn widget
+  if (!roomCode) {
+    leaveActiveRoomWidget();
+    return;
+  }
+
+  // Đảm bảo đã có thông tin user
+  if (!currentUser) {
+    const { data: { user } } = await sbClient.auth.getUser();
+    if (user) currentUser = user;
+    else {
+      leaveActiveRoomWidget();
+      return;
+    }
+  }
+
+  // 1. Lấy thông tin người tham gia
+  const { data: participant } = await sbClient
+    .from('room_participants')
+    .select('*')
+    .eq('room_code', roomCode)
+    .eq('user_id', currentUser.id)
+    .maybeSingle();
+
+  if (!participant) {
+    localStorage.removeItem('last_active_room');
+    leaveActiveRoomWidget();
+    return;
+  }
+
+  // 2. Tìm thông tin phòng (Thử cả cột 'code' và 'room_code')
+  const { data: room, error: roomErr } = await sbClient
+    .from('rooms')
+    .select('*')
+    .eq('room_code', roomCode)
+    .maybeSingle();
+
+  if (roomErr) {
+    console.error("❌ Lỗi lấy thông tin phòng:", roomErr);
+  }
+
+  // 3. HIỂN THỊ KHUNG WIDGET & GẮN MÃ PHÒNG
+const container = document.getElementById('sectionActiveRoomContainer');
+  if (container) {
+    container.classList.remove('hidden');
+    container.style.display = 'block';
+  }
+
+  const roomCodeEl = document.getElementById('sectionRoomCode');
+  if (roomCodeEl) roomCodeEl.innerText = roomCode;
+
+  // 4. Phân quyền hiển thị nút Host
+  const isHost = (room && room.host_id === currentUser.id) || (participant.role === 'host');
+  const hostControls = document.getElementById('sectionHostControls');
+  if (hostControls) {
+    if (isHost) {
+      hostControls.classList.remove('hidden');
+      hostControls.classList.add('flex');
+    } else {
+      hostControls.classList.add('hidden');
+      hostControls.classList.remove('flex');
+    }
+  }
+
+  // 5. Nạp danh sách thành viên, tin nhắn và đăng ký Realtime
+  if (typeof renderWidgetParticipants === 'function') await renderWidgetParticipants(roomCode);
+  if (typeof loadRoomMessages === 'function') await loadRoomMessages(roomCode);
+  if (typeof subscribeRealtimeRoom === 'function') subscribeRealtimeRoom(roomCode);
+}
+
+// Render Tiến Độ / Bảng Điểm Các Thành Viên Trên Widget
+async function renderWidgetParticipants(roomCode) {
+  const { data: list } = await sbClient
+    .from('room_participants')
+    .select('*')
+    .eq('room_code', roomCode)
+    .order('score', { ascending: false })
+    .order('completion_time', { ascending: true });
+
+  if (!list) return;
+
+  const countEl = document.getElementById('sectionParticipantCount');
+  if (countEl) countEl.innerText = `${list.length}/10`;
+
+  const container = document.getElementById('sectionParticipantsList') || document.getElementById('widgetParticipantsList');
+  if (!container) return;
+
+  let rank = 1;
+  container.innerHTML = list.map(p => {
+    let statusBadge = '';
+    if (p.is_finished) {
+      let medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+      statusBadge = `
+        <span class="text-[11px] font-black text-emerald-300 bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-500/30">
+          ${medal} ${p.score || 0}đ (${p.completion_time || 0}s)
+        </span>`;
+      rank++;
+    } else {
+      statusBadge = `
+        <span class="text-[10px] font-bold text-amber-300 bg-amber-950/60 px-2 py-1 rounded-lg animate-pulse border border-amber-500/30">
+          ⏳ Đang làm...
+        </span>`;
+    }
+
+    return `
+      <div class="p-2 bg-black/20 rounded-xl flex items-center justify-between border border-white/5">
+        <span class="text-xs font-bold text-white flex items-center gap-1.5 truncate">
+          <span>👤</span> ${escapeHtml(p.full_name)}
+        </span>
+        ${statusBadge}
+      </div>
+    `;
+  }).join('');
+}
+
+// Tải & Render Tin Nhắn Chat
+async function loadChatMessages(roomCode) {
+  const { data: messages } = await sbClient
+    .from('room_messages')
+    .select('*')
+    .eq('room_code', roomCode)
+    .order('created_at', { ascending: true });
+
+  const box = document.getElementById('sectionChatBox');
+  if (!box) return;
+
+  box.innerHTML = '';
+  if (messages) messages.forEach(msg => appendSingleChatMessage(msg));
+}
+
+function appendSingleChatMessage(msg) {
+  const box = document.getElementById('sectionChatBox');
+  if (!box) return;
+
+  const isMe = currentUser && currentUser.id === msg.user_id;
+  const msgEl = document.createElement('div');
+  msgEl.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+
+  msgEl.innerHTML = `
+    <span class="text-[9px] text-red-200/70 px-1">${escapeHtml(msg.user_name)}</span>
+    <div class="max-w-[85%] px-3 py-1.5 rounded-2xl ${
+      isMe 
+        ? 'bg-white text-[#cf1717] font-bold rounded-tr-none shadow' 
+        : 'bg-black/40 text-white rounded-tl-none border border-white/10'
+    }">
+      ${escapeHtml(msg.message)}
+    </div>
+  `;
+
+  box.appendChild(msgEl);
+  box.scrollTop = box.scrollHeight;
+}
+
+// Gửi Tin Nhắn Chat
+async function handleSendChatMessage(e) {
+  if (e) e.preventDefault();
+  const input = document.getElementById('sectionInputChat');
+  if (!input) return;
+
+  const text = input.value.trim();
+  const roomCode = localStorage.getItem('last_active_room');
+
+  if (!text || !roomCode || !currentUser) return;
+
+  input.value = '';
+  const fullName = currentUser.user_metadata?.full_name || (currentUser.email ? currentUser.email.split('@')[0] : 'Người dùng');
+
+  await sbClient.from('room_messages').insert([{
+    room_code: roomCode,
+    user_id: currentUser.id,
+    user_name: fullName,
+    message: text
+  }]);
+}
+
+// Lắng Nghe Realtime Widget & Chat
+function subscribeRoomWidgetRealtime(roomCode) {
+  if (chatRealtimeChannel) {
+    try { sbClient.removeChannel(chatRealtimeChannel); } catch (e) {}
+  }
+
+  chatRealtimeChannel = sbClient.channel(`section_room_${roomCode}`)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'room_participants', filter: `room_code=eq.${roomCode}` }, () => {
+      renderWidgetParticipants(roomCode);
+    })
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'room_messages', filter: `room_code=eq.${roomCode}` }, (payload) => {
+      appendSingleChatMessage(payload.new);
+    })
+    .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'rooms', filter: `room_code=eq.${roomCode}` }, () => {
+      alert("⚠️ Chủ phòng đã hủy và xóa phòng này!");
+      leaveActiveRoomWidget();
+    })
+    .subscribe();
+}
+
+// Rời khỏi Widget Phòng
+function leaveActiveRoomWidget() {
+  localStorage.removeItem('last_active_room');
+  
+  const container = document.getElementById('sectionActiveRoomContainer') || document.getElementById('activeRoomWidget');
+  if (container) container.classList.add('hidden');
+
+  if (chatRealtimeChannel) {
+    try { sbClient.removeChannel(chatRealtimeChannel); } catch (e) {}
+  }
+}
+
+// Hàm Toggle Ẩn / Hiện Khung An Toàn
+function toggleMainFrame(showExplicitly = null) {
+  const targetFrame = document.getElementById('mainExamSection') || document.getElementById('selectedDateContent');
+  const restoreBtn = document.getElementById('btnRestoreFrame');
+  
+  if (!targetFrame) return;
+
+  const isCurrentlyHidden = targetFrame.classList.contains('hidden');
+  const shouldShow = showExplicitly !== null ? showExplicitly : isCurrentlyHidden;
+
+  if (shouldShow) {
+    targetFrame.classList.remove('hidden');
+    if (restoreBtn) restoreBtn.classList.add('hidden');
+  } else {
+    targetFrame.classList.add('hidden');
+    if (restoreBtn) restoreBtn.classList.remove('hidden');
+  }
+}
+
+// 1. LƯU PHÒNG (Chủ phòng lưu -> Cả 2 bên nhận được thông báo/kết quả)
+async function handleHostSaveRoom() {
+  const roomCode = document.getElementById('sectionRoomCode')?.innerText;
+  if (!roomCode) return;
+
+  if (!confirm("💾 Bạn có chắc muốn LƯU & KHÓA phòng này? Kết quả làm bài sẽ được đóng băng cho tất cả thành viên.")) return;
+
+  // Cập nhật status phòng thành 'finished' trên Supabase
+  const { error } = await sbClient
+    .from('rooms')
+    .update({ status: 'finished', updated_at: new Date() })
+    .eq('code', roomCode);
+
+  if (error) {
+    alert("❌ Lỗi khi lưu phòng: " + error.message);
+  } else {
+    alert("✅ Đã lưu phòng thành công!");
+  }
+}
+
+// 2. XÓA PHÒNG (Chủ phòng xóa -> Mất tất cả dữ liệu phòng)
+async function handleHostDeleteRoom() {
+  const roomCode = document.getElementById('sectionRoomCode')?.innerText;
+  if (!roomCode) return;
+
+  if (!confirm("⚠️ CẢNH BÁO: Bạn có chắc chắn muốn XÓA PHÒNG này?\nToàn bộ bảng điểm và tin nhắn trò chuyện sẽ bị xóa vĩnh viễn!")) return;
+
+  try {
+    // Xóa dữ liệu các bảng liên quan
+    await sbClient.from('room_participants').delete().eq('room_code', roomCode);
+    await sbClient.from('room_messages').delete().eq('room_code', roomCode);
+    
+    // Xóa phòng chính
+    const { error } = await sbClient.from('rooms').delete().eq('code', roomCode);
+
+    if (error) throw error;
+
+    alert("🗑️ Đã xóa toàn bộ dữ liệu phòng!");
+    localStorage.removeItem('last_active_room');
+    
+    // Ẩn khung ngay lập tức
+    leaveActiveRoomWidget();
+  } catch (err) {
+    alert("❌ Lỗi khi xóa phòng: " + err.message);
+  }
+}
+// Đặt đoạn này ở cuối file JS Dashboard của bạn
+document.addEventListener('DOMContentLoaded', () => {
+  sbClient.auth.onAuthStateChange(async (event, session) => {
+    if (session && session.user) {
+      currentUser = session.user;
+      // Khi đã có user -> Kích hoạt Widget phòng làm bài ngay
+      await initActiveRoomWidget();
+    }
+  });
+});
+
 function toggleUserDropdown(e) {
   // Ngăn không cho sự kiện click vào Avatar lan ra ngoài window
   if (e) e.stopPropagation(); 
@@ -2860,6 +3707,183 @@ document.addEventListener('click', function(e) {
 </div>
 <!-- KHUNG HIỂN THỊ THÔNG BÁO TOAST GÓC PHẢI TRÊN -->
 <div id="toastContainer" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+<!-- ================= MODAL 1: TẠO PHÒNG (HOST) ================= -->
+<div id="modalCreateRoom" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-lg w-full p-6 border border-gray-200 dark:border-zinc-800 shadow-2xl space-y-5">
+    <div class="flex justify-between items-center border-b border-gray-100 dark:border-zinc-800 pb-3">
+      <h3 class="font-black text-lg text-gray-900 dark:text-white flex items-center gap-2">
+        <span>➕</span> Tạo Phòng Học Nhóm / Thi Đấu
+      </h3>
+      <button onclick="closeModal('modalCreateRoom')" class="text-gray-400 hover:text-white font-bold text-base">✕</button>
+    </div>
+
+    <div class="space-y-4">
+      <!-- 1. CHỌN LOẠI BÀI LUYỆN -->
+      <div>
+        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">1. CHỌN BÀI LUYỆN TẬP</label>
+        <select id="roomExamSelect" onchange="handleExamTypeSelect(this.value)" class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none">
+          <option value="">-- Đang tải bài Reading... --</option>
+        </select>
+      </div>
+
+      <!-- Khung hiển thị chi tiết bài Reading đã chọn -->
+      <div id="roomExamCardDetails" class="hidden p-3.5 bg-red-50/60 dark:bg-red-950/30 rounded-xl border border-red-100 dark:border-red-900/40 text-xs space-y-1">
+        <p id="roomCardTitle" class="font-extrabold text-[#cf1717] dark:text-red-300 text-sm"></p>
+        <div class="flex items-center gap-3 text-gray-600 dark:text-gray-300 font-medium">
+          <span id="roomCardQuestions">❓ 0 câu hỏi</span>
+          <span id="roomCardTime">⏱️ 0 phút</span>
+          <span id="roomCardVocab">📚 0 từ vựng</span>
+        </div>
+      </div>
+
+      <!-- 2. CHỌN CHẾ ĐỘ CHƠI -->
+      <div>
+        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">2. CHỌN CHẾ ĐỘ THAM GIA</label>
+        <div class="grid grid-cols-2 gap-3">
+          <!-- Battle Mode -->
+          <label class="relative flex flex-col p-3 rounded-2xl border-2 border-gray-200 dark:border-zinc-700 cursor-pointer hover:border-[#cf1717] transition has-[:checked]:border-[#cf1717] has-[:checked]:bg-red-50/50 dark:has-[:checked]:bg-red-950/20">
+            <input type="radio" name="roomMode" value="battle" checked class="sr-only">
+            <span class="font-extrabold text-xs text-gray-900 dark:text-white flex items-center gap-1">⚔️ Đua Tốc Độ</span>
+            <span class="text-[10px] text-gray-500 dark:text-gray-400 mt-1">Tính điểm + thời gian. Ai làm nhanh và đúng nhất sẽ thắng.</span>
+          </label>
+
+          <!-- Co-working Mode -->
+          <label class="relative flex flex-col p-3 rounded-2xl border-2 border-gray-200 dark:border-zinc-700 cursor-pointer hover:border-[#cf1717] transition has-[:checked]:border-[#cf1717] has-[:checked]:bg-red-50/50 dark:has-[:checked]:bg-red-950/20">
+            <input type="radio" name="roomMode" value="coworking" class="sr-only">
+            <span class="font-extrabold text-xs text-gray-900 dark:text-white flex items-center gap-1">☕ Co-working</span>
+            <span class="text-[10px] text-gray-500 dark:text-gray-400 mt-1">Không áp lực thời gian, hiện tích xanh ✅ khi xong để mở bài thảo luận.</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="p-2.5 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200/60 dark:border-amber-900/40 text-[11px] text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+        <span>🔒</span> <span><strong>Lưu ý:</strong> Tất cả bạn bè cần có tài khoản đã đăng nhập để vào phòng.</span>
+      </div>
+    </div>
+
+    <!-- ĐÃ CẬP NHẬT: Truyền ID bài học đã chọn từ ô select -->
+    <button onclick="handleCreateRoom(document.getElementById('roomExamSelect').value)" class="w-full py-3 bg-[#cf1717] hover:bg-red-700 text-white font-extrabold text-sm rounded-xl transition shadow-lg active:scale-95 flex items-center justify-center gap-2">
+      🚀 Tạo Phòng Thi Đấu
+    </button>
+  </div>
+</div>
+
+<!-- ================= MODAL 2: SẢNH CHỜ (LOBBY - REALTIME) ================= -->
+<div id="modalLobby" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-md w-full p-6 border border-gray-200 dark:border-zinc-800 shadow-2xl text-center space-y-5">
+    
+    <div>
+      <span id="lobbyModeBadge" class="text-[10px] font-black uppercase px-3 py-1 rounded-full bg-red-100 text-[#cf1717] dark:bg-red-950 dark:text-red-300">⚔️ Battle Mode</span>
+      <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-2">Mã Phòng Tham Gia</h3>
+      
+      <!-- Mã Token Code 6 Ký tự -->
+      <div class="flex items-center justify-center gap-2 mt-1">
+        <span id="lobbyRoomCode" class="text-3xl font-black text-[#cf1717] tracking-wider font-mono">READ-0000</span>
+        <button onclick="copyRoomCode()" class="p-2 bg-gray-100 dark:bg-zinc-800 rounded-lg hover:bg-gray-200 text-xs" title="Sao chép mã">📋</button>
+      </div>
+    </div>
+
+    <!-- Khung QR Code -->
+    <div class="flex flex-col items-center justify-center p-3 bg-white rounded-2xl border border-gray-200 w-fit mx-auto shadow-inner">
+      <div id="lobbyQrCanvas"></div>
+      <span class="text-[10px] font-bold text-gray-500 mt-1">Quét mã QR để vào ngay</span>
+    </div>
+
+    <!-- Danh Sách Bạn Bè Trực Tuyến (Realtime) -->
+    <div class="space-y-2 text-left">
+      <div class="flex justify-between items-center text-xs font-bold text-gray-500">
+        <span>DANH SÁCH THAM GIA</span>
+        <span id="lobbyCount" class="text-[#cf1717]">1/10</span>
+      </div>
+      <div id="lobbyParticipantList" class="max-h-40 overflow-y-auto space-y-1.5 pr-1">
+        <!-- Render danh sách Realtime -->
+      </div>
+    </div>
+
+    <!-- Nút Thao Tác -->
+    <div class="pt-2 space-y-2">
+      <button id="btnStartGame" onclick="handleStartGame()" class="hidden w-full py-3 bg-[#cf1717] hover:bg-red-700 text-white font-extrabold text-sm rounded-xl transition shadow-lg active:scale-95">
+        🚀 Bắt Đầu Ngay
+      </button>
+      <button onclick="handleLeaveRoom()" class="w-full py-2 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 hover:text-red-600 font-bold text-xs rounded-xl transition">
+        Rời Phòng
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================= MODAL 3: NHẬP MÃ / QUÉT MÃ QR ================= -->
+<div id="modalJoinRoom" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-sm w-full p-6 border border-gray-200 dark:border-zinc-800 shadow-2xl space-y-4">
+    
+    <div class="flex justify-between items-center border-b border-gray-100 dark:border-zinc-800 pb-3">
+      <h3 class="font-black text-base text-gray-900 dark:text-white flex items-center gap-2">
+        🔑 Tham Gia Phòng Học
+      </h3>
+      <button onclick="closeModal('modalJoinRoom')" class="text-gray-400 hover:text-white font-bold text-base">✕</button>
+    </div>
+
+    <!-- 1. Ô Nhập Token Thủ Công -->
+    <div>
+      <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">Nhập mã Token 6 ký tự</label>
+      <input type="text" id="inputJoinCode" placeholder="VD: READ-8932" class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-center font-mono text-lg font-bold text-[#cf1717] uppercase rounded-xl border border-gray-200 dark:border-zinc-700 focus:ring-2 focus:ring-[#cf1717] outline-none transition">
+    </div>
+
+    
+    <button onclick="submitJoinCode()" class="w-full py-3 bg-[#cf1717] hover:bg-red-700 text-white font-extrabold text-xs sm:text-sm rounded-xl transition shadow active:scale-95">
+      Vào Phòng
+    </button>
+
+    <div class="relative flex py-1 items-center">
+      <div class="flex-grow border-t border-gray-200 dark:border-zinc-800"></div>
+      <span class="flex-shrink mx-3 text-gray-400 text-[10px] font-bold">HOẶC QUÉT MÃ QR</span>
+      <div class="flex-grow border-t border-gray-200 dark:border-zinc-800"></div>
+    </div>
+
+    <!-- 2. Cụm Lựa Chọn Quét QR: Camera & Tải Ảnh -->
+    <div class="grid grid-cols-2 gap-2">
+      <!-- Nút bật Camera -->
+      <button onclick="toggleQrScanner()" class="py-2.5 px-3 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-800 dark:text-white font-bold text-xs rounded-xl border border-gray-200 dark:border-zinc-700 flex items-center justify-center gap-1.5 transition">
+        <span>📷</span> Quét Camera
+      </button>
+
+      <!-- Nút Tải Ảnh QR từ Thư viện -->
+      <button onclick="triggerQrFileUpload()" class="py-2.5 px-3 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 text-[#cf1717] dark:text-red-300 font-bold text-xs rounded-xl border border-red-200 dark:border-red-900/50 flex items-center justify-center gap-1.5 transition">
+        <span>🖼️</span> Tải Ảnh QR
+      </button>
+    </div>
+
+    <!-- Input ẩn xử lý chọn File ảnh -->
+    <input type="file" id="qrFileInput" accept="image/*" class="hidden" onchange="handleQrImageUpload(event)">
+
+    <!-- Khung hiển thị Camera khi quét -->
+    <div id="qrReaderContainer" class="hidden mt-3 rounded-2xl overflow-hidden border border-gray-200 dark:border-zinc-700"></div>
+
+  </div>
+</div>
+
+<!-- ================= MODAL 4: BẢNG VÀNG VINH DANH (LEADERBOARD) ================= -->
+<div id="modalRoomLeaderboard" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-md w-full p-6 border border-gray-200 dark:border-zinc-800 shadow-2xl text-center space-y-4">
+    
+    <div class="space-y-1">
+      <div class="text-4xl animate-bounce">🏆</div>
+      <h3 class="text-xl font-black text-gray-900 dark:text-white">Bảng Vàng Vinh Danh</h3>
+      <p id="roomLeaderboardSubtitle" class="text-xs text-gray-500">Kết quả phòng thi đấu nhóm</p>
+    </div>
+
+    <!-- Danh Sách Top 1, 2, 3 + Khác -->
+    <div id="roomLeaderboardContent" class="space-y-2 text-left max-h-60 overflow-y-auto pr-1">
+      <!-- Render bằng JavaScript -->
+    </div>
+
+    <button onclick="closeModal('modalRoomLeaderboard')" class="w-full py-3 bg-[#cf1717] hover:bg-red-700 text-white font-extrabold text-xs sm:text-sm rounded-xl transition shadow">
+      Quay Về Trang Chủ
+    </button>
+  </div>
+</div>
 
 
 </body>
