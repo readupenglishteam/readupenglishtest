@@ -3125,6 +3125,8 @@ async function enterLobby(roomCode, isHost) {
   subscribeRoomRealtime(roomCode, isHost, room.exam_token);
   // [BỔ SUNG] Khởi tạo kênh Realtime ngay khi vào sảnh chờ, để gửi tin nhắn & nhận thông báo Lưu/Xóa phòng hoạt động ngay từ đầu
   if (typeof initRoomRealtime === 'function') initRoomRealtime(roomCode);
+  // [FIX] Chuyển kênh lắng nghe Widget/Chat sang phòng MỚI này ngay lập tức -> tránh phòng CŨ gửi thông báo trễ làm mất/đóng nhầm khung phòng mới
+  if (typeof subscribeRoomWidgetRealtime === 'function') subscribeRoomWidgetRealtime(roomCode);
 }
 
 async function fetchParticipants(roomCode) {
@@ -3552,7 +3554,9 @@ function subscribeRoomWidgetRealtime(roomCode) {
       const isDeleted = payload.eventType === 'DELETE';
       const isFinished = payload.eventType === 'UPDATE' && payload.new?.status === 'finished';
 
-      if (isDeleted || isFinished) {
+      // [FIX] Chỉ xử lý nếu phòng này VẪN ĐANG là phòng đang active hiện tại -> tránh phòng CŨ (đã rời) gửi tín hiệu trễ làm mất trạng thái phòng MỚI
+      const stillActive = roomCode === (localStorage.getItem('last_active_room') || '');
+      if ((isDeleted || isFinished) && stillActive) {
         alert(isDeleted ? "⚠️ Chủ phòng đã hủy và xóa phòng này!" : "💾 Chủ phòng đã đóng và lưu phòng đấu!");
         closeActiveRoomCompletely(); // 👈 Xóa sạch khung đỏ & xóa cache
       }
@@ -3566,7 +3570,9 @@ function closeActiveRoomCompletely() {
   localStorage.removeItem('last_active_room');
 
   // 2. Tìm và ẩn toàn bộ Khung Đỏ trên màn hình
-  const widgetContainer = document.getElementById('sectionActiveRoom') 
+  // [FIX] Bổ sung đúng ID thật 'sectionActiveRoomContainer' làm ưu tiên đầu tiên (các ID dự phòng cũ không tồn tại nên khung không tự ẩn được)
+  const widgetContainer = document.getElementById('sectionActiveRoomContainer')
+                       || document.getElementById('sectionActiveRoom') 
                        || document.getElementById('activeRoomContainer')
                        || document.getElementById('sectionActiveRoomBody')?.parentElement;
 
@@ -3688,9 +3694,11 @@ function leaveActiveRoomWidget() {
 // 2. ĐÓNG HOÀN TOÀN KHUNG PHÒNG TRỰC TIẾP (Khi Xóa / Lưu / Mất phòng)
 function closeActiveRoomCompletely() {
   // Tìm khung chứa toàn bộ Widget Phòng Trực Tiếp
-  const widgetContainer = document.getElementById('sectionActiveRoom') 
+  // [FIX] Bổ sung đúng ID thật 'sectionActiveRoomContainer' làm ưu tiên đầu tiên (trước đây .parentElement.parentElement dư 1 cấp nên trỏ sai khung -> khung không tự ẩn, phải load lại trang mới mất)
+  const widgetContainer = document.getElementById('sectionActiveRoomContainer')
+                       || document.getElementById('sectionActiveRoom') 
                        || document.getElementById('activeRoomContainer')
-                       || document.getElementById('sectionActiveRoomBody')?.parentElement?.parentElement;
+                       || document.getElementById('sectionActiveRoomBody')?.parentElement;
 
   if (widgetContainer) {
     widgetContainer.classList.add('hidden'); // Ẩn hoàn toàn toàn bộ khung đỏ
@@ -3820,9 +3828,10 @@ function renderRoomHistoryUI(page) {
         <h4 class="font-black text-sm text-gray-800 dark:text-white uppercase">${escapeHtml(room.exam_token || 'BÀI THI')} (${item.room_code})</h4>
         <span class="text-xs text-gray-400">Nộp lúc: ${dateStr}</span>
       </div>
-      <div class="text-right">
-        <span class="text-base font-black text-red-600">${item.score || 0} điểm</span>
+      <div class="text-right space-y-1.5">
+        <span class="block text-base font-black text-red-600">${item.score || 0} điểm</span>
         <span class="block text-[10px] text-gray-400">Bấm để xem lại chat</span>
+        ${room.exam_token ? `<button onclick="event.stopPropagation(); window.location.href='exam.html?token=${room.exam_token}&room_code=${item.room_code}';" class="text-[10px] font-bold text-white bg-[#cf1717] hover:bg-red-700 px-2.5 py-1 rounded-lg transition">📝 Xem đáp án</button>` : ''}
       </div>
     `;
     container.appendChild(card);
