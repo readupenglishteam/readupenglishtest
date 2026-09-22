@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadUp English - Phòng Học Nhóm & Thi Đấu</title>
+  
+  <!-- Tailwind CSS & DarkMode Script -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' }
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
+
+  <!-- Favicon chuẩn Profile -->
+  <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
+  
+  <!-- Supabase & Thư viện QR Code -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen transition-colors duration-300 flex flex-col justify-between">
+
+<!-- ================= NỀN ĐỘNG CHUYỂN ĐỘNG DÙNG CHUNG ================= -->
+<div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none select-none transition-colors duration-500 bg-slate-50 dark:bg-zinc-950">
+  <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#cf1717]/20 dark:bg-[#cf1717]/15 rounded-full blur-3xl animate-blob"></div>
+  <div class="absolute top-1/3 -right-24 w-[30rem] h-[30rem] bg-indigo-500/15 dark:bg-red-900/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+  <div class="absolute -bottom-24 left-1/3 w-96 h-96 bg-amber-500/15 dark:bg-amber-600/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+</div>
+
+<style>
+  @keyframes blob {
+    0%, 100% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.95); }
+  }
+  .animate-blob { animation: blob 10s infinite ease-in-out; }
+  .animation-delay-2000 { animation-delay: 2s; }
+  .animation-delay-4000 { animation-delay: 4s; }
+</style>
+
+<!-- ================= HEADER CHUẨN TRANG PROFILE ================= -->
+<header class="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/60 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-950/60 transition px-4">
+  <div class="max-w-7xl mx-auto h-16 flex justify-between items-center">
+    
+    <div class="flex items-center gap-3">
+      <a href="dashboard.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
+        <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
+      </a>
+      <a href="dashboard.html" class="flex items-center gap-2 hover:opacity-90 transition">
+        <span class="text-2xl font-black text-[#cf1717] tracking-tight">ReadUp</span>
+        <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full shadow-sm">English</span>
+      </a>
+    </div>
+
+    <div class="flex items-center gap-3 relative">
+      <a href="dashboard.html" class="px-3 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-xl transition flex items-center gap-1.5">
+        <span>🏠</span> <span class="hidden sm:inline">Trang chủ</span>
+      </a>
+
+      <!-- Menu User Icon Chấm Đỏ -->
+      <div class="relative">
+        <button onclick="toggleUserDropdown(event)" class="relative p-1.5 rounded-full bg-red-50 dark:bg-zinc-800 border-2 border-[#cf1717] text-[#cf1717] dark:text-red-400 hover:scale-105 transition shadow-md flex items-center justify-center">
+          <svg class="w-7 h-7 fill-current" viewBox="0 0 16 16">
+            <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+            <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+          </svg>
+          <span class="absolute top-0 right-0 w-3 h-3 bg-[#cf1717] border-2 border-white dark:border-zinc-950 rounded-full animate-ping"></span>
+          <span class="absolute top-0 right-0 w-3 h-3 bg-[#cf1717] border-2 border-white dark:border-zinc-950 rounded-full"></span>
+        </button>
+
+        <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-52 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl py-2 z-50 transition-all">
+          <a href="profile.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
+            <span>👤</span> Trang cá nhân
+          </a>
+          <button onclick="toggleDarkMode()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
+            <span id="themeIcon">🌙</span> Sáng/Tối
+          </button>
+          <div class="border-t border-gray-100 dark:border-zinc-800 my-1"></div>
+          <button onclick="handleLogout()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition">
+            <span>🚪</span> Đăng xuất
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</header>
+
+<!-- ================= KHU VỰC CHÍNH (GIAO DIỆN PHÒNG HỌC 2 CỘT KIỂU MESSENGER) ================= -->
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1">
+  
+  <div class="bg-white dark:bg-zinc-900 rounded-3xl border border-gray-200 dark:border-zinc-800 shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[720px] h-[calc(100vh-160px)]">
+    
+    <!-- CỘT TRÁI (3.5/12): DANH SÁCH CÁC PHÒNG (ĐOẠN CHAT STYLE) -->
+    <div class="lg:col-span-4 border-r border-gray-200 dark:border-zinc-800 flex flex-col bg-gray-50/50 dark:bg-zinc-900/50">
+      
+      <!-- Header Cột Trái & Nút Tạo / Nhập mã -->
+      <div class="p-4 border-b border-gray-200 dark:border-zinc-800 space-y-3 bg-white dark:bg-zinc-900">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
+            <span>💬</span> Nhóm Học Tập
+          </h2>
+          <span id="totalRoomsBadge" class="text-[10px] font-black bg-red-100 text-[#cf1717] dark:bg-red-950 dark:text-red-300 px-2.5 py-0.5 rounded-full">0 Phòng</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="openCreateRoomModal()" class="py-2.5 px-3 bg-[#cf1717] hover:bg-red-700 text-white font-extrabold text-xs rounded-xl shadow transition active:scale-95 flex items-center justify-center gap-1.5">
+            <span>➕</span> Tạo Phòng
+          </button>
+          <button onclick="openJoinRoomModal()" class="py-2.5 px-3 bg-zinc-800 hover:bg-zinc-700 text-white font-extrabold text-xs rounded-xl border border-zinc-700 transition active:scale-95 flex items-center justify-center gap-1.5">
+            <span>🔑</span> Quét QR / Mã
+          </button>
+        </div>
+      </div>
+
+      <!-- Danh Sách Phòng Học Realtime -->
+      <div id="roomListSidebar" class="flex-1 overflow-y-auto p-3 space-y-2">
+        <div class="text-center py-10 text-gray-400 text-xs font-medium">
+          <p class="text-2xl mb-1">⏳</p>
+          Đang tải danh sách phòng...
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CỘT PHẢI (8.5/12): NỘI DUNG PHÒNG HỌC, CHI TIẾT & CHAT -->
+    <div class="lg:col-span-8 flex flex-col bg-white dark:bg-zinc-950 relative">
+      
+      <!-- STATE 1: CHƯA CHỌN PHÒNG -->
+      <div id="emptyRoomState" class="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
+        <div class="w-20 h-20 rounded-full bg-red-50 dark:bg-red-950/40 text-[#cf1717] flex items-center justify-center text-4xl shadow-inner border border-red-200 dark:border-red-900">
+          👥
+        </div>
+        <div class="max-w-md space-y-2">
+          <h3 class="text-xl font-black text-gray-900 dark:text-white">Chọn một phòng để bắt đầu</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+            Chọn phòng học ở danh sách bên trái hoặc nhấn <strong>"Tạo Phòng"</strong> để mời bạn bè cùng ôn luyện IELTS Reading và thảo luận trực tiếp!
+          </p>
+        </div>
+      </div>
+
+      <!-- STATE 2: ĐÃ CHỌN PHÒNG (GIAO DIỆN CHÍNH TRONG PHÒNG) -->
+      <div id="activeRoomDetailState" class="hidden flex-1 flex flex-col h-full overflow-hidden">
+        
+        <!-- 1. HEADER PHÒNG VÀ CONTROL PANEL BAN BÈ -->
+        <div class="p-3.5 sm:p-4 border-b border-gray-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 z-10">
+          
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-[#cf1717] text-white flex items-center justify-center font-black text-sm shadow">
+              📖
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 id="currentRoomTitle" class="font-black text-sm sm:text-base text-gray-900 dark:text-white">Phòng Thi Đấu ReadUp</h3>
+                <span id="currentRoomCodeBadge" class="font-mono text-xs font-bold text-[#cf1717] bg-red-50 dark:bg-red-950/50 px-2 py-0.5 rounded-md border border-red-200 dark:border-red-900">
+                  READ-0000
+                </span>
+              </div>
+              <p class="text-[11px] text-gray-500 dark:text-gray-400 flex items-center gap-2 mt-0.5">
+                <span>Chủ phòng: <strong id="currentRoomHostName" class="text-gray-800 dark:text-gray-200">Đang tải...</strong></span>
+                <span>•</span>
+                <span id="currentRoomModeText">⚔️ Đua Tốc Độ</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Các nút thao tác Chủ phòng / Thành viên -->
+          <div class="flex items-center gap-2">
+            
+            <!-- Nút bấm dành riêng cho CHỦ PHÒNG -->
+            <div id="hostControlGroup" class="hidden items-center gap-2">
+              <button onclick="handleStartExamForGroup()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow transition active:scale-95 flex items-center gap-1.5">
+                <span>🚀</span> <span>Vào Làm Bài</span>
+              </button>
+              <button onclick="handleHostDeleteRoom()" class="px-3 py-2 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-400 font-bold text-xs rounded-xl border border-red-200 dark:border-red-900 transition active:scale-95" title="Xóa toàn bộ phòng">
+                🗑️ Xóa
+              </button>
+            </div>
+
+            <!-- Nút Rời Phòng dành cho tất cả -->
+            <button onclick="handleLeaveRoom()" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300 font-bold text-xs rounded-xl transition">
+              🚪 Rời phòng
+            </button>
+          </div>
+
+        </div>
+
+        <!-- 2. KHU VỰC CHÍNH BÊN TRONG PHÒNG (CHIA 2 PHẦN: BÀI TẬP + CHAT) -->
+        <div class="flex-1 grid grid-cols-1 md:grid-cols-12 overflow-hidden">
+          
+          <!-- PHẦN A (5/12): THÔNG TIN BÀI TẬP & KẾT QUẢ THÀNH VIÊN -->
+          <div class="md:col-span-5 border-r border-gray-200 dark:border-zinc-800 p-4 space-y-4 overflow-y-auto bg-gray-50/30 dark:bg-zinc-900/30">
+            
+            <!-- Card Bài Reading Đã Chọn -->
+            <div class="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-gray-200 dark:border-zinc-800 shadow-sm space-y-2">
+              <span class="text-[10px] font-black uppercase tracking-wider text-[#cf1717] bg-red-50 dark:bg-red-950 px-2 py-0.5 rounded-md">
+                Bài Reading Đang Chọn
+              </span>
+              <h4 id="examTitleDisplay" class="font-black text-xs sm:text-sm text-gray-900 dark:text-white leading-snug">
+                IELTS Reading Passage 1
+              </h4>
+              <div class="flex items-center gap-3 text-[11px] text-gray-500 dark:text-gray-400 font-medium pt-1">
+                <span id="examQuestionsCount">❓ 10 câu hỏi</span>
+                <span id="examTimeLimit">⏱️ 60 phút</span>
+              </div>
+            </div>
+
+            <!-- Bảng Vinh Danh / Tiến Độ Làm Bài -->
+            <div class="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-gray-200 dark:border-zinc-800 shadow-sm space-y-3">
+              <div class="flex justify-between items-center">
+                <h4 class="text-xs font-black uppercase text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                  <span>📊</span> Thành Viên & Kết Quả
+                </h4>
+                <span id="participantCountText" class="text-xs font-bold text-[#cf1717]">1/10</span>
+              </div>
+
+              <div id="roomParticipantsList" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+                <!-- Render bằng JavaScript -->
+              </div>
+            </div>
+
+            <!-- Mã QR Mời Bạn Bè -->
+            <div class="bg-red-50/50 dark:bg-red-950/20 p-3.5 rounded-2xl border border-red-100 dark:border-red-900/40 text-center space-y-2">
+              <p class="text-[11px] font-bold text-gray-700 dark:text-gray-300">Quét QR hoặc chia sẻ mã phòng:</p>
+              <div id="roomQrContainer" class="p-2 bg-white rounded-xl shadow-sm border border-gray-200 w-fit mx-auto"></div>
+              <button onclick="copyRoomCode()" class="text-xs font-extrabold text-[#cf1717] dark:text-red-400 hover:underline">
+                📋 Sao chép mã phòng
+              </button>
+            </div>
+
+          </div>
+
+          <!-- PHẦN B (7/12): KHUNG CHAT MESSENGER NHÓM -->
+          <div class="md:col-span-7 flex flex-col h-full bg-slate-100/60 dark:bg-zinc-950">
+            
+            <!-- Tiêu đề Chat -->
+            <div class="px-4 py-2.5 bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 text-xs font-black text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              <span>💬</span> Trò chuyện nhóm trực tiếp
+            </div>
+
+            <!-- Hộp hiển thị tin nhắn Chat -->
+            <div id="chatMessagesBox" class="flex-1 p-4 overflow-y-auto space-y-3">
+              <!-- Render tin nhắn Realtime -->
+            </div>
+
+            <!-- Khung Nhập Tin Nhắn Messenger Style -->
+            <form onsubmit="handleSendChatMessage(event)" class="p-3 bg-white dark:bg-zinc-900 border-t border-gray-200 dark:border-zinc-800 flex items-center gap-2">
+              <input type="text" id="inputChatMessage" placeholder="Nhập tin nhắn với bạn bè..." class="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-white placeholder-gray-400 rounded-2xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#cf1717]/50">
+              <button type="submit" class="px-4 py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-extrabold text-xs rounded-2xl transition shadow active:scale-95">
+                Gửi
+              </button>
+            </form>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</main>
+
+<!-- ================= FOOTER CHUẨN ĐỒNG BỘ PROFILE ================= -->
+<footer class="bg-zinc-900 text-gray-300 pt-10 pb-8 border-t border-zinc-800 text-xs mt-auto">
+  <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+    <div class="space-y-3">
+      <div class="flex items-center gap-2">
+        <a href="dashboard.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md">
+          <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
+        </a>
+        <span class="text-xl font-black text-[#cf1717]">ReadUp</span>
+        <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full">English</span>
+      </div>
+      <p class="text-gray-400 leading-relaxed">Nền tảng luyện thi IELTS Reading thông minh, tối ưu hóa vốn từ vựng theo ngữ cảnh.</p>
+      <p>📧 Email: <a href="mailto:readupenglish.team@gmail.com" class="text-white hover:underline">readupenglish.team@gmail.com</a></p>
+    </div>
+
+    <div class="space-y-3">
+      <h4 class="font-bold text-white text-sm">Hỗ Trợ Trực Tuyến 🎧</h4>
+      <p class="text-gray-400">Gặp sự cố khi làm bài hoặc cần giải đáp thắc mắc? Đội ngũ ReadUp luôn sẵn sàng hỗ trợ bạn.</p>
+      <a href="dashboard.html" class="inline-block px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl transition text-center">
+        Về Dashboard Hỗ Trợ
+      </a>
+    </div>
+
+    <div class="space-y-3">
+      <h4 class="font-bold text-white text-sm">Thông Tin Hệ Thống 📝</h4>
+      <p class="text-gray-400">ReadUp English v2.0 - Hệ thống phòng học nhóm và thi đấu IELTS Reading tự động.</p>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-4 pt-4 border-t border-zinc-800 text-center text-gray-500 text-[11px]">
+    © 2026 ReadUp English. All rights reserved.
+  </div>
+</footer>
+
+<!-- ================= MODAL 1: TẠO PHÒNG MỚI (HOST) ================= -->
+<div id="modalCreateRoom" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-lg w-full p-6 border border-gray-200 dark:border-zinc-800 shadow-2xl space-y-5">
+    <div class="flex justify-between items-center border-b border-gray-100 dark:border-zinc-800 pb-3">
+      <h3 class="font-black text-lg text-gray-900 dark:text-white flex items-center gap-2">
+        <span>➕</span> Tạo Phòng Học Nhóm / Thi Đấu
+      </h3>
+      <button onclick="closeModal('modalCreateRoom')" class="text-gray-400 hover:text-white font-bold text-base">✕</button>
+    </div>
+
+    <div class="space-y-4">
+      <!-- 1. CHỌN BÀI LUYỆN READING -->
+      <div>
+        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">1. CHỌN BÀI READING LUYỆN TẬP</label>
+        <select id="roomExamSelect" class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#cf1717]/50 focus:outline-none">
+          <option value="TEST_IELTS_PASSAGE_1">📖 IELTS Academic Reading: Practice Test 1</option>
+          <option value="TEST_IELTS_PASSAGE_2">📖 IELTS Academic Reading: Practice Test 2</option>
+          <option value="TEST_IELTS_PASSAGE_3">📖 IELTS Academic Reading: Practice Test 3</option>
+        </select>
+      </div>
+
+      <!-- 2. CHỌN CHẾ ĐỘ THAM GIA -->
+      <div>
+        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">2. CHỌN CHẾ ĐỘ THAM GIA</label>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="relative flex flex-col p-3 rounded-2xl border-2 border-gray-200 dark:border-zinc-700 cursor-pointer hover:border-[#cf1717] transition has-[:checked]:border-[#cf1717] has-[:checked]:bg-red-50/50 dark:has-[:checked]:bg-red-950/20">
+            <input type="radio" name="roomMode" value="battle" checked class="sr-only">
+            <span class="font-extrabold text-xs text-gray-900 dark:text-white flex items-center gap-1">⚔️ Đua Tốc Độ</span>
+            <span class="text-[10px] text-gray-500 dark:text-gray-400 mt-1">Tính điểm + thời gian. Ai làm nhanh và đúng nhất sẽ thắng.</span>
+          </label>
+
+          <label class="relative flex flex-col p-3 rounded-2xl border-2 border-gray-200 dark:border-zinc-700 cursor-pointer hover:border-[#cf1717] transition has-[:checked]:border-[#cf1717] has-[:checked]:bg-red-50/50 dark:has-[:checked]:bg-red-950/20">
+            <input type="radio" name="roomMode" value="coworking" class="sr-only">
+            <span class="font-extrabold text-xs text-gray-900 dark:text-white flex items-center gap-1">☕ Co-working</span>
+            <span class="text-[10px] text-gray-500 dark:text-gray-400 mt-1">Cùng nhau làm bài nhẹ nhàng, thảo luận kết quả sau khi làm xong.</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <button onclick="handleCreateRoom()" class="w-full py-3 bg-[#cf1717] hover:bg-red-700 text-white font-extrabold text-sm rounded-xl transition shadow-lg active:scale-95 flex items-center justify-center gap-2">
+      🚀 Khởi Tạo Phòng Ngay
+    </button>
+  </div>
+</div>
+
+<!-- ================= MODAL 2: NHẬP MÃ / QUÉT MÃ QR ================= -->
+<div id="modalJoinRoom" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-sm w-full p-6 border border-gray-200 dark:border-zinc-800 shadow-2xl space-y-4">
+    
+    <div class="flex justify-between items-center border-b border-gray-100 dark:border-zinc-800 pb-3">
+      <h3 class="font-black text-base text-gray-900 dark:text-white flex items-center gap-2">
+        🔑 Tham Gia Phòng Học
+      </h3>
+      <button onclick="closeModal('modalJoinRoom')" class="text-gray-400 hover:text-white font-bold text-base">✕</button>
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">Nhập mã Token phòng</label>
+      <input type="text" id="inputJoinCode" placeholder="VD: READ-8932" class="w-full p-3 bg-gray-50 dark:bg-zinc-800 text-center font-mono text-lg font-bold text-[#cf1717] uppercase rounded-xl border border-gray-200 dark:border-zinc-700 focus:ring-2 focus:ring-[#cf1717] outline-none transition">
+    </div>
+
+    <button onclick="submitJoinCode()" class="w-full py-3 bg-[#cf1717] hover:bg-red-700 text-white font-extrabold text-xs sm:text-sm rounded-xl transition shadow active:scale-95">
+      Vào Phòng
+    </button>
+
+    <div class="relative flex py-1 items-center">
+      <div class="flex-grow border-t border-gray-200 dark:border-zinc-800"></div>
+      <span class="flex-shrink mx-3 text-gray-400 text-[10px] font-bold">HOẶC QUÉT MÃ QR</span>
+      <div class="flex-grow border-t border-gray-200 dark:border-zinc-800"></div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-2">
+      <button onclick="toggleQrScanner()" class="py-2.5 px-3 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-800 dark:text-white font-bold text-xs rounded-xl border border-gray-200 dark:border-zinc-700 flex items-center justify-center gap-1.5 transition">
+        <span>📷</span> Quét Camera
+      </button>
+
+      <button onclick="triggerQrFileUpload()" class="py-2.5 px-3 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 text-[#cf1717] dark:text-red-300 font-bold text-xs rounded-xl border border-red-200 dark:border-red-900/50 flex items-center justify-center gap-1.5 transition">
+        <span>🖼️</span> Tải Ảnh QR
+      </button>
+    </div>
+
+    <input type="file" id="qrFileInput" accept="image/*" class="hidden" onchange="handleQrImageUpload(event)">
+    <div id="qrReaderContainer" class="hidden mt-3 rounded-2xl overflow-hidden border border-gray-200 dark:border-zinc-700"></div>
+
+  </div>
+</div>
+
+<!-- ================= JAVASCRIPT XỬ LÝ DỮ LIỆU REALTIME & GIAO DIỆN ================= -->
+<script>
+  const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
+  const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let currentUser = null;
+  let activeRoomCode = null;
+  let activeRoomData = null;
+  let roomChannel = null;
+  let chatChannel = null;
+  let html5QrScanner = null;
+
+  // Helper Escape HTML chống XSS
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function openModal(id) { document.getElementById(id)?.classList.remove('hidden'); }
+  function closeModal(id) { document.getElementById(id)?.classList.add('hidden'); }
+
+  function generateRoomCode() {
+    const chars = '0123456789';
+    let rand = '';
+    for (let i = 0; i < 4; i++) rand += chars.charAt(Math.floor(Math.random() * chars.length));
+    return `READ-${rand}`;
+  }
+
+  // --- 1. KHỞI TẠO VÀ XÁC THỰC USER ---
+  async function initRoomApp() {
+    const { data: { session } } = await sbClient.auth.getSession();
+    if (!session || !session.user) {
+      window.location.href = 'index.html';
+      return;
+    }
+    currentUser = session.user;
+
+    // Lắng nghe danh sách phòng Realtime
+    fetchAndRenderRoomsList();
+    subscribeAllRoomsList();
+
+    // Khôi phục phòng nếu có tham số từ URL hoặc Cache
+    const urlParams = new URLSearchParams(window.location.search);
+    const joinCodeParam = urlParams.get('join_code');
+    const cacheRoomCode = localStorage.getItem('last_active_room');
+
+    if (joinCodeParam) {
+      await joinRoom(joinCodeParam);
+    } else if (cacheRoomCode) {
+      await selectRoom(cacheRoomCode);
+    }
+  }
+
+  // --- 2. HIỂN THỊ DANH SÁCH PHÒNG Ở CỘT TRÁI ---
+  async function fetchAndRenderRoomsList() {
+    const { data: rooms } = await sbClient.from('rooms').select('*').order('created_at', { ascending: false });
+    const container = document.getElementById('roomListSidebar');
+    const badge = document.getElementById('totalRoomsBadge');
+    
+    if (badge) badge.innerText = `${rooms ? rooms.length : 0} Phòng`;
+
+    if (!rooms || rooms.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-12 text-gray-400 text-xs">
+          <p class="text-3xl mb-2">🛋️</p>
+          Chưa có phòng học nào.<br>Hãy bấm <strong>Tạo Phòng</strong> để bắt đầu!
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = rooms.map(room => {
+      const isSelected = room.room_code === activeRoomCode;
+      const isHost = room.host_id === currentUser.id;
+
+      return `
+        <div onclick="selectRoom('${room.room_code}')" class="p-3.5 rounded-2xl cursor-pointer transition flex items-center justify-between border ${
+          isSelected 
+            ? 'bg-red-50 dark:bg-red-950/40 border-[#cf1717] shadow-sm' 
+            : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 hover:border-red-300'
+        }">
+          <div class="flex items-center gap-3 truncate">
+            <div class="w-10 h-10 rounded-xl ${isSelected ? 'bg-[#cf1717] text-white' : 'bg-red-100 dark:bg-zinc-800 text-[#cf1717]'} flex items-center justify-center font-black text-xs flex-shrink-0">
+              ${room.room_code.slice(-4)}
+            </div>
+            <div class="truncate space-y-0.5">
+              <div class="flex items-center gap-1.5">
+                <span class="font-extrabold text-xs text-gray-900 dark:text-white truncate">${room.room_code}</span>
+                ${isHost ? '<span class="text-[9px] font-black bg-amber-500 text-white px-1.5 py-0.2 rounded">HOST</span>' : ''}
+              </div>
+              <p class="text-[10px] text-gray-500 truncate">${room.mode === 'battle' ? '⚔️ Đua Tốc Độ' : '☕ Co-working'}</p>
+            </div>
+          </div>
+          <span class="text-xs text-gray-400">➔</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // --- 3. TẠO PHÒNG MỚI ---
+  function openCreateRoomModal() { openModal('modalCreateRoom'); }
+  
+  async function handleCreateRoom() {
+    const examToken = document.getElementById('roomExamSelect').value;
+    const mode = document.querySelector('input[name="roomMode"]:checked')?.value || 'battle';
+    const roomCode = generateRoomCode();
+
+    const { error } = await sbClient.from('rooms').insert([{
+      room_code: roomCode,
+      host_id: currentUser.id,
+      exam_token: examToken,
+      mode: mode,
+      status: 'waiting'
+    }]);
+
+    if (error) {
+      alert("❌ Lỗi tạo phòng: " + error.message);
+      return;
+    }
+
+    const fullName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+    await sbClient.from('room_participants').insert([{
+      room_code: roomCode,
+      user_id: currentUser.id,
+      full_name: fullName,
+      role: 'host',
+      score: 0,
+      is_finished: false
+    }]);
+
+    closeModal('modalCreateRoom');
+    await selectRoom(roomCode);
+  }
+
+  // --- 4. THAM GIA PHÒNG & CHỌN PHÒNG ---
+  function openJoinRoomModal() { openModal('modalJoinRoom'); }
+
+  async function submitJoinCode() {
+    const code = document.getElementById('inputJoinCode').value.trim().toUpperCase();
+    if (!code) return alert("Vui lòng nhập mã!");
+    closeModal('modalJoinRoom');
+    await joinRoom(code);
+  }
+
+  async function joinRoom(roomCode) {
+    const { data: room } = await sbClient.from('rooms').select('*').eq('room_code', roomCode).maybeSingle();
+    if (!room) return alert("❌ Mã phòng không tồn tại!");
+
+    const fullName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+    const { data: existing } = await sbClient.from('room_participants').select('*').eq('room_code', roomCode).eq('user_id', currentUser.id).maybeSingle();
+
+    if (!existing) {
+      await sbClient.from('room_participants').insert([{
+        room_code: roomCode,
+        user_id: currentUser.id,
+        full_name: fullName,
+        role: room.host_id === currentUser.id ? 'host' : 'member',
+        score: 0,
+        is_finished: false
+      }]);
+    }
+
+    await selectRoom(roomCode);
+  }
+
+  async function selectRoom(roomCode) {
+    activeRoomCode = roomCode;
+    localStorage.setItem('last_active_room', roomCode);
+
+    const { data: room } = await sbClient.from('rooms').select('*').eq('room_code', roomCode).maybeSingle();
+    if (!room) {
+      localStorage.removeItem('last_active_room');
+      document.getElementById('emptyRoomState').classList.remove('hidden');
+      document.getElementById('activeRoomDetailState').classList.add('hidden');
+      return;
+    }
+
+    activeRoomData = room;
+
+    // Chuyển UI
+    document.getElementById('emptyRoomState').classList.add('hidden');
+    document.getElementById('activeRoomDetailState').classList.remove('hidden');
+
+    // Cập nhật Header phòng
+    document.getElementById('currentRoomTitle').innerText = `Phòng ${roomCode}`;
+    document.getElementById('currentRoomCodeBadge').innerText = roomCode;
+    document.getElementById('currentRoomModeText').innerText = room.mode === 'battle' ? '⚔️ Đua Tốc Độ' : '☕ Co-working';
+
+    // Đánh dấu quyền Host
+    const isHost = room.host_id === currentUser.id;
+    const hostGroup = document.getElementById('hostControlGroup');
+    if (isHost) hostGroup.classList.replace('hidden', 'flex');
+    else hostGroup.classList.replace('flex', 'hidden');
+
+    // Vẽ QR
+    const qrBox = document.getElementById('roomQrContainer');
+    qrBox.innerHTML = '';
+    const shareUrl = `${window.location.origin}${window.location.pathname}?join_code=${roomCode}`;
+    new QRCode(qrBox, { text: shareUrl, width: 100, height: 100 });
+
+    // Tải thông tin thành viên & Chat
+    fetchParticipants(roomCode);
+    fetchChatMessages(roomCode);
+    subscribeRoomRealtime(roomCode);
+
+    fetchAndRenderRoomsList();
+  }
+
+  // --- 5. TẢI THÀNH VIÊN VÀ CHAT REALTIME ---
+  async function fetchParticipants(roomCode) {
+    const { data: list } = await sbClient.from('room_participants').select('*').eq('room_code', roomCode);
+    if (!list) return;
+
+    document.getElementById('participantCountText').innerText = `${list.length}/10`;
+
+    // Lấy tên host
+    const hostUser = list.find(p => p.role === 'host');
+    if (hostUser) document.getElementById('currentRoomHostName').innerText = hostUser.full_name;
+
+    const container = document.getElementById('roomParticipantsList');
+    container.innerHTML = list.map(p => `
+      <div class="p-2.5 bg-gray-50 dark:bg-zinc-800/80 rounded-xl flex items-center justify-between text-xs font-bold border border-gray-100 dark:border-zinc-700">
+        <span class="text-gray-800 dark:text-gray-200 flex items-center gap-2">
+          <span>👤</span> ${escapeHtml(p.full_name)}
+          ${p.role === 'host' ? '👑' : ''}
+        </span>
+        ${p.is_finished 
+          ? `<span class="text-emerald-500 font-extrabold">${p.score || 0}đ ✅</span>` 
+          : '<span class="text-amber-500 font-normal">⏳ Đang chờ</span>'}
+      </div>
+    `).join('');
+  }
+
+  async function fetchChatMessages(roomCode) {
+    const { data: msgs } = await sbClient.from('room_messages').select('*').eq('room_code', roomCode).order('created_at', { ascending: true });
+    const box = document.getElementById('chatMessagesBox');
+    box.innerHTML = '';
+    if (msgs) msgs.forEach(m => appendChatMessage(m));
+  }
+
+  function appendChatMessage(msg) {
+    const box = document.getElementById('chatMessagesBox');
+    if (!box) return;
+
+    const isMe = msg.user_id === currentUser.id;
+    const msgEl = document.createElement('div');
+    msgEl.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+
+    msgEl.innerHTML = `
+      <span class="text-[9px] text-gray-400 px-1 mb-0.5">${escapeHtml(msg.user_name)}</span>
+      <div class="max-w-[80%] px-3.5 py-2 rounded-2xl text-xs sm:text-sm ${
+        isMe 
+          ? 'bg-[#cf1717] text-white rounded-tr-none font-medium shadow-sm' 
+          : 'bg-white dark:bg-zinc-800 text-gray-900 dark:text-white rounded-tl-none border border-gray-200 dark:border-zinc-700 shadow-sm'
+      }">
+        ${escapeHtml(msg.message)}
+      </div>
+    `;
+
+    box.appendChild(msgEl);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  async function handleSendChatMessage(e) {
+    e.preventDefault();
+    const input = document.getElementById('inputChatMessage');
+    const text = input.value.trim();
+    if (!text || !activeRoomCode) return;
+
+    input.value = '';
+    const fullName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+
+    await sbClient.from('room_messages').insert([{
+      room_code: activeRoomCode,
+      user_id: currentUser.id,
+      user_name: fullName,
+      message: text
+    }]);
+  }
+
+  function subscribeRoomRealtime(roomCode) {
+    if (roomChannel) sbClient.removeChannel(roomChannel);
+
+    roomChannel = sbClient.channel(`room_live_${roomCode}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'room_participants', filter: `room_code=eq.${roomCode}` }, () => fetchParticipants(roomCode))
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'room_messages', filter: `room_code=eq.${roomCode}` }, (payload) => appendChatMessage(payload.new))
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'rooms', filter: `room_code=eq.${roomCode}` }, () => {
+        alert("⚠️ Phòng này đã bị chủ phòng xóa!");
+        localStorage.removeItem('last_active_room');
+        location.reload();
+      })
+      .subscribe();
+  }
+
+  function subscribeAllRoomsList() {
+    sbClient.channel('all_rooms_list')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'rooms' }, () => fetchAndRenderRoomsList())
+      .subscribe();
+  }
+
+  // --- 6. HÀNH ĐỘNG CỦA CHỦ PHÒNG & THÀNH VIÊN ---
+  async function handleStartExamForGroup() {
+    if (!activeRoomData) return;
+    alert(`🚀 Đang chuyển cả nhóm tới bài Reading token: ${activeRoomData.exam_token}`);
+    window.location.href = `exam.html?token=${activeRoomData.exam_token}&room_code=${activeRoomCode}`;
+  }
+
+  async function handleHostDeleteRoom() {
+    if (!confirm("⚠️ Bạn có chắc chắn muốn xóa phòng này? Tất cả thành viên sẽ rời khỏi phòng.")) return;
+    await sbClient.from('room_participants').delete().eq('room_code', activeRoomCode);
+    await sbClient.from('room_messages').delete().eq('room_code', activeRoomCode);
+    await sbClient.from('rooms').delete().eq('room_code', activeRoomCode);
+    localStorage.removeItem('last_active_room');
+    location.reload();
+  }
+
+  async function handleLeaveRoom() {
+    if (activeRoomCode && currentUser) {
+      await sbClient.from('room_participants').delete().eq('room_code', activeRoomCode).eq('user_id', currentUser.id);
+    }
+    localStorage.removeItem('last_active_room');
+    document.getElementById('emptyRoomState').classList.remove('hidden');
+    document.getElementById('activeRoomDetailState').classList.add('hidden');
+    activeRoomCode = null;
+    fetchAndRenderRoomsList();
+  }
+
+  function copyRoomCode() {
+    if (!activeRoomCode) return;
+    navigator.clipboard.writeText(activeRoomCode);
+    alert("📋 Đã sao chép mã phòng: " + activeRoomCode);
+  }
+
+  // Camera QR
+  async function toggleQrScanner() {
+    const container = document.getElementById('qrReaderContainer');
+    if (container.classList.contains('hidden')) {
+      container.classList.remove('hidden');
+      html5QrScanner = new Html5Qrcode("qrReaderContainer");
+      try {
+        await html5QrScanner.start({ facingMode: "environment" }, { fps: 20, qrbox: 200 }, async (text) => {
+          await html5QrScanner.stop();
+          container.classList.add('hidden');
+          let code = text;
+          try { code = new URL(text).searchParams.get('join_code') || text; } catch(e){}
+          closeModal('modalJoinRoom');
+          await joinRoom(code);
+        });
+      } catch (err) { container.classList.add('hidden'); }
+    } else {
+      if (html5QrScanner) await html5QrScanner.stop();
+      container.classList.add('hidden');
+    }
+  }
+
+  function triggerQrFileUpload() { document.getElementById('qrFileInput')?.click(); }
+
+  async function handleQrImageUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const scanner = new Html5Qrcode("qrReaderContainer");
+    try {
+      const decoded = await scanner.scanFile(file, true);
+      let code = decoded;
+      try { code = new URL(decoded).searchParams.get('join_code') || decoded; } catch(e){}
+      closeModal('modalJoinRoom');
+      await joinRoom(code);
+    } catch(err) {
+      alert("❌ Không tìm thấy mã QR hợp lệ trong ảnh!");
+    }
+  }
+
+  // Helper User Dropdown & Darkmode
+  function toggleUserDropdown(e) {
+    if (e) e.stopPropagation();
+    document.getElementById('userDropdownMenu')?.classList.toggle('hidden');
+  }
+
+  function toggleDarkMode() {
+    if (document.documentElement.classList.contains('dark')) {
+      document.documentElement.classList.remove('dark');
+      localStorage.theme = 'light';
+    } else {
+      document.documentElement.classList.add('dark');
+      localStorage.theme = 'dark';
+    }
+  }
+
+  async function handleLogout() {
+    await sbClient.auth.signOut();
+    window.location.href = 'index.html';
+  }
+
+  document.addEventListener('click', (e) => {
+    const menu = document.getElementById('userDropdownMenu');
+    if (menu && !menu.contains(e.target)) menu.classList.add('hidden');
+  });
+
+  window.onload = initRoomApp;
+</script>
+</body>
+</html>
