@@ -378,7 +378,148 @@
 
       currentExam = exam;
       renderExamData();
+
+      // [BỔ SUNG] Nếu đây là phòng đã nộp bài rồi -> Hiển thị luôn Đáp Án & Giải Thích từ dữ liệu đã lưu, KHÔNG bắt làm lại / KHÔNG chạy lại giờ đếm ngược
+      const roomCode = urlParams.get('room_code');
+      if (roomCode) {
+        const alreadyReviewed = await checkAndRenderRoomReview(roomCode, exam);
+        if (alreadyReviewed) return;
+      }
+
       startTimer(exam.time_limit || 60);
+    }
+
+    // [BỔ SUNG] Kiểm tra người dùng đã nộp bài trong phòng này chưa (room_participants.is_finished).
+    // Nếu đã nộp -> lấy bài làm đã lưu gần nhất trong exam_results (theo exam_id + user_id) để hiển thị lại Đáp Án & Giải Thích.
+    // Trả về true nếu đã hiển thị chế độ xem lại thành công (để initExam() không khởi động giờ làm bài mới).
+    async function checkAndRenderRoomReview(roomCode, exam) {
+      try {
+        const { data: participant } = await sbClient
+          .from('room_participants')
+          .select('is_finished, score, completion_time')
+          .eq('room_code', roomCode)
+          .eq('user_id', currentUser.id)
+          .maybeSingle();
+
+        if (!participant || !participant.is_finished) return false; // Chưa nộp bài trong phòng này -> cho làm bài bình thường
+
+        // Lấy bài làm đã nộp gần nhất của người dùng cho đúng đề thi này
+        let savedResult = null;
+
+        // [FIX] Ưu tiên tìm chính xác theo room_code (đã bổ sung cột room_code trong bảng exam_results)
+        try {
+          const { data: exactResults, error: exactErr } = await sbClient
+            .from('exam_results')
+            .select('*')
+            .eq('exam_id', exam.id)
+            .eq('user_id', currentUser.id)
+            .eq('room_code', roomCode)
+            .order('submitted_at', { ascending: false })
+            .limit(1);
+          if (!exactErr && exactResults && exactResults.length > 0) savedResult = exactResults[0];
+        } catch (e) { /* Cột room_code có thể chưa tồn tại ở phiên bản cũ -> bỏ qua, dùng fallback bên dưới */ }
+
+        // [FALLBACK] Nếu chưa tìm thấy theo room_code (bản ghi cũ trước khi có cột này) -> lấy bài nộp gần nhất theo đề thi
+        if (!savedResult) {
+          try {
+            const { data: results, error } = await sbClient
+              .from('exam_results')
+              .select('*')
+              .eq('exam_id', exam.id)
+              .eq('user_id', currentUser.id)
+              .order('submitted_at', { ascending: false })
+              .limit(1);
+            if (!error && results && results.length > 0) savedResult = results[0];
+          } catch (e) {
+            // Cột 'submitted_at' có thể không tồn tại -> thử lại không sắp xếp để tránh crash
+            const { data: results2 } = await sbClient
+              .from('exam_results')
+              .select('*')
+              .eq('exam_id', exam.id)
+              .eq('user_id', currentUser.id)
+              .limit(1);
+            if (results2 && results2.length > 0) savedResult = results2[0];
+          }
+        }
+
+        if (!savedResult) return false; // Không tìm thấy dữ liệu đã nộp -> vẫn cho làm bài để không chặn nhầm
+
+        renderReviewFromSavedAnswers(exam.questions || [], savedResult.answers || {});
+
+        const finalScoreVal = (savedResult.score ?? participant.score ?? 0);
+        const scoreElem = document.getElementById('finalScore');
+        if (scoreElem) scoreElem.innerText = finalScoreVal + '/10 điểm';
+
+        const timeVal = savedResult.time_spent ?? participant.completion_time ?? 0;
+        const timeElem = document.getElementById('finalTime');
+        if (timeElem) timeElem.innerText = Math.floor(timeVal / 60) + 'm ' + (timeVal % 60) + 's';
+
+        const timerElem = document.getElementById('timerDisplay');
+        if (timerElem) timerElem.innerText = '✅ Đã nộp';
+
+        disableSubmitBtn();
+
+        const resultModal = document.getElementById('resultModal');
+        if (resultModal) resultModal.classList.remove('hidden');
+
+        return true;
+      } catch (err) {
+        console.error("Lỗi kiểm tra bài đã nộp trong phòng:", err);
+        return false;
+      }
+    }
+
+    // [BỔ SUNG] Chấm lại & hiển thị Đáp Án + Giải Thích dựa trên dữ liệu ĐÃ LƯU (answers từ exam_results),
+    // dùng lại cùng logic chấm điểm như submitExam() nhưng lấy giá trị từ dữ liệu đã nộp thay vì từ các ô input trên màn hình.
+    function renderReviewFromSavedAnswers(questions, savedAnswers) {
+      const totalQuestions = questions.length;
+      const pointsPerQuestion = totalQuestions > 0 ? (10 / totalQuestions) : 0;
+
+      questions.forEach((q, idx) => {
+        const key = 'câu_' + (idx + 1);
+        const selectedVal = savedAnswers ? savedAnswers[key] : undefined;
+        const isEssay = q.is_essay || q.type === 'essay' || (!q.answer && (!q.options || q.options.length === 0));
+
+        if (isEssay) {
+          q.status = 'essay';
+          q.isCorrect = null;
+          q.earnedPoints = 0;
+          q.userSelected = selectedVal || '';
+          return;
+        }
+
+        const isMultiBlank = typeof selectedVal === 'object' && selectedVal !== null;
+
+        if (isMultiBlank) {
+          const correctObj = q.answer || {};
+          const keys = Object.keys(correctObj);
+          let correctSubCount = 0;
+          keys.forEach(k => {
+            if (checkSingleMatch(selectedVal[k], correctObj[k])) correctSubCount++;
+          });
+
+          const pointsPerSub = keys.length > 0 ? (pointsPerQuestion / keys.length) : 0;
+          q.correctSubCount = correctSubCount;
+          q.totalBlanks = keys.length;
+          q.earnedPoints = Number((correctSubCount * pointsPerSub).toFixed(2));
+          q.status = (correctSubCount === keys.length && keys.length > 0) ? 'correct' : (correctSubCount > 0 ? 'partial' : 'wrong');
+        } else if (q.options && Array.isArray(q.options) && q.options.length > 0) {
+          const userKey = (selectedVal || '').toString().trim().charAt(0).toLowerCase();
+          const correctKey = (q.answer || '').toString().trim().charAt(0).toLowerCase();
+          const isCorrectMC = userKey !== '' && userKey === correctKey;
+          q.status = isCorrectMC ? 'correct' : 'wrong';
+          q.earnedPoints = isCorrectMC ? Number(pointsPerQuestion.toFixed(2)) : 0;
+        } else {
+          const isCorrectText = checkSingleMatch(selectedVal, q.answer);
+          q.status = isCorrectText ? 'correct' : 'wrong';
+          q.earnedPoints = isCorrectText ? Number(pointsPerQuestion.toFixed(2)) : 0;
+        }
+
+        q.isCorrect = q.status === 'correct';
+        q.userSelected = selectedVal;
+      });
+
+      renderResultMode(questions);
     }
 
     function renderPassageWithVocab(passageHTML, vocabData = []) {
@@ -806,12 +947,17 @@
 
       const finalScore10 = Number(totalScore.toFixed(2));
 
+      // [BỔ SUNG] Lấy room_code trên URL (nếu đang làm bài trong phòng) để lưu kèm vào exam_results
+      const submitUrlParams = new URLSearchParams(window.location.search);
+      const submitRoomCode = submitUrlParams.get('room_code') || null;
+
       const payload = {
         exam_id: currentExam.id,
         user_id: currentUser.id,
         score: finalScore10,
         answers: userAnswers,
-        time_spent: timeSpentSeconds
+        time_spent: timeSpentSeconds,
+        room_code: submitRoomCode // [BỔ SUNG] Liên kết chính xác lượt nộp bài này với đúng phòng đấu
       };
 
       const { data, error } = await sbClient.from('exam_results').insert([payload]);
