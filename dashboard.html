@@ -3461,36 +3461,59 @@ function appendSingleChatMessage(msg) {
 }
 
 // 4. Gửi Tin Nhắn Chat (Hiển thị ngay + Lưu Supabase)
-async function handleSendChatMessage(e) {
-  if (e) e.preventDefault();
+// 1. Hàm gửi tin nhắn
+async function handleSendChatMessage(event) {
+  event.preventDefault();
   const input = document.getElementById('sectionInputChat');
-  if (!input) return;
+  const messageText = input ? input.value.trim() : '';
 
-  const text = input.value.trim();
-  const roomCode = localStorage.getItem('last_active_room');
+  if (!messageText || !roomChannel) return;
 
-  if (!text || !roomCode || !currentUser) return;
+  const senderName = currentUser?.user_metadata?.full_name || currentUser?.email?.split('@')[0] || 'Thành viên';
 
-  input.value = ''; // Reset ô nhập liệu ngay lập tức
-  const fullName = currentUser.user_metadata?.full_name || (currentUser.email ? currentUser.email.split('@')[0] : 'Người dùng');
-
-  const newMsgObj = {
-    room_code: roomCode,
-    user_id: currentUser.id,
-    user_name: fullName,
-    message: text
+  const msgPayload = {
+    sender: senderName,
+    senderId: currentUser?.id,
+    text: messageText,
+    time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
   };
 
-  // VẼ NGAY LÊN MÀN HÌNH NGƯỜI GỬI (Không chờ Realtime)
-  appendSingleChatMessage(newMsgObj);
+  // Hiển thị ngay trên màn hình người gửi
+  appendChatMessage(msgPayload);
 
-  // Đẩy dữ liệu lưu vào Supabase
-  const { error } = await sbClient.from('room_messages').insert([newMsgObj]);
-  if (error) {
-    console.error("Lỗi gửi tin nhắn Supabase:", error);
-  }
+  // Broadcast tin nhắn tới tất cả người khác trong phòng
+  await roomChannel.send({
+    type: 'broadcast',
+    event: 'chat_msg',
+    payload: msgPayload
+  });
+
+  input.value = '';
 }
 
+// 2. Hàm chèn tin nhắn vào ô Chat UI và tự động cuộn xuống cuối
+function appendChatMessage(msg) {
+  const chatBox = document.getElementById('sectionChatBox');
+  if (!chatBox) return;
+
+  const isMe = msg.senderId === currentUser?.id;
+
+  const msgHtml = `
+    <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} mb-2">
+      <span class="text-[10px] text-red-200/80 mb-0.5 px-1">${msg.sender} • ${msg.time}</span>
+      <div class="px-3 py-1.5 rounded-2xl max-w-[85%] break-words text-xs shadow-sm ${
+        isMe 
+          ? 'bg-amber-300 text-zinc-900 font-medium rounded-tr-none' 
+          : 'bg-white/20 text-white rounded-tl-none border border-white/10'
+      }">
+        ${escapeHtml(msg.text)}
+      </div>
+    </div>
+  `;
+
+  chatBox.insertAdjacentHTML('beforeend', msgHtml);
+  chatBox.scrollTop = chatBox.scrollHeight; // Tự động cuộn xuống tin nhắn mới nhất
+}
 // 5. Lắng Nghe Realtime Widget & Chat (Đã sửa lỗi đồng bộ khi Xóa / Lưu phòng)
 function subscribeRoomWidgetRealtime(roomCode) {
   if (chatRealtimeChannel) {
@@ -3584,26 +3607,54 @@ async function handleHostSaveRoom() {
 }
 
 // 2. XÓA PHÒNG (Chủ phòng bấm)
+// 1. Hàm Host thực hiện xóa phòng
 async function handleHostDeleteRoom() {
-  const roomCode = localStorage.getItem('last_active_room') || document.getElementById('sectionRoomCode')?.innerText?.trim();
-  if (!roomCode) return;
+  if (!confirm("⚠️ Bạn có chắc chắn muốn giải tán phòng đấu này?")) return;
 
-  if (!confirm("⚠️ CẢNH BÁO: Bạn có chắc chắn muốn XÓA PHÒNG này?\nToàn bộ dữ liệu điểm và chat sẽ bị xóa vĩnh viễn!")) return;
-
-  try {
-    // Xóa dữ liệu các bảng phụ trước
-    await sbClient.from('room_participants').delete().eq('room_code', roomCode);
-    await sbClient.from('room_messages').delete().eq('room_code', roomCode);
-    
-    // Xóa bảng phòng chính
-    const { error } = await sbClient.from('rooms').delete().eq('room_code', roomCode);
-    if (error) throw error;
-
-    alert("🗑️ Đã xóa toàn bộ dữ liệu phòng!");
-    closeActiveRoomCompletely(); // 👈 Đóng sạch khung đỏ & xóa cache
-  } catch (err) {
-    alert("❌ Lỗi khi xóa phòng: " + err.message);
+  // Gửi thông báo tức thì tới tất cả thành viên qua Realtime Channel
+  if (roomChannel) {
+    await roomChannel.send({
+      type: 'broadcast',
+      event: 'room_deleted',
+      payload: {}
+    });
   }
+
+  // Xóa record phòng trong Supabase DB
+  if (currentRoomCode) {
+    await sbClient.from('rooms').delete().eq('code', currentRoomCode);
+  }
+
+  // Chạy hiệu ứng xóa phòng trên màn hình Host
+  closeRoomUIWithAnimation(true);
+}
+
+// 2. Hàm tạo hiệu ứng mờ dần & đóng khung phòng (Dùng chung cho Host & Thành viên)
+function closeRoomUIWithAnimation(isHost = false) {
+  const container = document.getElementById('sectionActiveRoomContainer');
+  if (!container) return;
+
+  // Hiệu ứng mờ dần (Fade out & Scale down)
+  container.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+  container.style.opacity = '0';
+  container.style.transform = 'scale(0.92)';
+
+  setTimeout(() => {
+    container.classList.add('hidden');
+    // Reset lại style ban đầu cho lần mở phòng sau
+    container.style.opacity = '1';
+    container.style.transform = 'scale(1)';
+
+    if (!isHost) {
+      alert("🔔 Chủ phòng đã giải tán phòng thi đấu này!");
+    }
+
+    // Hủy kết nối Channel Realtime
+    if (roomChannel) {
+      sbClient.removeChannel(roomChannel);
+      roomChannel = null;
+    }
+  }, 400);
 }
 // 3. ẨN / HIỆN KHUNG PHÒNG TRỰC TIẾP (Dành cho cả Host & Thành viên)
 // 1. ẨN / HIỆN NỘI DUNG PHÒNG (Nút "Ẩn Khung")
@@ -3691,7 +3742,37 @@ async function loadRoomHistory(page = 1) {
   globalRoomHistoryList = data;
   renderRoomHistoryUI(currentRoomHistoryPage);
 }
+// Hàm render lại bảng điểm Realtime khi nhận tín hiệu điểm mới
+async function reloadRoomScores(roomCode) {
+  const { data: participants, error } = await sbClient
+    .from('room_participants')
+    .select('user_id, full_name, score, is_finished')
+    .eq('room_code', roomCode);
 
+  if (error || !participants) return;
+
+  const container = document.getElementById('sectionParticipantsList');
+  const countElem = document.getElementById('sectionParticipantCount');
+  
+  if (countElem) countElem.innerText = `${participants.length}/10`;
+
+  if (container) {
+    container.innerHTML = participants.map(p => `
+      <div class="flex items-center justify-between p-2 bg-white/10 rounded-xl text-xs backdrop-blur-sm">
+        <span class="font-bold text-white flex items-center gap-1.5">
+          <span>👤</span> ${escapeHtml(p.full_name || 'Học sinh')}
+        </span>
+        <span class="font-black px-2 py-0.5 rounded-md ${
+          p.is_finished 
+            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
+            : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+        }">
+          ${p.is_finished ? `${p.score} điểm` : '⏳ Đang làm...'}
+        </span>
+      </div>
+    `).join('');
+  }
+}
 // 2. Render giao diện Lịch sử phòng đấu
 function renderRoomHistoryUI(page) {
   const container = document.getElementById('historyListContainer'); 
@@ -3823,7 +3904,57 @@ function closeEnlargedQrModal() {
   const modal = document.getElementById('qrModal');
   if (modal) modal.classList.add('hidden');
 }
-  
+let roomChannel = null;
+let currentRoomCode = null;
+
+function initRoomRealtime(roomCode) {
+  currentRoomCode = roomCode;
+
+  // Hủy channel cũ nếu có
+  if (roomChannel) {
+    sbClient.removeChannel(roomChannel);
+  }
+
+  // Khởi tạo Channel duy nhất theo mã phòng
+  roomChannel = sbClient.channel(`room_${roomCode}`, {
+    config: { broadcast: { ack: false } }
+  });
+
+  // 1. Lắng nghe Chat Realtime
+  roomChannel.on('broadcast', { event: 'chat_msg' }, (response) => {
+    // Chỉ hiển thị nếu tin nhắn đến từ người khác
+    if (response.payload.senderId !== currentUser?.id) {
+      appendChatMessage(response.payload);
+    }
+  });
+
+  // 2. Lắng nghe khi Phòng bị Xóa
+  roomChannel.on('broadcast', { event: 'room_deleted' }, () => {
+    closeRoomUIWithAnimation(false);
+  });
+
+  // 3. Lắng nghe khi Điểm số / Tiến độ thay đổi
+  roomChannel.on('broadcast', { event: 'score_update' }, () => {
+    reloadRoomScores(roomCode);
+  });
+
+  // 4. Lắng nghe Postgres DB Changes làm lớp dự phòng (Backup)
+  roomChannel
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'room_participants',
+      filter: `room_code=eq.${roomCode}`
+    }, () => {
+      reloadRoomScores(roomCode);
+    })
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        console.log(`✅ Đã kết nối Realtime phòng: ${roomCode}`);
+        reloadRoomScores(roomCode); // Load điểm lần đầu khi join
+      }
+    });
+}
 </script>
 <!-- MODAL ĐỔI MẬT KHẨU -->
 <div id="passwordModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
