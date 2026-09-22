@@ -516,13 +516,20 @@ async function handleUpdatePassword(e) {
   }
 
   window.onload = initProfile;
-document.addEventListener('click', (e) => {
-  const avatarBtn = document.querySelector('[onclick*="toggleMenu"]') || document.getElementById('avatarBtn');
-  const userDropdown = document.getElementById('userDropdown') || document.getElementById('profileMenu');
-  if (userDropdown && !userDropdown.classList.contains('hidden')) {
-    if (avatarBtn && !avatarBtn.contains(e.target) && !userDropdown.contains(e.target)) {
-      userDropdown.classList.add('hidden');
-    }
+  
+function toggleUserDropdown(e) {
+  // Ngăn không cho sự kiện click vào Avatar lan ra ngoài window
+  if (e) e.stopPropagation(); 
+  
+  const menu = document.getElementById('userDropdownMenu');
+  if (menu) menu.classList.toggle('hidden');
+}
+
+// Đóng dropdown khi click bất kỳ đâu bên ngoài
+document.addEventListener('click', function(e) {
+  const menu = document.getElementById('userDropdownMenu');
+  if (menu && !menu.contains(e.target)) {
+    menu.classList.add('hidden');
   }
 });
 </script>
