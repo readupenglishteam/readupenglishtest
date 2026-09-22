@@ -3707,46 +3707,68 @@ async function openRoomFromHistory(roomCode) {
   window.scrollTo({ top: 0, behavior: 'smooth' }); // Cuộn lên đầu trang xem phòng
 }
 
-let currentRoomJoinUrl = ''; // Biến lưu URL đường dẫn phòng
+let currentRoomJoinUrl = '';
 
 // 1. Hàm vẽ QR nhỏ trên giao diện
 function renderLobbyQr(roomCode) {
   const qrContainer = document.getElementById('lobbyQrCanvas');
-  if (!qrContainer || !roomCode) return;
+  if (!qrContainer) return;
+
+  // Tự động tìm mã phòng nếu chưa được truyền vào
+  if (!roomCode) {
+    roomCode = document.getElementById('sectionRoomCode')?.innerText?.trim() || localStorage.getItem('last_active_room');
+  }
+  if (!roomCode) return;
+
+  // Lấy mã phòng sạch (Ví dụ: READ-8023)
+  const cleanCode = roomCode.match(/READ-\d+/i)?.[0] || roomCode;
+  currentRoomJoinUrl = `${window.location.origin}${window.location.pathname}?join_code=${cleanCode}`;
 
   qrContainer.innerHTML = '';
-  currentRoomJoinUrl = `${window.location.origin}${window.location.pathname}?join_code=${roomCode}`;
-
   if (typeof QRCode !== 'undefined') {
     new QRCode(qrContainer, { 
       text: currentRoomJoinUrl, 
-      width: 110, 
-      height: 110 
+      width: 120, 
+      height: 120 
     });
   }
 }
 
-// 2. Hàm bật Popup Phóng To QR (Kiểu Kahoot)
+// 2. Hàm Bật Phóng To (Tự động cấp chữa nếu URL bị rỗng)
 function openEnlargedQrModal() {
   const modal = document.getElementById('qrModal');
   const modalQrCanvas = document.getElementById('modalQrCanvas');
-  if (!modal || !modalQrCanvas || !currentRoomJoinUrl) return;
+  if (!modal || !modalQrCanvas) return;
 
-  modalQrCanvas.innerHTML = ''; // Xóa QR cũ
+  // Tự quét lấy Mã phòng trực tiếp từ màn hình nếu URL đang bị trống
+  if (!currentRoomJoinUrl) {
+    const rawText = document.body.innerText;
+    const matchedCode = rawText.match(/READ-\d+/i)?.[0] || localStorage.getItem('last_active_room');
+    if (matchedCode) {
+      currentRoomJoinUrl = `${window.location.origin}${window.location.pathname}?join_code=${matchedCode}`;
+    }
+  }
 
-  // Vẽ QR mới với kích thước lớn 280x280 cho camera điện thoại quét từ xa
+  if (!currentRoomJoinUrl) {
+    alert("Không tìm thấy đường dẫn phòng để phóng to QR!");
+    return;
+  }
+
+  modalQrCanvas.innerHTML = ''; // Xóa canvas cũ
+
+  // Vẽ mã QR kích thước lớn 260x260
   if (typeof QRCode !== 'undefined') {
     new QRCode(modalQrCanvas, { 
       text: currentRoomJoinUrl, 
-      width: 280, 
-      height: 280 
+      width: 260, 
+      height: 260 
     });
   }
 
-  modal.classList.remove('hidden');
+  modal.classList.remove('hidden'); // Hiển thị khung phóng to
 }
 
-// 3. Hàm Đóng Popup QR
+// 3. Đóng Popup
 function closeEnlargedQrModal() {
   const modal = document.getElementById('qrModal');
   if (modal) modal.classList.add('hidden');
@@ -3953,18 +3975,16 @@ function closeEnlargedQrModal() {
     </div>
 
     <!-- Khung QR Code -->
-    <!-- KHUNG MÃ QR NHỎ PHÓNG TO NÚT GIỮA & TOOLTIP CHUẨN KAHOOT -->
-<div class="flex flex-col items-center justify-center relative w-fit mx-auto my-2">
+<!-- KHUNG MÃ QR SẠCH SẼ (Chỉ hiện nút 4 mũi tên khi RÊ CHUỘT / CHẠM VÀO) -->
+<div class="flex flex-col items-center justify-center p-3 bg-white rounded-2xl border border-gray-200 w-fit mx-auto shadow-sm my-2">
   
-  <!-- Thẻ chứa mã QR nhỏ (Nhấp vào để phóng to) -->
-  <div onclick="openEnlargedQrModal()" class="relative p-2.5 bg-white rounded-2xl shadow-md border border-gray-200 cursor-pointer group hover:scale-105 transition-all duration-200" title="Bấm để phóng to mã QR">
+  <div onclick="openEnlargedQrModal()" class="relative cursor-pointer group rounded-xl p-1" title="Bấm để phóng to mã QR">
     <!-- Canvas QR nhỏ -->
     <div id="lobbyQrCanvas"></div>
 
-    <!-- Nút hình tròn chứa Icon 4 mũi tên ở giữa QR (Đặc trưng Kahoot) -->
-    <div class="absolute inset-0 flex items-center justify-center bg-black/10 rounded-2xl opacity-90 group-hover:opacity-100 transition">
-      <div class="w-10 h-10 bg-zinc-900/90 text-white rounded-full flex items-center justify-center shadow-xl transform group-hover:scale-110 transition duration-200">
-        <!-- SVG Icon Mũi tên 4 chiều -->
+    <!-- Nút 4 mũi tên - MẶC ĐỊNH ẨN (opacity-0), RÊ CHUỘT VÀO MỚI HIỆN (group-hover:opacity-100) -->
+    <div class="absolute inset-0 flex items-center justify-center bg-black/30 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+      <div class="w-10 h-10 bg-zinc-900/90 text-white rounded-full flex items-center justify-center shadow-xl transform scale-90 group-hover:scale-100 transition-transform duration-200">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
         </svg>
@@ -3972,27 +3992,21 @@ function closeEnlargedQrModal() {
     </div>
   </div>
 
-  <!-- Thẻ Tooltip tam giác góc nhọn kiểu Kahoot -->
-  <div class="mt-2.5 relative bg-zinc-800 text-white text-[11px] font-bold px-3.5 py-1.5 rounded-xl shadow-lg flex items-center justify-center">
-    <div class="absolute -top-1 w-2.5 h-2.5 bg-zinc-800 rotate-45"></div>
-    <span>Phóng to mã QR</span>
-  </div>
-
+  <!-- Dòng chữ chú thích bên dưới -->
+  <span class="text-[10px] font-bold text-gray-500 mt-1">Quét mã QR để vào ngay</span>
 </div>
 
-<!-- MODAL PHÓNG TO MÃ QR CHUẨN KAHOOT -->
-<div id="qrModal" onclick="if(event.target === this) closeEnlargedQrModal()" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex flex-col items-center justify-center p-4 transition-all">
-  
-  <div class="relative bg-white p-6 rounded-3xl shadow-2xl flex flex-col items-center max-w-sm w-full mx-auto animate-in fade-in zoom-in duration-200">
-    <!-- Nút X hình tròn màu trắng nổi nằm góc trên bên phải khung (Giống Kahoot) -->
-    <button onclick="closeEnlargedQrModal()" class="absolute -top-4 -right-4 w-11 h-11 bg-white text-zinc-900 hover:bg-gray-100 font-black text-xl rounded-full shadow-2xl flex items-center justify-center border-2 border-gray-200 transition active:scale-90 z-20">
+<!-- MODAL PHÓNG TO QR (ĐẶT Ở CUỐI FILE HTML, TRƯỚC BỎ THẺ </body>) -->
+<div id="qrModal" onclick="if(event.target === this) closeEnlargedQrModal()" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[9999] hidden flex flex-col items-center justify-center p-4">
+  <div class="relative bg-white p-5 rounded-3xl shadow-2xl flex flex-col items-center max-w-sm w-full mx-auto animate-in fade-in zoom-in duration-200">
+    <!-- Nút X góc trên -->
+    <button onclick="closeEnlargedQrModal()" class="absolute -top-3 -right-3 w-10 h-10 bg-white text-zinc-900 hover:bg-gray-100 font-black text-lg rounded-full shadow-2xl flex items-center justify-center border border-gray-200 transition active:scale-90 z-20">
       ✕
     </button>
 
-    <!-- Canvas vẽ mã QR siêu lớn -->
-    <div id="modalQrCanvas" class="p-3 bg-white rounded-2xl"></div>
+    <!-- Canvas QR Phóng To -->
+    <div id="modalQrCanvas" class="p-2 bg-white rounded-2xl flex items-center justify-center"></div>
   </div>
-
 </div>
 
     <!-- Danh Sách Bạn Bè Trực Tuyến (Realtime) -->
