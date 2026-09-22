@@ -235,33 +235,57 @@
 
 </main>
 
-<!-- ================= FOOTER CHUẨN ĐỒNG BỘ DASHBOARD ================= -->
-<footer class="bg-zinc-900 text-gray-300 pt-10 pb-8 border-t border-zinc-800 text-xs mt-auto">
+<!-- ================= FOOTER CHUẨN TÔNG ĐỎ READUP ================= -->
+<footer class="bg-zinc-900 text-gray-300 pt-10 pb-8 mt-16 border-t border-zinc-800 text-xs">
   <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
     
+    <!-- 1. THÔNG TIN LIÊN HỆ -->
     <div class="space-y-3">
       <div class="flex items-center gap-2">
-        <a href="dashboard.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md">
-          <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
-        </a>
+        <a href="index.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
+        <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
+      </a>
         <span class="text-xl font-black text-[#cf1717]">ReadUp</span>
         <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full">English</span>
       </div>
       <p class="text-gray-400 leading-relaxed">Nền tảng luyện thi IELTS Reading thông minh, tối ưu hóa vốn từ vựng theo ngữ cảnh.</p>
-      <p>📧 Email: <a href="mailto:readupenglish.team@gmail.com" class="text-white hover:underline">readupenglish.team@gmail.com</a></p>
+      <div class="space-y-1">
+        <p>📧 Email: <a href="mailto:readupenglish.team@gmail.com" class="text-white hover:underline">readupenglish.team@gmail.com</a></p>
+      </div>
+      <!-- Mạng xã hội -->
+      <div class="flex items-center gap-3 pt-2">
+        <a href="https://www.tiktok.com/@readupenglish" target="_blank" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-gray-300 hover:bg-[#cf1717] hover:text-white transition">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.98-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.82.56-1.32 1.56-1.28 2.55.02.82.42 1.61 1.08 2.1 1.03.82 2.53.87 3.6.13.71-.48 1.18-1.28 1.25-2.13.06-3.81.02-7.63.03-11.44z"/></svg>
+        </a>
+      <!-- Mạng xã hội youtube -->
+        <a href="https://www.youtube.com/@readupenglishteam"
+           target="_blank"
+           class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-gray-300 hover:bg-[#cf1717] hover:text-white transition">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.376.505A3.016 3.016 0 0 0 .502 6.186C0 8.063 0 12 0 12s0 3.937.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.376-.505a3.016 3.016 0 0 0 2.122-2.136C24 15.937 24 12 24 12s0-3.937-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+          </svg>
+        </a>
+      </div>
     </div>
 
+    <!-- 2. HỖ TRỢ TRỰC TUYẾN -->
     <div class="space-y-3">
       <h4 class="font-bold text-white text-sm">Hỗ Trợ Trực Tuyến 🎧</h4>
       <p class="text-gray-400">Gặp sự cố khi làm bài hoặc cần giải đáp thắc mắc? Đội ngũ ReadUp luôn sẵn sàng hỗ trợ bạn.</p>
-      <a href="dashboard.html" class="inline-block px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl transition text-center">
-        Về Dashboard Hỗ Trợ
-      </a>
+      <button onclick="openSupportModal()" class="w-full py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl transition shadow-lg flex items-center justify-center gap-2">
+        <span>🎧</span>
+        <span>Gửi Yêu Cầu Hỗ Trợ</span>
+      </button>
     </div>
 
+    <!-- 3. KHẢO SÁT DỊCH VỤ -->
     <div class="space-y-3">
-      <h4 class="font-bold text-white text-sm">Thông Tin Hệ Thống 📝</h4>
-      <p class="text-gray-400">ReadUp English v2.0 - Hệ thống quản lý tài khoản và tiến độ học tập tự động.</p>
+      <h4 class="font-bold text-white text-sm">Khảo Sát & Góp Ý 📝</h4>
+      <p class="text-gray-400">Đánh giá của bạn giúp ReadUp English cải thiện chất lượng bộ đề và giao diện ngày một tốt hơn.</p>
+      <button onclick="openFeedbackModal()" class="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition border border-zinc-700 flex items-center justify-center gap-2">
+        <span>⭐</span>
+        <span>Đánh Giá Trải Nghiệm Website</span>
+      </button>
     </div>
 
   </div>
@@ -501,26 +525,21 @@ async function handleUpdatePassword(e) {
     }
   }
 
-  function toggleUserDropdown() {
-    const menu = document.getElementById('userDropdownMenu');
-    if (menu) menu.classList.toggle('hidden');
-  }
-
-  async function handleLogout() {
-    sessionStorage.clear();
-    await sbClient.auth.signOut();
-    window.location.href = 'index.html';
-  }
-
-  window.onload = initProfile;
-  
-function toggleUserDropdown(e) {
+  function toggleUserDropdown(e) {
   // Ngăn không cho sự kiện click vào Avatar lan ra ngoài window
   if (e) e.stopPropagation(); 
   
   const menu = document.getElementById('userDropdownMenu');
   if (menu) menu.classList.toggle('hidden');
 }
+
+async function handleLogout() {
+  sessionStorage.clear();
+  await sbClient.auth.signOut();
+  window.location.href = 'index.html';
+}
+
+window.onload = initProfile;
 
 // Đóng dropdown khi click bất kỳ đâu bên ngoài
 document.addEventListener('click', function(e) {
@@ -529,6 +548,7 @@ document.addEventListener('click', function(e) {
     menu.classList.add('hidden');
   }
 });
+
 </script>
 </body>
 </html>
