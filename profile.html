@@ -381,23 +381,35 @@ async function initProfile() {
   const provider = currentUser.app_metadata?.provider || 'email';
   document.getElementById('authProviderBadge').innerText = provider === 'google' ? 'Google Auth' : 'Tài khoản Email';
 
+  // 1. Lấy thông tin Profile
   const { data: profile } = await sbClient
     .from('profiles')
     .select('*')
     .eq('id', currentUser.id)
     .single();
 
+  // 2. Lấy dữ liệu Streak & XP từ bảng user_stats
+  const { data: stats } = await sbClient
+    .from('user_stats')
+    .select('streak_count, total_xp')
+    .eq('user_id', currentUser.id)
+    .maybeSingle(); // Dùng maybeSingle để không bị bắn lỗi đỏ nếu tài khoản chưa học buổi nào
+
   rawProfileData = profile;
-  populateForm(profile);
+  
+  // 3. Đổ cả dữ liệu Profile lẫn Streak/XP ra màn hình
+  populateForm(profile, stats);
   toggleProfileEdit(false); // Mặc định ở chế độ Xem (Khoá các ô)
   togglePasswordEdit(false);
 }
 
-// --- HÀM LƯU THÔNG TIN CÁ NHÂN ---
 async function handleUpdateProfile(e) {
   e.preventDefault();
   const newName = document.getElementById('inputFullName').value.trim();
-  const newPhone = document.getElementById('inputPhone').value.trim();
+  
+  // 👈 Lấy Số điện thoại chuẩn +84 từ thư viện
+  const newPhone = profilePhoneIti ? profilePhoneIti.getNumber() : document.getElementById('inputPhone').value.trim();
+  
   const rawDob = document.getElementById('inputDob').value.trim();
   const newEmail = document.getElementById('inputEmail').value.trim();
 
@@ -418,8 +430,8 @@ async function handleUpdateProfile(e) {
         {
           id: currentUser.id,
           full_name: newName,
-          phone: newPhone,
-          dob: isoDob, // Lưu ISO xuống DB để chuẩn dữ liệu, hiển thị dạng VN
+          phone: newPhone, // Lưu SĐT chuẩn dạng +84... xuống DB
+          dob: isoDob,
           updated_at: new Date().toISOString()
         },
         { onConflict: 'id' }
@@ -427,7 +439,7 @@ async function handleUpdateProfile(e) {
 
     if (profileErr) throw profileErr;
 
-    if (newEmail !== currentUser.email) {
+    if (newEmail && newEmail !== currentUser.email) {
       const { error: authErr } = await sbClient.auth.updateUser({ email: newEmail });
       if (authErr) throw authErr;
       alert("🎉 Đã lưu thông tin! Vui lòng kiểm tra email mới để xác nhận.");
@@ -435,13 +447,12 @@ async function handleUpdateProfile(e) {
       alert("🎉 Cập nhật thông tin cá nhân thành công!");
     }
 
-    await initProfile(); // Tải lại dữ liệu và khóa ô nhập liệu lại
+    await initProfile(); // Tải lại dữ liệu trang
 
   } catch (err) {
     alert("❌ Lỗi cập nhật: " + (err.message || "Không thể lưu dữ liệu"));
   }
 }
-
 // --- HÀM CẬP NHẬT MẬT KHẨU ---
 async function handleUpdatePassword(e) {
   e.preventDefault();
