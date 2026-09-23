@@ -528,9 +528,13 @@
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
           <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
         </span>
-        <span class="font-black text-xs sm:text-sm uppercase tracking-wider flex items-center gap-1.5">
-          PHÒNG TRỰC TIẾP: <span id="sectionRoomCode" class="text-amber-300 font-mono text-base">READ-0000</span>
-        </span>
+        <div class="flex flex-col">
+          <span class="font-black text-xs sm:text-sm uppercase tracking-wider flex items-center gap-1.5">
+            PHÒNG TRỰC TIẾP: <span id="sectionRoomCode" class="text-amber-300 font-mono text-base">READ-0000</span>
+          </span>
+          <!-- [BỔ SUNG] Tiêu đề bài thi đang làm trong phòng này, để biết bảng điểm ứng với bài nào -->
+          <span id="sectionExamTitle" class="text-[10px] sm:text-xs font-bold text-red-100/90 mt-0.5"></span>
+        </div>
       </div>
 
       <!-- Cụm nút bấm dành cho CHỦ PHÒNG -->
@@ -2832,7 +2836,7 @@ function showToastNotification({ title, message, icon = '🔔', linkUrl = null, 
         <!-- Nội dung -->
         <div class="flex-1 pr-4">
           <h4 class="text-xs sm:text-sm font-bold text-gray-900 dark:text-white leading-tight">${title}</h4>
-          <p class="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">${message}</p>
+          <p class="text-xs text-gray-600 dark:text-gray-300 mt-1 break-words">${message}</p>
           
           <!-- Ưu tiên gọi hàm onClick nếu có, nếu không thì dùng linkUrl -->
           ${onClick ? `
@@ -3445,6 +3449,15 @@ async function initActiveRoomWidget() {
     console.error("❌ Lỗi lấy thông tin phòng:", roomErr);
   }
 
+  // [BỔ SUNG] Nếu phòng đã bị xóa khỏi bảng 'rooms' nhưng vẫn còn sót dòng room_participants (do xóa trước khi có bản vá này)
+  // -> dọn sạch cache & dữ liệu thừa, KHÔNG hiện lại khung phòng đã bị giải tán
+  if (!room) {
+    localStorage.removeItem('last_active_room');
+    await sbClient.from('room_participants').delete().eq('room_code', roomCode).eq('user_id', currentUser.id);
+    leaveActiveRoomWidget();
+    return;
+  }
+
   // 3. HIỂN THỊ KHUNG WIDGET & GẮN MÃ PHÒNG
 const container = document.getElementById('sectionActiveRoomContainer');
   if (container) {
@@ -3454,6 +3467,21 @@ const container = document.getElementById('sectionActiveRoomContainer');
 
   const roomCodeEl = document.getElementById('sectionRoomCode');
   if (roomCodeEl) roomCodeEl.innerText = roomCode;
+
+  // [BỔ SUNG] Hiển thị tiêu đề + thông tin bài thi đang làm trong phòng này (để biết bảng điểm ứng với bài nào)
+  const examTitleEl = document.getElementById('sectionExamTitle');
+  if (examTitleEl) {
+    if (room && room.exam_token) {
+      const { data: examInfo } = await sbClient
+        .from('exams')
+        .select('title')
+        .eq('token', room.exam_token)
+        .maybeSingle();
+      examTitleEl.innerText = `📖 Bài thi: ${examInfo?.title || room.exam_token}`;
+    } else {
+      examTitleEl.innerText = '';
+    }
+  }
 
   // 4. Phân quyền hiển thị nút Host
   const isHost = (room && room.host_id === currentUser.id) || (participant.role === 'host');
@@ -3598,6 +3626,18 @@ async function handleSendChatMessage(event) {
     payload: msgPayload
   });
 
+  // [BỔ SUNG] LƯU TIN NHẮN VÀO SUPABASE (trước đây chỉ broadcast realtime, không hề insert vào bảng room_messages nên tin nhắn không được lưu lại)
+  const roomCodeForMsg = currentRoomCode || activeRoomCode || document.getElementById('sectionRoomCode')?.innerText?.trim();
+  if (roomCodeForMsg) {
+    const { error: msgInsertErr } = await sbClient.from('room_messages').insert([{
+      room_code: roomCodeForMsg,
+      user_id: currentUser?.id,
+      user_name: senderName,
+      message: messageText
+    }]);
+    if (msgInsertErr) console.error("❌ Lỗi lưu tin nhắn vào Supabase:", msgInsertErr);
+  }
+
   input.value = '';
 }
 
@@ -3738,7 +3778,13 @@ async function handleHostDeleteRoom() {
   // [FIX] Sửa đúng tên cột 'room_code' (trước đây dùng nhầm cột 'code' không tồn tại trong bảng rooms -> phòng không bị xóa thật trong DB)
   if (currentRoomCode) {
     await sbClient.from('rooms').delete().eq('room_code', currentRoomCode);
+    // [BỔ SUNG] Xóa luôn toàn bộ người tham gia (room_participants) của phòng này
+    // -> Nếu không xóa, dòng room_participants cũ vẫn còn trong DB, khiến initActiveRoomWidget() tưởng phòng vẫn hợp lệ và tự hiện lại khung phòng
+    await sbClient.from('room_participants').delete().eq('room_code', currentRoomCode);
   }
+
+  // [BỔ SUNG] Xóa cache mã phòng đang active ngay lập tức, tránh việc load lại widget từ localStorage trỏ tới phòng đã xóa
+  localStorage.removeItem('last_active_room');
 
   // Chạy hiệu ứng xóa phòng trên màn hình Host
   closeRoomUIWithAnimation(true);
@@ -3769,6 +3815,20 @@ function closeRoomUIWithAnimation(isHost = false) {
       sbClient.removeChannel(roomChannel);
       roomChannel = null;
     }
+
+    // [BỔ SUNG] Dọn sạch toàn bộ cache & kênh Realtime còn sót lại
+    // -> Trước đây chỉ ẩn khung bằng CSS nhưng không xóa cache 'last_active_room' và không hủy chatRealtimeChannel/roomRealtimeChannel
+    // nên phòng đã xóa vẫn có thể tự hiện lại (chỉ mất hẳn khi F5 tải lại trang)
+    localStorage.removeItem('last_active_room');
+    if (typeof chatRealtimeChannel !== 'undefined' && chatRealtimeChannel) {
+      try { sbClient.removeChannel(chatRealtimeChannel); } catch (e) {}
+      chatRealtimeChannel = null;
+    }
+    if (typeof roomRealtimeChannel !== 'undefined' && roomRealtimeChannel) {
+      try { sbClient.removeChannel(roomRealtimeChannel); } catch (e) {}
+      roomRealtimeChannel = null;
+    }
+    if (typeof loadRoomHistory === 'function') loadRoomHistory(1);
   }, 400);
 }
 // 3. ẨN / HIỆN KHUNG PHÒNG TRỰC TIẾP (Dành cho cả Host & Thành viên)
@@ -3889,34 +3949,12 @@ async function loadRoomHistory(page = 1) {
   renderRoomHistoryUI(currentRoomHistoryPage);
 }
 // Hàm render lại bảng điểm Realtime khi nhận tín hiệu điểm mới
+// [FIX] Trước đây hàm này tự vẽ giao diện điểm số riêng (chỉ hiện "X điểm"), khác với renderWidgetParticipants (hiện huy chương + thời gian "Xđ (Ys)")
+// -> 2 kênh Realtime khác nhau gọi 2 hàm khác nhau lên CÙNG 1 khung điểm, khiến Host và Thành viên thấy định dạng điểm không giống nhau tùy theo hàm nào chạy sau cùng.
+// Nay gộp lại dùng chung 1 hàm renderWidgetParticipants để Host & Thành viên LUÔN thấy cùng 1 định dạng điểm.
 async function reloadRoomScores(roomCode) {
-  const { data: participants, error } = await sbClient
-    .from('room_participants')
-    .select('user_id, full_name, score, is_finished')
-    .eq('room_code', roomCode);
-
-  if (error || !participants) return;
-
-  const container = document.getElementById('sectionParticipantsList');
-  const countElem = document.getElementById('sectionParticipantCount');
-  
-  if (countElem) countElem.innerText = `${participants.length}/10`;
-
-  if (container) {
-    container.innerHTML = participants.map(p => `
-      <div class="flex items-center justify-between p-2 bg-white/10 rounded-xl text-xs backdrop-blur-sm">
-        <span class="font-bold text-white flex items-center gap-1.5">
-          <span>👤</span> ${escapeHtml(p.full_name || 'Học sinh')}
-        </span>
-        <span class="font-black px-2 py-0.5 rounded-md ${
-          p.is_finished 
-            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
-            : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-        }">
-          ${p.is_finished ? `${p.score} điểm` : '⏳ Đang làm...'}
-        </span>
-      </div>
-    `).join('');
+  if (typeof renderWidgetParticipants === 'function') {
+    await renderWidgetParticipants(roomCode);
   }
 }
 // 2. Render giao diện Lịch sử phòng đấu
@@ -3976,6 +4014,18 @@ async function openRoomFromHistory(roomCode) {
   // Cập nhật tiêu đề phòng
   const codeEl = document.getElementById('sectionRoomCode');
   if (codeEl) codeEl.innerText = roomCode;
+
+  // [BỔ SUNG] Hiển thị tiêu đề bài thi của phòng này trong khung, để biết bảng điểm ứng với bài nào
+  const examTitleEl = document.getElementById('sectionExamTitle');
+  if (examTitleEl) {
+    const { data: roomInfo } = await sbClient.from('rooms').select('exam_token').eq('room_code', roomCode).maybeSingle();
+    if (roomInfo?.exam_token) {
+      const { data: examInfo } = await sbClient.from('exams').select('title').eq('token', roomInfo.exam_token).maybeSingle();
+      examTitleEl.innerText = `📖 Bài thi: ${examInfo?.title || roomInfo.exam_token}`;
+    } else {
+      examTitleEl.innerText = '';
+    }
+  }
 
   // Tải bảng điểm & tin nhắn chat của phòng này
   if (typeof renderWidgetParticipants === 'function') renderWidgetParticipants(roomCode);
