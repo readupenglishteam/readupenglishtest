@@ -19,6 +19,10 @@
   <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/css/intlTelInput.css">
   <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/intlTelInput.min.js"></script>
+  <!-- Bảng chọn Lịch Ngày Sinh (giống trang đăng nhập) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://npmcdn.com/flatpickr/dist/l10n/vn.js"></script>
 </head>
 <body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen transition-colors duration-300 flex flex-col justify-between">
 
@@ -50,6 +54,25 @@
   .animation-delay-4000 { animation-delay: 4s; }
   .iti { width: 100%; }
   .dark .iti__country-list { background-color: #27272a; color: #fff; }
+  /* Trạng thái mặc định của hiệu ứng */
+.reveal {
+  opacity: 0;
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+  will-change: opacity, transform;
+}
+
+/* Các hướng xuất hiện */
+.reveal-up { transform: translateY(50px); }       /* Từ dưới lên */
+.reveal-down { transform: translateY(-50px); }   /* Từ trên xuống */
+.reveal-left { transform: translateX(-50px); }   /* Từ trái sang */
+.reveal-right { transform: translateX(50px); }   /* Từ phải sang */
+.reveal-zoom { transform: scale(0.85); }         /* Phóng to dần */
+
+/* Trạng thái khi lướt tới (Kích hoạt) */
+.reveal.active {
+  opacity: 1;
+  transform: translate(0, 0) scale(1);
+}
 </style>
 
 <!-- ================= HEADER VỚI ICON CÁ NHÂN VÒNG TRÒN ĐỎ ================= -->
@@ -115,7 +138,7 @@
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     
     <!-- CỘT TRÁI: THẺ THÔNG TIN AVATAR & CHỈ SỐ -->
-    <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-3xl p-6 shadow-sm space-y-6 flex flex-col items-center text-center">
+    <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-3xl p-6 shadow-sm space-y-6 flex flex-col items-center text-center reveal reveal-zoom">
       
       <!-- Avatar lớn -->
       <div class="relative">
@@ -163,7 +186,7 @@
     </div>
 
     <!-- CỘT PHẢI: CHỈNH SỬA THÔNG TIN & ĐỔI MẬT KHẨU -->
-    <div class="lg:col-span-2 space-y-6">
+    <div class="lg:col-span-2 space-y-6 reveal reveal-down">
       
       <!-- FORM 1: CẬP NHẬT THÔNG TIN CÁ NHÂN & EMAIL -->
 <!-- KHOẢNG THÔNG TIN CÁ NHÂN -->
@@ -195,7 +218,7 @@
       <!-- Ngày tháng năm sinh (Kiểu Việt Nam DD/MM/YYYY) -->
       <div>
         <label class="block text-xs font-bold text-gray-500 mb-1">NGÀY THÁNG NĂM SINH (DD/MM/YYYY)</label>
-        <input type="text" id="inputDob" disabled placeholder="dd/mm/yyyy" maxlength="10" class="w-full p-3 bg-gray-50 dark:bg-zinc-800 disabled:opacity-60 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-500">
+        <input type="text" id="inputDob" disabled readonly placeholder="Nhấn để chọn ngày sinh" class="w-full p-3 bg-gray-50 dark:bg-zinc-800 disabled:opacity-60 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer">
       </div>
 
       <!-- Email -->
@@ -231,13 +254,29 @@
   <form onsubmit="handleProfileChangePassword(event)" class="space-y-4">
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
-        <label class="block text-xs font-bold text-gray-500 mb-1">MẬT KHẨU MỚI</label>
-        <input type="password" id="inputNewPassword" disabled placeholder="Tối thiểu 6 ký tự" minlength="6" required class="w-full p-3 bg-gray-50 dark:bg-zinc-800 disabled:opacity-60 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-500">
+      <label for="inputNewPassword" class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">MẬT KHẨU MỚI</label>
+      <div class="relative">
+        <input type="password" id="inputNewPassword" disabled placeholder="Tối thiểu 6 ký tự" minlength="6" required class="w-full p-3 pr-10 bg-gray-50 dark:bg-zinc-800 disabled:opacity-60 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-500">
+        <button type="button" onclick="togglePasswordVisibility('inputNewPassword', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+        </button>
       </div>
+    </div>
       <div>
-        <label class="block text-xs font-bold text-gray-500 mb-1">XÁC NHẬN MẬT KHẨU MỚI</label>
-        <input type="password" id="inputConfirmPassword" disabled placeholder="Nhập lại mật khẩu mới" minlength="6" required class="w-full p-3 bg-gray-50 dark:bg-zinc-800 disabled:opacity-60 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-500">
+      <label for="inputConfirmPassword" class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">XÁC NHẬN MẬT KHẨU MỚI</label>
+      <div class="relative">
+        <input type="password" id="inputConfirmPassword" disabled placeholder="Nhập lại mật khẩu mới" minlength="6" required class="w-full p-3 pr-10 bg-gray-50 dark:bg-zinc-800 disabled:opacity-60 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-500">
+        <button type="button" onclick="togglePasswordVisibility('inputConfirmPassword', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+        </button>
       </div>
+    </div>
     </div>
 
     <div id="passwordActionBtns" class="hidden flex items-center gap-2 pt-2">
@@ -326,6 +365,7 @@
 
   let rawProfileData = null; // Lưu trữ dữ liệu tạm để khôi phục khi ấn Hủy
   let profilePhoneIti;
+  let profileDobFp; // Instance Flatpickr cho ô chọn Ngày sinh
 
   // =========================================================================
   // TOAST NOTIFICATION GÓC PHẢI (thay thế popup alert() giữa màn hình)
@@ -415,6 +455,25 @@ document.addEventListener("DOMContentLoaded", () => {
       separateDialCode: true,
       utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js",
     });
+  }
+
+  // 2. Khởi tạo Bảng chọn Lịch Ngày sinh (giống hệt trang đăng nhập)
+  // Người dùng chỉ cần bấm vào ô để mở lịch chọn, không cần gõ tay nữa
+  const dobInput = document.getElementById("inputDob");
+  if (dobInput && typeof flatpickr === 'function') {
+    profileDobFp = flatpickr("#inputDob", {
+      locale: "vn",
+      altInput: true,
+      altFormat: "d/m/Y",       // Hiển thị cho người dùng xem: DD/MM/YYYY
+      altInputClass: "w-full p-3 bg-gray-50 dark:bg-zinc-800 disabled:opacity-60 text-gray-800 dark:text-white rounded-xl border border-gray-200 dark:border-zinc-700 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer",
+      dateFormat: "Y-m-d",       // Giá trị thực tế lưu vào Supabase: YYYY-MM-DD
+      disableMobile: true,
+      allowInput: false,         // Chỉ cho chọn qua lịch, không gõ tay
+      clickOpens: false,         // Mặc định khóa (chỉ mở khi đang ở chế độ Chỉnh sửa)
+      maxDate: "today"
+    });
+    // Ô hiển thị (altInput) cũng cần bị khóa/mở tương ứng chế độ Chỉnh sửa
+    if (profileDobFp.altInput) profileDobFp.altInput.disabled = true;
   }
 });
 
@@ -539,10 +598,20 @@ async function handleAvatarFileChange(inputElem) {
 
 // --- LOGIC BẬT / TẮT CHẾ ĐỘ CHỈNH SỬA THÔNG TIN CÁ NHÂN ---
 function toggleProfileEdit(enable) {
-  const fields = ['inputFullName', 'inputPhone', 'inputDob', 'inputEmail'];
+  const fields = ['inputFullName', 'inputPhone', 'inputEmail'];
   fields.forEach(id => {
     document.getElementById(id).disabled = !enable;
   });
+
+  // Ô Ngày sinh giờ dùng Flatpickr: bật/tắt cho phép bấm mở lịch chọn
+  if (profileDobFp) {
+    profileDobFp.set('clickOpens', enable);
+    if (profileDobFp.altInput) profileDobFp.altInput.disabled = !enable;
+    if (!enable) profileDobFp.close();
+  } else {
+    const dobElem = document.getElementById('inputDob');
+    if (dobElem) dobElem.disabled = !enable;
+  }
 
   document.getElementById('btnEditProfile').classList.toggle('hidden', enable);
   document.getElementById('profileActionBtns').classList.toggle('hidden', !enable);
@@ -581,8 +650,14 @@ function populateForm(profile, stats) {
     document.getElementById('inputPhone').value = rawPhone;
   }
 
-  // Đổ Ngày sinh (DD/MM/YYYY)
-  if (document.getElementById('inputDob')) {
+  // Đổ Ngày sinh vào Flatpickr (rawDob đã ở dạng YYYY-MM-DD từ Supabase)
+  if (profileDobFp) {
+    if (rawDob) {
+      profileDobFp.setDate(rawDob, true);
+    } else {
+      profileDobFp.clear();
+    }
+  } else if (document.getElementById('inputDob')) {
     document.getElementById('inputDob').value = formatToVN(rawDob);
   }
   // Đổ ảnh đại diện (hoặc icon người mặc định nếu chưa có ảnh)
@@ -669,12 +744,17 @@ async function handleUpdateProfile(e) {
   const rawDob = document.getElementById('inputDob').value.trim();
   const newEmail = document.getElementById('inputEmail').value.trim();
 
-  // Kiểm tra định dạng ngày sinh nếu có nhập
+  // Ô Ngày sinh giờ chọn qua Flatpickr nên giá trị đã sẵn dạng chuẩn YYYY-MM-DD
   let isoDob = null;
   if (rawDob) {
-    isoDob = formatToISO(rawDob);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(rawDob)) {
+      isoDob = rawDob; // Giá trị Flatpickr trả về (dateFormat: "Y-m-d")
+    } else {
+      // Dự phòng: nếu vì lý do nào đó vẫn là chuỗi dd/mm/yyyy kiểu cũ
+      isoDob = formatToISO(rawDob);
+    }
     if (!isoDob) {
-      notify("⚠️ Định dạng ngày sinh không hợp lệ! Vui lòng nhập theo dạng DD/MM/YYYY (Ví dụ: 25/12/2005)");
+      notify("⚠️ Ngày sinh không hợp lệ! Vui lòng chọn lại từ lịch.");
       return;
     }
   }
@@ -885,7 +965,39 @@ let ratings = { q1: 5, q2: 5, q3: 5 };
     document.getElementById('fbComment').value = '';
     closeFeedbackModal();
   }
+function initScrollReveal() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('active');
+        observer.unobserve(entry.target); // Chạy 1 lần rồi dừng
+      }
+    });
+  }, { threshold: 0.15 });
 
+  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+}
+
+document.addEventListener('DOMContentLoaded', initScrollReveal);
+//Xem mật khẩu
+  function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('svg');
+
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.innerHTML = `
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.04 10.04 0 013.122-.563c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18" />
+      `;
+    } else {
+      input.type = 'password';
+      icon.innerHTML = `
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+      `;
+    }
+  }
 </script>
   <!-- ================= MODAL HỖ TRỢ TRỰC TUYẾN ================= -->
 <div id="supportModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
