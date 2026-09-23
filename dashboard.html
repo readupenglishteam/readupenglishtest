@@ -70,7 +70,25 @@
 #section-lich-hoc, #section-tin-tuc, #section-bai-thi, #section-lich-su, #section-speaking, #section-luyen-am, #section-nhom {
   scroll-margin-top: 84px;
 }
-  
+/* Trạng thái mặc định của hiệu ứng */
+.reveal {
+  opacity: 0;
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+  will-change: opacity, transform;
+}
+
+/* Các hướng xuất hiện */
+.reveal-up { transform: translateY(50px); }       /* Từ dưới lên */
+.reveal-down { transform: translateY(-50px); }   /* Từ trên xuống */
+.reveal-left { transform: translateX(-50px); }   /* Từ trái sang */
+.reveal-right { transform: translateX(50px); }   /* Từ phải sang */
+.reveal-zoom { transform: scale(0.85); }         /* Phóng to dần */
+
+/* Trạng thái khi lướt tới (Kích hoạt) */
+.reveal.active {
+  opacity: 1;
+  transform: translate(0, 0) scale(1);
+}
 </style>
   
   <!-- Header Navbar -->
@@ -223,7 +241,7 @@
 </div>
 
 <!-- ================= PHẦN LỊCH HỌC & BÀI THI READING ================= -->
-    <section id="section-lich-hoc" class="space-y-4">
+    <section id="section-lich-hoc" class="space-y-4 reveal reveal-left">
       <div class="flex items-center border-l-4 border-[#cf1717] pl-3">
         <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">📅 Lịch Học & Bài Thi Reading</h2>
       </div>
@@ -268,7 +286,7 @@
 
     
     <!-- PHẦN 1: TIN TỨC & THÔNG BÁO -->
-    <section id="section-tin-tuc" class="space-y-3 sm:space-y-4">
+    <section id="section-tin-tuc" class="space-y-3 sm:space-y-4 reveal reveal-right">
       <div class="flex items-center gap-2 border-l-4 border-[#cf1717] pl-3">
         <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">📰 Tin Tức & Thông Báo Mới</h2>
         <button type="button" onclick="openStudentGuide('huong_dan_su_dung', 'Hướng Dẫn Sử Dụng')" class="w-5 h-5 rounded-full bg-[#cf1717] text-white flex items-center justify-center text-xs font-bold hover:bg-red-700 transition shadow" title="Xem hướng dẫn sử dụng">?</button>
@@ -281,7 +299,7 @@
     </section>
 
     <!-- PHẦN 2: DANH SÁCH BÀI THI READING -->
-    <section id="section-bai-thi" class="space-y-3 sm:space-y-4">
+    <section id="section-bai-thi" class="space-y-3 sm:space-y-4 reveal reveal-up">
       <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
         <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">📚 Danh Sách Bài Thi Reading</h2>
         <span id="examCount" class="text-xs font-bold px-2.5 py-1 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">0 bài làm</span>
@@ -294,7 +312,7 @@
     </section>
 
     <!-- PHẦN 3: LỊCH SỬ VÀ KẾT QUẢ BÀI LÀM CỦA HỌC SINH -->
-    <section id="section-lich-su" class="space-y-3 sm:space-y-4">
+    <section id="section-lich-su" class="space-y-3 sm:space-y-4 reveal reveal-down">
       <div class="flex items-center border-l-4 border-[#cf1717] pl-3">
         <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">📜 Lịch Sử & Kết Quả Bài Làm</h2>
       </div>
@@ -309,7 +327,7 @@
     </section>
     
 <!-- KHUNG AI SPEAKING ASSISTANT -->
-<section id="section-speaking" class="space-y-3 sm:space-y-4">
+<section id="section-speaking" class="space-y-3 sm:space-y-4 reveal reveal-left">
 <!-- KHUNG AI SPEAKING ASSISTANT -->
 <div class="space-y-4 max-w-2xl mx-auto">
   <div class="p-5 sm:p-6 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm space-y-4">
@@ -363,7 +381,7 @@
   <div id="aiResultContainer" class="hidden space-y-4"></div>
 </div></section>
     <!-- PHẦN: LUYỆN PHÁT ÂM & BIỂU ĐỒ TIẾN BỘ -->
-<section id="section-luyen-am" class="space-y-3 sm:space-y-4">
+<section id="section-luyen-am" class="space-y-3 sm:space-y-4 reveal reveal-right">
   <!-- Header Tiêu Đề Đồng Bộ -->
   <div class="flex items-center gap-2 border-l-4 border-[#cf1717] pl-3">
     <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">🎙️ Luyện Phát Âm & Biểu Đồ Tiến Bộ</h2>
@@ -469,7 +487,7 @@
 
     <!-- KHU VỰC PHÒNG THI ĐẤU & HỌC NHÓM -->
 <!-- ================= SECTION TÍNH NĂNG NHÓM + KHUNG PHÒNG & CHAT TÍCH HỢP ================= -->
-<section id="section-nhom" class="bg-gradient-to-r from-red-600 to-[#cf1717] rounded-3xl p-5 sm:p-6 text-white shadow-xl space-y-5">
+<section id="section-nhom" class="bg-gradient-to-r from-red-600 to-[#cf1717] rounded-3xl p-5 sm:p-6 text-white shadow-xl space-y-5 reveal reveal-zoom">
   
   <!-- HEADER BANNER: Tiêu đề & Nút Tạo/Nhập mã -->
   <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
@@ -571,7 +589,7 @@
 </section>
     
     <!-- KHU VỰC STREAK & LEADERBOARD STATS -->
-<section class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+<section class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 reveal reveal-zoom">
   
   <!-- CARD 1: STREAK NGỌN LỬA -->
 <div class="p-4 rounded-2xl border border-red-200/80 dark:border-red-900/50 streak-card-bg flex items-center justify-between shadow-sm">
@@ -4083,6 +4101,20 @@ function initRoomRealtime(roomCode) {
       }
     });
 }
+  function initScrollReveal() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('active');
+        observer.unobserve(entry.target); // Chạy 1 lần rồi dừng
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+}
+
+document.addEventListener('DOMContentLoaded', initScrollReveal);
 </script>
 <!-- MODAL ĐỔI MẬT KHẨU -->
 <div id="passwordModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
