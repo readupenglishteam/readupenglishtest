@@ -506,7 +506,7 @@ function formatToISO(vnDateStr) {
 // =========================================================================
 // CHỨC NĂNG UPLOAD ẢNH ĐẠI DIỆN QUA FREEIMAGE.HOST
 // =========================================================================
-const FREEIMAGE_API_KEY = '6d207e02198a847aa98d0a2a901485a5';
+
 
 // Hiển thị ảnh đại diện dùng chung cho avatar lớn (trang Profile) + avatar trên Header
 // Nếu url rỗng/null -> hiển thị icon người mặc định (bi-person-circle)
@@ -527,16 +527,6 @@ function applyAvatarUrl(url) {
     if (headImg) { headImg.classList.add('hidden'); headImg.src = ''; }
     if (headIcon) headIcon.classList.remove('hidden');
   }
-}
-
-// Đọc file ảnh thành chuỗi base64 (bỏ phần "data:image/...;base64,")
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
 }
 
 // Xử lý khi người dùng chọn file ảnh mới cho Avatar
@@ -560,27 +550,35 @@ async function handleAvatarFileChange(inputElem) {
   if (uploadIconElem) uploadIconElem.innerText = '⏳';
 
   try {
-    const base64Source = await fileToBase64(file);
+    if (!currentUser) throw new Error('Không xác định được tài khoản đang đăng nhập');
 
-    const formData = new FormData();
-    formData.append('key', FREEIMAGE_API_KEY);
-    formData.append('action', 'upload');
-    formData.append('source', base64Source);
-    formData.append('format', 'json');
+    // ========================================================
+    // PHẦN CODE MỚI: UPLOAD TRỰC TIẾP LÊN BUCKET "avatars"
+    // ========================================================
+    
+    // 1. Tạo tên file duy nhất cho user (ví dụ: id-cua-user.jpg)
+    const fileExt = file.name.split('.').pop();
+    const filePath = `${currentUser.id}.${fileExt}`;
 
-    const res = await fetch('https://freeimage.host/api/1/upload', {
-      method: 'POST',
-      body: formData
-    });
-    const data = await res.json();
+    // 2. Upload file lên Supabase (dùng upsert: true để ghi đè nếu user đổi ảnh mới)
+    const { error: uploadError } = await sbClient.storage
+      .from('avatars')
+      .upload(filePath, file, { upsert: true });
 
-    const imageUrl = data?.image?.url || data?.image?.display_url;
-    if (!imageUrl) {
-      throw new Error(data?.status_txt || data?.error?.message || 'Không nhận được đường dẫn ảnh trả về từ freeimage.host');
-    }
+    if (uploadError) throw uploadError;
+
+    // 3. Lấy URL Public của ảnh vừa up
+    const { data: publicUrlData } = sbClient.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    const imageUrl = publicUrlData.publicUrl;
+
+    // ========================================================
+    // KẾT THÚC PHẦN MỚI, BÊN DƯỚI GIỮ NGUYÊN NHƯ CŨ
+    // ========================================================
 
     // Lưu đường dẫn ảnh đại diện mới vào Supabase (bảng profiles, cột avatar_url)
-    if (!currentUser) throw new Error('Không xác định được tài khoản đang đăng nhập');
     const { error: updErr } = await sbClient
       .from('profiles')
       .upsert(
@@ -589,7 +587,7 @@ async function handleAvatarFileChange(inputElem) {
       );
     if (updErr) throw updErr;
 
-    if (rawProfileData) rawProfileData.avatar_url = imageUrl; // Đồng bộ dữ liệu tạm để khi ấn Hủy không bị mất ảnh
+    if (rawProfileData) rawProfileData.avatar_url = imageUrl; // Đồng bộ dữ liệu tạm
 
     applyAvatarUrl(imageUrl);
     notify('🎉 Cập nhật ảnh đại diện thành công!');
