@@ -69,6 +69,9 @@
         <span>Tạo Bài Thi</span>
       </button>
 
+      <!-- Nút Đăng Bài Học -->
+      <a href="#section-posts" class="bg-white/80 dark:bg-zinc-800/80 text-[#cf1717] font-bold px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm border border-[#cf1717]/40 hover:bg-red-50 transition flex items-center gap-1"><span>📝</span><span class="hidden sm:inline">Đăng Bài Học</span></a>
+
       <!-- Nút Đăng Xuất -->
       <button onclick="handleLogout()" class="px-3 py-2 text-xs font-bold bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-red-100 dark:hover:bg-red-950/50 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] dark:hover:text-red-400 rounded-xl transition border border-gray-200/50 dark:border-zinc-700/50">
         Đăng xuất
@@ -163,6 +166,68 @@
         <p class="text-gray-400 text-sm">⏳ Đang tải thông báo...</p>
       </div>
     </section>
+
+<!-- QUẢN LÝ BÀI HỌC (POST) -->
+<section id="section-posts" class="space-y-4 scroll-mt-20">
+  <style>.post-content{line-height:1.85;font-size:1.02rem;color:#374151;word-wrap:break-word}
+.dark .post-content{color:#d4d4d8}
+.post-content h1,.post-content h2,.post-content h3{font-weight:800;line-height:1.3;margin:1.5em 0 .6em;color:#111827}
+.dark .post-content h1,.dark .post-content h2,.dark .post-content h3{color:#fff}
+.post-content h1{font-size:1.9rem}.post-content h2{font-size:1.5rem}.post-content h3{font-size:1.2rem}
+.post-content p{margin:.9em 0}.post-content a{color:#cf1717;text-decoration:underline}
+.post-content ul{list-style:disc;padding-left:1.6em;margin:.9em 0}.post-content ol{list-style:decimal;padding-left:1.6em;margin:.9em 0}
+.post-content img{max-width:100%;height:auto;border-radius:12px;margin:1em auto;display:block}
+.post-content blockquote{border-left:4px solid #cf1717;background:rgba(207,23,23,.06);padding:.6em 1em;margin:1em 0;border-radius:0 8px 8px 0}
+.post-content table{width:100%;border-collapse:collapse;margin:1em 0;display:block;overflow-x:auto}
+.post-content td,.post-content th{border:1px solid #d1d5db;padding:8px 10px}.dark .post-content td,.dark .post-content th{border-color:#3f3f46}
+.post-content th{background:rgba(207,23,23,.08)}
+.post-content .video-wrap{position:relative;padding-top:56.25%;margin:1em 0}
+.post-content .video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border-radius:12px}</style>
+  <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
+    <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white">📝 Quản Lý Bài Học (Post)</h2>
+    <div class="flex items-center gap-2"><a href="post.html" target="_blank" class="text-xs font-bold text-[#cf1717] hover:underline">Mở trang Post ↗</a><span id="adminPostCount" class="text-xs font-bold px-2.5 py-1 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">0 bài</span></div>
+  </div>
+  <form onsubmit="savePost(event)" class="bg-white dark:bg-zinc-900 p-6 rounded-2xl border dark:border-zinc-800 shadow-sm space-y-4 text-xs">
+    <input type="hidden" id="editingPostId"><input type="hidden" id="postToken"><input type="hidden" id="postThumb">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block font-bold uppercase mb-1">Tiêu đề bài học</label>
+        <input id="postTitle" required oninput="previewToken()" placeholder="VD: Oxford Read & Discover – Unit 30" class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
+        <p class="mt-1 text-gray-400">Đường dẫn: <code id="postTokenPreview" class="text-[#cf1717] font-bold">post.html?token=...</code></p>
+      </div>
+      <div>
+        <label class="block font-bold uppercase mb-1">Ảnh đại diện (hiện ở danh sách)</label>
+        <input type="file" accept="image/*" onchange="uploadImageToImgBB(this,'postThumb','postThumbStatus');setTimeout(showThumb,2500)" class="w-full p-2 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700">
+        <p id="postThumbStatus" class="mt-1 font-semibold text-gray-500"></p>
+        <img id="postThumbPrev" class="hidden mt-2 h-20 rounded-lg border object-cover">
+      </div>
+    </div>
+    <div>
+      <label class="block font-bold uppercase mb-1">Mô tả ngắn (để trống = tự lấy từ nội dung)</label>
+      <textarea id="postExcerpt" rows="2" class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></textarea>
+    </div>
+    <div>
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+        <label class="font-bold uppercase">Nội dung bài học</label>
+        <div class="flex rounded-lg overflow-hidden border dark:border-zinc-700">
+          <button type="button" id="tabWord" onclick="setPostMode('word')" class="px-3 py-1.5 font-bold bg-[#cf1717] text-white">✍️ Soạn kiểu Word</button>
+          <button type="button" id="tabHtml" onclick="setPostMode('html')" class="px-3 py-1.5 font-bold bg-gray-100 dark:bg-zinc-800">&lt;/&gt; Mã HTML</button>
+        </div>
+      </div>
+      <div id="postToolbar" class="flex flex-wrap items-center gap-1 p-2 bg-gray-100 dark:bg-zinc-800 rounded-t-lg border border-b-0 dark:border-zinc-700"></div>
+      <div id="postEditor" contenteditable="true" class="post-content min-h-[300px] max-h-[520px] overflow-y-auto p-4 border rounded-b-lg bg-white dark:bg-zinc-800 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-[#cf1717]"></div>
+      <textarea id="postHtml" rows="14" class="hidden w-full p-3 rounded-b-lg border dark:bg-zinc-800 dark:border-zinc-700 font-mono text-xs" placeholder="<h2>Tiêu đề</h2><p>Nội dung HTML...</p>"></textarea>
+      <p id="postEditorStatus" class="mt-1 font-semibold text-gray-500">💡 Dán thẳng từ Word (Ctrl+V) hoặc bấm "Nhập file .docx" — hệ thống tự chuyển thành HTML.</p>
+    </div>
+    <label class="flex items-center gap-2 font-bold"><input type="checkbox" id="postPublished" checked> Hiển thị cho học sinh</label>
+    <div class="flex flex-wrap gap-2">
+      <button type="submit" id="postSubmitBtn" class="bg-[#cf1717] hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm shadow">Đăng Bài Học</button>
+      <button type="button" onclick="previewPost()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2.5 rounded-lg text-sm shadow">Xem thử</button>
+      <button type="button" id="postCancelBtn" onclick="resetPostForm()" class="hidden bg-gray-200 dark:bg-zinc-700 font-bold px-4 py-2.5 rounded-lg text-sm">Hủy sửa</button>
+    </div>
+  </form>
+  <div id="adminPostList" class="grid grid-cols-1 md:grid-cols-2 gap-4"><p class="text-gray-400 text-sm">⏳ Đang tải bài học...</p></div>
+</section>
 
 <!-- QUẢN LÝ TỪ/CỤM TỪ LUYỆN PHÁT ÂM -->
 <section class="space-y-4">
@@ -1220,6 +1285,174 @@ function createSlug(str) {
 }
     
   </script>
+<!-- ============ POST: MODAL XEM THỬ + SCRIPT ============ -->
+<div id="postPreviewModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-start justify-center p-4 z-[9998] overflow-y-auto">
+  <div class="bg-white dark:bg-zinc-900 rounded-2xl p-6 w-full max-w-3xl my-8 shadow-2xl relative">
+    <button onclick="closePostPreview()" class="absolute top-3 right-4 text-2xl text-gray-400 hover:text-gray-600">&times;</button>
+    <h1 id="ppTitle" class="text-2xl sm:text-3xl font-black mb-4 pr-8"></h1>
+    <div id="ppBody" class="post-content"></div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script>
+let allPosts = [], postMode = 'word', _sel = null;
+const pEsc = s => s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '';
+const ed = () => document.getElementById('postEditor');
+const pel = id => document.getElementById(id);
+
+/* ---------- THANH CÔNG CỤ KIỂU WORD ---------- */
+function initPostEditor() {
+  const B = [['bold','<b>B</b>','In đậm'],['italic','<i>I</i>','In nghiêng'],['underline','<u>U</u>','Gạch chân'],
+    ['insertUnorderedList','• Danh sách','Danh sách chấm'],['insertOrderedList','1. Danh sách','Danh sách số'],
+    ['justifyLeft','⬅','Căn trái'],['justifyCenter','↔','Căn giữa'],['justifyRight','➡','Căn phải'],['removeFormat','🧹','Xóa định dạng']];
+  const btn = 'px-2 py-1 rounded bg-white dark:bg-zinc-700 border dark:border-zinc-600 hover:bg-red-50 font-bold';
+  pel('postToolbar').innerHTML =
+    `<select onchange="pcmd('formatBlock',this.value);this.value=''" class="p-1 rounded border dark:bg-zinc-700 dark:border-zinc-600"><option value="">Kiểu chữ</option><option value="<p>">Đoạn văn</option><option value="<h2>">Tiêu đề lớn</option><option value="<h3>">Tiêu đề nhỏ</option><option value="<blockquote>">Trích dẫn</option></select>` +
+    B.map(b => `<button type="button" title="${b[2]}" onmousedown="event.preventDefault()" onclick="pcmd('${b[0]}')" class="${btn}">${b[1]}</button>`).join('') +
+    `<input type="color" value="#cf1717" title="Màu chữ" onchange="pcmd('foreColor',this.value)" class="w-7 h-7 p-0 border rounded cursor-pointer">` +
+    `<button type="button" onmousedown="event.preventDefault()" onclick="postLink()" class="${btn}">🔗 Link</button>` +
+    `<label class="${btn} cursor-pointer">📷 Ảnh<input type="file" accept="image/*" class="hidden" onchange="postImage(this)"></label>` +
+    `<button type="button" onmousedown="event.preventDefault()" onclick="postTable()" class="${btn}">▦ Bảng</button>` +
+    `<button type="button" onmousedown="event.preventDefault()" onclick="postVideo()" class="${btn}">📹 YouTube</button>` +
+    `<label class="${btn} cursor-pointer bg-blue-50 text-blue-700">📄 Nhập file .docx<input type="file" accept=".docx" class="hidden" onchange="importDocx(this)"></label>`;
+  const e = ed();
+  e.addEventListener('blur', () => { const s = getSelection(); if (s.rangeCount && e.contains(s.getRangeAt(0).commonAncestorContainer)) _sel = s.getRangeAt(0); });
+  e.addEventListener('paste', ev => {
+    const h = ev.clipboardData.getData('text/html'); if (!h) return;
+    ev.preventDefault(); document.execCommand('insertHTML', false, cleanWordHtml(h));
+  });
+}
+function cleanWordHtml(h) {
+  const d = new DOMParser().parseFromString(h, 'text/html');
+  d.querySelectorAll('style,meta,link,script,xml').forEach(n => n.remove());
+  d.querySelectorAll('*').forEach(n => {
+    n.removeAttribute('class');
+    const s = (n.getAttribute('style') || '').split(';').filter(x => /^\s*(font-weight|font-style|text-decoration|text-align|color)\s*:/i.test(x)).join(';');
+    s ? n.setAttribute('style', s) : n.removeAttribute('style');
+  });
+  return d.body.innerHTML.replace(/<!--[\s\S]*?-->/g, '').replace(/<\/?o:p>/g, '');
+}
+function pcmd(c, v) { ed().focus(); document.execCommand(c, false, v || null); }
+function insertAtCursor(html) {
+  if (postMode === 'html') { pel('postHtml').value += '\n' + html; return; }
+  ed().focus();
+  if (_sel) { const s = getSelection(); s.removeAllRanges(); s.addRange(_sel); }
+  document.execCommand('insertHTML', false, html);
+}
+function postLink() { const u = prompt('Nhập đường dẫn (https://...):'); if (u) { ed().focus(); if (_sel) { const s = getSelection(); s.removeAllRanges(); s.addRange(_sel); } document.execCommand('createLink', false, u); } }
+function postTable() {
+  const c = '<td>&nbsp;</td>'.repeat(3), r = `<tr>${c}</tr>`;
+  insertAtCursor(`<table><tr>${'<th>Tiêu đề</th>'.repeat(3)}</tr>${r}${r}</table><p><br></p>`);
+}
+function postVideo() {
+  const u = prompt('Dán link YouTube:'); if (!u) return;
+  const m = u.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/); if (!m) return alert('Link YouTube không hợp lệ');
+  insertAtCursor(`<div class="video-wrap"><iframe src="https://www.youtube.com/embed/${m[1]}" allowfullscreen></iframe></div><p><br></p>`);
+}
+async function imgbbUpload(fileOrB64) {
+  const fd = new FormData(); fd.append('image', fileOrB64);
+  const r = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: fd });
+  const d = await r.json(); return d.success ? d.data.url : null;
+}
+async function postImage(inp) {
+  const f = inp.files[0]; if (!f) return; const st = pel('postEditorStatus');
+  st.innerText = '⏳ Đang tải ảnh...';
+  const url = await imgbbUpload(f);
+  st.innerText = url ? '✅ Đã chèn ảnh!' : '❌ Lỗi upload ảnh!';
+  if (url) insertAtCursor(`<img src="${url}" alt="">`); inp.value = '';
+}
+async function importDocx(inp) {
+  const f = inp.files[0]; if (!f) return; const st = pel('postEditorStatus');
+  if (typeof mammoth === 'undefined') return alert('Không tải được thư viện đọc Word. Hãy thử dán (Ctrl+V) nội dung trực tiếp.');
+  st.innerText = '⏳ Đang chuyển Word → HTML (ảnh trong file sẽ được upload)...';
+  try {
+    const res = await mammoth.convertToHtml({ arrayBuffer: await f.arrayBuffer() }, {
+      convertImage: mammoth.images.imgElement(async img => {
+        const b64 = await img.read('base64'); const url = await imgbbUpload(b64);
+        return { src: url || `data:${img.contentType};base64,${b64}` };
+      })
+    });
+    setPostHtml(res.value); st.innerText = '✅ Đã nhập file Word thành công!';
+  } catch (e) { st.innerText = '❌ Không đọc được file .docx'; }
+  inp.value = '';
+}
+
+/* ---------- CHUYỂN CHẾ ĐỘ WORD <-> HTML ---------- */
+function getPostHtml() { return (postMode === 'html' ? pel('postHtml').value : ed().innerHTML).trim(); }
+function setPostHtml(h) { ed().innerHTML = h; pel('postHtml').value = h; }
+function setPostMode(m) {
+  if (m === postMode) return;
+  if (m === 'html') pel('postHtml').value = ed().innerHTML; else ed().innerHTML = pel('postHtml').value;
+  postMode = m;
+  pel('postHtml').classList.toggle('hidden', m !== 'html');
+  ed().classList.toggle('hidden', m === 'html'); pel('postToolbar').classList.toggle('hidden', m === 'html');
+  pel('tabWord').className = 'px-3 py-1.5 font-bold ' + (m === 'word' ? 'bg-[#cf1717] text-white' : 'bg-gray-100 dark:bg-zinc-800');
+  pel('tabHtml').className = 'px-3 py-1.5 font-bold ' + (m === 'html' ? 'bg-[#cf1717] text-white' : 'bg-gray-100 dark:bg-zinc-800');
+}
+
+/* ---------- LƯU / SỬA / XÓA ---------- */
+function previewToken() { pel('postTokenPreview').innerText = 'post.html?token=' + (pel('postToken').value || createSlug(pel('postTitle').value) || '...'); }
+function showThumb() { const u = pel('postThumb').value, i = pel('postThumbPrev'); if (u) { i.src = u; i.classList.remove('hidden'); } else i.classList.add('hidden'); }
+async function savePost(e) {
+  e.preventDefault();
+  const id = pel('editingPostId').value, title = pel('postTitle').value.trim(), html = getPostHtml();
+  if (!html || html === '<br>') return alert('Bạn chưa nhập nội dung bài học!');
+  let token = pel('postToken').value || createSlug(title);
+  if (!id) { // bài mới: tránh trùng token
+    const { data: dup } = await sbClient.from('posts').select('id').eq('token', token).maybeSingle();
+    if (dup) token += '-' + Math.random().toString(36).slice(2, 6);
+  }
+  let excerpt = pel('postExcerpt').value.trim();
+  if (!excerpt) excerpt = (new DOMParser().parseFromString(html, 'text/html').body.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 220);
+  const row = { title, token, thumbnail_url: pel('postThumb').value || null, excerpt, content_html: html, is_published: pel('postPublished').checked, updated_at: new Date().toISOString() };
+  const { error } = id ? await sbClient.from('posts').update(row).eq('id', id) : await sbClient.from('posts').insert([row]);
+  if (error) return alert('❌ Lỗi lưu bài: ' + error.message);
+  alert('✅ Đã lưu bài học! Đường dẫn: post.html?token=' + token);
+  resetPostForm(); loadAdminPosts();
+}
+function resetPostForm() {
+  ['editingPostId','postToken','postThumb','postTitle','postExcerpt','postHtml','postThumbStatus'].forEach(i => { const x = pel(i); 'value' in x ? x.value = '' : x.innerText = ''; });
+  pel('postThumbStatus').innerText = ''; ed().innerHTML = ''; pel('postPublished').checked = true;
+  pel('postSubmitBtn').innerText = 'Đăng Bài Học'; pel('postCancelBtn').classList.add('hidden'); showThumb(); previewToken();
+}
+async function loadAdminPosts() {
+  const { data } = await sbClient.from('posts').select('*').order('created_at', { ascending: false });
+  allPosts = data || []; pel('adminPostCount').innerText = allPosts.length + ' bài';
+  pel('adminPostList').innerHTML = allPosts.map(p => `
+    <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 p-3 rounded-xl flex gap-3 items-center">
+      ${p.thumbnail_url ? `<img src="${pEsc(p.thumbnail_url)}" class="w-16 h-16 rounded-lg object-cover flex-shrink-0">` : '<div class="w-16 h-16 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">📖</div>'}
+      <div class="min-w-0 flex-1">
+        <h4 class="font-bold text-sm text-gray-900 dark:text-white truncate">${pEsc(p.title)}</h4>
+        <p class="text-xs text-gray-400">${new Date(p.created_at).toLocaleDateString('vi-VN')} ${p.is_published ? '' : '· <b class="text-amber-500">Đang ẩn</b>'}</p>
+        <div class="flex gap-3 mt-1">
+          <button onclick="editPost('${p.id}')" class="text-xs text-blue-500 font-bold hover:underline">Sửa</button>
+          <button onclick="deletePost('${p.id}')" class="text-xs text-red-500 font-bold hover:underline">Xóa</button>
+          <a href="post.html?token=${encodeURIComponent(p.token)}" target="_blank" class="text-xs text-amber-500 font-bold hover:underline">Xem</a>
+        </div>
+      </div>
+    </div>`).join('') || '<p class="text-gray-400 text-sm">Chưa có bài học nào.</p>';
+}
+function editPost(id) {
+  const p = allPosts.find(x => x.id === id); if (!p) return;
+  setPostMode('word');
+  pel('editingPostId').value = p.id; pel('postToken').value = p.token; pel('postThumb').value = p.thumbnail_url || '';
+  pel('postTitle').value = p.title; pel('postExcerpt').value = p.excerpt || ''; setPostHtml(p.content_html || '');
+  pel('postPublished').checked = p.is_published; pel('postSubmitBtn').innerText = 'Cập Nhật Bài Học';
+  pel('postCancelBtn').classList.remove('hidden'); showThumb(); previewToken();
+  pel('section-posts').scrollIntoView({ behavior: 'smooth' });
+}
+async function deletePost(id) {
+  if (!confirm('Xóa bài học này?')) return;
+  await sbClient.from('posts').delete().eq('id', id); loadAdminPosts();
+}
+function previewPost() {
+  pel('ppTitle').innerText = pel('postTitle').value || '(Chưa có tiêu đề)';
+  pel('ppBody').innerHTML = getPostHtml().replace(/<script[\s\S]*?<\/script>/gi, '');
+  pel('postPreviewModal').classList.remove('hidden'); pel('postPreviewModal').classList.add('flex');
+}
+function closePostPreview() { pel('postPreviewModal').classList.add('hidden'); pel('postPreviewModal').classList.remove('flex'); }
+document.addEventListener('DOMContentLoaded', () => { initPostEditor(); previewToken(); loadAdminPosts(); });
+</script>
 <!-- MODAL HƯỚNG DẪN SỬ DỤNG PHÍA ADMIN (CÓ TAB) -->
 <div id="guideModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden flex items-start justify-center p-4 z-[9999] overflow-y-auto">
   <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 w-full max-w-3xl my-8 shadow-2xl space-y-5">
