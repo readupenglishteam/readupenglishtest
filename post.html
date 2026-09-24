@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReadUp English - Bài Học</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={darkMode:'class'}</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark');
+</script>
+<link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
+<style>
+@keyframes blob{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-50px) scale(1.1)}66%{transform:translate(-20px,20px) scale(.95)}}
+.animate-blob{animation:blob 10s infinite ease-in-out}.animation-delay-2000{animation-delay:2s}.animation-delay-4000{animation-delay:4s}
+.post-content{line-height:1.85;font-size:1.02rem;color:#374151;word-wrap:break-word}
+.dark .post-content{color:#d4d4d8}
+.post-content h1,.post-content h2,.post-content h3{font-weight:800;line-height:1.3;margin:1.5em 0 .6em;color:#111827}
+.dark .post-content h1,.dark .post-content h2,.dark .post-content h3{color:#fff}
+.post-content h1{font-size:1.9rem}.post-content h2{font-size:1.5rem}.post-content h3{font-size:1.2rem}
+.post-content p{margin:.9em 0}.post-content a{color:#cf1717;text-decoration:underline}
+.post-content ul{list-style:disc;padding-left:1.6em;margin:.9em 0}.post-content ol{list-style:decimal;padding-left:1.6em;margin:.9em 0}
+.post-content img{max-width:100%;height:auto;border-radius:12px;margin:1em auto;display:block}
+.post-content blockquote{border-left:4px solid #cf1717;background:rgba(207,23,23,.06);padding:.6em 1em;margin:1em 0;border-radius:0 8px 8px 0}
+.post-content table{width:100%;border-collapse:collapse;margin:1em 0;display:block;overflow-x:auto}
+.post-content td,.post-content th{border:1px solid #d1d5db;padding:8px 10px}.dark .post-content td,.dark .post-content th{border-color:#3f3f46}
+.post-content th{background:rgba(207,23,23,.08)}
+.post-content .video-wrap{position:relative;padding-top:56.25%;margin:1em 0}
+.post-content .video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border-radius:12px}
+</style>
+</head>
+<body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen transition-colors duration-300">
+</head>
+<body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen transition-colors duration-300">
+<!-- ================= NỀN ĐỘNG CHUYỂN ĐỘNG DÙNG CHUNG ================= -->
+<div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none select-none transition-colors duration-500 bg-slate-50 dark:bg-zinc-950">
+  <!-- Quầng sáng 1: Đỏ ReadUp (Trái trên) -->
+  <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#cf1717]/20 dark:bg-[#cf1717]/15 rounded-full blur-3xl animate-blob"></div>
+  <!-- Quầng sáng 2: Tím nhạt (Phải giữa) -->
+  <div class="absolute top-1/3 -right-24 w-[30rem] h-[30rem] bg-indigo-500/15 dark:bg-red-900/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+  <!-- Quầng sáng 3: Vàng cam ấm (Dưới) -->
+  <div class="absolute -bottom-24 left-1/3 w-96 h-96 bg-amber-500/15 dark:bg-amber-600/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+</div>
+
+<!-- ================= HEADER DASHBOARD VỚI ICON AVATAR PROFILE ================= -->
+<header class="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/60 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-950/60 transition px-4">
+  <div class="max-w-7xl mx-auto h-16 flex justify-between items-center">
+    
+    <!-- 1. KHU VỰC LOGO TRÒN & TIÊU ĐỀ -->
+    <div class="flex items-center gap-3">
+      <a href="dashboard.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
+        <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
+      </a>
+      
+      <a href="dashboard.html" class="flex items-center gap-2 hover:opacity-90 transition">
+        <span class="text-2xl font-black text-[#cf1717] tracking-tight">ReadUp</span>
+        <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full shadow-sm">English</span>
+      </a>
+    </div>
+
+    <!-- 2. KHU VỰC THÔNG TIN & MENU TRANG CÁ NHÂN -->
+    <div class="flex items-center gap-3 relative">
+      <!-- Tên Sinh Viên -->
+      <span id="welcomeUser" class="text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-200 hidden sm:inline-block">👋 Chào mừng sinh viên</span>
+
+      <!-- Nút Menu 3 Gạch: Điều Hướng Nhanh Tới Section -->
+      <div class="relative">
+        <button onclick="toggleSectionNavMenu(event)" class="w-9 h-9 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-zinc-700 hover:scale-105 transition shadow-md flex items-center justify-center" title="Chuyển nhanh tới mục">
+          <svg class="w-5 h-5 fill-current" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+          </svg>
+        </button>
+
+        <!-- Menu Dropdown Điều Hướng Section -->
+        <div id="sectionNavMenu" class="hidden absolute right-0 mt-2 w-64 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl py-2 z-50 transition-all max-h-[70vh] overflow-y-auto">
+          <p class="px-4 pt-1 pb-2 text-[10px] font-extrabold text-gray-400 uppercase tracking-wide">Chuyển nhanh tới mục</p>
+<a href="post.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-[#cf1717] bg-red-50 dark:bg-red-950/40 transition"><span>📖</span><span>Bài Học (Post)</span></a>
+          <a href="dashboard.html#section-lich-hoc" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
+            <span>📅</span><span>Lịch Học & Bài Thi Reading</span>
+          </a>
+          <a href="dashboard.html#section-tin-tuc" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
+            <span>📰</span><span>Tin Tức & Thông Báo Mới</span>
+          </a>
+          <a href="dashboard.html#section-bai-thi" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
+            <span>📚</span><span>Danh Sách Bài Thi Reading</span>
+          </a>
+          <a href="dashboard.html#section-lich-su" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
+            <span>📜</span><span>Lịch Sử & Kết Quả Bài Làm</span>
+          </a>
+          <a href="dashboard.html#section-speaking" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
+            <span>🎙️</span><span>AI Speaking Assistant</span>
+          </a>
+          <a href="dashboard.html#section-luyen-am" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
+            <span>🎙️</span><span>Luyện Phát Âm & Tiến Bộ</span>
+          </a>
+          <a href="dashboard.html#section-nhom" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
+            <span>👥</span><span>Luyện Tập Cùng Bạn Bè</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Nút Avatar Icon có Chấm Đỏ Rực Rỡ -->
+      <div class="relative">
+        <button onclick="toggleUserDropdown(event)" class="relative p-1.5 rounded-full bg-red-50 dark:bg-zinc-800 border-2 border-[#cf1717] text-[#cf1717] dark:text-red-400 hover:scale-105 transition shadow-md flex items-center justify-center w-11 h-11">
+        <!-- Div bọc Avatar riêng để xử lý ẩn phần thừa của ảnh (thay vì dùng overflow-hidden trên button) -->
+        <div class="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
+        <!-- Icon bi-person-circle (mặc định khi chưa có ảnh đại diện) -->
+        <svg id="headerAvatarIcon" class="w-7 h-7 fill-current" viewBox="0 0 16 16">
+        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+        <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+        </svg>
+        <!-- Ảnh đại diện người dùng -->
+        <img id="headerAvatarImg" class="hidden w-full h-full object-cover rounded-full" src="" alt="Avatar">
+        </div>
+        <!-- Chấm tròn màu đỏ đẩy ra ngoài viền (-top-0.5 -right-0.5) -->
+        <span class="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-[#cf1717] border-2 border-white dark:border-zinc-950 rounded-full animate-ping"></span>
+        <span class="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-[#cf1717] border-2 border-white dark:border-zinc-950 rounded-full"></span>
+        </button>
+
+        <!-- Menu Dropdown Xổ Xuống -->
+        <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-52 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl py-2 z-50 transition-all">
+          <a href="profile.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
+            <span>👤</span><span id="dropdownUserName">Trang cá nhân</span>
+          </a>
+          <button onclick="toggleDarkMode()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
+            <span id="themeIcon">🌙</span> Sáng/Tối
+          </button>
+          <div class="border-t border-gray-100 dark:border-zinc-800 my-1"></div>
+          <button onclick="handleLogout()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition">
+            <span>🚪</span> Đăng xuất
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+  <!-- Breadcrumb -->
+  <nav id="crumb" class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex flex-wrap items-center gap-2 mb-4"></nav>
+
+  <!-- DANH SÁCH BÀI HỌC -->
+  <section id="listView" class="hidden">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-l-4 border-[#cf1717] pl-3 mb-2">
+      <h1 class="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white">📖 Bài Học</h1>
+      <input id="postSearch" oninput="q=this.value;page=1;renderList()" placeholder="🔍 Tìm bài học..." class="w-full sm:w-72 p-2.5 text-sm rounded-xl border border-gray-200 dark:border-zinc-700 dark:bg-zinc-900 outline-none focus:ring-2 focus:ring-[#cf1717]">
+    </div>
+    <div id="postList" class="bg-white/70 dark:bg-zinc-900/60 backdrop-blur rounded-2xl px-4 sm:px-6 border border-gray-100 dark:border-zinc-800"><p class="py-8 text-sm text-gray-400">⏳ Đang tải bài học...</p></div>
+    <div id="postPager" class="flex justify-center gap-1.5 pt-6"></div>
+  </section>
+
+  <!-- CHI TIẾT BÀI HỌC (post.html?token=tieu-de-bai-hoc) -->
+  <section id="detailView" class="hidden">
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
+      <article class="min-w-0">
+        <h1 id="dTitle" class="text-2xl sm:text-4xl font-black text-gray-900 dark:text-white leading-tight"></h1>
+        <p id="dDate" class="text-xs text-gray-400 mt-2 mb-6"></p>
+        <div id="dContent" class="post-content"></div>
+        <a href="post.html" class="inline-block mt-8 px-4 py-2 rounded-xl bg-[#cf1717] hover:bg-red-700 text-white text-xs font-bold shadow transition">← Quay lại danh sách bài học</a>
+      </article>
+      <aside class="bg-white/70 dark:bg-zinc-900/60 rounded-2xl border border-gray-100 dark:border-zinc-800 p-5 h-fit lg:sticky lg:top-24">
+        <h3 class="font-extrabold text-lg text-gray-900 dark:text-white mb-4">Bài viết mới nhất</h3>
+        <div id="latestList" class="space-y-4"></div>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<!-- ================= FOOTER CHUẨN TÔNG ĐỎ READUP ================= -->
+<footer class="bg-zinc-900 text-gray-300 pt-10 pb-8 mt-16 border-t border-zinc-800 text-xs">
+  <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+    
+    <!-- 1. THÔNG TIN LIÊN HỆ -->
+    <div class="space-y-3">
+      <div class="flex items-center gap-2">
+        <a href="index.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
+        <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
+      </a>
+        <span class="text-xl font-black text-[#cf1717]">ReadUp</span>
+        <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full">English</span>
+      </div>
+      <p class="text-gray-400 leading-relaxed">Nền tảng luyện thi IELTS Reading thông minh, tối ưu hóa vốn từ vựng theo ngữ cảnh.</p>
+      <div class="space-y-1">
+        <p>📧 Email: <a href="mailto:readupenglish.team@gmail.com" class="text-white hover:underline">readupenglish.team@gmail.com</a></p>
+      </div>
+      <!-- Mạng xã hội -->
+      <div class="flex items-center gap-3 pt-2">
+        <a href="https://www.tiktok.com/@readupenglish" target="_blank" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-gray-300 hover:bg-[#cf1717] hover:text-white transition">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.98-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.82.56-1.32 1.56-1.28 2.55.02.82.42 1.61 1.08 2.1 1.03.82 2.53.87 3.6.13.71-.48 1.18-1.28 1.25-2.13.06-3.81.02-7.63.03-11.44z"/></svg>
+        </a>
+      <!-- Mạng xã hội youtube -->
+        <a href="https://www.youtube.com/@readupenglishteam"
+           target="_blank"
+           class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-gray-300 hover:bg-[#cf1717] hover:text-white transition">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.376.505A3.016 3.016 0 0 0 .502 6.186C0 8.063 0 12 0 12s0 3.937.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.376-.505a3.016 3.016 0 0 0 2.122-2.136C24 15.937 24 12 24 12s0-3.937-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- 2. HỖ TRỢ TRỰC TUYẾN -->
+    <div class="space-y-3">
+      <h4 class="font-bold text-white text-sm">Hỗ Trợ Trực Tuyến 🎧</h4>
+      <p class="text-gray-400">Gặp sự cố khi làm bài hoặc cần giải đáp thắc mắc? Đội ngũ ReadUp luôn sẵn sàng hỗ trợ bạn.</p>
+      <button onclick="openSupportModal()" class="w-full py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl transition shadow-lg flex items-center justify-center gap-2">
+        <span>🎧</span>
+        <span>Gửi Yêu Cầu Hỗ Trợ</span>
+      </button>
+    </div>
+
+    <!-- 3. KHẢO SÁT DỊCH VỤ -->
+    <div class="space-y-3">
+      <h4 class="font-bold text-white text-sm">Khảo Sát & Góp Ý 📝</h4>
+      <p class="text-gray-400">Đánh giá của bạn giúp ReadUp English cải thiện chất lượng bộ đề và giao diện ngày một tốt hơn.</p>
+      <button onclick="openFeedbackModal()" class="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition border border-zinc-700 flex items-center justify-center gap-2">
+        <span>⭐</span>
+        <span>Đánh Giá Trải Nghiệm Website</span>
+      </button>
+    </div>
+
+  </div>
+
+  <div class="max-w-6xl mx-auto px-4 pt-4 border-t border-zinc-800 text-center text-gray-500 text-[11px]">
+    © 2026 ReadUp English. All rights reserved.
+  </div>
+</footer>
+
+<!-- ================= MODAL HỖ TRỢ TRỰC TUYẾN ================= -->
+<div id="supportModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-lg w-full p-6 relative shadow-2xl border dark:border-zinc-800 max-h-[90vh] overflow-y-auto">
+    <button onclick="closeSupportModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white font-bold text-base">✕</button>
+    
+    <div id="supportChoiceView" class="space-y-4">
+      <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">🎧 Hỗ trợ Trực tuyến</h3>
+      <div class="space-y-2.5">
+        <button onclick="showCreateTicketForm()" class="w-full p-3.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-2xl text-xs transition flex items-center justify-center gap-2">
+          <span>➕</span><span>Tạo yêu cầu hỗ trợ mới</span>
+        </button>
+        <button onclick="showTicketHistoryView()" class="w-full p-3.5 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 text-gray-800 dark:text-white font-bold rounded-2xl text-xs transition flex items-center justify-center gap-2 border dark:border-zinc-700">
+          <span>📋</span><span>Kiểm tra tình trạng yêu cầu</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Form Tạo Yêu Cầu -->
+    <form id="createTicketForm" onsubmit="handleCreateTicket(event)" class="space-y-3 hidden">
+      <div class="flex justify-between items-center">
+        <h4 class="font-bold text-sm text-gray-900 dark:text-white">Tạo Yêu Cầu Hỗ Trợ Mới</h4>
+        <button type="button" onclick="showSupportChoice()" class="text-xs text-red-500 hover:underline">← Quay lại</button>
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-gray-500 mb-1">Họ và tên</label>
+        <input type="text" id="spFullName" required class="w-full p-2.5 border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 text-xs focus:ring-2 focus:ring-[#cf1717] outline-none">
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-gray-500 mb-1">Email liên hệ</label>
+        <input type="email" id="spEmail" required class="w-full p-2.5 border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 text-xs focus:ring-2 focus:ring-[#cf1717] outline-none">
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-gray-500 mb-1">Tiêu đề cần hỗ trợ</label>
+        <input type="text" id="spTitle" placeholder="VD: Lỗi không nộp được bài thi..." required class="w-full p-2.5 border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 text-xs focus:ring-2 focus:ring-[#cf1717] outline-none">
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-gray-500 mb-1">Nội dung chi tiết</label>
+        <textarea id="spContent" rows="4" placeholder="Mô tả chi tiết sự cố bạn gặp phải..." required class="w-full p-2.5 border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 text-xs focus:ring-2 focus:ring-[#cf1717] outline-none"></textarea>
+      </div>
+      <button type="submit" class="w-full py-2.5 bg-[#cf1717] text-white font-bold rounded-xl text-xs hover:bg-red-700 transition">Gửi Yêu Cầu</button>
+    </form>
+
+    <!-- Danh Sách Lịch Sử Hỗ Trợ -->
+    <div id="ticketHistoryView" class="space-y-3 hidden">
+      <div class="flex justify-between items-center">
+        <h4 class="font-bold text-sm text-gray-900 dark:text-white">Lịch Sử Yêu Cầu Hỗ Trợ</h4>
+        <button onclick="showSupportChoice()" class="text-xs text-red-500 hover:underline">← Quay lại</button>
+      </div>
+      <div id="ticketListContainer" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+        <!-- Render danh sách ticket bằng JS -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL KHẢO SÁT WEBSITE ================= -->
+<div id="feedbackModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-md w-full p-6 relative shadow-2xl border dark:border-zinc-800">
+    <button onclick="closeFeedbackModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white font-bold text-base">✕</button>
+    
+    <h3 class="text-base font-bold text-gray-900 dark:text-white mb-1 flex items-center gap-2">⭐ Khảo Sát Trải Nghiệm</h3>
+    <p class="text-[11px] text-gray-400 mb-4">Đánh giá ẩn danh (không yêu cầu tài khoản).</p>
+
+    <form onsubmit="handleSendFeedback(event)" class="space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">1. Giao diện website dễ nhìn, dễ thao tác?</label>
+        <div class="flex gap-2 text-xl cursor-pointer" id="starQ1">
+          <span onclick="setRating(1, 1)" class="star1 text-gray-300">★</span>
+          <span onclick="setRating(1, 2)" class="star1 text-gray-300">★</span>
+          <span onclick="setRating(1, 3)" class="star1 text-gray-300">★</span>
+          <span onclick="setRating(1, 4)" class="star1 text-gray-300">★</span>
+          <span onclick="setRating(1, 5)" class="star1 text-gray-300">★</span>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">2. Nội dung đề thi & giải thích chi tiết?</label>
+        <div class="flex gap-2 text-xl cursor-pointer" id="starQ2">
+          <span onclick="setRating(2, 1)" class="star2 text-gray-300">★</span>
+          <span onclick="setRating(2, 2)" class="star2 text-gray-300">★</span>
+          <span onclick="setRating(2, 3)" class="star2 text-gray-300">★</span>
+          <span onclick="setRating(2, 4)" class="star2 text-gray-300">★</span>
+          <span onclick="setRating(2, 5)" class="star2 text-gray-300">★</span>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">3. Tốc độ tải bài & độ ổn định?</label>
+        <div class="flex gap-2 text-xl cursor-pointer" id="starQ3">
+          <span onclick="setRating(3, 1)" class="star3 text-gray-300">★</span>
+          <span onclick="setRating(3, 2)" class="star3 text-gray-300">★</span>
+          <span onclick="setRating(3, 3)" class="star3 text-gray-300">★</span>
+          <span onclick="setRating(3, 4)" class="star3 text-gray-300">★</span>
+          <span onclick="setRating(3, 5)" class="star3 text-gray-300">★</span>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Góp ý bổ sung / Báo lỗi / Đề xuất tính năng</label>
+        <textarea id="fbComment" rows="3" placeholder="Nhập ý kiến của bạn..." class="w-full p-2.5 border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 text-xs outline-none focus:ring-2 focus:ring-[#cf1717]"></textarea>
+      </div>
+
+      <button type="submit" class="w-full py-2.5 bg-[#cf1717] text-white font-bold rounded-xl text-xs hover:bg-red-700 transition">Gửi Đánh Giá</button>
+    </form>
+  </div>
+</div>
+
+
+<script>
+const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
+const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
+const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let currentUser = null, allPosts = [], page = 1, q = '';
+const PER = 6;
+const $ = id => document.getElementById(id);
+const esc = s => s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '';
+const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d');
+const fmt = d => new Date(d).toLocaleDateString('vi-VN');
+const link = p => 'post.html?token=' + encodeURIComponent(p.token);
+
+function notify(m){
+  const t=document.createElement('div');
+  t.className='fixed top-20 right-4 z-[9999] max-w-xs bg-white dark:bg-zinc-900 border-l-4 border-[#cf1717] shadow-2xl rounded-xl p-4 text-xs font-bold text-gray-800 dark:text-white';
+  t.textContent=m; document.body.appendChild(t); setTimeout(()=>t.remove(),4500);
+}
+function toggleDarkMode(){const d=document.documentElement.classList.toggle('dark');localStorage.theme=d?'dark':'light';}
+async function handleLogout(){await sbClient.auth.signOut();window.location.href='index.html';}
+function toggleUserDropdown(e){if(e)e.stopPropagation();$('userDropdownMenu')?.classList.toggle('hidden');$('sectionNavMenu')?.classList.add('hidden');}
+function toggleSectionNavMenu(e){if(e)e.stopPropagation();$('sectionNavMenu')?.classList.toggle('hidden');$('userDropdownMenu')?.classList.add('hidden');}
+document.addEventListener('click',e=>{['userDropdownMenu','sectionNavMenu'].forEach(id=>{const m=$(id);if(m&&!m.contains(e.target))m.classList.add('hidden');});});
+
+const thumb = (p,cls) => p.thumbnail_url
+  ? `<img src="${esc(p.thumbnail_url)}" alt="${esc(p.title)}" loading="lazy" class="${cls} object-cover">`
+  : `<div class="${cls} bg-gradient-to-br from-red-600 to-[#cf1717] flex items-center justify-center text-4xl">📖</div>`;
+
+async function initPost(){
+  const {data:{session}} = await sbClient.auth.getSession();
+  if(!session?.user){window.location.href='index.html';return;}
+  currentUser = session.user;
+  sbClient.from('profiles').select('full_name, avatar_url').eq('id',currentUser.id).maybeSingle().then(({data:p})=>{
+    const n = p?.full_name || currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Người dùng';
+    $('welcomeUser').innerText = `👋 Chào, ${n}`; $('dropdownUserName').innerText = n;
+    if(p?.avatar_url){$('headerAvatarImg').src=p.avatar_url;$('headerAvatarImg').classList.remove('hidden');$('headerAvatarIcon').classList.add('hidden');}
+  });
+  const token = new URLSearchParams(location.search).get('token');
+  token ? showDetail(token) : showList();
+}
+
+async function showList(){
+  $('crumb').innerHTML = `<a href="dashboard.html" class="hover:text-[#cf1717]">Trang Chủ</a><span>›</span><span class="text-gray-800 dark:text-gray-200 font-bold">Bài Học</span>`;
+  $('listView').classList.remove('hidden');
+  const {data,error} = await sbClient.from('posts').select('id,title,token,thumbnail_url,excerpt,created_at').eq('is_published',true).order('created_at',{ascending:false});
+  if(error) $('postList').innerHTML = `<p class="py-8 text-sm text-red-500">❌ ${esc(error.message)}</p>`;
+  allPosts = data || []; renderList();
+}
+
+function renderList(){
+  const kw = norm(q);
+  const rows = allPosts.filter(p => !kw || norm(p.title+' '+p.excerpt).includes(kw));
+  const pages = Math.max(1, Math.ceil(rows.length/PER)); if(page>pages) page=pages;
+  const cur = rows.slice((page-1)*PER, page*PER);
+  $('postList').innerHTML = cur.length ? cur.map(p => `
+    <a href="${link(p)}" class="group flex flex-col sm:flex-row gap-5 py-6 border-b last:border-b-0 border-gray-200 dark:border-zinc-800">
+      <div class="sm:w-56 sm:h-56 flex-shrink-0 overflow-hidden rounded-xl shadow">${thumb(p,'w-full h-48 sm:h-56 group-hover:scale-105 transition duration-300')}</div>
+      <div class="min-w-0 flex-1">
+        <h3 class="text-lg sm:text-2xl font-extrabold text-gray-800 dark:text-white group-hover:text-[#cf1717] transition">${esc(p.title)}</h3>
+        <p class="mt-3 text-sm sm:text-base text-gray-400 line-clamp-4">${esc(p.excerpt)} … <span class="text-[#cf1717] font-bold">Xem tiếp</span></p>
+        <p class="mt-3 text-[11px] text-gray-400">📅 ${fmt(p.created_at)}</p>
+      </div>
+    </a>`).join('') : '<p class="py-10 text-center text-sm text-gray-400">Chưa có bài học nào.</p>';
+  $('postPager').innerHTML = pages<2 ? '' : Array.from({length:pages},(_,i)=>i+1).map(n =>
+    `<button onclick="page=${n};renderList();window.scrollTo({top:0,behavior:'smooth'})" class="w-9 h-9 rounded-lg text-xs font-bold transition ${n===page?'bg-[#cf1717] text-white shadow':'bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-zinc-700'}">${n}</button>`).join('');
+}
+
+async function showDetail(token){
+  $('detailView').classList.remove('hidden');
+  const {data:p} = await sbClient.from('posts').select('*').eq('token',token).eq('is_published',true).maybeSingle();
+  if(!p){
+    $('crumb').innerHTML = `<a href="dashboard.html" class="hover:text-[#cf1717]">Trang Chủ</a><span>›</span><a href="post.html" class="hover:text-[#cf1717]">Bài Học</a>`;
+    $('dTitle').innerText='Không tìm thấy bài học'; $('dContent').innerHTML='<p>Bài học không tồn tại hoặc đã bị gỡ.</p>'; return;
+  }
+  document.title = p.title + ' | ReadUp English';
+  $('crumb').innerHTML = `<a href="dashboard.html" class="hover:text-[#cf1717]">Trang Chủ</a><span>›</span><a href="post.html" class="hover:text-[#cf1717]">Bài Học</a><span>›</span><span class="text-gray-800 dark:text-gray-200 font-bold">${esc(p.title)}</span>`;
+  $('dTitle').innerText = p.title; $('dDate').innerText = '📅 ' + fmt(p.created_at);
+  $('dContent').innerHTML = (p.content_html||'').replace(/<script[\s\S]*?<\/script>/gi,'');
+  const {data:latest} = await sbClient.from('posts').select('title,token,thumbnail_url').eq('is_published',true).neq('token',token).order('created_at',{ascending:false}).limit(5);
+  $('latestList').innerHTML = (latest||[]).map(l => `
+    <a href="${link(l)}" class="group flex gap-3 items-center">
+      <div class="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden">${thumb(l,'w-20 h-20')}</div>
+      <span class="text-sm font-bold text-gray-700 dark:text-gray-200 group-hover:text-[#cf1717] transition">${esc(l.title)}</span>
+    </a>`).join('') || '<p class="text-xs text-gray-400">Chưa có bài khác.</p>';
+}
+
+  let ratings = { q1: 5, q2: 5, q3: 5 };
+
+  function openSupportModal() {
+    showSupportChoice();
+    document.getElementById('supportModal').classList.remove('hidden');
+    // Tự động điền tên + email nếu học viên đã đăng nhập
+    if (typeof currentUser !== 'undefined' && currentUser) {
+      document.getElementById('spEmail').value = currentUser.email || '';
+      document.getElementById('spFullName').value = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+    }
+  }
+
+  function closeSupportModal() { document.getElementById('supportModal').classList.add('hidden'); }
+  function showSupportChoice() {
+    document.getElementById('supportChoiceView').classList.remove('hidden');
+    document.getElementById('createTicketForm').classList.add('hidden');
+    document.getElementById('ticketHistoryView').classList.add('hidden');
+  }
+  function showCreateTicketForm() {
+    document.getElementById('supportChoiceView').classList.add('hidden');
+    document.getElementById('createTicketForm').classList.remove('hidden');
+  }
+
+  async function handleCreateTicket(e) {
+    e.preventDefault();
+    const ticketCode = 'TK-' + Math.floor(10000 + Math.random() * 90000);
+    const payload = {
+      ticket_code: ticketCode,
+      user_id: (typeof currentUser !== 'undefined' && currentUser) ? currentUser.id : null,
+      full_name: document.getElementById('spFullName').value,
+      email: document.getElementById('spEmail').value,
+      title: document.getElementById('spTitle').value,
+      content: document.getElementById('spContent').value
+    };
+
+    const { error } = await sbClient.from('support_tickets').insert([payload]);
+    if (error) { notify("❌ Lỗi gửi yêu cầu: " + error.message); return; }
+
+    notify(`✅ Gửi yêu cầu thành công! Mã hỗ trợ của bạn là: ${ticketCode}`);
+    document.getElementById('spTitle').value = '';
+    document.getElementById('spContent').value = '';
+    showTicketHistoryView();
+  }
+
+  async function showTicketHistoryView() {
+    document.getElementById('supportChoiceView').classList.add('hidden');
+    document.getElementById('ticketHistoryView').classList.remove('hidden');
+    
+    const container = document.getElementById('ticketListContainer');
+    container.innerHTML = '<p class="text-xs text-gray-400">Đang tải dữ liệu...</p>';
+
+    let query = sbClient.from('support_tickets').select('*').order('created_at', { ascending: false });
+    if (typeof currentUser !== 'undefined' && currentUser) {
+      query = query.eq('user_id', currentUser.id);
+    } else {
+      const inputEmail = prompt("Nhập Email của bạn để kiểm tra lịch sử hỗ trợ:");
+      if (!inputEmail) { showSupportChoice(); return; }
+      query = query.eq('email', inputEmail.trim());
+    }
+
+    const { data: tickets, error } = await query;
+    if (error || !tickets || tickets.length === 0) {
+      container.innerHTML = '<p class="text-xs text-gray-400 py-4 text-center">Chưa có lịch sử yêu cầu hỗ trợ nào.</p>';
+      return;
+    }
+
+    // Render giao diện thẻ phản hồi chuẩn như ảnh đính kèm
+    container.innerHTML = tickets.map(t => `
+      <div class="p-4 bg-gray-50 dark:bg-zinc-800 rounded-2xl border dark:border-zinc-700 space-y-2 text-xs">
+        <div class="flex justify-between items-start gap-2">
+          <strong class="text-gray-900 dark:text-white font-bold">${t.title}</strong>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${t.status === 'resolved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
+            Mã: ${t.ticket_code}
+          </span>
+        </div>
+        <p class="text-gray-500 text-[11px]">Ngày gửi: ${new Date(t.created_at).toLocaleString('vi-VN')}</p>
+        <div class="text-gray-700 dark:text-gray-300 bg-white dark:bg-zinc-900/60 p-2.5 rounded-xl border dark:border-zinc-800">
+          ${t.content}
+        </div>
+        ${t.admin_reply ? `
+          <div class="p-3 bg-red-50/60 dark:bg-red-950/30 rounded-xl border border-red-100 dark:border-red-900/40 text-xs space-y-1">
+            <span class="font-bold text-[#cf1717] block">💬 Trả lời từ hỗ trợ:</span>
+            <p class="text-gray-800 dark:text-gray-200">${t.admin_reply}</p>
+          </div>
+        ` : `
+          <p class="text-[11px] text-yellow-600 italic">⏳ Đang chờ Quản trị viên phản hồi...</p>
+        `}
+      </div>
+    `).join('');
+  }
+
+  // KHẢO SÁT
+  function openFeedbackModal() { document.getElementById('feedbackModal').classList.remove('hidden'); setRating(1, 5); setRating(2, 5); setRating(3, 5); }
+  function closeFeedbackModal() { document.getElementById('feedbackModal').classList.add('hidden'); }
+  
+  function setRating(qNum, starCount) {
+    ratings[`q${qNum}`] = starCount;
+    const stars = document.querySelectorAll(`#starQ${qNum} .star${qNum}`);
+    stars.forEach((s, idx) => {
+      s.className = `star${qNum} ${idx < starCount ? 'text-amber-400' : 'text-gray-300'}`;
+    });
+  }
+
+  async function handleSendFeedback(e) {
+    e.preventDefault();
+    const payload = {
+      q1_rating: ratings.q1,
+      q2_rating: ratings.q2,
+      q3_rating: ratings.q3,
+      comment: document.getElementById('fbComment').value
+    };
+
+    const { error } = await sbClient.from('feedbacks').insert([payload]);
+    if (error) { notify("❌ Lỗi gửi đánh giá: " + error.message); return; }
+
+    notify("❤️ Cảm ơn bạn đã đóng góp ý kiến cho ReadUp English!");
+    document.getElementById('fbComment').value = '';
+    closeFeedbackModal();
+  }
+  
+window.onload = initPost;
+</script>
+</body>
+</html>
