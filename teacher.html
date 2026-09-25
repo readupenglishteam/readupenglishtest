@@ -192,6 +192,10 @@
         <label class="block font-bold uppercase mb-1">Giới hạn thời gian (phút)</label>
         <input id="asTimeLimit" type="number" min="0" placeholder="Để trống = không giới hạn" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
       </div>
+      <div>
+        <label class="block font-bold uppercase mb-1">Giới hạn số lần làm bài</label>
+        <input id="asMaxAttempts" type="number" min="1" step="1" placeholder="Để trống = không giới hạn" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
+      </div>
       <div class="sm:col-span-3">
         <label class="block font-bold uppercase mb-1">Mô tả / hướng dẫn làm bài</label>
         <textarea id="asDesc" rows="2" placeholder="Hướng dẫn ngắn cho học sinh..." class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></textarea>
@@ -285,6 +289,26 @@
         <button type="button" onclick="saveGrade()" class="bg-[#cf1717] hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-lg text-sm shadow transition">💾 Lưu điểm</button>
         <button type="button" onclick="closeGradeModal()" class="bg-gray-200 dark:bg-zinc-700 font-bold px-4 py-2.5 rounded-lg text-sm">Đóng</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL: SAO CHÉP BÀI TẬP SANG LỚP KHÁC ================= -->
+<div id="copyModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 z-[9999]">
+  <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-5 w-full max-w-sm shadow-2xl space-y-3">
+    <div class="flex justify-between items-center">
+      <h3 class="font-extrabold text-base text-[#cf1717] dark:text-red-400">📋 Sao chép bài tập</h3>
+      <button onclick="closeCopyModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
+    </div>
+    <p class="text-xs text-gray-500">Bài: <b id="copyAsTitle" class="text-gray-800 dark:text-gray-200"></b></p>
+    <div>
+      <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">Sao chép sang lớp</label>
+      <select id="copyTargetClass" class="w-full p-2.5 text-xs rounded-lg border dark:bg-zinc-800 dark:border-zinc-700"></select>
+    </div>
+    <p class="text-[11px] text-gray-400">💡 Bài sao chép sẽ được lưu ở dạng <b>bản nháp</b> trong lớp đích — hãy mở để kiểm tra nội dung rồi xuất bản.</p>
+    <div class="flex justify-end gap-2 pt-1">
+      <button onclick="closeCopyModal()" class="px-3 py-1.5 text-xs font-bold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">Hủy</button>
+      <button onclick="confirmCopyAssignment()" class="px-4 py-1.5 bg-[#cf1717] hover:bg-red-700 text-white text-xs font-bold rounded-lg shadow transition">Sao chép</button>
     </div>
   </div>
 </div>
@@ -523,9 +547,11 @@
         </div>
         <h4 class="font-bold text-sm text-gray-900 dark:text-white">${esc(a.title)}</h4>
         <p class="text-[11px] text-gray-400 truncate">token: ${esc(a.token)}</p>
+        <p class="text-[10px] text-gray-400">🔁 ${a.max_attempts ? `Tối đa ${a.max_attempts} lần làm` : 'Không giới hạn số lần làm'}</p>
         <div class="flex flex-wrap gap-3 pt-1">
           <button onclick="editAssignment('${a.id}')" class="text-xs font-bold text-blue-500 hover:underline">Sửa</button>
           <button onclick="openResultsModal('${a.id}')" class="text-xs font-bold text-amber-500 hover:underline">Kết quả</button>
+          <button onclick="openCopyModal('${a.id}')" class="text-xs font-bold text-purple-500 hover:underline">Sao chép</button>
           <a href="assignment.html?token=${encodeURIComponent(a.token)}" target="_blank" class="text-xs font-bold text-[#cf1717] hover:underline">Xem thử ↗</a>
           <button onclick="deleteAssignment('${a.id}')" class="text-xs font-bold text-red-500 hover:underline">Xóa</button>
         </div>
@@ -537,6 +563,42 @@
     const { error } = await sbClient.from('assignments').delete().eq('id', id);
     if (error) return notify('❌ Lỗi: ' + error.message);
     notify('✅ Đã xóa bài tập.'); loadAssignmentsForClass();
+  }
+
+  // ===== Sao chép bài tập từ lớp này sang lớp khác =====
+  let assignmentToCopy = null;
+  function openCopyModal(id) {
+    const a = currentAssignments.find(x => x.id === id); if (!a) return;
+    if (!myClasses.length) return notify('⚠️ Bạn chưa có lớp nào khác để sao chép sang.');
+    assignmentToCopy = a;
+    pel('copyAsTitle').innerText = a.title;
+    pel('copyTargetClass').innerHTML = myClasses.map(c => `<option value="${c.id}" ${c.id === currentClassForAssignments ? 'selected' : ''}>${esc(c.class_code)} — ${esc(c.title)}</option>`).join('');
+    pel('copyModal').classList.remove('hidden'); pel('copyModal').classList.add('flex');
+  }
+  function closeCopyModal() { pel('copyModal').classList.add('hidden'); pel('copyModal').classList.remove('flex'); assignmentToCopy = null; }
+  async function confirmCopyAssignment() {
+    if (!assignmentToCopy) return;
+    const targetClassId = pel('copyTargetClass').value;
+    if (!targetClassId) return notify('⚠️ Vui lòng chọn lớp đích.');
+    const cls = myClasses.find(c => c.id === targetClassId);
+    if (!cls) return notify('❌ Không tìm thấy lớp đích.');
+    let token = `${slugify(cls.class_code)}-${slugify(assignmentToCopy.title)}`;
+    const { data: dup } = await sbClient.from('assignments').select('id').eq('token', token).maybeSingle();
+    if (dup) token += '-' + Math.random().toString(36).slice(2, 6);
+    const row = {
+      class_id: targetClassId, teacher_id: currentUser.id, token, title: assignmentToCopy.title,
+      description: assignmentToCopy.description || null,
+      time_limit_minutes: assignmentToCopy.time_limit_minutes || null,
+      max_attempts: assignmentToCopy.max_attempts || null,
+      questions: JSON.parse(JSON.stringify(assignmentToCopy.questions || [])),
+      total_points: assignmentToCopy.total_points || 0,
+      is_published: false
+    };
+    const { error } = await sbClient.from('assignments').insert([row]);
+    if (error) return notify('❌ Lỗi sao chép: ' + error.message);
+    notify(`🎉 Đã sao chép "${assignmentToCopy.title}" sang lớp ${cls.class_code} (bản nháp)!`);
+    closeCopyModal();
+    if (targetClassId === currentClassForAssignments) loadAssignmentsForClass();
   }
 
   // =====================================================================
@@ -594,6 +656,7 @@
     pel('asTitle').value = assignmentToEdit?.title || '';
     pel('asDesc').value = assignmentToEdit?.description || '';
     pel('asTimeLimit').value = assignmentToEdit?.time_limit_minutes || '';
+    pel('asMaxAttempts').value = assignmentToEdit?.max_attempts || '';
     pel('asPublished').checked = assignmentToEdit ? !!assignmentToEdit.is_published : true;
     const rawBlocks = assignmentToEdit ? JSON.parse(JSON.stringify(assignmentToEdit.questions || [])) : [];
     // Bài đã lưu trước đó có blanks ở dạng mảng [{gap, accepted_answers}] (định dạng lưu xuống DB),
@@ -673,6 +736,16 @@
 
   const typeLabel = { mcq: '☑️ Trắc nghiệm 1 đáp án', multi: '☑️☑️ Trắc nghiệm nhiều đáp án', tf: '✅❌ Đúng/Sai', fill: '✏️ Điền khuyết', essay: '📄 Tự luận', text: '📌 Văn bản / hướng dẫn', reading: '📖 Bài Đọc Chia Đôi' };
 
+  // Đếm tổng số câu hỏi được chấm điểm trong 1 bài tập (bỏ qua 'text', tính cả câu con trong 'reading')
+  // Đây là hàm bị thiếu gây lỗi "countGradableQuestions is not defined" khi tải danh sách bài tập.
+  function countGradableQuestions(list) {
+    let n = 0;
+    (list || []).forEach(b => {
+      if (b.type === 'reading') n += countGradableQuestions(b.subBlocks || []);
+      else if (b.type !== 'text') n++;
+    });
+    return n;
+  }
   // Đếm số thứ tự câu hỏi (bỏ qua 'text' và chính khối 'reading', nhưng tính các câu con bên trong reading)
   function countGradableUpTo(list, targetId, counter) {
     counter = counter || { n: 0, found: false };
@@ -910,6 +983,7 @@
       class_id: currentClassForAssignments, teacher_id: currentUser.id, token, title,
       description: pel('asDesc').value.trim() || null,
       time_limit_minutes: pel('asTimeLimit').value ? parseInt(pel('asTimeLimit').value) : null,
+      max_attempts: pel('asMaxAttempts').value ? parseInt(pel('asMaxAttempts').value) : null,
       questions: finalBlocks, total_points, is_published: pel('asPublished').checked,
       updated_at: new Date().toISOString()
     };
@@ -959,15 +1033,20 @@
   // ---- Modal chấm bài chi tiết (xem từng câu + cho điểm câu tự luận) ----
   let currentGradingAttempt = null;
 
-  function openGradeAttempt(attemptId) {
-    const r = currentAttemptsList.find(x => x.id === attemptId); if (!r || !currentResultsAssignment) return;
-    currentGradingAttempt = r;
-    pel('gmStudentName').innerText = r.profiles?.full_name || 'N/A';
-    const questions = currentResultsAssignment.questions || [];
-    let qNo = 0;
-    pel('gmList').innerHTML = questions.map(q => {
+  // Đệ quy để hiển thị cả câu hỏi nằm trong khối "Bài Đọc Chia Đôi" (reading) khi chấm bài
+  function renderGradeQuestionsList(list, r, counterObj) {
+    return (list || []).map(q => {
       if (q.type === 'text') return `<div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-xl p-3 qeditor text-xs ${q.two_col ? 'qeditor-2col' : ''}">${q.content || ''}</div>`;
-      qNo++;
+      if (q.type === 'reading') {
+        return `
+          <div class="border-2 border-[#cf1717]/30 rounded-2xl p-3 space-y-2 bg-red-50/20 dark:bg-red-950/10">
+            <p class="text-[10px] font-extrabold text-[#cf1717] uppercase">📖 Bài đọc</p>
+            <div class="qeditor text-xs ${q.two_col ? 'qeditor-2col' : ''}">${q.content || ''}</div>
+            <div class="space-y-2 pt-1">${renderGradeQuestionsList(q.subBlocks || [], r, counterObj)}</div>
+          </div>`;
+      }
+      counterObj.n++;
+      const qNo = counterObj.n;
       const given = r.answers ? r.answers[q.id] : null;
       let bodyHtml = '';
       if (q.type === 'mcq' || q.type === 'tf' || q.type === 'multi') {
@@ -982,11 +1061,16 @@
         }
       } else if (q.type === 'essay') {
         const currentVal = (r.manual_scores && r.manual_scores[q.id] !== undefined) ? r.manual_scores[q.id] : '';
+        const currentFb = (r.manual_feedback && r.manual_feedback[q.id]) || '';
         bodyHtml = `
           <div class="p-2.5 rounded-xl border dark:border-zinc-700 text-xs whitespace-pre-wrap bg-gray-50 dark:bg-zinc-800/60">${esc(given || '(bỏ trống)')}</div>
           <div class="flex items-center gap-2 mt-2">
             <label class="text-xs font-bold text-gray-600 dark:text-gray-300">Điểm giáo viên chấm (tối đa ${q.points}):</label>
             <input type="number" min="0" max="${q.points}" step="0.25" value="${currentVal}" data-essay-score="${q.id}" oninput="updateGmTotal()" class="w-20 p-1.5 rounded border dark:bg-zinc-800 dark:border-zinc-700 text-xs">
+          </div>
+          <div class="mt-2">
+            <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">📝 Nhận xét cho học sinh (tùy chọn)</label>
+            <textarea data-essay-feedback="${q.id}" rows="2" placeholder="Nhận xét về bài làm của học sinh..." class="w-full p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-xs">${esc(currentFb)}</textarea>
           </div>`;
       }
       return `
@@ -996,6 +1080,14 @@
           <div class="space-y-1">${bodyHtml}</div>
         </div>`;
     }).join('');
+  }
+
+  function openGradeAttempt(attemptId) {
+    const r = currentAttemptsList.find(x => x.id === attemptId); if (!r || !currentResultsAssignment) return;
+    currentGradingAttempt = r;
+    pel('gmStudentName').innerText = r.profiles?.full_name || 'N/A';
+    const questions = currentResultsAssignment.questions || [];
+    pel('gmList').innerHTML = renderGradeQuestionsList(questions, r, { n: 0 });
     updateGmTotal();
     pel('gradeModal').classList.remove('hidden'); pel('gradeModal').classList.add('flex');
   }
