@@ -151,6 +151,7 @@
           <button type="button" onclick="pel('stuPassword').value = genPassword()" class="px-2 rounded-lg border dark:border-zinc-700 text-xs" title="Tạo mật khẩu ngẫu nhiên">🎲</button>
         </div>
       </div>
+      <label class="flex items-center gap-2 text-xs font-bold"><input type="checkbox" id="stuVip" checked> ⭐ Cấp quyền VIP ngay (học sinh làm được bài tập luôn, khỏi cần đổi tay trong Supabase)</label>
       <button type="submit" id="addStuBtn" class="bg-[#cf1717] hover:bg-red-700 text-white font-bold px-5 py-2 rounded-xl text-xs shadow transition">Tạo tài khoản & thêm vào lớp</button>
       <p class="text-[11px] text-gray-400">💡 Học sinh dùng đúng Email + Mật khẩu này để đăng nhập, sau đó tự đổi mật khẩu trong trang Hồ sơ cá nhân.</p>
     </form>
@@ -401,17 +402,32 @@
   async function loadClassStudents() {
     if (!currentClassForModal) return;
     pel('cmStuList').innerHTML = '<p class="text-xs text-gray-400 italic">Đang tải...</p>';
-    const { data, error } = await sbClient.from('class_students').select('id, student_id, profiles(full_name, membership)').eq('class_id', currentClassForModal.id).order('created_at', { ascending: false });
+    const { data, error } = await sbClient.from('class_students').select('id, student_id, profiles(full_name, role)').eq('class_id', currentClassForModal.id).order('created_at', { ascending: false });
     if (error) { pel('cmStuList').innerHTML = `<p class="text-red-500 text-xs">Lỗi: ${esc(error.message)}</p>`; return; }
     pel('cmStuCount').innerText = (data || []).length;
-    pel('cmStuList').innerHTML = (data || []).map(row => `
+    pel('cmStuList').innerHTML = (data || []).map(row => {
+      const isVip = row.profiles?.role === 'vip';
+      return `
       <div class="flex items-center justify-between bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl px-3 py-2">
         <div>
           <p class="font-bold text-xs text-gray-900 dark:text-white">${esc(row.profiles?.full_name || '(chưa có tên)')}</p>
-          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${row.profiles?.membership === 'vip' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400' : 'bg-gray-200 text-gray-600 dark:bg-zinc-700 dark:text-gray-300'}">${row.profiles?.membership === 'vip' ? '⭐ VIP' : 'Free'}</span>
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${isVip ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400' : 'bg-gray-200 text-gray-600 dark:bg-zinc-700 dark:text-gray-300'}">${isVip ? '⭐ VIP' : 'Free'}</span>
         </div>
-        <button onclick="removeStudent('${row.id}')" class="text-[11px] font-bold text-red-500 hover:underline">Xóa khỏi lớp</button>
-      </div>`).join('') || '<p class="text-xs text-gray-400 italic">Lớp chưa có học sinh nào.</p>';
+        <div class="flex items-center gap-3">
+          <button onclick="toggleStudentVip('${row.student_id}', ${isVip})" class="text-[11px] font-bold ${isVip ? 'text-gray-500' : 'text-amber-600'} hover:underline">${isVip ? 'Gỡ VIP' : 'Cấp VIP'}</button>
+          <button onclick="removeStudent('${row.id}')" class="text-[11px] font-bold text-red-500 hover:underline">Xóa khỏi lớp</button>
+        </div>
+      </div>`;
+    }).join('') || '<p class="text-xs text-gray-400 italic">Lớp chưa có học sinh nào.</p>';
+  }
+
+  async function toggleStudentVip(studentId, isCurrentlyVip) {
+    if (!currentClassForModal) return;
+    const newRole = isCurrentlyVip ? 'student' : 'vip';
+    const { error } = await sbClient.rpc('teacher_set_student_role', { p_student_id: studentId, p_class_id: currentClassForModal.id, p_role: newRole });
+    if (error) return notify('❌ Lỗi: ' + error.message);
+    notify(newRole === 'vip' ? '🎉 Đã cấp VIP cho học sinh!' : '✅ Đã gỡ VIP.');
+    loadClassStudents();
   }
 
   async function addStudent(e) {
@@ -428,10 +444,11 @@
       const newId = signData.user?.id;
       if (!newId) throw new Error('Không lấy được ID tài khoản mới. Có thể dự án đang bật xác nhận Email — hãy tắt "Confirm email" trong Supebase Auth Settings để dùng tính năng này.');
       // 2) Gán hồ sơ + thêm vào lớp bằng hàm RPC an toàn (SECURITY DEFINER)
-      const { error: rpcErr } = await sbClient.rpc('teacher_provision_student', { p_student_id: newId, p_full_name: name, p_class_id: currentClassForModal.id });
+      const chosenRole = pel('stuVip').checked ? 'vip' : 'student';
+      const { error: rpcErr } = await sbClient.rpc('teacher_provision_student', { p_student_id: newId, p_full_name: name, p_class_id: currentClassForModal.id, p_role: chosenRole });
       if (rpcErr) throw rpcErr;
-      notify('🎉 Đã tạo tài khoản & thêm "' + name + '" vào lớp!');
-      pel('stuName').value = ''; pel('stuEmail').value = ''; pel('stuPassword').value = '';
+      notify((chosenRole === 'vip' ? '🎉 Đã tạo tài khoản VIP & thêm "' : '🎉 Đã tạo tài khoản & thêm "') + name + '" vào lớp!');
+      pel('stuName').value = ''; pel('stuEmail').value = ''; pel('stuPassword').value = ''; pel('stuVip').checked = true;
       loadClassStudents(); loadClasses();
     } catch (err) {
       notify('❌ Lỗi thêm học sinh: ' + (err.message || 'Vui lòng thử lại.'));
