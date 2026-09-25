@@ -246,6 +246,14 @@
   </form>
 </div>
 
+<!-- Banner nhắc đổi mật khẩu lần đầu (must_change_password = true) -->
+<div id="mustChangePwBanner" class="hidden flex items-start sm:items-center gap-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded-2xl p-4">
+  <span class="text-xl flex-shrink-0">🔑</span>
+  <p class="flex-1 text-xs sm:text-sm font-semibold text-amber-700 dark:text-amber-300">
+    Đây là mật khẩu ban đầu do giáo viên/admin cấp cho bạn. Vì lý do bảo mật, vui lòng đổi mật khẩu mới ngay bên dưới.
+  </p>
+</div>
+
 <!-- KHOẢNG THAY ĐỔI MẬT KHẨU -->
 <div class="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800">
   <div class="flex justify-between items-center mb-4">
@@ -257,7 +265,7 @@
     </button>
   </div>
 
-  <form onsubmit="handleProfileChangePassword(event)" class="space-y-4">
+  <form onsubmit="handleUpdatePassword(event)" class="space-y-4">
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
       <label for="inputNewPassword" class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">MẬT KHẨU MỚI</label>
@@ -736,7 +744,16 @@ async function initProfile() {
   }
   
   if (typeof toggleProfileEdit === 'function') toggleProfileEdit(false);
-  if (typeof togglePasswordEdit === 'function') togglePasswordEdit(false);
+
+  // Nếu tài khoản đang dùng mật khẩu ban đầu do giáo viên/admin cấp (must_change_password = true):
+  // hiện banner nhắc và tự mở sẵn form đổi mật khẩu để học sinh đổi ngay.
+  if (profile?.must_change_password) {
+    document.getElementById('mustChangePwBanner')?.classList.remove('hidden');
+    if (typeof togglePasswordEdit === 'function') togglePasswordEdit(true);
+    if (typeof notify === 'function') notify('🔑 Vui lòng đổi mật khẩu ban đầu để bảo mật tài khoản.');
+  } else {
+    if (typeof togglePasswordEdit === 'function') togglePasswordEdit(false);
+  }
 }
 async function handleUpdateProfile(e) {
   e.preventDefault();
@@ -807,6 +824,10 @@ async function handleUpdatePassword(e) {
   try {
     const { error } = await sbClient.auth.updateUser({ password: newPassword });
     if (error) throw error;
+
+    // Tắt cờ must_change_password (nếu có) vì học sinh đã tự đổi mật khẩu mới
+    await sbClient.from('profiles').update({ must_change_password: false }).eq('id', currentUser.id);
+    document.getElementById('mustChangePwBanner')?.classList.add('hidden');
 
     notify("🎉 Đổi mật khẩu thành công!");
     togglePasswordEdit(false); // Khóa lại và xóa ô nhập
