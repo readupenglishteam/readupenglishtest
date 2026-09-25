@@ -238,14 +238,18 @@ async function handleAuth(e) {
     const role = profile?.role?.trim().toLowerCase();
 
     if (role === 'admin') {
-      msg.innerHTML = '<i class="bi bi-gear"></i> Đăng nhập Admin thành công';
-      msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
-      setTimeout(() => window.location.href = 'admin.html', 1000);
-    } else {
-      msg.innerHTML = '<i class="bi bi-check-circle"></i> Đăng nhập thành công';
-      msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
-      setTimeout(() => window.location.href = 'dashboard.html', 1000);
-    }
+  msg.innerHTML = '<i class="bi bi-gear"></i> Đăng nhập Admin thành công';
+  msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
+  setTimeout(() => window.location.href = 'admin.html', 1000);
+} else if (role === 'teacher') {
+  msg.innerHTML = '<i class="bi bi-person-badge"></i> Đăng nhập Giảng viên thành công';
+  msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
+  setTimeout(() => window.location.href = 'teacher.html', 1000);
+} else {
+  msg.innerHTML = '<i class="bi bi-check-circle"></i> Đăng nhập thành công';
+  msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
+  setTimeout(() => window.location.href = 'dashboard.html', 1000);
+}
   }
 }
 
