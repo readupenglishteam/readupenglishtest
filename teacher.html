@@ -49,6 +49,9 @@
   .qeditor td,.qeditor th{border:1px solid #d1d5db;padding:6px 8px;min-width:40px}
   .dark .qeditor td,.dark .qeditor th{border-color:#52525b}
   .qeditor audio{width:100%;margin:.5em 0}
+  .qeditor-2col{column-count:2;column-gap:1.8rem}
+  @media (max-width:640px){.qeditor-2col{column-count:1}}
+  .qeditor-2col img,.qeditor-2col table{break-inside:avoid}
 </style>
 
 <!-- ================= HEADER GIÁO VIÊN ================= -->
@@ -204,6 +207,17 @@
       <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('bold')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 font-bold text-xs">B</button>
       <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('italic')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 italic text-xs">I</button>
       <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('underline')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 underline text-xs">U</button>
+      <label class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 flex items-center justify-center cursor-pointer relative" title="Màu chữ">
+        <span class="pointer-events-none font-bold text-xs">A</span>
+        <input type="color" value="#cf1717" onmousedown="event.stopPropagation()" onchange="qcmd('foreColor', this.value)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+      </label>
+      <select onmousedown="event.preventDefault()" onchange="qcmd('fontSize', this.value); this.selectedIndex=0" class="h-7 rounded border-0 bg-transparent hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs" title="Cỡ chữ">
+        <option value="">Cỡ chữ</option>
+        <option value="2">Nhỏ</option>
+        <option value="3">Vừa</option>
+        <option value="5">Lớn</option>
+        <option value="7">Rất lớn</option>
+      </select>
       <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('insertUnorderedList')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs">•≡</button>
       <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('insertOrderedList')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs">1≡</button>
       <label class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs flex items-center justify-center cursor-pointer" title="Chèn ảnh">🖼️
@@ -530,7 +544,7 @@
   let lastFocusedEditable = null;
 
   document.addEventListener('focusin', (e) => { if (e.target.classList && e.target.classList.contains('qeditor')) lastFocusedEditable = e.target; });
-  function qcmd(cmd) { if (!lastFocusedEditable) return notify('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước.'); lastFocusedEditable.focus(); document.execCommand(cmd, false, null); }
+  function qcmd(cmd, value) { if (!lastFocusedEditable) return notify('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước.'); lastFocusedEditable.focus(); document.execCommand(cmd, false, value === undefined ? null : value); }
   function qInsertImage(input) {
     const file = input.files[0]; if (!file || !lastFocusedEditable) return;
     const reader = new FileReader();
@@ -567,7 +581,18 @@
     pel('asDesc').value = assignmentToEdit?.description || '';
     pel('asTimeLimit').value = assignmentToEdit?.time_limit_minutes || '';
     pel('asPublished').checked = assignmentToEdit ? !!assignmentToEdit.is_published : true;
-    blocks = assignmentToEdit ? JSON.parse(JSON.stringify(assignmentToEdit.questions || [])) : [];
+    const rawBlocks = assignmentToEdit ? JSON.parse(JSON.stringify(assignmentToEdit.questions || [])) : [];
+    // Bài đã lưu trước đó có blanks ở dạng mảng [{gap, accepted_answers}] (định dạng lưu xuống DB),
+    // trong khi khung soạn thảo cần dạng object {gap: "đáp án;đáp án"} để hiển thị ô nhập.
+    // Nếu không chuẩn hoá lại ở đây thì lúc lưu (saveAssignment) sẽ bị lỗi "...split is not a function".
+    blocks = rawBlocks.map(b => {
+      if (b.type === 'fill' && Array.isArray(b.blanks)) {
+        const map = {};
+        b.blanks.forEach(bl => { map[bl.gap] = (bl.accepted_answers || []).join('; '); });
+        b.blanks = map;
+      }
+      return b;
+    });
     renderBlocks();
     previewAsToken();
     pel('asTitle').oninput = previewAsToken;
@@ -617,7 +642,10 @@
 
         <div>
           <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">${b.type === 'text' ? 'Nội dung' : 'Nội dung câu hỏi'}</label>
-          <div id="qc-${b.id}" class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700" contenteditable="true" oninput="updateField('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
+          ${b.type === 'text' ? `<label class="flex items-center gap-2 text-[11px] font-bold text-gray-600 dark:text-gray-300 mb-1">
+            <input type="checkbox" ${b.two_col ? 'checked' : ''} onchange="updateField('${b.id}','two_col',this.checked); renderBlocks()"> 📰 Hiển thị bài đọc chia 2 cột (cho bài dài, dễ đọc hơn với học sinh)
+          </label>` : ''}
+          <div id="qc-${b.id}" class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700 ${b.type === 'text' && b.two_col ? 'qeditor-2col' : ''}" contenteditable="true" oninput="updateField('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
         </div>
 
         ${(b.type === 'mcq' || b.type === 'multi' || b.type === 'tf') ? `
@@ -809,7 +837,7 @@
     const questions = currentResultsAssignment.questions || [];
     let qNo = 0;
     pel('gmList').innerHTML = questions.map(q => {
-      if (q.type === 'text') return `<div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-xl p-3 qeditor text-xs">${q.content || ''}</div>`;
+      if (q.type === 'text') return `<div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-xl p-3 qeditor text-xs ${q.two_col ? 'qeditor-2col' : ''}">${q.content || ''}</div>`;
       qNo++;
       const given = r.answers ? r.answers[q.id] : null;
       let bodyHtml = '';
