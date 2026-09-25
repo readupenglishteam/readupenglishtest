@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadUp English - Bài Tập</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
+  <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
+</head>
+<body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen transition-colors duration-300 flex flex-col justify-between">
+
+<!-- ================= NỀN ĐỘNG CHUYỂN ĐỘNG DÙNG CHUNG ================= -->
+<div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none select-none transition-colors duration-500 bg-slate-50 dark:bg-zinc-950">
+  <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#cf1717]/20 dark:bg-[#cf1717]/15 rounded-full blur-3xl animate-blob"></div>
+  <div class="absolute top-1/3 -right-24 w-[30rem] h-[30rem] bg-indigo-500/15 dark:bg-red-900/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+  <div class="absolute -bottom-24 left-1/3 w-96 h-96 bg-amber-500/15 dark:bg-amber-600/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+</div>
+
+<!-- KHUNG TOAST GÓC PHẢI TRÊN (đường màu đỏ chạy phía dưới mỗi thông báo) -->
+<div id="toastContainer" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+<style>
+  @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
+  .animate-toast-bar { animation: toastProgress 5s linear forwards; }
+  @keyframes blob {
+    0%, 100% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.95); }
+  }
+  .animate-blob { animation: blob 10s infinite ease-in-out; }
+  .animation-delay-2000 { animation-delay: 2s; }
+  .animation-delay-4000 { animation-delay: 4s; }
+  .qcontent{line-height:1.8}
+  .qcontent img{max-width:100%;border-radius:10px;margin:.5em 0}
+  .qcontent ul{list-style:disc;padding-left:1.4em}.qcontent ol{list-style:decimal;padding-left:1.4em}
+  .opt-correct{background:rgba(16,185,129,.12)!important;border-color:#10b981!important}
+  .opt-wrong{background:rgba(239,68,68,.12)!important;border-color:#ef4444!important}
+</style>
+
+<!-- ================= HEADER HỌC SINH ================= -->
+<header class="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/60 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-950/60 transition px-4">
+  <div class="max-w-7xl mx-auto h-16 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+      <a href="dashboard.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
+        <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
+      </a>
+      <a href="dashboard.html" class="flex items-center gap-2 hover:opacity-90 transition">
+        <span class="text-2xl font-black text-[#cf1717] tracking-tight">ReadUp</span>
+        <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full shadow-sm">English</span>
+      </a>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="dashboard.html" class="px-3 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-xl transition flex items-center gap-1.5">
+        <span>🏠</span> <span class="hidden sm:inline">Trang chủ</span>
+      </a>
+      <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50">
+        <span id="themeIcon">🌙</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 py-6 w-full flex-1">
+
+  <!-- ============ CHẾ ĐỘ 1: DANH SÁCH BÀI TẬP ============ -->
+  <div id="listView" class="space-y-5">
+    <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
+      <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">📝 Bài Tập Của Tôi</h2>
+      <span id="vipBadge" class="hidden text-xs font-bold px-2.5 py-1 bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-full">⭐ VIP</span>
+    </div>
+
+    <!-- Chặn nếu chưa phải VIP -->
+    <div id="vipLockBox" class="hidden bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-8 text-center space-y-3 shadow-sm">
+      <div class="text-4xl">🔒</div>
+      <h3 class="font-extrabold text-gray-900 dark:text-white">Tính năng dành cho tài khoản VIP</h3>
+      <p class="text-sm text-gray-500 max-w-md mx-auto">Bạn cần nâng cấp lên tài khoản VIP để làm bài tập được giáo viên giao. Vui lòng liên hệ ReadUp English hoặc giáo viên của bạn để được hỗ trợ nâng cấp.</p>
+      <button onclick="openSupportHint()" class="mt-2 px-5 py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow transition">Liên hệ nâng cấp VIP</button>
+    </div>
+
+    <div id="assignGridWrap" class="hidden space-y-4">
+      <div id="assignGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      <div id="pager" class="flex items-center justify-center gap-2 pt-2"></div>
+    </div>
+
+    <p id="emptyMsg" class="hidden text-center text-gray-400 text-sm py-10">Bạn chưa được giao bài tập nào. Hãy tham gia một lớp học trước nhé!</p>
+    <p id="loadingMsg" class="text-center text-gray-400 text-sm py-10">⏳ Đang tải bài tập...</p>
+  </div>
+
+  <!-- ============ CHẾ ĐỘ 2: LÀM BÀI TẬP ============ -->
+  <div id="attemptView" class="hidden space-y-5">
+    <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 shadow-sm space-y-2 sticky top-16 z-20">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h2 id="atTitle" class="text-lg font-extrabold text-gray-900 dark:text-white"></h2>
+          <p id="atDesc" class="text-xs text-gray-500 mt-1"></p>
+        </div>
+        <div id="atTimer" class="hidden flex-shrink-0 text-sm font-extrabold text-[#cf1717] bg-red-50 dark:bg-red-950/40 px-3 py-1.5 rounded-xl">⏱ --:--</div>
+      </div>
+      <a href="assignment.html" class="inline-block text-xs font-bold text-gray-400 hover:text-[#cf1717]">← Quay lại danh sách bài tập</a>
+    </div>
+
+    <div id="questionArea" class="space-y-4"></div>
+
+    <div class="flex justify-end pt-2">
+      <button id="submitBtn" onclick="submitAssignment()" class="bg-[#cf1717] hover:bg-red-700 text-white font-extrabold px-8 py-3 rounded-2xl text-sm shadow-lg transition">✅ Nộp Bài</button>
+    </div>
+  </div>
+
+  <!-- ============ CHẾ ĐỘ 3: KẾT QUẢ ============ -->
+  <div id="resultView" class="hidden space-y-5">
+    <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 text-center shadow-sm space-y-2">
+      <div class="text-4xl">🎉</div>
+      <h2 class="text-xl font-extrabold text-gray-900 dark:text-white">Đã nộp bài thành công!</h2>
+      <p class="text-sm text-gray-500">Điểm tự động: <b id="rsScore" class="text-[#cf1717]"></b></p>
+      <p id="rsEssayNote" class="hidden text-xs text-amber-500">Bài có câu tự luận — giáo viên sẽ chấm và cập nhật điểm sau.</p>
+      <a href="assignment.html" class="inline-block mt-2 text-xs font-bold text-[#cf1717] hover:underline">← Quay lại danh sách bài tập</a>
+    </div>
+    <div id="reviewArea" class="space-y-4"></div>
+  </div>
+
+</main>
+
+<footer class="mt-auto pt-6">
+  <div class="max-w-6xl mx-auto px-4 pb-4 text-center text-gray-400 dark:text-gray-600 text-[11px]">
+    © 2026 ReadUp English. All rights reserved.
+  </div>
+</footer>
+
+<script>
+  // =====================================================================
+  // CẤU HÌNH SUPABASE
+  // =====================================================================
+  const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
+  const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  function pel(id) { return document.getElementById(id); }
+  function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  // =====================================================================
+  // TOAST NOTIFICATION (giống hệ thống chung — đường màu đỏ chạy phía dưới)
+  // =====================================================================
+  function notify(rawMessage) {
+    const msg = String(rawMessage ?? '');
+    const emojiMatch = msg.match(/^(?:\p{Extended_Pictographic}|\uFE0F|\u200D)+\s*/u);
+    let icon = '🔔', text = msg;
+    if (emojiMatch && emojiMatch[0].trim()) { icon = emojiMatch[0].trim(); text = msg.slice(emojiMatch[0].length).trim() || msg; }
+    let title = 'Thông báo';
+    if (/❌/.test(msg) || /lỗi|thất bại|không thể/i.test(msg)) title = 'Lỗi';
+    else if (/⚠️/.test(msg)) title = 'Cảnh báo';
+    else if (/🎉|✅|❤️|💪|💾|📋/.test(msg)) title = 'Thành công';
+    showToastNotification({ title, message: text, icon });
+  }
+  function showToastNotification({ title, message, icon = '🔔' }) {
+    const container = pel('toastContainer'); if (!container) return;
+    const toastId = 'toast-' + Date.now() + Math.random().toString(36).slice(2,6);
+    const html = `
+      <div id="${toastId}" class="pointer-events-auto bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden transform transition-all duration-300 translate-x-full opacity-0 relative">
+        <div class="p-3.5 sm:p-4 flex items-start gap-3">
+          <div class="w-9 h-9 rounded-full bg-red-50 dark:bg-red-950/80 flex-shrink-0 flex items-center justify-center text-[#cf1717] dark:text-red-400 font-bold text-base shadow-sm">${icon}</div>
+          <div class="flex-1 pr-4">
+            <h4 class="text-xs sm:text-sm font-bold text-gray-900 dark:text-white leading-tight">${title}</h4>
+            <p class="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">${message}</p>
+          </div>
+          <button onclick="closeToast('${toastId}')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white text-base leading-none p-1">✕</button>
+        </div>
+        <div class="h-1 bg-red-100 dark:bg-zinc-800 w-full"><div class="h-full bg-[#cf1717] animate-toast-bar"></div></div>
+      </div>`;
+    container.insertAdjacentHTML('beforeend', html);
+    const el = pel(toastId);
+    setTimeout(() => el.classList.remove('translate-x-full', 'opacity-0'), 50);
+    setTimeout(() => closeToast(toastId), 5000);
+  }
+  function closeToast(id) { const el = pel(id); if (!el) return; el.classList.add('translate-x-full', 'opacity-0'); setTimeout(() => el.remove(), 300); }
+  function openSupportHint() { notify('ℹ️ Vui lòng liên hệ trực tiếp giáo viên hoặc admin ReadUp English để nâng cấp VIP.'); }
+
+  function toggleDarkMode() {
+    if (document.documentElement.classList.contains('dark')) { document.documentElement.classList.remove('dark'); localStorage.theme = 'light'; }
+    else { document.documentElement.classList.add('dark'); localStorage.theme = 'dark'; }
+  }
+
+  // =====================================================================
+  // TRẠNG THÁI CHUNG
+  // =====================================================================
+  let currentUser = null, myProfile = null;
+  let allAssignments = [];
+  let currentPage = 1;
+  const PAGE_SIZE = 6;
+  let currentAssignment = null;
+  let timerInterval = null;
+
+  async function init() {
+    const { data: { user } } = await sbClient.auth.getUser();
+    if (!user) { window.location.href = 'index.html'; return; }
+    currentUser = user;
+    const { data: profile } = await sbClient.from('profiles').select('full_name, membership, role').eq('id', user.id).single();
+    myProfile = profile || { membership: 'free' };
+
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) loadAttempt(token);
+    else loadList();
+  }
+
+  // =====================================================================
+  // CHẾ ĐỘ DANH SÁCH
+  // =====================================================================
+  async function loadList() {
+    pel('listView').classList.remove('hidden');
+    if (myProfile.membership !== 'vip') {
+      pel('loadingMsg').classList.add('hidden');
+      pel('vipLockBox').classList.remove('hidden');
+      return;
+    }
+    pel('vipBadge').classList.remove('hidden');
+
+    // Lấy danh sách lớp mà học sinh tham gia, sau đó lấy bài tập đã xuất bản của các lớp đó
+    const { data: classRows } = await sbClient.from('class_students').select('class_id').eq('student_id', currentUser.id);
+    const classIds = (classRows || []).map(r => r.class_id);
+    pel('loadingMsg').classList.add('hidden');
+    if (!classIds.length) { pel('emptyMsg').classList.remove('hidden'); return; }
+
+    const { data, error } = await sbClient.from('assignments').select('id, token, title, description, total_points, created_at, classes(title, class_code)')
+      .in('class_id', classIds).eq('is_published', true).order('created_at', { ascending: false });
+    if (error) { notify('❌ Lỗi tải bài tập: ' + error.message); return; }
+    allAssignments = data || [];
+    if (!allAssignments.length) { pel('emptyMsg').classList.remove('hidden'); return; }
+
+    // Kiểm tra bài nào học sinh đã nộp
+    const { data: myAttempts } = await sbClient.from('assignment_attempts').select('assignment_id, auto_score, total_points').eq('student_id', currentUser.id);
+    const attemptMap = {}; (myAttempts || []).forEach(a => attemptMap[a.assignment_id] = a);
+    allAssignments.forEach(a => a._attempt = attemptMap[a.id] || null);
+
+    pel('assignGridWrap').classList.remove('hidden');
+    currentPage = 1;
+    renderPage();
+  }
+
+  function renderPage() {
+    const totalPages = Math.max(1, Math.ceil(allAssignments.length / PAGE_SIZE));
+    if (currentPage > totalPages) currentPage = totalPages;
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const pageItems = allAssignments.slice(start, start + PAGE_SIZE);
+
+    pel('assignGrid').innerHTML = pageItems.map(a => `
+      <a href="assignment.html?token=${encodeURIComponent(a.token)}" class="block bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 space-y-2 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold px-2 py-0.5 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">${esc(a.classes?.class_code || '')}</span>
+          ${a._attempt ? `<span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 rounded-full">Đã nộp: ${a._attempt.auto_score}/${a._attempt.total_points}</span>` : `<span class="text-[10px] font-bold px-2 py-0.5 bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-full">Chưa làm</span>`}
+        </div>
+        <h4 class="font-bold text-sm text-gray-900 dark:text-white line-clamp-2">${esc(a.title)}</h4>
+        <p class="text-xs text-gray-400 line-clamp-2">${esc(a.description || '')}</p>
+        <p class="text-[10px] text-gray-400">${a.total_points} điểm · ${new Date(a.created_at).toLocaleDateString('vi-VN')}</p>
+      </a>`).join('');
+
+    let pagerHtml = '';
+    for (let i = 1; i <= totalPages; i++) {
+      pagerHtml += `<button onclick="goPage(${i})" class="w-8 h-8 rounded-lg text-xs font-bold transition ${i === currentPage ? 'bg-[#cf1717] text-white' : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-700'}">${i}</button>`;
+    }
+    pel('pager').innerHTML = totalPages > 1 ? pagerHtml : '';
+  }
+  function goPage(p) { currentPage = p; renderPage(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+
+  // =====================================================================
+  // CHẾ ĐỘ LÀM BÀI (theo token)
+  // =====================================================================
+  async function loadAttempt(token) {
+    if (myProfile.membership !== 'vip') {
+      pel('listView').classList.remove('hidden');
+      pel('loadingMsg').classList.add('hidden');
+      pel('vipLockBox').classList.remove('hidden');
+      return;
+    }
+    const { data: a, error } = await sbClient.from('assignments').select('*, classes(title, class_code)').eq('token', token).eq('is_published', true).maybeSingle();
+    if (error || !a) { notify('❌ Không tìm thấy bài tập hoặc bài chưa được xuất bản.'); pel('listView').classList.remove('hidden'); pel('loadingMsg').classList.add('hidden'); pel('emptyMsg').classList.remove('hidden'); return; }
+
+    // Kiểm tra học sinh có thuộc lớp này không
+    const { data: membership } = await sbClient.from('class_students').select('id').eq('class_id', a.class_id).eq('student_id', currentUser.id).maybeSingle();
+    if (!membership) { notify('❌ Bạn không thuộc lớp học của bài tập này.'); pel('listView').classList.remove('hidden'); pel('loadingMsg').classList.add('hidden'); pel('emptyMsg').classList.remove('hidden'); return; }
+
+    // Nếu đã nộp rồi -> hiển thị lại kết quả cũ thay vì cho làm lại
+    const { data: prevAttempt } = await sbClient.from('assignment_attempts').select('*').eq('assignment_id', a.id).eq('student_id', currentUser.id).order('submitted_at', { ascending: false }).limit(1).maybeSingle();
+    if (prevAttempt) { showResult(a, prevAttempt); return; }
+
+    currentAssignment = a;
+    pel('atTitle').innerText = a.title;
+    pel('atDesc').innerText = a.description || '';
+    pel('attemptView').classList.remove('hidden');
+
+    const gradable = (a.questions || []).filter(q => q.type !== 'text');
+    let qNo = 0;
+    pel('questionArea').innerHTML = (a.questions || []).map(q => {
+      if (q.type === 'text') return `<div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-2xl p-4 qcontent text-sm">${q.content || ''}</div>`;
+      qNo++;
+      return renderQuestionInput(q, qNo);
+    }).join('');
+
+    if (a.time_limit_minutes) startTimer(a.time_limit_minutes * 60);
+  }
+
+  function renderQuestionInput(q, qNo) {
+    let inputHtml = '';
+    if (q.type === 'mcq' || q.type === 'tf') {
+      inputHtml = (q.options || []).map(o => `
+        <label class="flex items-center gap-2 p-2.5 border dark:border-zinc-700 rounded-xl cursor-pointer hover:border-[#cf1717] transition">
+          <input type="radio" name="ans-${q.id}" value="${esc(o.id)}"> <span class="text-sm">${esc(o.text)}</span>
+        </label>`).join('');
+    } else if (q.type === 'multi') {
+      inputHtml = (q.options || []).map(o => `
+        <label class="flex items-center gap-2 p-2.5 border dark:border-zinc-700 rounded-xl cursor-pointer hover:border-[#cf1717] transition">
+          <input type="checkbox" name="ans-${q.id}" value="${esc(o.id)}"> <span class="text-sm">${esc(o.text)}</span>
+        </label>`).join('');
+    } else if (q.type === 'fill') {
+      inputHtml = `<input type="text" id="ans-${q.id}" placeholder="Nhập câu trả lời..." class="w-full p-2.5 rounded-xl border dark:bg-zinc-800 dark:border-zinc-700 text-sm">`;
+    } else if (q.type === 'essay') {
+      inputHtml = `<textarea id="ans-${q.id}" rows="5" placeholder="Viết câu trả lời của bạn..." class="w-full p-2.5 rounded-xl border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></textarea>`;
+    }
+    return `
+      <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm" data-q="${q.id}">
+        <p class="text-xs font-bold text-[#cf1717]">Câu ${qNo} · ${q.points} điểm</p>
+        <div class="qcontent text-sm text-gray-900 dark:text-white">${q.content || ''}</div>
+        <div class="space-y-2">${inputHtml}</div>
+      </div>`;
+  }
+
+  function startTimer(seconds) {
+    let remain = seconds;
+    const box = pel('atTimer'); box.classList.remove('hidden');
+    function tick() {
+      const m = Math.floor(remain / 60), s = remain % 60;
+      box.innerText = `⏱ ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      if (remain <= 0) { clearInterval(timerInterval); notify('⚠️ Hết giờ! Bài tập tự động nộp.'); submitAssignment(); return; }
+      remain--;
+    }
+    tick(); timerInterval = setInterval(tick, 1000);
+  }
+
+  // =====================================================================
+  // NỘP BÀI & CHẤM ĐIỂM TỰ ĐỘNG
+  // =====================================================================
+  async function submitAssignment() {
+    if (!currentAssignment) return;
+    if (timerInterval) clearInterval(timerInterval);
+    const btn = pel('submitBtn'); btn.disabled = true; btn.innerText = 'Đang nộp bài...';
+
+    const answers = {};
+    let auto_score = 0, has_essay = false;
+    (currentAssignment.questions || []).forEach(q => {
+      if (q.type === 'text') return;
+      if (q.type === 'mcq' || q.type === 'tf') {
+        const el = document.querySelector(`input[name="ans-${q.id}"]:checked`);
+        const val = el ? el.value : null;
+        answers[q.id] = val;
+        const correctOpt = (q.options || []).find(o => o.correct);
+        if (val && correctOpt && val === correctOpt.id) auto_score += (parseFloat(q.points) || 0);
+      } else if (q.type === 'multi') {
+        const checked = Array.from(document.querySelectorAll(`input[name="ans-${q.id}"]:checked`)).map(x => x.value);
+        answers[q.id] = checked;
+        const correctIds = (q.options || []).filter(o => o.correct).map(o => o.id).sort();
+        const givenIds = [...checked].sort();
+        if (correctIds.length && JSON.stringify(correctIds) === JSON.stringify(givenIds)) auto_score += (parseFloat(q.points) || 0);
+      } else if (q.type === 'fill') {
+        const val = (pel('ans-' + q.id)?.value || '').trim();
+        answers[q.id] = val;
+        const accepted = (q.accepted_answers || []).map(a => a.toLowerCase().trim());
+        if (val && accepted.includes(val.toLowerCase())) auto_score += (parseFloat(q.points) || 0);
+      } else if (q.type === 'essay') {
+        const val = pel('ans-' + q.id)?.value || '';
+        answers[q.id] = val;
+        has_essay = true;
+      }
+    });
+
+    const row = {
+      assignment_id: currentAssignment.id, student_id: currentUser.id, answers,
+      auto_score, total_points: currentAssignment.total_points || 0, has_essay
+    };
+    const { data: saved, error } = await sbClient.from('assignment_attempts').insert([row]).select().single();
+    if (error) { notify('❌ Lỗi nộp bài: ' + error.message); btn.disabled = false; btn.innerText = '✅ Nộp Bài'; return; }
+    notify('🎉 Nộp bài thành công!');
+    showResult(currentAssignment, saved);
+  }
+
+  // =====================================================================
+  // HIỂN THỊ KẾT QUẢ + GIẢI THÍCH ĐÁP ÁN
+  // =====================================================================
+  function showResult(a, attempt) {
+    pel('listView').classList.add('hidden');
+    pel('attemptView').classList.add('hidden');
+    pel('resultView').classList.remove('hidden');
+    pel('rsScore').innerText = `${attempt.auto_score} / ${attempt.total_points}`;
+    if (attempt.has_essay) pel('rsEssayNote').classList.remove('hidden');
+
+    let qNo = 0;
+    pel('reviewArea').innerHTML = (a.questions || []).map(q => {
+      if (q.type === 'text') return `<div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-2xl p-4 qcontent text-sm">${q.content || ''}</div>`;
+      qNo++;
+      const given = attempt.answers ? attempt.answers[q.id] : null;
+      let bodyHtml = '';
+      if (q.type === 'mcq' || q.type === 'tf' || q.type === 'multi') {
+        const givenArr = Array.isArray(given) ? given : (given ? [given] : []);
+        bodyHtml = (q.options || []).map(o => {
+          let cls = 'border dark:border-zinc-700';
+          if (o.correct) cls = 'opt-correct border';
+          else if (givenArr.includes(o.id)) cls = 'opt-wrong border';
+          return `<div class="p-2.5 rounded-xl ${cls} text-sm flex items-center gap-2">
+            ${givenArr.includes(o.id) ? '👉 ' : ''}${esc(o.text)} ${o.correct ? ' <span class="text-emerald-600 font-bold text-xs">(Đáp án đúng)</span>' : ''}
+          </div>`;
+        }).join('');
+      } else if (q.type === 'fill') {
+        const accepted = (q.accepted_answers || []).join(', ');
+        const isCorrect = (q.accepted_answers || []).map(x => x.toLowerCase().trim()).includes((given || '').toLowerCase().trim());
+        bodyHtml = `<div class="p-2.5 rounded-xl border text-sm ${isCorrect ? 'opt-correct' : 'opt-wrong'}">Bạn trả lời: <b>${esc(given || '(bỏ trống)')}</b></div>
+          <p class="text-xs text-gray-500 mt-1">Đáp án chấp nhận: ${esc(accepted)}</p>`;
+      } else if (q.type === 'essay') {
+        bodyHtml = `<div class="p-2.5 rounded-xl border dark:border-zinc-700 text-sm whitespace-pre-wrap">${esc(given || '(bỏ trống)')}</div>
+          <p class="text-xs text-amber-500 mt-1">📄 Câu tự luận — chờ giáo viên chấm điểm.</p>`;
+      }
+      return `
+        <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm">
+          <p class="text-xs font-bold text-[#cf1717]">Câu ${qNo} · ${q.points} điểm</p>
+          <div class="qcontent text-sm text-gray-900 dark:text-white">${q.content || ''}</div>
+          <div class="space-y-2">${bodyHtml}</div>
+          ${q.explanation ? `<div class="pt-2 border-t dark:border-zinc-800"><p class="text-[10px] font-bold uppercase text-gray-400 mb-1">💡 Giải thích</p><div class="qcontent text-xs text-gray-600 dark:text-gray-300">${q.explanation}</div></div>` : ''}
+        </div>`;
+    }).join('');
+  }
+
+  window.onload = init;
+</script>
+</body>
+</html>
