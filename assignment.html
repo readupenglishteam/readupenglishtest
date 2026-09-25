@@ -48,6 +48,9 @@
   .qcontent td,.qcontent th{border:1px solid #d1d5db;padding:6px 8px}
   .dark .qcontent td,.dark .qcontent th{border-color:#3f3f46}
   .qcontent audio{width:100%;margin:.5em 0}
+  .qcontent-2col{column-count:2;column-gap:2rem}
+  @media (max-width:640px){.qcontent-2col{column-count:1}}
+  .qcontent-2col img,.qcontent-2col table{break-inside:avoid}
   .opt-correct{background:rgba(16,185,129,.12)!important;border-color:#10b981!important}
   .opt-wrong{background:rgba(239,68,68,.12)!important;border-color:#ef4444!important}
 </style>
@@ -313,7 +316,8 @@
     if (!allAssignments.length) { pel('emptyMsg').classList.remove('hidden'); return; }
 
     // Kiểm tra bài nào học sinh đã nộp
-    const { data: myAttempts } = await sbClient.from('assignment_attempts').select('assignment_id, auto_score, total_points, manual_scores').eq('student_id', currentUser.id);
+    const { data: myAttempts, error: attErr } = await sbClient.from('assignment_attempts').select('assignment_id, auto_score, total_points, manual_scores').eq('student_id', currentUser.id);
+    if (attErr) notify('⚠️ Không tải được trạng thái bài đã nộp: ' + attErr.message);
     const attemptMap = {}; (myAttempts || []).forEach(a => attemptMap[a.assignment_id] = a);
     allAssignments.forEach(a => a._attempt = attemptMap[a.id] || null);
 
@@ -376,7 +380,7 @@
     const gradable = (a.questions || []).filter(q => q.type !== 'text');
     let qNo = 0;
     pel('questionArea').innerHTML = (a.questions || []).map(q => {
-      if (q.type === 'text') return `<div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-2xl p-4 qcontent text-sm">${q.content || ''}</div>`;
+      if (q.type === 'text') return `<div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-2xl p-4 qcontent text-sm ${q.two_col ? 'qcontent-2col' : ''}">${q.content || ''}</div>`;
       qNo++;
       return renderQuestionInput(q, qNo);
     }).join('');
@@ -413,9 +417,14 @@
   function renderFillBlock(q, qNo) {
     let contentHtml;
     if (q.blanks && q.blanks.length) {
-      contentHtml = (q.content || '').replace(/\{\{(\d+)\}\}/g, (m, n) =>
-        `<input type="text" id="ans-${q.id}-${n}" data-gap="${n}" placeholder="…" class="inline-block w-28 sm:w-36 mx-1 px-2 py-1 rounded-lg border-2 border-[#cf1717]/40 dark:bg-zinc-800 dark:border-red-900 text-sm font-semibold align-middle focus:outline-none focus:ring-2 focus:ring-[#cf1717]">`
-      );
+      contentHtml = (q.content || '').replace(/\{\{(\d+)\}\}/g, (m, n) => {
+        const bl = q.blanks.find(b => String(b.gap) === n);
+        const hintLen = (bl && bl.accepted_answers && bl.accepted_answers.length)
+          ? Math.max(...bl.accepted_answers.map(a => String(a).length)) : 6;
+        const chWidth = Math.min(Math.max(hintLen + 3, 5), 28);
+        return `<input type="text" id="ans-${q.id}-${n}" data-gap="${n}" placeholder="…" oninput="autoGrowFillInput(this)" style="width:${chWidth}ch"
+          class="inline-block mx-1 px-2 py-1 rounded-lg border-2 border-[#cf1717]/40 dark:bg-zinc-800 dark:border-red-900 text-sm font-semibold align-middle focus:outline-none focus:ring-2 focus:ring-[#cf1717]">`;
+      });
     } else {
       contentHtml = `${q.content || ''}<div class="mt-3"><input type="text" id="ans-${q.id}" placeholder="Nhập câu trả lời..." class="w-full p-2.5 rounded-xl border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></div>`;
     }
@@ -424,6 +433,12 @@
         <p class="text-xs font-bold text-[#cf1717]">Câu ${qNo} · ${q.points} điểm</p>
         <div class="qcontent text-sm text-gray-900 dark:text-white leading-loose">${contentHtml}</div>
       </div>`;
+  }
+
+  // Ô điền khuyết tự nới rộng theo độ dài học sinh đang gõ, để dễ nhìn & sửa (tối thiểu 5ch, tối đa 32ch)
+  function autoGrowFillInput(el) {
+    const len = Math.max(el.value.length + 3, 5);
+    el.style.width = Math.min(len, 32) + 'ch';
   }
 
   function startTimer(seconds) {
@@ -518,7 +533,7 @@
 
     let qNo = 0;
     pel('reviewArea').innerHTML = (a.questions || []).map(q => {
-      if (q.type === 'text') return `<div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-2xl p-4 qcontent text-sm">${q.content || ''}</div>`;
+      if (q.type === 'text') return `<div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-2xl p-4 qcontent text-sm ${q.two_col ? 'qcontent-2col' : ''}">${q.content || ''}</div>`;
       qNo++;
       const given = attempt.answers ? attempt.answers[q.id] : null;
       let bodyHtml = '';
