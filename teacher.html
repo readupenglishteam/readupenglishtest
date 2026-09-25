@@ -211,7 +211,7 @@
         <span class="pointer-events-none font-bold text-xs">A</span>
         <input type="color" value="#cf1717" onmousedown="event.stopPropagation()" onchange="qcmd('foreColor', this.value)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
       </label>
-      <select onmousedown="event.preventDefault()" onchange="qcmd('fontSize', this.value); this.selectedIndex=0" class="h-7 rounded border-0 bg-transparent hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs" title="Cỡ chữ">
+      <select onchange="qcmd('fontSize', this.value); this.selectedIndex=0" class="h-7 rounded border-0 bg-transparent hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs" title="Cỡ chữ">
         <option value="">Cỡ chữ</option>
         <option value="2">Nhỏ</option>
         <option value="3">Vừa</option>
@@ -542,9 +542,21 @@
   // =====================================================================
   let blocks = []; // mảng câu hỏi hiện tại đang soạn
   let lastFocusedEditable = null;
+  let savedRange = null;
 
   document.addEventListener('focusin', (e) => { if (e.target.classList && e.target.classList.contains('qeditor')) lastFocusedEditable = e.target; });
-  function qcmd(cmd, value) { if (!lastFocusedEditable) return notify('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước.'); lastFocusedEditable.focus(); document.execCommand(cmd, false, value === undefined ? null : value); }
+  document.addEventListener('selectionchange', () => {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount || !lastFocusedEditable) return;
+    const range = sel.getRangeAt(0);
+    if (lastFocusedEditable.contains(range.commonAncestorContainer)) savedRange = range.cloneRange();
+  });
+  function qcmd(cmd, value) {
+    if (!lastFocusedEditable) return notify('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước.');
+    lastFocusedEditable.focus();
+    if (savedRange) { const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedRange); }
+    document.execCommand(cmd, false, value === undefined ? null : value);
+  }
   function qInsertImage(input) {
     const file = input.files[0]; if (!file || !lastFocusedEditable) return;
     const reader = new FileReader();
