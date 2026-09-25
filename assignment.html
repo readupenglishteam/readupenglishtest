@@ -30,6 +30,9 @@
 <!-- KHUNG TOAST GÓC PHẢI TRÊN (đường màu đỏ chạy phía dưới mỗi thông báo) -->
 <div id="toastContainer" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
 
+<!-- Nút nổi để đánh dấu (highlight) đoạn văn bản học sinh vừa bôi đen trong bài đọc -->
+<button id="hlFloatBtn" onclick="applyHighlight()" class="hidden fixed z-[9999] bg-[#cf1717] text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg items-center gap-1">🖍 Đánh dấu</button>
+
 <style>
   @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
   .animate-toast-bar { animation: toastProgress 5s linear forwards; }
@@ -51,6 +54,10 @@
   .qcontent-2col{column-count:2;column-gap:2rem}
   @media (max-width:640px){.qcontent-2col{column-count:1}}
   .qcontent-2col img,.qcontent-2col table{break-inside:avoid}
+  mark.hl{background:#fde047;color:inherit;padding:0 1px;border-radius:2px;cursor:pointer;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+  .dark mark.hl{background:#a16207;color:#fff}
+  .hl-zone{-webkit-user-select:text;user-select:text}
+  #hlFloatBtn{transition:opacity .1s ease}
   .opt-correct{background:rgba(16,185,129,.12)!important;border-color:#10b981!important}
   .opt-wrong{background:rgba(239,68,68,.12)!important;border-color:#ef4444!important}
 </style>
@@ -162,7 +169,10 @@
       <a href="assignment.html" class="inline-block text-xs font-bold text-gray-400 hover:text-[#cf1717]">← Quay lại danh sách bài tập</a>
     </div>
 
-    <div id="questionArea" class="space-y-4"></div>
+    <div id="attemptSplit" class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+      <div id="readingPane" class="hidden space-y-4 lg:sticky lg:top-40 lg:max-h-[calc(100vh-11rem)] lg:overflow-y-auto pr-1 -mr-1"></div>
+      <div id="questionArea" class="space-y-4 lg:max-h-[calc(100vh-11rem)] lg:overflow-y-auto pr-1 -mr-1"></div>
+    </div>
 
     <div class="flex justify-end pt-2">
       <button id="submitBtn" onclick="submitAssignment()" class="bg-[#cf1717] hover:bg-red-700 text-white font-extrabold px-8 py-3 rounded-2xl text-sm shadow-lg transition">✅ Nộp Bài</button>
@@ -378,12 +388,31 @@
     pel('attemptView').classList.remove('hidden');
 
     const gradable = (a.questions || []).filter(q => q.type !== 'text');
-    let qNo = 0;
-    pel('questionArea').innerHTML = (a.questions || []).map(q => {
-      if (q.type === 'text') return `<div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-2xl p-4 qcontent text-sm ${q.two_col ? 'qcontent-2col' : ''}">${q.content || ''}</div>`;
-      qNo++;
-      return renderQuestionInput(q, qNo);
-    }).join('');
+    let qNo = 0, passageNo = 0, readingHtml = '', questionHtml = '';
+    (a.questions || []).forEach(q => {
+      if (q.type === 'text') {
+        passageNo++;
+        readingHtml += `<div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-2xl p-4 qcontent text-sm hl-zone ${q.two_col ? 'qcontent-2col' : ''}" data-passage="${passageNo}">
+          <p class="text-[10px] font-extrabold uppercase text-amber-600 dark:text-amber-400 mb-2 select-none">📖 Bài đọc ${passageNo}</p>
+          ${q.content || ''}
+        </div>`;
+        questionHtml += `<p class="text-[10px] font-extrabold uppercase text-gray-400 dark:text-gray-500 pt-1 first:pt-0 select-none">📖 Câu hỏi thuộc Bài đọc ${passageNo}</p>`;
+      } else {
+        qNo++;
+        questionHtml += renderQuestionInput(q, qNo);
+      }
+    });
+
+    const readingPane = pel('readingPane'), split = pel('attemptSplit');
+    if (passageNo > 0) {
+      readingPane.innerHTML = readingHtml;
+      readingPane.classList.remove('hidden');
+      split.classList.add('lg:grid-cols-2'); split.classList.remove('lg:grid-cols-1');
+    } else {
+      readingPane.innerHTML = ''; readingPane.classList.add('hidden');
+      split.classList.remove('lg:grid-cols-2'); split.classList.add('lg:grid-cols-1');
+    }
+    pel('questionArea').innerHTML = questionHtml;
 
     if (a.time_limit_minutes) startTimer(a.time_limit_minutes * 60);
   }
@@ -440,6 +469,52 @@
     const len = Math.max(el.value.length + 3, 5);
     el.style.width = Math.min(len, 32) + 'ch';
   }
+
+  // =====================================================================
+  // ĐÁNH DẤU (HIGHLIGHT) TRONG BÀI ĐỌC — hoạt động cả trên điện thoại (chạm & giữ để bôi đen)
+  // =====================================================================
+  let hlPendingRange = null;
+  function isInHlZone(node) {
+    const el = node && (node.nodeType === 3 ? node.parentElement : node);
+    return !!(el && el.closest && el.closest('.hl-zone'));
+  }
+  function positionHlBtn(rect) {
+    const btn = pel('hlFloatBtn');
+    const left = Math.max(8, Math.min(window.innerWidth - 118, rect.left + rect.width / 2 - 55));
+    const top = Math.max(8, rect.top - 42);
+    btn.style.left = left + 'px'; btn.style.top = top + 'px';
+    btn.classList.remove('hidden'); btn.classList.add('flex');
+  }
+  function hideHlBtn() { const btn = pel('hlFloatBtn'); btn.classList.add('hidden'); btn.classList.remove('flex'); }
+  document.addEventListener('selectionchange', () => {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.rangeCount) { hlPendingRange = null; hideHlBtn(); return; }
+    const range = sel.getRangeAt(0);
+    if (!isInHlZone(range.commonAncestorContainer)) { hlPendingRange = null; hideHlBtn(); return; }
+    hlPendingRange = range.cloneRange();
+    const rect = range.getBoundingClientRect();
+    if (!rect || (!rect.width && !rect.height)) { hideHlBtn(); return; }
+    positionHlBtn(rect);
+  });
+  function applyHighlight() {
+    if (!hlPendingRange) return;
+    try {
+      const mark = document.createElement('mark');
+      mark.className = 'hl';
+      mark.onclick = (e) => { e.stopPropagation(); removeHighlight(mark); };
+      mark.appendChild(hlPendingRange.extractContents());
+      hlPendingRange.insertNode(mark);
+    } catch (e) { /* vùng chọn phức tạp — bỏ qua an toàn */ }
+    window.getSelection().removeAllRanges();
+    hlPendingRange = null; hideHlBtn();
+  }
+  function removeHighlight(markEl) {
+    const parent = markEl.parentNode; if (!parent) return;
+    while (markEl.firstChild) parent.insertBefore(markEl.firstChild, markEl);
+    parent.removeChild(markEl);
+  }
+
+  window.addEventListener('scroll', hideHlBtn, true);
 
   function startTimer(seconds) {
     let remain = seconds;
