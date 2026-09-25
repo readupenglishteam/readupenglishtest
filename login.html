@@ -245,6 +245,10 @@ async function handleAuth(e) {
   msg.innerHTML = '<i class="bi bi-person-badge"></i> Đăng nhập Giảng viên thành công';
   msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
   setTimeout(() => window.location.href = 'teacher.html', 1000);
+} else if (role === 'vip') {
+  msg.innerHTML = '<i class="bi bi-star"></i> Đăng nhập VIP thành công';
+  msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
+  setTimeout(() => window.location.href = 'assignment.html', 1000);
 } else {
   msg.innerHTML = '<i class="bi bi-check-circle"></i> Đăng nhập thành công';
   msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
