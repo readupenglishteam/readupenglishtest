@@ -60,18 +60,63 @@
         <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full shadow-sm">English</span>
       </a>
     </div>
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3 relative">
       <a href="dashboard.html" class="px-3 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-xl transition flex items-center gap-1.5">
         <span>🏠</span> <span class="hidden sm:inline">Trang chủ</span>
       </a>
-      <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50">
-        <span id="themeIcon">🌙</span>
-      </button>
+
+      <!-- Nút Menu 3 Gạch: Dải chọn nhanh tới mục / Bài Post -->
+      <div class="relative">
+        <button onclick="toggleSectionNavMenu(event)" class="w-9 h-9 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-zinc-700 hover:scale-105 transition shadow-md flex items-center justify-center" title="Chuyển nhanh tới mục">
+          <svg class="w-5 h-5 fill-current" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+          </svg>
+        </button>
+        <div id="sectionNavMenu" class="hidden absolute right-0 mt-2 w-60 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl py-2 z-50 transition-all">
+          <p class="px-4 pt-1 pb-2 text-[10px] font-extrabold text-gray-400 uppercase tracking-wide">Chuyển nhanh tới mục</p>
+          <a href="post.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition"><span>📖</span><span>Bài Học (Post)</span></a>
+          <a href="assignment.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-950/30"><span>⭐</span><span>Assignment (VIP)</span></a>
+          <a href="dashboard.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition"><span>🏠</span><span>Trang chủ Dashboard</span></a>
+        </div>
+      </div>
+
+      <!-- Nút Avatar / Trang cá nhân -->
+      <div class="relative">
+        <button onclick="toggleUserDropdown(event)" class="relative p-1.5 rounded-full bg-red-50 dark:bg-zinc-800 border-2 border-[#cf1717] text-[#cf1717] dark:text-red-400 hover:scale-105 transition shadow-md flex items-center justify-center w-11 h-11">
+          <div class="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
+            <svg class="w-7 h-7 fill-current" viewBox="0 0 16 16">
+              <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+              <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+            </svg>
+          </div>
+        </button>
+        <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-52 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl py-2 z-50 transition-all">
+          <a href="profile.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-[#cf1717] dark:text-red-400 bg-red-50/50 dark:bg-red-950/30">
+            <span>👤</span><span>Trang cá nhân</span>
+          </a>
+          <button onclick="toggleDarkMode()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
+            <span id="themeIcon">🌙</span> Sáng/Tối
+          </button>
+          <div class="border-t border-gray-100 dark:border-zinc-800 my-1"></div>
+          <button onclick="handleLogout()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition">
+            <span>🚪</span> Đăng xuất
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </header>
 
 <main class="max-w-5xl mx-auto px-4 py-6 w-full flex-1">
+
+  <!-- Banner nhắc đổi mật khẩu lần đầu (must_change_password = true) -->
+  <div id="mustChangePwBanner" class="hidden mb-5 flex items-start sm:items-center gap-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded-2xl p-4">
+    <span class="text-xl flex-shrink-0">🔑</span>
+    <p class="flex-1 text-xs sm:text-sm font-semibold text-amber-700 dark:text-amber-300">
+      Đây là mật khẩu ban đầu do giáo viên/admin cấp. Vì lý do bảo mật, vui lòng đổi mật khẩu mới trước khi tiếp tục.
+    </p>
+    <a href="profile.html" class="flex-shrink-0 px-3 py-1.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow transition">Đổi mật khẩu ngay</a>
+  </div>
 
   <!-- ============ CHẾ ĐỘ 1: DANH SÁCH BÀI TẬP ============ -->
   <div id="listView" class="space-y-5">
@@ -189,6 +234,27 @@
     else { document.documentElement.classList.add('dark'); localStorage.theme = 'dark'; }
   }
 
+  // ===== Dropdown "dải chọn" (menu section) & menu Trang cá nhân =====
+  function toggleSectionNavMenu(e) {
+    if (e) e.stopPropagation();
+    pel('userDropdownMenu')?.classList.add('hidden');
+    pel('sectionNavMenu')?.classList.toggle('hidden');
+  }
+  function toggleUserDropdown(e) {
+    if (e) e.stopPropagation();
+    pel('sectionNavMenu')?.classList.add('hidden');
+    pel('userDropdownMenu')?.classList.toggle('hidden');
+  }
+  document.addEventListener('click', () => {
+    pel('sectionNavMenu')?.classList.add('hidden');
+    pel('userDropdownMenu')?.classList.add('hidden');
+  });
+  async function handleLogout() {
+    sessionStorage.clear();
+    await sbClient.auth.signOut();
+    window.location.href = 'index.html';
+  }
+
   // =====================================================================
   // TRẠNG THÁI CHUNG
   // =====================================================================
@@ -203,8 +269,14 @@
     const { data: { user } } = await sbClient.auth.getUser();
     if (!user) { window.location.href = 'index.html'; return; }
     currentUser = user;
-    const { data: profile } = await sbClient.from('profiles').select('full_name, role').eq('id', user.id).single();
+    const { data: profile } = await sbClient.from('profiles').select('full_name, role, must_change_password').eq('id', user.id).single();
     myProfile = profile || { role: 'student' };
+
+    // Nhắc đổi mật khẩu lần đầu nếu tài khoản do giáo viên/admin tạo hộ (must_change_password = true)
+    if (myProfile.must_change_password) {
+      pel('mustChangePwBanner')?.classList.remove('hidden');
+      notify('🔑 Vui lòng đổi mật khẩu ban đầu do giáo viên cấp trong trang Hồ sơ cá nhân.');
+    }
 
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
