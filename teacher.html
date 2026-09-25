@@ -45,6 +45,10 @@
   .dark .qeditor{color:#e4e4e7}
   .qeditor img{max-width:100%;border-radius:10px;margin:.5em 0}
   .qeditor:focus{outline:none}
+  .qeditor table{border-collapse:collapse;width:100%;margin:.6em 0;font-size:.9em}
+  .qeditor td,.qeditor th{border:1px solid #d1d5db;padding:6px 8px;min-width:40px}
+  .dark .qeditor td,.dark .qeditor th{border-color:#52525b}
+  .qeditor audio{width:100%;margin:.5em 0}
 </style>
 
 <!-- ================= HEADER GIÁO VIÊN ================= -->
@@ -205,6 +209,10 @@
       <label class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs flex items-center justify-center cursor-pointer" title="Chèn ảnh">🖼️
         <input type="file" accept="image/*" class="hidden" onchange="qInsertImage(this)">
       </label>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qInsertTable()" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-sm" title="Chèn bảng">▦</button>
+      <label class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs flex items-center justify-center cursor-pointer" title="Chèn âm thanh (Listening)">🔊
+        <input type="file" accept="audio/*" class="hidden" onchange="qInsertAudio(this)">
+      </label>
       <span class="text-[10px] text-gray-400 ml-2">💡 Bấm vào ô câu hỏi/giải thích rồi dùng nút trên như soạn Word.</span>
     </div>
 
@@ -243,6 +251,24 @@
     </div>
     <div id="rmList" class="space-y-2 max-h-96 overflow-y-auto pr-1 text-xs">
       <p class="text-gray-400 italic">Đang tải...</p>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL: CHẤM BÀI (XEM & CHO ĐIỂM TỰ LUẬN) ================= -->
+<div id="gradeModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-start justify-center p-2 sm:p-4 z-[9999] overflow-y-auto">
+  <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 w-full max-w-3xl my-4 sm:my-8 shadow-2xl space-y-4">
+    <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
+      <h3 class="font-extrabold text-lg text-[#cf1717] dark:text-red-400 flex items-center gap-2">✏️ Chấm bài: <span id="gmStudentName" class="text-gray-900 dark:text-white"></span></h3>
+      <button onclick="closeGradeModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
+    </div>
+    <div id="gmList" class="space-y-4 max-h-[65vh] overflow-y-auto pr-1"></div>
+    <div class="flex items-center justify-between pt-2 border-t dark:border-zinc-800">
+      <p class="text-xs font-bold text-gray-500">Tổng điểm: <span id="gmTotalPreview" class="text-[#cf1717]"></span></p>
+      <div class="flex gap-2">
+        <button type="button" onclick="saveGrade()" class="bg-[#cf1717] hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-lg text-sm shadow transition">💾 Lưu điểm</button>
+        <button type="button" onclick="closeGradeModal()" class="bg-gray-200 dark:bg-zinc-700 font-bold px-4 py-2.5 rounded-lg text-sm">Đóng</button>
+      </div>
     </div>
   </div>
 </div>
@@ -511,6 +537,28 @@
     reader.onload = () => { lastFocusedEditable.focus(); document.execCommand('insertHTML', false, `<img src="${reader.result}">`); };
     reader.readAsDataURL(file);
   }
+  function qInsertTable() {
+    if (!lastFocusedEditable) return notify('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước.');
+    const rows = parseInt(prompt('Bảng bao nhiêu HÀNG?', '2')) || 2;
+    const cols = parseInt(prompt('Bảng bao nhiêu CỘT?', '2')) || 2;
+    let html = '<table><tbody>';
+    for (let r = 0; r < Math.max(1, rows); r++) {
+      html += '<tr>';
+      for (let c = 0; c < Math.max(1, cols); c++) html += '<td>&nbsp;</td>';
+      html += '</tr>';
+    }
+    html += '</tbody></table><p><br></p>';
+    lastFocusedEditable.focus();
+    document.execCommand('insertHTML', false, html);
+  }
+  function qInsertAudio(input) {
+    const file = input.files[0]; input.value = '';
+    if (!file || !lastFocusedEditable) return notify('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước, sau đó chọn file âm thanh.');
+    if (file.size > 8 * 1024 * 1024) return notify('⚠️ File âm thanh quá 8MB, hãy nén nhỏ hơn rồi thử lại.');
+    const reader = new FileReader();
+    reader.onload = () => { lastFocusedEditable.focus(); document.execCommand('insertHTML', false, `<audio controls src="${reader.result}"></audio><p><br></p>`); };
+    reader.readAsDataURL(file);
+  }
 
   function openBuilder(assignmentToEdit) {
     pel('editingAssignmentId').value = assignmentToEdit ? assignmentToEdit.id : '';
@@ -540,7 +588,7 @@
     const base = { id: newId(), type, content: '', points: 1, explanation: '' };
     if (type === 'mcq' || type === 'multi') base.options = [{ id: 'a', text: '', correct: type === 'mcq' }, { id: 'b', text: '', correct: false }];
     if (type === 'tf') base.options = [{ id: 'true', text: 'Đúng', correct: true }, { id: 'false', text: 'Sai', correct: false }];
-    if (type === 'fill') { base.accepted_answers_raw = ''; }
+    if (type === 'fill') { base.blanks = {}; }
     if (type === 'text') { base.points = 0; }
     blocks.push(base);
     renderBlocks();
@@ -569,7 +617,7 @@
 
         <div>
           <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">${b.type === 'text' ? 'Nội dung' : 'Nội dung câu hỏi'}</label>
-          <div class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700" contenteditable="true" oninput="updateField('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
+          <div id="qc-${b.id}" class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700" contenteditable="true" oninput="updateField('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
         </div>
 
         ${(b.type === 'mcq' || b.type === 'multi' || b.type === 'tf') ? `
@@ -586,12 +634,7 @@
             ${b.type !== 'tf' ? `<button type="button" onclick="addOption('${b.id}')" class="text-xs font-bold text-[#cf1717] hover:underline">+ Thêm lựa chọn</button>` : ''}
           </div>` : ''}
 
-        ${b.type === 'fill' ? `
-          <div>
-            <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">Các đáp án được chấp nhận (cách nhau bởi dấu ; )</label>
-            <input type="text" value="${esc(b.accepted_answers_raw || '')}" placeholder="cost; costs; logistics costs"
-              oninput="updateField('${b.id}','accepted_answers_raw',this.value)" class="w-full p-2 rounded border dark:bg-zinc-800 dark:border-zinc-700 text-xs">
-          </div>` : ''}
+        ${b.type === 'fill' ? renderFillGapsUI(b) : ''}
 
         ${b.type !== 'text' ? `
           <div>
@@ -622,16 +665,74 @@
     b.options = b.options.filter(o => o.id !== oid); renderBlocks();
   }
 
+  // ===== ĐIỀN KHUYẾT NHIỀU CHỖ TRỐNG (1 câu có thể có 1 hoặc nhiều chỗ trống {{1}}, {{2}}...) =====
+  function extractGapNumbers(content) {
+    const nums = Array.from((content || '').matchAll(/\{\{(\d+)\}\}/g)).map(m => parseInt(m[1]));
+    return [...new Set(nums)].sort((a, b) => a - b);
+  }
+  function renderFillGapsUI(b) {
+    const gaps = extractGapNumbers(b.content);
+    b.blanks = b.blanks || {};
+    if (!gaps.length) {
+      return `<div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="block text-[10px] font-bold uppercase text-gray-500">Chỗ trống điền khuyết</label>
+          <button type="button" onclick="insertGapAtCursor('${b.id}')" class="text-xs font-bold text-[#cf1717] hover:underline">+ Chèn chỗ trống vào nội dung</button>
+        </div>
+        <p class="text-[11px] text-amber-500 italic">⚠️ Đặt con trỏ vào vị trí muốn tạo chỗ trống trong "Nội dung câu hỏi" ở trên, rồi bấm nút này (bấm nhiều lần nếu câu có nhiều chỗ trống).</p>
+      </div>`;
+    }
+    return `<div class="space-y-2">
+      <div class="flex items-center justify-between">
+        <label class="block text-[10px] font-bold uppercase text-gray-500">Đáp án cho từng chỗ trống (${gaps.length} chỗ — nhiều đáp án đúng cách nhau bởi dấu ;)</label>
+        <button type="button" onclick="insertGapAtCursor('${b.id}')" class="text-xs font-bold text-[#cf1717] hover:underline">+ Thêm chỗ trống</button>
+      </div>
+      ${gaps.map(n => `
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] font-extrabold text-white bg-[#cf1717] rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">${n}</span>
+          <input type="text" value="${esc(b.blanks[n] || '')}" placeholder="VD: cost; costs"
+            oninput="updateBlankAnswer('${b.id}',${n},this.value)" class="flex-1 p-2 rounded border dark:bg-zinc-800 dark:border-zinc-700 text-xs">
+        </div>`).join('')}
+    </div>`;
+  }
+  function updateBlankAnswer(bid, gapNum, value) {
+    const b = blocks.find(x => x.id === bid); if (!b) return;
+    b.blanks = b.blanks || {};
+    b.blanks[gapNum] = value;
+  }
+  function insertGapAtCursor(bid) {
+    const b = blocks.find(x => x.id === bid); if (!b) return;
+    const div = pel('qc-' + bid); if (!div) return;
+    div.focus();
+    const nums = extractGapNumbers(b.content);
+    const next = nums.length ? Math.max(...nums) + 1 : 1;
+    document.execCommand('insertText', false, `{{${next}}}`);
+    renderBlocks();
+  }
+
   async function saveAssignment() {
     if (!currentClassForAssignments) return notify('⚠️ Vui lòng chọn lớp trước.');
     const title = pel('asTitle').value.trim();
     if (!title) return notify('⚠️ Vui lòng nhập tiêu đề bài tập.');
     if (!blocks.length) return notify('⚠️ Vui lòng thêm ít nhất 1 câu hỏi.');
 
-    // Chuẩn hoá dữ liệu fill-blank: chuyển chuỗi "a;b;c" -> mảng đã trim/lowercase
+    // Kiểm tra mỗi câu điền khuyết phải có ít nhất 1 chỗ trống đã chèn
+    for (let i = 0; i < blocks.length; i++) {
+      if (blocks[i].type === 'fill' && extractGapNumbers(blocks[i].content).length === 0) {
+        return notify(`⚠️ Câu điền khuyết chưa có chỗ trống nào — hãy bấm "+ Chèn chỗ trống" trong câu đó trước khi lưu.`);
+      }
+    }
+
+    // Chuẩn hoá dữ liệu fill-blank: chuyển blanks (map theo số chỗ trống) -> mảng {gap, accepted_answers} theo thứ tự
     const finalBlocks = blocks.map(b => {
       const nb = { ...b };
-      if (nb.type === 'fill') { nb.accepted_answers = (nb.accepted_answers_raw || '').split(';').map(s => s.trim()).filter(Boolean); delete nb.accepted_answers_raw; }
+      if (nb.type === 'fill') {
+        const gaps = extractGapNumbers(nb.content);
+        nb.blanks = gaps.map(n => ({
+          gap: n,
+          accepted_answers: ((nb.blanks && nb.blanks[n]) || '').split(';').map(s => s.trim()).filter(Boolean)
+        }));
+      }
       return nb;
     });
     const total_points = finalBlocks.reduce((s, b) => s + (b.type === 'text' ? 0 : (parseFloat(b.points) || 0)), 0);
@@ -664,23 +765,107 @@
   // =====================================================================
   // 4. KẾT QUẢ BÀI TẬP
   // =====================================================================
+  let currentResultsAssignment = null;
+  let currentAttemptsList = [];
+
+  function sumManualScores(obj) { return Object.values(obj || {}).reduce((s, v) => s + (parseFloat(v) || 0), 0); }
+
   async function openResultsModal(assignmentId) {
     const a = currentAssignments.find(x => x.id === assignmentId); if (!a) return;
+    currentResultsAssignment = a;
     pel('rmTitle').innerText = a.title;
     pel('rmList').innerHTML = '<p class="text-gray-400 italic">Đang tải...</p>';
     pel('resultsModal').classList.remove('hidden'); pel('resultsModal').classList.add('flex');
     const { data, error } = await sbClient.from('assignment_attempts').select('*, profiles(full_name)').eq('assignment_id', assignmentId).order('submitted_at', { ascending: false });
     if (error) { pel('rmList').innerHTML = `<p class="text-red-500">${esc(error.message)}</p>`; return; }
-    pel('rmList').innerHTML = (data || []).map(r => `
+    currentAttemptsList = data || [];
+    renderResultsList();
+  }
+  function renderResultsList() {
+    pel('rmList').innerHTML = currentAttemptsList.map(r => {
+      const finalScore = Math.round(((r.auto_score || 0) + sumManualScores(r.manual_scores)) * 100) / 100;
+      return `
       <div class="flex items-center justify-between bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl px-3 py-2">
         <div>
           <p class="font-bold text-gray-900 dark:text-white">${esc(r.profiles?.full_name || 'N/A')}</p>
           <p class="text-[10px] text-gray-400">${new Date(r.submitted_at).toLocaleString('vi-VN')} ${r.has_essay ? '· có câu tự luận cần chấm tay' : ''}</p>
         </div>
-        <span class="font-extrabold text-[#cf1717]">${r.auto_score}/${r.total_points}</span>
-      </div>`).join('') || '<p class="text-gray-400 italic">Chưa có học sinh nào nộp bài.</p>';
+        <div class="flex items-center gap-3">
+          <button onclick="openGradeAttempt('${r.id}')" class="text-[11px] font-bold text-blue-500 hover:underline">${r.has_essay ? '✏️ Chấm tự luận' : '👁️ Xem bài làm'}</button>
+          <span class="font-extrabold text-[#cf1717]">${finalScore}/${r.total_points}</span>
+        </div>
+      </div>`;
+    }).join('') || '<p class="text-gray-400 italic">Chưa có học sinh nào nộp bài.</p>';
   }
   function closeResultsModal() { pel('resultsModal').classList.add('hidden'); pel('resultsModal').classList.remove('flex'); }
+
+  // ---- Modal chấm bài chi tiết (xem từng câu + cho điểm câu tự luận) ----
+  let currentGradingAttempt = null;
+
+  function openGradeAttempt(attemptId) {
+    const r = currentAttemptsList.find(x => x.id === attemptId); if (!r || !currentResultsAssignment) return;
+    currentGradingAttempt = r;
+    pel('gmStudentName').innerText = r.profiles?.full_name || 'N/A';
+    const questions = currentResultsAssignment.questions || [];
+    let qNo = 0;
+    pel('gmList').innerHTML = questions.map(q => {
+      if (q.type === 'text') return `<div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-xl p-3 qeditor text-xs">${q.content || ''}</div>`;
+      qNo++;
+      const given = r.answers ? r.answers[q.id] : null;
+      let bodyHtml = '';
+      if (q.type === 'mcq' || q.type === 'tf' || q.type === 'multi') {
+        const givenArr = Array.isArray(given) ? given : (given ? [given] : []);
+        bodyHtml = (q.options || []).map(o => `<div class="text-xs px-2 py-1 rounded ${o.correct ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400' : (givenArr.includes(o.id) ? 'bg-red-50 dark:bg-red-950/40 text-red-600' : '')}">${givenArr.includes(o.id) ? '👉 ' : ''}${esc(o.text)}${o.correct ? ' ✓' : ''}</div>`).join('');
+      } else if (q.type === 'fill') {
+        if (q.blanks && q.blanks.length) {
+          const givenObj = (given && typeof given === 'object') ? given : {};
+          bodyHtml = q.blanks.map(bl => `<div class="text-xs">Chỗ trống ${bl.gap}: <b>${esc(givenObj[bl.gap] || '(bỏ trống)')}</b> <span class="text-gray-400">(chấp nhận: ${esc((bl.accepted_answers||[]).join(', '))})</span></div>`).join('');
+        } else {
+          bodyHtml = `<div class="text-xs">Trả lời: <b>${esc(given || '(bỏ trống)')}</b> <span class="text-gray-400">(chấp nhận: ${esc((q.accepted_answers||[]).join(', '))})</span></div>`;
+        }
+      } else if (q.type === 'essay') {
+        const currentVal = (r.manual_scores && r.manual_scores[q.id] !== undefined) ? r.manual_scores[q.id] : '';
+        bodyHtml = `
+          <div class="p-2.5 rounded-xl border dark:border-zinc-700 text-xs whitespace-pre-wrap bg-gray-50 dark:bg-zinc-800/60">${esc(given || '(bỏ trống)')}</div>
+          <div class="flex items-center gap-2 mt-2">
+            <label class="text-xs font-bold text-gray-600 dark:text-gray-300">Điểm giáo viên chấm (tối đa ${q.points}):</label>
+            <input type="number" min="0" max="${q.points}" step="0.25" value="${currentVal}" data-essay-score="${q.id}" oninput="updateGmTotal()" class="w-20 p-1.5 rounded border dark:bg-zinc-800 dark:border-zinc-700 text-xs">
+          </div>`;
+      }
+      return `
+        <div class="border dark:border-zinc-700 rounded-2xl p-3 sm:p-4 space-y-2 bg-white dark:bg-zinc-900">
+          <p class="text-xs font-extrabold text-[#cf1717]">Câu ${qNo} · ${q.points} điểm</p>
+          <div class="qeditor text-xs">${q.content || ''}</div>
+          <div class="space-y-1">${bodyHtml}</div>
+        </div>`;
+    }).join('');
+    updateGmTotal();
+    pel('gradeModal').classList.remove('hidden'); pel('gradeModal').classList.add('flex');
+  }
+  function updateGmTotal() {
+    if (!currentGradingAttempt || !currentResultsAssignment) return;
+    let essaySum = 0;
+    document.querySelectorAll('[data-essay-score]').forEach(inp => { essaySum += parseFloat(inp.value) || 0; });
+    const total = Math.round(((currentGradingAttempt.auto_score || 0) + essaySum) * 100) / 100;
+    pel('gmTotalPreview').innerText = `${total} / ${currentGradingAttempt.total_points}`;
+  }
+  async function saveGrade() {
+    if (!currentGradingAttempt) return;
+    const manual_scores = { ...(currentGradingAttempt.manual_scores || {}) };
+    document.querySelectorAll('[data-essay-score]').forEach(inp => {
+      const qid = inp.getAttribute('data-essay-score');
+      if (inp.value !== '') manual_scores[qid] = parseFloat(inp.value) || 0;
+    });
+    const { error } = await sbClient.from('assignment_attempts').update({ manual_scores }).eq('id', currentGradingAttempt.id);
+    if (error) return notify('❌ Lỗi lưu điểm: ' + error.message);
+    currentGradingAttempt.manual_scores = manual_scores;
+    const idx = currentAttemptsList.findIndex(x => x.id === currentGradingAttempt.id);
+    if (idx >= 0) currentAttemptsList[idx].manual_scores = manual_scores;
+    notify('🎉 Đã lưu điểm chấm tay!');
+    renderResultsList();
+    closeGradeModal();
+  }
+  function closeGradeModal() { pel('gradeModal').classList.add('hidden'); pel('gradeModal').classList.remove('flex'); currentGradingAttempt = null; }
 
   window.onload = checkTeacher;
 </script>
