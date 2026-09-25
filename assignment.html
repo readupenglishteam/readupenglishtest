@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ReadUp English - Bài Tập</title>
-  <script src="https://cdn.tailwindcss.com"></script> 
+  <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = { darkMode: 'class' }
   </script>
@@ -44,6 +44,10 @@
   .qcontent{line-height:1.8}
   .qcontent img{max-width:100%;border-radius:10px;margin:.5em 0}
   .qcontent ul{list-style:disc;padding-left:1.4em}.qcontent ol{list-style:decimal;padding-left:1.4em}
+  .qcontent table{border-collapse:collapse;width:100%;margin:.6em 0;font-size:.85em}
+  .qcontent td,.qcontent th{border:1px solid #d1d5db;padding:6px 8px}
+  .dark .qcontent td,.dark .qcontent th{border-color:#3f3f46}
+  .qcontent audio{width:100%;margin:.5em 0}
   .opt-correct{background:rgba(16,185,129,.12)!important;border-color:#10b981!important}
   .opt-wrong{background:rgba(239,68,68,.12)!important;border-color:#ef4444!important}
 </style>
@@ -309,7 +313,7 @@
     if (!allAssignments.length) { pel('emptyMsg').classList.remove('hidden'); return; }
 
     // Kiểm tra bài nào học sinh đã nộp
-    const { data: myAttempts } = await sbClient.from('assignment_attempts').select('assignment_id, auto_score, total_points').eq('student_id', currentUser.id);
+    const { data: myAttempts } = await sbClient.from('assignment_attempts').select('assignment_id, auto_score, total_points, manual_scores').eq('student_id', currentUser.id);
     const attemptMap = {}; (myAttempts || []).forEach(a => attemptMap[a.assignment_id] = a);
     allAssignments.forEach(a => a._attempt = attemptMap[a.id] || null);
 
@@ -328,7 +332,7 @@
       <a href="assignment.html?token=${encodeURIComponent(a.token)}" class="block bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 space-y-2 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition">
         <div class="flex items-center justify-between">
           <span class="text-[10px] font-bold px-2 py-0.5 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">${esc(a.classes?.class_code || '')}</span>
-          ${a._attempt ? `<span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 rounded-full">Đã nộp: ${a._attempt.auto_score}/${a._attempt.total_points}</span>` : `<span class="text-[10px] font-bold px-2 py-0.5 bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-full">Chưa làm</span>`}
+          ${a._attempt ? `<span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 rounded-full">Đã nộp: ${Math.round(((a._attempt.auto_score||0)+sumManualScores(a._attempt.manual_scores))*100)/100}/${a._attempt.total_points}</span>` : `<span class="text-[10px] font-bold px-2 py-0.5 bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-full">Chưa làm</span>`}
         </div>
         <h4 class="font-bold text-sm text-gray-900 dark:text-white line-clamp-2">${esc(a.title)}</h4>
         <p class="text-xs text-gray-400 line-clamp-2">${esc(a.description || '')}</p>
@@ -381,6 +385,7 @@
   }
 
   function renderQuestionInput(q, qNo) {
+    if (q.type === 'fill') return renderFillBlock(q, qNo);
     let inputHtml = '';
     if (q.type === 'mcq' || q.type === 'tf') {
       inputHtml = (q.options || []).map(o => `
@@ -392,8 +397,6 @@
         <label class="flex items-center gap-2 p-2.5 border dark:border-zinc-700 rounded-xl cursor-pointer hover:border-[#cf1717] transition">
           <input type="checkbox" name="ans-${q.id}" value="${esc(o.id)}"> <span class="text-sm">${esc(o.text)}</span>
         </label>`).join('');
-    } else if (q.type === 'fill') {
-      inputHtml = `<input type="text" id="ans-${q.id}" placeholder="Nhập câu trả lời..." class="w-full p-2.5 rounded-xl border dark:bg-zinc-800 dark:border-zinc-700 text-sm">`;
     } else if (q.type === 'essay') {
       inputHtml = `<textarea id="ans-${q.id}" rows="5" placeholder="Viết câu trả lời của bạn..." class="w-full p-2.5 rounded-xl border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></textarea>`;
     }
@@ -402,6 +405,24 @@
         <p class="text-xs font-bold text-[#cf1717]">Câu ${qNo} · ${q.points} điểm</p>
         <div class="qcontent text-sm text-gray-900 dark:text-white">${q.content || ''}</div>
         <div class="space-y-2">${inputHtml}</div>
+      </div>`;
+  }
+
+  // Câu điền khuyết: hỗ trợ nhiều chỗ trống {{1}}, {{2}}... ngay trong nội dung (1 chỗ cũng được).
+  // Bài cũ chưa có q.blanks (chỉ có accepted_answers đơn) vẫn hiển thị ô nhập bên dưới như trước.
+  function renderFillBlock(q, qNo) {
+    let contentHtml;
+    if (q.blanks && q.blanks.length) {
+      contentHtml = (q.content || '').replace(/\{\{(\d+)\}\}/g, (m, n) =>
+        `<input type="text" id="ans-${q.id}-${n}" data-gap="${n}" placeholder="…" class="inline-block w-28 sm:w-36 mx-1 px-2 py-1 rounded-lg border-2 border-[#cf1717]/40 dark:bg-zinc-800 dark:border-red-900 text-sm font-semibold align-middle focus:outline-none focus:ring-2 focus:ring-[#cf1717]">`
+      );
+    } else {
+      contentHtml = `${q.content || ''}<div class="mt-3"><input type="text" id="ans-${q.id}" placeholder="Nhập câu trả lời..." class="w-full p-2.5 rounded-xl border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></div>`;
+    }
+    return `
+      <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm" data-q="${q.id}">
+        <p class="text-xs font-bold text-[#cf1717]">Câu ${qNo} · ${q.points} điểm</p>
+        <div class="qcontent text-sm text-gray-900 dark:text-white leading-loose">${contentHtml}</div>
       </div>`;
   }
 
@@ -442,16 +463,31 @@
         const givenIds = [...checked].sort();
         if (correctIds.length && JSON.stringify(correctIds) === JSON.stringify(givenIds)) auto_score += (parseFloat(q.points) || 0);
       } else if (q.type === 'fill') {
-        const val = (pel('ans-' + q.id)?.value || '').trim();
-        answers[q.id] = val;
-        const accepted = (q.accepted_answers || []).map(a => a.toLowerCase().trim());
-        if (val && accepted.includes(val.toLowerCase())) auto_score += (parseFloat(q.points) || 0);
+        if (q.blanks && q.blanks.length) {
+          const gapAnswers = {};
+          let correctCount = 0;
+          q.blanks.forEach(bl => {
+            const val = (pel(`ans-${q.id}-${bl.gap}`)?.value || '').trim();
+            gapAnswers[bl.gap] = val;
+            const accepted = (bl.accepted_answers || []).map(a => a.toLowerCase().trim());
+            if (val && accepted.includes(val.toLowerCase())) correctCount++;
+          });
+          answers[q.id] = gapAnswers;
+          const perBlank = (parseFloat(q.points) || 0) / q.blanks.length;
+          auto_score += perBlank * correctCount;
+        } else {
+          const val = (pel('ans-' + q.id)?.value || '').trim();
+          answers[q.id] = val;
+          const accepted = (q.accepted_answers || []).map(a => a.toLowerCase().trim());
+          if (val && accepted.includes(val.toLowerCase())) auto_score += (parseFloat(q.points) || 0);
+        }
       } else if (q.type === 'essay') {
         const val = pel('ans-' + q.id)?.value || '';
         answers[q.id] = val;
         has_essay = true;
       }
     });
+    auto_score = Math.round(auto_score * 100) / 100;
 
     const row = {
       assignment_id: currentAssignment.id, student_id: currentUser.id, answers,
@@ -466,12 +502,19 @@
   // =====================================================================
   // HIỂN THỊ KẾT QUẢ + GIẢI THÍCH ĐÁP ÁN
   // =====================================================================
+  function sumManualScores(obj) { return Object.values(obj || {}).reduce((s, v) => s + (parseFloat(v) || 0), 0); }
+
   function showResult(a, attempt) {
     pel('listView').classList.add('hidden');
     pel('attemptView').classList.add('hidden');
     pel('resultView').classList.remove('hidden');
-    pel('rsScore').innerText = `${attempt.auto_score} / ${attempt.total_points}`;
-    if (attempt.has_essay) pel('rsEssayNote').classList.remove('hidden');
+    const manualSum = sumManualScores(attempt.manual_scores);
+    const finalScore = Math.round(((attempt.auto_score || 0) + manualSum) * 100) / 100;
+    pel('rsScore').innerText = `${finalScore} / ${attempt.total_points}`;
+
+    const essayQs = (a.questions || []).filter(q => q.type === 'essay');
+    const allEssayGraded = essayQs.length > 0 && essayQs.every(q => attempt.manual_scores && attempt.manual_scores[q.id] !== undefined);
+    if (attempt.has_essay && !allEssayGraded) pel('rsEssayNote').classList.remove('hidden');
 
     let qNo = 0;
     pel('reviewArea').innerHTML = (a.questions || []).map(q => {
@@ -490,13 +533,29 @@
           </div>`;
         }).join('');
       } else if (q.type === 'fill') {
-        const accepted = (q.accepted_answers || []).join(', ');
-        const isCorrect = (q.accepted_answers || []).map(x => x.toLowerCase().trim()).includes((given || '').toLowerCase().trim());
-        bodyHtml = `<div class="p-2.5 rounded-xl border text-sm ${isCorrect ? 'opt-correct' : 'opt-wrong'}">Bạn trả lời: <b>${esc(given || '(bỏ trống)')}</b></div>
-          <p class="text-xs text-gray-500 mt-1">Đáp án chấp nhận: ${esc(accepted)}</p>`;
+        if (q.blanks && q.blanks.length) {
+          const givenObj = (given && typeof given === 'object') ? given : {};
+          bodyHtml = q.blanks.map(bl => {
+            const gv = (givenObj[bl.gap] || '').trim();
+            const accepted = bl.accepted_answers || [];
+            const isCorrect = accepted.map(x => x.toLowerCase().trim()).includes(gv.toLowerCase());
+            return `<div class="p-2.5 rounded-xl border text-sm ${isCorrect ? 'opt-correct' : 'opt-wrong'}">
+              Chỗ trống ${bl.gap}: bạn trả lời <b>${esc(gv || '(bỏ trống)')}</b>
+              <span class="block text-xs text-gray-500 mt-0.5">Đáp án chấp nhận: ${esc(accepted.join(', '))}</span>
+            </div>`;
+          }).join('');
+        } else {
+          const accepted = (q.accepted_answers || []).join(', ');
+          const isCorrect = (q.accepted_answers || []).map(x => x.toLowerCase().trim()).includes((given || '').toLowerCase().trim());
+          bodyHtml = `<div class="p-2.5 rounded-xl border text-sm ${isCorrect ? 'opt-correct' : 'opt-wrong'}">Bạn trả lời: <b>${esc(given || '(bỏ trống)')}</b></div>
+            <p class="text-xs text-gray-500 mt-1">Đáp án chấp nhận: ${esc(accepted)}</p>`;
+        }
       } else if (q.type === 'essay') {
+        const gradedScore = attempt.manual_scores && attempt.manual_scores[q.id] !== undefined ? attempt.manual_scores[q.id] : null;
         bodyHtml = `<div class="p-2.5 rounded-xl border dark:border-zinc-700 text-sm whitespace-pre-wrap">${esc(given || '(bỏ trống)')}</div>
-          <p class="text-xs text-amber-500 mt-1">📄 Câu tự luận — chờ giáo viên chấm điểm.</p>`;
+          ${gradedScore !== null
+            ? `<p class="text-xs font-bold text-emerald-600 mt-1">✅ Giáo viên đã chấm: ${gradedScore}/${q.points} điểm</p>`
+            : `<p class="text-xs text-amber-500 mt-1">📄 Câu tự luận — chờ giáo viên chấm điểm.</p>`}`;
       }
       return `
         <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm">
