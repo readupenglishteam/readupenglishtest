@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadUp English - Quản Lý Lớp Học (Giáo Viên)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
+  <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
+</head>
+<body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen transition-colors duration-300 flex flex-col justify-between">
+
+<!-- ================= NỀN ĐỘNG CHUYỂN ĐỘNG DÙNG CHUNG ================= -->
+<div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none select-none transition-colors duration-500 bg-slate-50 dark:bg-zinc-950">
+  <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#cf1717]/20 dark:bg-[#cf1717]/15 rounded-full blur-3xl animate-blob"></div>
+  <div class="absolute top-1/3 -right-24 w-[30rem] h-[30rem] bg-indigo-500/15 dark:bg-red-900/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+  <div class="absolute -bottom-24 left-1/3 w-96 h-96 bg-amber-500/15 dark:bg-amber-600/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+</div>
+
+<!-- KHUNG TOAST GÓC PHẢI TRÊN (đường màu đỏ chạy phía dưới mỗi thông báo) -->
+<div id="toastContainer" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+<style>
+  @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
+  .animate-toast-bar { animation: toastProgress 5s linear forwards; }
+  @keyframes blob {
+    0%, 100% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.95); }
+  }
+  .animate-blob { animation: blob 10s infinite ease-in-out; }
+  .animation-delay-2000 { animation-delay: 2s; }
+  .animation-delay-4000 { animation-delay: 4s; }
+  .qeditor{line-height:1.8;font-size:.95rem;color:#374151;word-wrap:break-word;min-height:90px}
+  .dark .qeditor{color:#e4e4e7}
+  .qeditor img{max-width:100%;border-radius:10px;margin:.5em 0}
+  .qeditor:focus{outline:none}
+</style>
+
+<!-- ================= HEADER GIÁO VIÊN ================= -->
+<header class="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/60 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-950/60 transition px-4">
+  <div class="max-w-7xl mx-auto h-16 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+      <a href="teacher.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
+        <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
+      </a>
+      <a href="teacher.html" class="flex items-center gap-2 hover:opacity-90 transition">
+        <span class="text-2xl font-black text-[#cf1717] tracking-tight">ReadUp</span>
+        <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full shadow-sm">English<sup>Teacher</sup></span>
+      </a>
+    </div>
+    <div class="flex items-center gap-2 sm:gap-3">
+      <a href="assignment.html" target="_blank" class="bg-white/80 dark:bg-zinc-800/80 text-[#cf1717] font-bold px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm border border-[#cf1717]/40 hover:bg-red-50 transition flex items-center gap-1">
+        <span>🎓</span><span class="hidden sm:inline">Xem trang Học Sinh</span>
+      </a>
+      <button onclick="handleLogout()" class="px-3 py-2 text-xs font-bold bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-red-100 dark:hover:bg-red-950/50 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] dark:hover:text-red-400 rounded-xl transition border border-gray-200/50 dark:border-zinc-700/50">
+        Đăng xuất
+      </button>
+      <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50">
+        <span id="themeIcon">🌙</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 py-6 space-y-8 w-full">
+
+  <!-- ============ 1. TẠO LỚP HỌC ============ -->
+  <section class="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border dark:border-zinc-800 shadow-sm space-y-4">
+    <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
+      <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white">🏫 Lớp Học Của Tôi</h2>
+      <span id="classCount" class="text-xs font-bold px-2.5 py-1 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">0 lớp</span>
+    </div>
+
+    <form onsubmit="createClass(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+      <div>
+        <label class="block font-bold uppercase mb-1">Mã lớp (*)</label>
+        <input id="newClassCode" required placeholder="VD: A1K15" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
+      </div>
+      <div class="sm:col-span-2">
+        <label class="block font-bold uppercase mb-1">Tiêu đề lớp (*)</label>
+        <input id="newClassTitle" required placeholder="VD: Lớp IELTS 6.5 - Sáng T7" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
+      </div>
+      <div>
+        <label class="block font-bold uppercase mb-1">&nbsp;</label>
+        <button type="submit" class="w-full bg-[#cf1717] hover:bg-red-700 text-white font-bold px-4 py-2.5 rounded-lg text-sm shadow transition">+ Tạo lớp</button>
+      </div>
+      <div class="sm:col-span-4">
+        <label class="block font-bold uppercase mb-1">Thông tin thêm (không bắt buộc)</label>
+        <textarea id="newClassInfo" rows="2" placeholder="Lịch học, mô tả lớp..." class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></textarea>
+      </div>
+    </form>
+
+    <div id="classGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+      <p class="text-gray-400 text-sm col-span-full">⏳ Đang tải lớp học...</p>
+    </div>
+  </section>
+
+  <!-- ============ 2. QUẢN LÝ BÀI TẬP ============ -->
+  <section class="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border dark:border-zinc-800 shadow-sm space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-l-4 border-[#cf1717] pl-3">
+      <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white">📚 Bài Tập</h2>
+      <div class="flex items-center gap-2">
+        <select id="assignClassFilter" onchange="loadAssignmentsForClass()" class="p-2 text-xs rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
+          <option value="">-- Chọn lớp để quản lý bài tập --</option>
+        </select>
+        <button onclick="openBuilder()" id="btnNewAssignment" disabled class="bg-[#cf1717] hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm shadow transition">+ Tạo bài tập mới</button>
+      </div>
+    </div>
+    <div id="assignmentList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <p class="text-gray-400 text-sm col-span-full">👆 Hãy chọn một lớp ở trên để xem bài tập.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="mt-auto pt-6">
+  <div class="max-w-6xl mx-auto px-4 pb-4 text-center text-gray-400 dark:text-gray-600 text-[11px]">
+    © 2026 ReadUp English. All rights reserved. — Khu vực dành cho Giáo Viên
+  </div>
+</footer>
+
+<!-- ================= MODAL: QUẢN LÝ HỌC SINH TRONG LỚP ================= -->
+<div id="classModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-start justify-center p-4 z-[9999] overflow-y-auto">
+  <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 w-full max-w-2xl my-8 shadow-2xl space-y-5">
+    <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
+      <h3 class="font-extrabold text-lg text-[#cf1717] dark:text-red-400 flex items-center gap-2">
+        <span>👥</span> Quản Lý Lớp: <span id="cmClassTitle">...</span>
+      </h3>
+      <button onclick="closeClassModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
+    </div>
+    <p class="text-xs text-gray-500">Mã lớp: <b id="cmClassCode" class="text-[#cf1717]"></b> — chia sẻ mã này cho học sinh nếu cần.</p>
+
+    <form onsubmit="addStudent(event)" class="bg-gray-50 dark:bg-zinc-800/60 p-4 rounded-xl border dark:border-zinc-700 space-y-3">
+      <h4 class="font-bold text-xs uppercase text-gray-700 dark:text-gray-300">➕ Thêm Học Sinh Mới</h4>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <input id="stuName" required placeholder="Họ và tên học sinh" class="p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
+        <input id="stuEmail" type="email" required placeholder="Email đăng nhập" class="p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
+        <div class="flex gap-1">
+          <input id="stuPassword" required minlength="6" placeholder="Mật khẩu (≥6 ký tự)" class="flex-1 p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
+          <button type="button" onclick="pel('stuPassword').value = genPassword()" class="px-2 rounded-lg border dark:border-zinc-700 text-xs" title="Tạo mật khẩu ngẫu nhiên">🎲</button>
+        </div>
+      </div>
+      <button type="submit" id="addStuBtn" class="bg-[#cf1717] hover:bg-red-700 text-white font-bold px-5 py-2 rounded-xl text-xs shadow transition">Tạo tài khoản & thêm vào lớp</button>
+      <p class="text-[11px] text-gray-400">💡 Học sinh dùng đúng Email + Mật khẩu này để đăng nhập, sau đó tự đổi mật khẩu trong trang Hồ sơ cá nhân.</p>
+    </form>
+
+    <div class="space-y-2">
+      <h4 class="font-bold text-xs uppercase text-gray-500">📋 Danh Sách Học Sinh (<span id="cmStuCount">0</span>)</h4>
+      <div id="cmStuList" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+        <p class="text-xs text-gray-400 italic">Đang tải...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL: TRÌNH TẠO BÀI TẬP (QUESTION BUILDER KIỂU WORD) ================= -->
+<div id="builderModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-start justify-center p-2 sm:p-4 z-[9999] overflow-y-auto">
+  <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 w-full max-w-4xl my-4 sm:my-8 shadow-2xl space-y-5">
+    <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
+      <h3 class="font-extrabold text-lg text-[#cf1717] dark:text-red-400 flex items-center gap-2">
+        <span>📝</span> <span id="builderModeTitle">Tạo Bài Tập Mới</span>
+      </h3>
+      <button onclick="closeBuilder()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
+    </div>
+
+    <input type="hidden" id="editingAssignmentId">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+      <div class="sm:col-span-2">
+        <label class="block font-bold uppercase mb-1">Tiêu đề bài tập (*)</label>
+        <input id="asTitle" required placeholder="VD: Reading Unit 5 - Environment" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
+      </div>
+      <div>
+        <label class="block font-bold uppercase mb-1">Giới hạn thời gian (phút)</label>
+        <input id="asTimeLimit" type="number" min="0" placeholder="Để trống = không giới hạn" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
+      </div>
+      <div class="sm:col-span-3">
+        <label class="block font-bold uppercase mb-1">Mô tả / hướng dẫn làm bài</label>
+        <textarea id="asDesc" rows="2" placeholder="Hướng dẫn ngắn cho học sinh..." class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></textarea>
+      </div>
+      <div class="sm:col-span-3 text-gray-400">
+        Đường dẫn bài tập: <code id="asTokenPreview" class="text-[#cf1717] font-bold">assignment.html?token=...</code>
+      </div>
+    </div>
+
+    <!-- Thanh công cụ định dạng dùng chung (áp dụng lên ô đang focus) -->
+    <div class="flex flex-wrap items-center gap-1 p-2 bg-gray-100 dark:bg-zinc-800 rounded-lg border dark:border-zinc-700 sticky top-0 z-10">
+      <span class="text-[10px] font-bold text-gray-500 px-1">Định dạng (áp dụng vào ô đang chọn):</span>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('bold')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 font-bold text-xs">B</button>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('italic')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 italic text-xs">I</button>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('underline')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 underline text-xs">U</button>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('insertUnorderedList')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs">•≡</button>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('insertOrderedList')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs">1≡</button>
+      <label class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs flex items-center justify-center cursor-pointer" title="Chèn ảnh">🖼️
+        <input type="file" accept="image/*" class="hidden" onchange="qInsertImage(this)">
+      </label>
+      <span class="text-[10px] text-gray-400 ml-2">💡 Bấm vào ô câu hỏi/giải thích rồi dùng nút trên như soạn Word.</span>
+    </div>
+
+    <!-- Danh sách khối câu hỏi -->
+    <div id="questionBlocks" class="space-y-4"></div>
+
+    <!-- Thêm khối câu hỏi -->
+    <div class="p-3 bg-gray-50 dark:bg-zinc-800/60 rounded-xl border dark:border-zinc-700">
+      <p class="text-[11px] font-bold uppercase text-gray-500 mb-2">➕ Thêm dạng câu hỏi</p>
+      <div class="flex flex-wrap gap-2 text-xs">
+        <button type="button" onclick="addBlock('mcq')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">☑️ Trắc nghiệm 1 đáp án</button>
+        <button type="button" onclick="addBlock('multi')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">☑️☑️ Trắc nghiệm nhiều đáp án</button>
+        <button type="button" onclick="addBlock('tf')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">✅❌ Đúng / Sai</button>
+        <button type="button" onclick="addBlock('fill')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">✏️ Điền khuyết</button>
+        <button type="button" onclick="addBlock('essay')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">📄 Tự luận</button>
+        <button type="button" onclick="addBlock('text')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">📌 Đoạn văn bản / hướng dẫn (không chấm điểm)</button>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t dark:border-zinc-800">
+      <label class="flex items-center gap-2 font-bold text-xs"><input type="checkbox" id="asPublished" checked> Xuất bản cho học sinh VIP trong lớp</label>
+      <div class="flex flex-wrap gap-2">
+        <button type="button" onclick="saveAssignment()" class="bg-[#cf1717] hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm shadow transition">💾 Lưu & Xuất Bản</button>
+        <button type="button" onclick="closeBuilder()" class="bg-gray-200 dark:bg-zinc-700 font-bold px-4 py-2.5 rounded-lg text-sm">Hủy</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL: KẾT QUẢ BÀI TẬP ================= -->
+<div id="resultsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-start justify-center p-4 z-[9999] overflow-y-auto">
+  <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 w-full max-w-2xl my-8 shadow-2xl space-y-4">
+    <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
+      <h3 class="font-extrabold text-lg text-[#cf1717] dark:text-red-400 flex items-center gap-2">📊 Kết Quả: <span id="rmTitle" class="text-gray-900 dark:text-white"></span></h3>
+      <button onclick="closeResultsModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
+    </div>
+    <div id="rmList" class="space-y-2 max-h-96 overflow-y-auto pr-1 text-xs">
+      <p class="text-gray-400 italic">Đang tải...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // =====================================================================
+  // CẤU HÌNH SUPABASE
+  // =====================================================================
+  const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
+  const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  // Client phụ CHỈ dùng để tạo tài khoản học sinh (signUp) mà KHÔNG làm mất phiên đăng nhập
+  // hiện tại của giáo viên (persistSession:false + storageKey riêng biệt).
+  const sbAuthHelper = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { storageKey: 'sb-teacher-create-student', persistSession: false, autoRefreshToken: false }
+  });
+
+  function pel(id) { return document.getElementById(id); }
+
+  // =====================================================================
+  // TOAST NOTIFICATION (giống hệ thống chung — đường màu đỏ chạy phía dưới)
+  // =====================================================================
+  function notify(rawMessage) {
+    const msg = String(rawMessage ?? '');
+    const emojiMatch = msg.match(/^(?:\p{Extended_Pictographic}|\uFE0F|\u200D)+\s*/u);
+    let icon = '🔔', text = msg;
+    if (emojiMatch && emojiMatch[0].trim()) { icon = emojiMatch[0].trim(); text = msg.slice(emojiMatch[0].length).trim() || msg; }
+    let title = 'Thông báo';
+    if (/❌/.test(msg) || /lỗi|thất bại|không thể/i.test(msg)) title = 'Lỗi';
+    else if (/⚠️/.test(msg)) title = 'Cảnh báo';
+    else if (/🎉|✅|❤️|💪|💾|📋/.test(msg)) title = 'Thành công';
+    showToastNotification({ title, message: text, icon });
+  }
+  function showToastNotification({ title, message, icon = '🔔' }) {
+    const container = pel('toastContainer'); if (!container) return;
+    const toastId = 'toast-' + Date.now() + Math.random().toString(36).slice(2,6);
+    const html = `
+      <div id="${toastId}" class="pointer-events-auto bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden transform transition-all duration-300 translate-x-full opacity-0 relative">
+        <div class="p-3.5 sm:p-4 flex items-start gap-3">
+          <div class="w-9 h-9 rounded-full bg-red-50 dark:bg-red-950/80 flex-shrink-0 flex items-center justify-center text-[#cf1717] dark:text-red-400 font-bold text-base shadow-sm">${icon}</div>
+          <div class="flex-1 pr-4">
+            <h4 class="text-xs sm:text-sm font-bold text-gray-900 dark:text-white leading-tight">${title}</h4>
+            <p class="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">${message}</p>
+          </div>
+          <button onclick="closeToast('${toastId}')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white text-base leading-none p-1">✕</button>
+        </div>
+        <div class="h-1 bg-red-100 dark:bg-zinc-800 w-full"><div class="h-full bg-[#cf1717] animate-toast-bar"></div></div>
+      </div>`;
+    container.insertAdjacentHTML('beforeend', html);
+    const el = pel(toastId);
+    setTimeout(() => el.classList.remove('translate-x-full', 'opacity-0'), 50);
+    setTimeout(() => closeToast(toastId), 5000);
+  }
+  function closeToast(id) { const el = pel(id); if (!el) return; el.classList.add('translate-x-full', 'opacity-0'); setTimeout(() => el.remove(), 300); }
+
+  function toggleDarkMode() {
+    if (document.documentElement.classList.contains('dark')) { document.documentElement.classList.remove('dark'); localStorage.theme = 'light'; }
+    else { document.documentElement.classList.add('dark'); localStorage.theme = 'dark'; }
+  }
+  async function handleLogout() { await sbClient.auth.signOut(); window.location.href = 'index.html'; }
+
+  // =====================================================================
+  // KIỂM TRA QUYỀN GIÁO VIÊN
+  // =====================================================================
+  let currentUser = null;
+  let myClasses = [];
+  let currentClassForModal = null;
+  let currentClassForAssignments = '';
+  let currentAssignments = [];
+
+  async function checkTeacher() {
+    const { data: { user } } = await sbClient.auth.getUser();
+    if (!user) { window.location.href = 'index.html'; return; }
+    const { data: profile } = await sbClient.from('profiles').select('role, full_name').eq('id', user.id).single();
+    if (profile?.role !== 'teacher' && profile?.role !== 'admin') { window.location.href = 'dashboard.html'; return; }
+    currentUser = user;
+    loadClasses();
+  }
+
+  // =====================================================================
+  // TIỆN ÍCH
+  // =====================================================================
+  function slugify(str) {
+    str = (str || '').toLowerCase();
+    str = str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    str = str.replace(/đ/g, 'd');
+    str = str.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    return str || 'bai-tap';
+  }
+  function genPassword() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    let s = ''; for (let i = 0; i < 8; i++) s += chars[Math.floor(Math.random() * chars.length)];
+    return s;
+  }
+  function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  // =====================================================================
+  // 1. QUẢN LÝ LỚP HỌC
+  // =====================================================================
+  async function createClass(e) {
+    e.preventDefault();
+    const class_code = pel('newClassCode').value.trim();
+    const title = pel('newClassTitle').value.trim();
+    const info = pel('newClassInfo').value.trim() || null;
+    const { error } = await sbClient.from('classes').insert([{ class_code, title, info, teacher_id: currentUser.id }]);
+    if (error) return notify('❌ Lỗi tạo lớp: ' + (error.message.includes('duplicate') ? 'Mã lớp đã tồn tại!' : error.message));
+    notify('🎉 Đã tạo lớp "' + title + '"!');
+    pel('newClassCode').value = ''; pel('newClassTitle').value = ''; pel('newClassInfo').value = '';
+    loadClasses();
+  }
+
+  async function loadClasses() {
+    const { data, error } = await sbClient.from('classes').select('*, class_students(count)').eq('teacher_id', currentUser.id).order('created_at', { ascending: false });
+    if (error) { pel('classGrid').innerHTML = `<p class="text-red-500 text-sm col-span-full">Lỗi tải lớp: ${esc(error.message)}</p>`; return; }
+    myClasses = data || [];
+    pel('classCount').innerText = myClasses.length + ' lớp';
+
+    const filterSel = pel('assignClassFilter');
+    const prevVal = filterSel.value;
+    filterSel.innerHTML = '<option value="">-- Chọn lớp để quản lý bài tập --</option>' +
+      myClasses.map(c => `<option value="${c.id}">${esc(c.class_code)} — ${esc(c.title)}</option>`).join('');
+    if (prevVal) filterSel.value = prevVal;
+
+    pel('classGrid').innerHTML = myClasses.map(c => `
+      <div class="bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-2xl p-4 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold px-2 py-0.5 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">${esc(c.class_code)}</span>
+          <span class="text-[10px] text-gray-400">${c.class_students?.[0]?.count ?? 0} học sinh</span>
+        </div>
+        <h4 class="font-bold text-sm text-gray-900 dark:text-white">${esc(c.title)}</h4>
+        ${c.info ? `<p class="text-xs text-gray-500 line-clamp-2">${esc(c.info)}</p>` : ''}
+        <div class="flex gap-3 pt-1">
+          <button onclick="openClassModal('${c.id}')" class="text-xs font-bold text-[#cf1717] hover:underline">👥 Quản lý học sinh</button>
+          <button onclick="deleteClass('${c.id}','${esc(c.title)}')" class="text-xs font-bold text-red-500 hover:underline">Xóa lớp</button>
+        </div>
+      </div>`).join('') || '<p class="text-gray-400 text-sm col-span-full">Chưa có lớp nào. Hãy tạo lớp đầu tiên ở trên!</p>';
+  }
+
+  async function deleteClass(id, title) {
+    if (!confirm(`Xóa lớp "${title}"? Toàn bộ bài tập và danh sách học sinh trong lớp sẽ bị xóa.`)) return;
+    const { error } = await sbClient.from('classes').delete().eq('id', id);
+    if (error) return notify('❌ Lỗi xóa lớp: ' + error.message);
+    notify('✅ Đã xóa lớp.'); loadClasses();
+  }
+
+  // ---- Modal quản lý học sinh trong lớp ----
+  function openClassModal(classId) {
+    const c = myClasses.find(x => x.id === classId); if (!c) return;
+    currentClassForModal = c;
+    pel('cmClassTitle').innerText = c.title;
+    pel('cmClassCode').innerText = c.class_code;
+    pel('classModal').classList.remove('hidden'); pel('classModal').classList.add('flex');
+    loadClassStudents();
+  }
+  function closeClassModal() { pel('classModal').classList.add('hidden'); pel('classModal').classList.remove('flex'); currentClassForModal = null; }
+
+  async function loadClassStudents() {
+    if (!currentClassForModal) return;
+    pel('cmStuList').innerHTML = '<p class="text-xs text-gray-400 italic">Đang tải...</p>';
+    const { data, error } = await sbClient.from('class_students').select('id, student_id, profiles(full_name, membership)').eq('class_id', currentClassForModal.id).order('created_at', { ascending: false });
+    if (error) { pel('cmStuList').innerHTML = `<p class="text-red-500 text-xs">Lỗi: ${esc(error.message)}</p>`; return; }
+    pel('cmStuCount').innerText = (data || []).length;
+    pel('cmStuList').innerHTML = (data || []).map(row => `
+      <div class="flex items-center justify-between bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl px-3 py-2">
+        <div>
+          <p class="font-bold text-xs text-gray-900 dark:text-white">${esc(row.profiles?.full_name || '(chưa có tên)')}</p>
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${row.profiles?.membership === 'vip' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400' : 'bg-gray-200 text-gray-600 dark:bg-zinc-700 dark:text-gray-300'}">${row.profiles?.membership === 'vip' ? '⭐ VIP' : 'Free'}</span>
+        </div>
+        <button onclick="removeStudent('${row.id}')" class="text-[11px] font-bold text-red-500 hover:underline">Xóa khỏi lớp</button>
+      </div>`).join('') || '<p class="text-xs text-gray-400 italic">Lớp chưa có học sinh nào.</p>';
+  }
+
+  async function addStudent(e) {
+    e.preventDefault();
+    if (!currentClassForModal) return;
+    const name = pel('stuName').value.trim();
+    const email = pel('stuEmail').value.trim();
+    const password = pel('stuPassword').value;
+    const btn = pel('addStuBtn'); btn.disabled = true; btn.innerText = 'Đang tạo...';
+    try {
+      // 1) Tạo tài khoản đăng nhập cho học sinh bằng client phụ (không ảnh hưởng phiên giáo viên)
+      const { data: signData, error: signErr } = await sbAuthHelper.auth.signUp({ email, password, options: { data: { full_name: name } } });
+      if (signErr) throw signErr;
+      const newId = signData.user?.id;
+      if (!newId) throw new Error('Không lấy được ID tài khoản mới. Có thể dự án đang bật xác nhận Email — hãy tắt "Confirm email" trong Supebase Auth Settings để dùng tính năng này.');
+      // 2) Gán hồ sơ + thêm vào lớp bằng hàm RPC an toàn (SECURITY DEFINER)
+      const { error: rpcErr } = await sbClient.rpc('teacher_provision_student', { p_student_id: newId, p_full_name: name, p_class_id: currentClassForModal.id });
+      if (rpcErr) throw rpcErr;
+      notify('🎉 Đã tạo tài khoản & thêm "' + name + '" vào lớp!');
+      pel('stuName').value = ''; pel('stuEmail').value = ''; pel('stuPassword').value = '';
+      loadClassStudents(); loadClasses();
+    } catch (err) {
+      notify('❌ Lỗi thêm học sinh: ' + (err.message || 'Vui lòng thử lại.'));
+    } finally { btn.disabled = false; btn.innerText = 'Tạo tài khoản & thêm vào lớp'; }
+  }
+
+  async function removeStudent(rowId) {
+    if (!confirm('Xóa học sinh này khỏi lớp?')) return;
+    const { error } = await sbClient.from('class_students').delete().eq('id', rowId);
+    if (error) return notify('❌ Lỗi: ' + error.message);
+    notify('✅ Đã xóa khỏi lớp.'); loadClassStudents(); loadClasses();
+  }
+
+  // =====================================================================
+  // 2. QUẢN LÝ BÀI TẬP
+  // =====================================================================
+  async function loadAssignmentsForClass() {
+    currentClassForAssignments = pel('assignClassFilter').value;
+    pel('btnNewAssignment').disabled = !currentClassForAssignments;
+    if (!currentClassForAssignments) { pel('assignmentList').innerHTML = '<p class="text-gray-400 text-sm col-span-full">👆 Hãy chọn một lớp ở trên để xem bài tập.</p>'; return; }
+    pel('assignmentList').innerHTML = '<p class="text-gray-400 text-sm col-span-full">⏳ Đang tải bài tập...</p>';
+    const { data, error } = await sbClient.from('assignments').select('*').eq('class_id', currentClassForAssignments).order('created_at', { ascending: false });
+    if (error) { pel('assignmentList').innerHTML = `<p class="text-red-500 text-sm col-span-full">${esc(error.message)}</p>`; return; }
+    currentAssignments = data || [];
+    pel('assignmentList').innerHTML = currentAssignments.map(a => `
+      <div class="bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-2xl p-4 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${a.is_published ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400' : 'bg-gray-200 text-gray-600 dark:bg-zinc-700'}">${a.is_published ? 'Đã xuất bản' : 'Bản nháp'}</span>
+          <span class="text-[10px] text-gray-400">${(a.questions || []).filter(q => q.type !== 'text').length} câu · ${a.total_points || 0} điểm</span>
+        </div>
+        <h4 class="font-bold text-sm text-gray-900 dark:text-white">${esc(a.title)}</h4>
+        <p class="text-[11px] text-gray-400 truncate">token: ${esc(a.token)}</p>
+        <div class="flex flex-wrap gap-3 pt-1">
+          <button onclick="editAssignment('${a.id}')" class="text-xs font-bold text-blue-500 hover:underline">Sửa</button>
+          <button onclick="openResultsModal('${a.id}')" class="text-xs font-bold text-amber-500 hover:underline">Kết quả</button>
+          <a href="assignment.html?token=${encodeURIComponent(a.token)}" target="_blank" class="text-xs font-bold text-[#cf1717] hover:underline">Xem thử ↗</a>
+          <button onclick="deleteAssignment('${a.id}')" class="text-xs font-bold text-red-500 hover:underline">Xóa</button>
+        </div>
+      </div>`).join('') || '<p class="text-gray-400 text-sm col-span-full">Lớp này chưa có bài tập nào.</p>';
+  }
+
+  async function deleteAssignment(id) {
+    if (!confirm('Xóa bài tập này? Kết quả làm bài liên quan cũng sẽ bị xóa.')) return;
+    const { error } = await sbClient.from('assignments').delete().eq('id', id);
+    if (error) return notify('❌ Lỗi: ' + error.message);
+    notify('✅ Đã xóa bài tập.'); loadAssignmentsForClass();
+  }
+
+  // =====================================================================
+  // 3. TRÌNH TẠO BÀI TẬP (QUESTION BUILDER)
+  // =====================================================================
+  let blocks = []; // mảng câu hỏi hiện tại đang soạn
+  let lastFocusedEditable = null;
+
+  document.addEventListener('focusin', (e) => { if (e.target.classList && e.target.classList.contains('qeditor')) lastFocusedEditable = e.target; });
+  function qcmd(cmd) { if (!lastFocusedEditable) return notify('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước.'); lastFocusedEditable.focus(); document.execCommand(cmd, false, null); }
+  function qInsertImage(input) {
+    const file = input.files[0]; if (!file || !lastFocusedEditable) return;
+    const reader = new FileReader();
+    reader.onload = () => { lastFocusedEditable.focus(); document.execCommand('insertHTML', false, `<img src="${reader.result}">`); };
+    reader.readAsDataURL(file);
+  }
+
+  function openBuilder(assignmentToEdit) {
+    pel('editingAssignmentId').value = assignmentToEdit ? assignmentToEdit.id : '';
+    pel('builderModeTitle').innerText = assignmentToEdit ? 'Chỉnh Sửa Bài Tập' : 'Tạo Bài Tập Mới';
+    pel('asTitle').value = assignmentToEdit?.title || '';
+    pel('asDesc').value = assignmentToEdit?.description || '';
+    pel('asTimeLimit').value = assignmentToEdit?.time_limit_minutes || '';
+    pel('asPublished').checked = assignmentToEdit ? !!assignmentToEdit.is_published : true;
+    blocks = assignmentToEdit ? JSON.parse(JSON.stringify(assignmentToEdit.questions || [])) : [];
+    renderBlocks();
+    previewAsToken();
+    pel('asTitle').oninput = previewAsToken;
+    pel('builderModal').classList.remove('hidden'); pel('builderModal').classList.add('flex');
+  }
+  function closeBuilder() { pel('builderModal').classList.add('hidden'); pel('builderModal').classList.remove('flex'); }
+  function editAssignment(id) { const a = currentAssignments.find(x => x.id === id); if (a) openBuilder(a); }
+
+  function previewAsToken() {
+    const cls = myClasses.find(c => c.id === currentClassForAssignments);
+    const code = cls ? cls.class_code : '...';
+    pel('asTokenPreview').innerText = `assignment.html?token=${slugify(code)}-${slugify(pel('asTitle').value || 'ten-bai-tap')}`;
+  }
+
+  function newId() { return 'q_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+  function addBlock(type) {
+    const base = { id: newId(), type, content: '', points: 1, explanation: '' };
+    if (type === 'mcq' || type === 'multi') base.options = [{ id: 'a', text: '', correct: type === 'mcq' }, { id: 'b', text: '', correct: false }];
+    if (type === 'tf') base.options = [{ id: 'true', text: 'Đúng', correct: true }, { id: 'false', text: 'Sai', correct: false }];
+    if (type === 'fill') { base.accepted_answers_raw = ''; }
+    if (type === 'text') { base.points = 0; }
+    blocks.push(base);
+    renderBlocks();
+  }
+  function removeBlock(id) { blocks = blocks.filter(b => b.id !== id); renderBlocks(); }
+  function moveBlock(id, dir) {
+    const i = blocks.findIndex(b => b.id === id); const j = i + dir;
+    if (i < 0 || j < 0 || j >= blocks.length) return;
+    [blocks[i], blocks[j]] = [blocks[j], blocks[i]]; renderBlocks();
+  }
+
+  const typeLabel = { mcq: '☑️ Trắc nghiệm 1 đáp án', multi: '☑️☑️ Trắc nghiệm nhiều đáp án', tf: '✅❌ Đúng/Sai', fill: '✏️ Điền khuyết', essay: '📄 Tự luận', text: '📌 Văn bản / hướng dẫn' };
+
+  function renderBlocks() {
+    pel('questionBlocks').innerHTML = blocks.map((b, idx) => `
+      <div class="border dark:border-zinc-700 rounded-2xl p-4 space-y-3 bg-white dark:bg-zinc-900" data-block="${b.id}">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-extrabold text-[#cf1717]">Câu ${b.type === 'text' ? '' : (blocks.slice(0, idx + 1).filter(x => x.type !== 'text').length)} — ${typeLabel[b.type]}</span>
+          <div class="flex items-center gap-2 text-xs">
+            ${b.type !== 'text' ? `<label class="flex items-center gap-1">Điểm: <input type="number" min="0" step="0.5" value="${b.points}" oninput="updateField('${b.id}','points',this.value,true)" class="w-14 p-1 rounded border dark:bg-zinc-800 dark:border-zinc-700"></label>` : ''}
+            <button type="button" onclick="moveBlock('${b.id}',-1)" title="Lên">⬆️</button>
+            <button type="button" onclick="moveBlock('${b.id}',1)" title="Xuống">⬇️</button>
+            <button type="button" onclick="removeBlock('${b.id}')" class="text-red-500 font-bold" title="Xóa">🗑️</button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">${b.type === 'text' ? 'Nội dung' : 'Nội dung câu hỏi'}</label>
+          <div class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700" contenteditable="true" oninput="updateField('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
+        </div>
+
+        ${(b.type === 'mcq' || b.type === 'multi' || b.type === 'tf') ? `
+          <div class="space-y-2">
+            <label class="block text-[10px] font-bold uppercase text-gray-500">Các lựa chọn (tick ✓ vào đáp án đúng)</label>
+            ${b.options.map(o => `
+              <div class="flex items-center gap-2">
+                <input type="${b.type === 'multi' ? 'checkbox' : 'radio'}" name="correct-${b.id}" ${o.correct ? 'checked' : ''}
+                  onchange="setCorrect('${b.id}','${o.id}', ${b.type === 'multi'} ? this.checked : true, ${b.type !== 'multi'})">
+                <input type="text" value="${esc(o.text)}" placeholder="Nội dung lựa chọn..." ${b.type === 'tf' ? 'readonly' : ''}
+                  oninput="setOptionText('${b.id}','${o.id}',this.value)" class="flex-1 p-2 rounded border dark:bg-zinc-800 dark:border-zinc-700 text-xs">
+                ${b.type !== 'tf' && b.options.length > 2 ? `<button type="button" onclick="removeOption('${b.id}','${o.id}')" class="text-red-400 text-xs">✕</button>` : ''}
+              </div>`).join('')}
+            ${b.type !== 'tf' ? `<button type="button" onclick="addOption('${b.id}')" class="text-xs font-bold text-[#cf1717] hover:underline">+ Thêm lựa chọn</button>` : ''}
+          </div>` : ''}
+
+        ${b.type === 'fill' ? `
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">Các đáp án được chấp nhận (cách nhau bởi dấu ; )</label>
+            <input type="text" value="${esc(b.accepted_answers_raw || '')}" placeholder="cost; costs; logistics costs"
+              oninput="updateField('${b.id}','accepted_answers_raw',this.value)" class="w-full p-2 rounded border dark:bg-zinc-800 dark:border-zinc-700 text-xs">
+          </div>` : ''}
+
+        ${b.type !== 'text' ? `
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">💡 Đáp án & giải thích (hiện ra sau khi học sinh nộp bài)</label>
+            <div class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700" contenteditable="true" oninput="updateField('${b.id}','explanation',this.innerHTML)">${b.explanation || ''}</div>
+          </div>` : ''}
+      </div>`).join('') || '<p class="text-xs text-gray-400 italic text-center py-6">Chưa có câu hỏi nào — bấm nút bên dưới để thêm.</p>';
+  }
+
+  function updateField(id, field, value, isNumber) {
+    const b = blocks.find(x => x.id === id); if (!b) return;
+    b[field] = isNumber ? parseFloat(value || 0) : value;
+  }
+  function setOptionText(bid, oid, val) { const b = blocks.find(x => x.id === bid); const o = b.options.find(x => x.id === oid); if (o) o.text = val; }
+  function setCorrect(bid, oid, checked, single) {
+    const b = blocks.find(x => x.id === bid); if (!b) return;
+    if (single) b.options.forEach(o => o.correct = (o.id === oid));
+    else { const o = b.options.find(x => x.id === oid); if (o) o.correct = checked; }
+  }
+  function addOption(bid) {
+    const b = blocks.find(x => x.id === bid); if (!b) return;
+    const nextLetter = String.fromCharCode(97 + b.options.length);
+    b.options.push({ id: nextLetter + Date.now().toString(36).slice(-3), text: '', correct: false });
+    renderBlocks();
+  }
+  function removeOption(bid, oid) {
+    const b = blocks.find(x => x.id === bid); if (!b) return;
+    b.options = b.options.filter(o => o.id !== oid); renderBlocks();
+  }
+
+  async function saveAssignment() {
+    if (!currentClassForAssignments) return notify('⚠️ Vui lòng chọn lớp trước.');
+    const title = pel('asTitle').value.trim();
+    if (!title) return notify('⚠️ Vui lòng nhập tiêu đề bài tập.');
+    if (!blocks.length) return notify('⚠️ Vui lòng thêm ít nhất 1 câu hỏi.');
+
+    // Chuẩn hoá dữ liệu fill-blank: chuyển chuỗi "a;b;c" -> mảng đã trim/lowercase
+    const finalBlocks = blocks.map(b => {
+      const nb = { ...b };
+      if (nb.type === 'fill') { nb.accepted_answers = (nb.accepted_answers_raw || '').split(';').map(s => s.trim()).filter(Boolean); delete nb.accepted_answers_raw; }
+      return nb;
+    });
+    const total_points = finalBlocks.reduce((s, b) => s + (b.type === 'text' ? 0 : (parseFloat(b.points) || 0)), 0);
+
+    const cls = myClasses.find(c => c.id === currentClassForAssignments);
+    const editingId = pel('editingAssignmentId').value;
+    let token;
+    if (editingId) {
+      const existing = currentAssignments.find(a => a.id === editingId);
+      token = existing ? existing.token : `${slugify(cls.class_code)}-${slugify(title)}`;
+    } else {
+      token = `${slugify(cls.class_code)}-${slugify(title)}`;
+      const { data: dup } = await sbClient.from('assignments').select('id').eq('token', token).maybeSingle();
+      if (dup) token += '-' + Math.random().toString(36).slice(2, 6);
+    }
+
+    const row = {
+      class_id: currentClassForAssignments, teacher_id: currentUser.id, token, title,
+      description: pel('asDesc').value.trim() || null,
+      time_limit_minutes: pel('asTimeLimit').value ? parseInt(pel('asTimeLimit').value) : null,
+      questions: finalBlocks, total_points, is_published: pel('asPublished').checked,
+      updated_at: new Date().toISOString()
+    };
+    const { error } = editingId ? await sbClient.from('assignments').update(row).eq('id', editingId) : await sbClient.from('assignments').insert([row]);
+    if (error) return notify('❌ Lỗi lưu bài tập: ' + error.message);
+    notify('🎉 Đã lưu bài tập! Đường dẫn: assignment.html?token=' + token);
+    closeBuilder(); loadAssignmentsForClass();
+  }
+
+  // =====================================================================
+  // 4. KẾT QUẢ BÀI TẬP
+  // =====================================================================
+  async function openResultsModal(assignmentId) {
+    const a = currentAssignments.find(x => x.id === assignmentId); if (!a) return;
+    pel('rmTitle').innerText = a.title;
+    pel('rmList').innerHTML = '<p class="text-gray-400 italic">Đang tải...</p>';
+    pel('resultsModal').classList.remove('hidden'); pel('resultsModal').classList.add('flex');
+    const { data, error } = await sbClient.from('assignment_attempts').select('*, profiles(full_name)').eq('assignment_id', assignmentId).order('submitted_at', { ascending: false });
+    if (error) { pel('rmList').innerHTML = `<p class="text-red-500">${esc(error.message)}</p>`; return; }
+    pel('rmList').innerHTML = (data || []).map(r => `
+      <div class="flex items-center justify-between bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl px-3 py-2">
+        <div>
+          <p class="font-bold text-gray-900 dark:text-white">${esc(r.profiles?.full_name || 'N/A')}</p>
+          <p class="text-[10px] text-gray-400">${new Date(r.submitted_at).toLocaleString('vi-VN')} ${r.has_essay ? '· có câu tự luận cần chấm tay' : ''}</p>
+        </div>
+        <span class="font-extrabold text-[#cf1717]">${r.auto_score}/${r.total_points}</span>
+      </div>`).join('') || '<p class="text-gray-400 italic">Chưa có học sinh nào nộp bài.</p>';
+  }
+  function closeResultsModal() { pel('resultsModal').classList.add('hidden'); pel('resultsModal').classList.remove('flex'); }
+
+  window.onload = checkTeacher;
+</script>
+</body>
+</html>
