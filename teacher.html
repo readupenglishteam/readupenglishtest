@@ -28,7 +28,7 @@
 </div>
 
 <!-- KHUNG TOAST GÓC PHẢI TRÊN (đường màu đỏ chạy phía dưới mỗi thông báo) -->
-<div id="toastContainer" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+<div id="toastContainer" class="fixed top-5 right-5 z-[100000] flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
 
 <style>
   @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
@@ -243,7 +243,9 @@
         <button type="button" onclick="addBlock('fill')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">✏️ Điền khuyết</button>
         <button type="button" onclick="addBlock('essay')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">📄 Tự luận</button>
         <button type="button" onclick="addBlock('text')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">📌 Đoạn văn bản / hướng dẫn (không chấm điểm)</button>
+        <button type="button" onclick="addBlock('reading')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border-2 border-dashed border-[#cf1717]/50 rounded-lg font-bold text-[#cf1717] hover:bg-red-50 dark:hover:bg-red-950/30 transition">📖 Bài Đọc Chia Đôi (Reading)</button>
       </div>
+      <p class="text-[10px] text-gray-400 mt-2">💡 "Bài Đọc Chia Đôi" tạo 1 khối riêng: bên trái là bài văn để đọc, bên phải là các câu hỏi <b>chỉ thuộc riêng bài đọc đó</b> — hoàn toàn tách biệt với các câu hỏi bạn thêm ở ngoài.</p>
     </div>
 
     <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t dark:border-zinc-800">
@@ -517,7 +519,7 @@
       <div class="bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-2xl p-4 space-y-2">
         <div class="flex items-center justify-between">
           <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${a.is_published ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400' : 'bg-gray-200 text-gray-600 dark:bg-zinc-700'}">${a.is_published ? 'Đã xuất bản' : 'Bản nháp'}</span>
-          <span class="text-[10px] text-gray-400">${(a.questions || []).filter(q => q.type !== 'text').length} câu · ${a.total_points || 0} điểm</span>
+          <span class="text-[10px] text-gray-400">${countGradableQuestions(a.questions)} câu · ${a.total_points || 0} điểm</span>
         </div>
         <h4 class="font-bold text-sm text-gray-900 dark:text-white">${esc(a.title)}</h4>
         <p class="text-[11px] text-gray-400 truncate">token: ${esc(a.token)}</p>
@@ -597,14 +599,18 @@
     // Bài đã lưu trước đó có blanks ở dạng mảng [{gap, accepted_answers}] (định dạng lưu xuống DB),
     // trong khi khung soạn thảo cần dạng object {gap: "đáp án;đáp án"} để hiển thị ô nhập.
     // Nếu không chuẩn hoá lại ở đây thì lúc lưu (saveAssignment) sẽ bị lỗi "...split is not a function".
-    blocks = rawBlocks.map(b => {
-      if (b.type === 'fill' && Array.isArray(b.blanks)) {
-        const map = {};
-        b.blanks.forEach(bl => { map[bl.gap] = (bl.accepted_answers || []).join('; '); });
-        b.blanks = map;
-      }
-      return b;
-    });
+    function normalizeFillBlanks(list) {
+      return (list || []).map(b => {
+        if (b.type === 'fill' && Array.isArray(b.blanks)) {
+          const map = {};
+          b.blanks.forEach(bl => { map[bl.gap] = (bl.accepted_answers || []).join('; '); });
+          b.blanks = map;
+        }
+        if (b.type === 'reading') b.subBlocks = normalizeFillBlanks(b.subBlocks);
+        return b;
+      });
+    }
+    blocks = normalizeFillBlanks(rawBlocks);
     renderBlocks();
     previewAsToken();
     pel('asTitle').oninput = previewAsToken;
@@ -621,29 +627,80 @@
 
   function newId() { return 'q_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 
-  function addBlock(type) {
+  // ===== Tìm block theo id, kể cả bên trong subBlocks của khối "reading" (đệ quy) =====
+  function findBlockContainer(id, list) {
+    list = list || blocks;
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].id === id) return { arr: list, idx: i };
+      if (list[i].type === 'reading') {
+        if (!list[i].subBlocks) list[i].subBlocks = [];
+        const r = findBlockContainer(id, list[i].subBlocks);
+        if (r) return r;
+      }
+    }
+    return null;
+  }
+  function getBlock(id) { const c = findBlockContainer(id); return c ? c.arr[c.idx] : null; }
+
+  function addBlock(type, parentId) {
     const base = { id: newId(), type, content: '', points: 1, explanation: '' };
     if (type === 'mcq' || type === 'multi') base.options = [{ id: 'a', text: '', correct: type === 'mcq' }, { id: 'b', text: '', correct: false }];
     if (type === 'tf') base.options = [{ id: 'true', text: 'Đúng', correct: true }, { id: 'false', text: 'Sai', correct: false }];
     if (type === 'fill') { base.blanks = {}; }
     if (type === 'text') { base.points = 0; }
-    blocks.push(base);
+    if (type === 'reading') { base.points = 0; base.subBlocks = []; delete base.explanation; }
+    if (parentId) {
+      const parent = getBlock(parentId);
+      if (!parent) return;
+      parent.subBlocks = parent.subBlocks || [];
+      parent.subBlocks.push(base);
+    } else {
+      blocks.push(base);
+    }
     renderBlocks();
   }
-  function removeBlock(id) { blocks = blocks.filter(b => b.id !== id); renderBlocks(); }
+  function removeBlock(id) {
+    const c = findBlockContainer(id); if (!c) return;
+    c.arr.splice(c.idx, 1); renderBlocks();
+  }
   function moveBlock(id, dir) {
-    const i = blocks.findIndex(b => b.id === id); const j = i + dir;
-    if (i < 0 || j < 0 || j >= blocks.length) return;
-    [blocks[i], blocks[j]] = [blocks[j], blocks[i]]; renderBlocks();
+    const c = findBlockContainer(id); if (!c) return;
+    const i = c.idx, j = i + dir;
+    if (j < 0 || j >= c.arr.length) return;
+    [c.arr[i], c.arr[j]] = [c.arr[j], c.arr[i]]; renderBlocks();
+  }
+  function readingPoints(b) { return (b.subBlocks || []).reduce((s, x) => s + (x.type === 'text' ? 0 : (parseFloat(x.points) || 0)), 0); }
+
+  const typeLabel = { mcq: '☑️ Trắc nghiệm 1 đáp án', multi: '☑️☑️ Trắc nghiệm nhiều đáp án', tf: '✅❌ Đúng/Sai', fill: '✏️ Điền khuyết', essay: '📄 Tự luận', text: '📌 Văn bản / hướng dẫn', reading: '📖 Bài Đọc Chia Đôi' };
+
+  // Đếm số thứ tự câu hỏi (bỏ qua 'text' và chính khối 'reading', nhưng tính các câu con bên trong reading)
+  function countGradableUpTo(list, targetId, counter) {
+    counter = counter || { n: 0, found: false };
+    for (const b of list) {
+      if (b.type === 'reading') {
+        countGradableUpTo(b.subBlocks || [], targetId, counter);
+        if (counter.found) return counter;
+        continue;
+      }
+      if (b.type !== 'text') counter.n++;
+      if (b.id === targetId) { counter.found = true; return counter; }
+    }
+    return counter;
+  }
+  function qNumberOf(id) { return countGradableUpTo(blocks, id).n; }
+
+  function renderBlockList(list, parentId) {
+    return list.map((b) => {
+      if (b.type === 'reading') return renderReadingBlockHtml(b);
+      return renderQuestionBlockHtml(b, parentId);
+    }).join('') || (parentId ? '<p class="text-[11px] text-gray-400 italic text-center py-3">Chưa có câu hỏi nào cho bài đọc này.</p>' : '<p class="text-xs text-gray-400 italic text-center py-6">Chưa có câu hỏi nào — bấm nút bên dưới để thêm.</p>');
   }
 
-  const typeLabel = { mcq: '☑️ Trắc nghiệm 1 đáp án', multi: '☑️☑️ Trắc nghiệm nhiều đáp án', tf: '✅❌ Đúng/Sai', fill: '✏️ Điền khuyết', essay: '📄 Tự luận', text: '📌 Văn bản / hướng dẫn' };
-
-  function renderBlocks() {
-    pel('questionBlocks').innerHTML = blocks.map((b, idx) => `
+  function renderQuestionBlockHtml(b, parentId) {
+    return `
       <div class="border dark:border-zinc-700 rounded-2xl p-4 space-y-3 bg-white dark:bg-zinc-900" data-block="${b.id}">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-extrabold text-[#cf1717]">Câu ${b.type === 'text' ? '' : (blocks.slice(0, idx + 1).filter(x => x.type !== 'text').length)} — ${typeLabel[b.type]}</span>
+          <span class="text-xs font-extrabold text-[#cf1717]">Câu ${b.type === 'text' ? '' : qNumberOf(b.id)} — ${typeLabel[b.type]}</span>
           <div class="flex items-center gap-2 text-xs">
             ${b.type !== 'text' ? `<label class="flex items-center gap-1">Điểm: <input type="number" min="0" step="0.5" value="${b.points}" oninput="updateField('${b.id}','points',this.value,true)" class="w-14 p-1 rounded border dark:bg-zinc-800 dark:border-zinc-700"></label>` : ''}
             <button type="button" onclick="moveBlock('${b.id}',-1)" title="Lên">⬆️</button>
@@ -681,27 +738,74 @@
             <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">💡 Đáp án & giải thích (hiện ra sau khi học sinh nộp bài)</label>
             <div class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700" contenteditable="true" oninput="updateField('${b.id}','explanation',this.innerHTML)">${b.explanation || ''}</div>
           </div>` : ''}
-      </div>`).join('') || '<p class="text-xs text-gray-400 italic text-center py-6">Chưa có câu hỏi nào — bấm nút bên dưới để thêm.</p>';
+      </div>`;
+  }
+
+  // ===== Khối "Bài Đọc Chia Đôi": trái = bài văn, phải = câu hỏi riêng của bài đọc đó =====
+  function renderReadingBlockHtml(b) {
+    b.subBlocks = b.subBlocks || [];
+    return `
+      <div class="border-2 border-[#cf1717]/40 rounded-2xl p-4 space-y-3 bg-red-50/30 dark:bg-red-950/10" data-block="${b.id}">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-extrabold text-[#cf1717]">📖 Bài Đọc Chia Đôi — ${readingPoints(b)} điểm (tự tính từ các câu bên phải)</span>
+          <div class="flex items-center gap-2 text-xs">
+            <button type="button" onclick="moveBlock('${b.id}',-1)" title="Lên">⬆️</button>
+            <button type="button" onclick="moveBlock('${b.id}',1)" title="Xuống">⬇️</button>
+            <button type="button" onclick="removeBlock('${b.id}')" class="text-red-500 font-bold" title="Xóa">🗑️</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <div class="flex items-center justify-between">
+              <label class="block text-[10px] font-bold uppercase text-gray-500">📄 Bài đọc (văn bản)</label>
+              <label class="flex items-center gap-1 text-[10px] font-bold text-gray-600 dark:text-gray-300">
+                <input type="checkbox" ${b.two_col ? 'checked' : ''} onchange="updateField('${b.id}','two_col',this.checked); renderBlocks()"> 📰 Chia 2 cột
+              </label>
+            </div>
+            <div id="qc-${b.id}" class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700 max-h-[60vh] overflow-y-auto ${b.two_col ? 'qeditor-2col' : ''}" contenteditable="true" oninput="updateField('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-[10px] font-bold uppercase text-gray-500">❓ Câu hỏi riêng cho bài đọc này</label>
+            <div class="max-h-[60vh] overflow-y-auto pr-1 space-y-3">
+              ${renderBlockList(b.subBlocks, b.id)}
+            </div>
+            <div class="p-2 bg-white dark:bg-zinc-900 rounded-lg border dark:border-zinc-700">
+              <p class="text-[10px] font-bold uppercase text-gray-500 mb-1.5">➕ Thêm dạng câu hỏi cho bài đọc</p>
+              <div class="flex flex-wrap gap-1.5 text-[11px]">
+                <button type="button" onclick="addBlock('mcq','${b.id}')" class="px-2 py-1 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded font-bold hover:border-[#cf1717] hover:text-[#cf1717]">☑️ 1 đáp án</button>
+                <button type="button" onclick="addBlock('multi','${b.id}')" class="px-2 py-1 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded font-bold hover:border-[#cf1717] hover:text-[#cf1717]">☑️☑️ Nhiều đáp án</button>
+                <button type="button" onclick="addBlock('tf','${b.id}')" class="px-2 py-1 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded font-bold hover:border-[#cf1717] hover:text-[#cf1717]">✅❌ Đúng/Sai</button>
+                <button type="button" onclick="addBlock('fill','${b.id}')" class="px-2 py-1 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded font-bold hover:border-[#cf1717] hover:text-[#cf1717]">✏️ Điền khuyết</button>
+                <button type="button" onclick="addBlock('essay','${b.id}')" class="px-2 py-1 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded font-bold hover:border-[#cf1717] hover:text-[#cf1717]">📄 Tự luận</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderBlocks() {
+    pel('questionBlocks').innerHTML = renderBlockList(blocks, null);
   }
 
   function updateField(id, field, value, isNumber) {
-    const b = blocks.find(x => x.id === id); if (!b) return;
+    const b = getBlock(id); if (!b) return;
     b[field] = isNumber ? parseFloat(value || 0) : value;
   }
-  function setOptionText(bid, oid, val) { const b = blocks.find(x => x.id === bid); const o = b.options.find(x => x.id === oid); if (o) o.text = val; }
+  function setOptionText(bid, oid, val) { const b = getBlock(bid); const o = b.options.find(x => x.id === oid); if (o) o.text = val; }
   function setCorrect(bid, oid, checked, single) {
-    const b = blocks.find(x => x.id === bid); if (!b) return;
+    const b = getBlock(bid); if (!b) return;
     if (single) b.options.forEach(o => o.correct = (o.id === oid));
     else { const o = b.options.find(x => x.id === oid); if (o) o.correct = checked; }
   }
   function addOption(bid) {
-    const b = blocks.find(x => x.id === bid); if (!b) return;
+    const b = getBlock(bid); if (!b) return;
     const nextLetter = String.fromCharCode(97 + b.options.length);
     b.options.push({ id: nextLetter + Date.now().toString(36).slice(-3), text: '', correct: false });
     renderBlocks();
   }
   function removeOption(bid, oid) {
-    const b = blocks.find(x => x.id === bid); if (!b) return;
+    const b = getBlock(bid); if (!b) return;
     b.options = b.options.filter(o => o.id !== oid); renderBlocks();
   }
 
@@ -736,12 +840,12 @@
     </div>`;
   }
   function updateBlankAnswer(bid, gapNum, value) {
-    const b = blocks.find(x => x.id === bid); if (!b) return;
+    const b = getBlock(bid); if (!b) return;
     b.blanks = b.blanks || {};
     b.blanks[gapNum] = value;
   }
   function insertGapAtCursor(bid) {
-    const b = blocks.find(x => x.id === bid); if (!b) return;
+    const b = getBlock(bid); if (!b) return;
     const div = pel('qc-' + bid); if (!div) return;
     div.focus();
     const nums = extractGapNumbers(b.content);
@@ -756,25 +860,38 @@
     if (!title) return notify('⚠️ Vui lòng nhập tiêu đề bài tập.');
     if (!blocks.length) return notify('⚠️ Vui lòng thêm ít nhất 1 câu hỏi.');
 
-    // Kiểm tra mỗi câu điền khuyết phải có ít nhất 1 chỗ trống đã chèn
-    for (let i = 0; i < blocks.length; i++) {
-      if (blocks[i].type === 'fill' && extractGapNumbers(blocks[i].content).length === 0) {
-        return notify(`⚠️ Câu điền khuyết chưa có chỗ trống nào — hãy bấm "+ Chèn chỗ trống" trong câu đó trước khi lưu.`);
+    // Kiểm tra mỗi câu điền khuyết (kể cả bên trong bài đọc chia đôi) phải có ít nhất 1 chỗ trống đã chèn
+    function checkFillGaps(list) {
+      for (const b of list) {
+        if (b.type === 'fill' && extractGapNumbers(b.content).length === 0) return false;
+        if (b.type === 'reading' && !checkFillGaps(b.subBlocks || [])) return false;
       }
+      return true;
+    }
+    if (!checkFillGaps(blocks)) {
+      return notify(`⚠️ Câu điền khuyết chưa có chỗ trống nào — hãy bấm "+ Chèn chỗ trống" trong câu đó trước khi lưu.`);
     }
 
     // Chuẩn hoá dữ liệu fill-blank: chuyển blanks (map theo số chỗ trống) -> mảng {gap, accepted_answers} theo thứ tự
-    const finalBlocks = blocks.map(b => {
-      const nb = { ...b };
-      if (nb.type === 'fill') {
-        const gaps = extractGapNumbers(nb.content);
-        nb.blanks = gaps.map(n => ({
-          gap: n,
-          accepted_answers: ((nb.blanks && nb.blanks[n]) || '').split(';').map(s => s.trim()).filter(Boolean)
-        }));
-      }
-      return nb;
-    });
+    // (đệ quy để xử lý cả câu hỏi nằm trong khối "Bài Đọc Chia Đôi")
+    function normalizeForSave(list) {
+      return list.map(b => {
+        const nb = { ...b };
+        if (nb.type === 'fill') {
+          const gaps = extractGapNumbers(nb.content);
+          nb.blanks = gaps.map(n => ({
+            gap: n,
+            accepted_answers: ((nb.blanks && nb.blanks[n]) || '').split(';').map(s => s.trim()).filter(Boolean)
+          }));
+        }
+        if (nb.type === 'reading') {
+          nb.subBlocks = normalizeForSave(nb.subBlocks || []);
+          nb.points = nb.subBlocks.reduce((s, x) => s + (x.type === 'text' ? 0 : (parseFloat(x.points) || 0)), 0);
+        }
+        return nb;
+      });
+    }
+    const finalBlocks = normalizeForSave(blocks);
     const total_points = finalBlocks.reduce((s, b) => s + (b.type === 'text' ? 0 : (parseFloat(b.points) || 0)), 0);
 
     const cls = myClasses.find(c => c.id === currentClassForAssignments);
