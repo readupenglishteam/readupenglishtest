@@ -169,6 +169,61 @@
     : 'w-1/2 py-2.5 text-center font-bold text-gray-400 hover:text-gray-600 transition';
 }
 
+// =====================================================================
+// HÀM DÙNG CHUNG: xác định trang cần chuyển đến dựa theo role + cờ
+// must_change_password, tái sử dụng cho cả đăng nhập Email/Mật khẩu VÀ
+// đăng nhập Google/Facebook (OAuth) VÀ trường hợp mở lại login.html khi
+// đã có sẵn phiên đăng nhập (ví dụ sau khi OAuth redirect quay về).
+// =====================================================================
+async function redirectByProfile(user) {
+  const msg = document.getElementById('authMsg');
+  msg.innerText = "⏳ Đang kiểm tra tài khoản...";
+  msg.className = "mt-4 text-center text-sm font-semibold text-gray-500";
+
+  const { data: profile, error } = await sbClient
+    .from('profiles')
+    .select('role, must_change_password')
+    .eq('id', user.id)
+    .single();
+
+  if (error) {
+    // Không lấy được hồ sơ (lỗi mạng/RLS...) -> vẫn cho vào dashboard mặc định
+    // thay vì im lặng, báo rõ cho người dùng biết để họ f5 lại nếu cần.
+    msg.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Đăng nhập thành công nhưng không tải được hồ sơ (' + error.message + '). Đang chuyển vào trang chính...';
+    msg.className = "mt-4 text-center text-sm font-semibold text-amber-600";
+    setTimeout(() => window.location.href = 'dashboard.html', 1500);
+    return;
+  }
+
+  // Tài khoản do giáo viên tự tạo hộ (must_change_password = true) -> bắt đổi mật khẩu trước
+  if (profile?.must_change_password === true) {
+    msg.innerHTML = '<i class="bi bi-shield-lock"></i> Đăng nhập thành công! Vui lòng đổi mật khẩu để bảo mật tài khoản...';
+    msg.className = "mt-4 text-center text-sm font-semibold text-amber-600";
+    setTimeout(() => window.location.href = 'profile.html', 1200);
+    return;
+  }
+
+  const role = profile?.role?.trim().toLowerCase();
+
+  if (role === 'admin') {
+    msg.innerHTML = '<i class="bi bi-gear"></i> Đăng nhập Admin thành công';
+    msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
+    setTimeout(() => window.location.href = 'admin.html', 1000);
+  } else if (role === 'teacher') {
+    msg.innerHTML = '<i class="bi bi-person-badge"></i> Đăng nhập Giảng viên thành công';
+    msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
+    setTimeout(() => window.location.href = 'teacher.html', 1000);
+  } else if (role === 'vip') {
+    msg.innerHTML = '<i class="bi bi-star"></i> Đăng nhập VIP thành công';
+    msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
+    setTimeout(() => window.location.href = 'assignment.html', 1000);
+  } else {
+    msg.innerHTML = '<i class="bi bi-check-circle"></i> Đăng nhập thành công';
+    msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
+    setTimeout(() => window.location.href = 'dashboard.html', 1000);
+  }
+}
+
 // 3. Hàm Xử lý Đăng ký / Đăng nhập
 async function handleAuth(e) {
   e.preventDefault();
@@ -220,7 +275,7 @@ async function handleAuth(e) {
       setTimeout(() => window.location.href = 'dashboard.html', 1500);
     }
   } else {
-    // Luồng Đăng nhập
+    // Luồng Đăng nhập bằng Email/Mật khẩu
     const { data: authData, error: authError } = await sbClient.auth.signInWithPassword({ email, password });
     
     if (authError) {
@@ -229,38 +284,19 @@ async function handleAuth(e) {
       return;
     }
 
-    const { data: profile } = await sbClient
-      .from('profiles')
-      .select('role')
-      .eq('id', authData.user.id)
-      .single();
-
-    const role = profile?.role?.trim().toLowerCase();
-
-    if (role === 'admin') {
-  msg.innerHTML = '<i class="bi bi-gear"></i> Đăng nhập Admin thành công';
-  msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
-  setTimeout(() => window.location.href = 'admin.html', 1000);
-} else if (role === 'teacher') {
-  msg.innerHTML = '<i class="bi bi-person-badge"></i> Đăng nhập Giảng viên thành công';
-  msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
-  setTimeout(() => window.location.href = 'teacher.html', 1000);
-} else if (role === 'vip') {
-  msg.innerHTML = '<i class="bi bi-star"></i> Đăng nhập VIP thành công';
-  msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
-  setTimeout(() => window.location.href = 'assignment.html', 1000);
-} else {
-  msg.innerHTML = '<i class="bi bi-check-circle"></i> Đăng nhập thành công';
-  msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
-  setTimeout(() => window.location.href = 'dashboard.html', 1000);
-}
+    await redirectByProfile(authData.user);
   }
 }
 
   // 1. ĐĂNG NHẬP BẰNG GOOGLE
   async function loginWithGoogle() {
     const msg = document.getElementById('authMsg');
-    const redirectUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/dashboard.html');
+    // Quay lại CHÍNH trang login.html này (không nhảy thẳng dashboard.html nữa) để
+    // sau khi Supabase xác thực xong, script bên dưới tự kiểm tra role và điều
+    // hướng đúng trang (admin/teacher/vip/dashboard) giống hệt luồng đăng nhập
+    // bằng mật khẩu — tránh tình trạng Giáo viên/VIP đăng nhập Google lại bị kẹt
+    // ở trang dashboard của học sinh thường.
+    const redirectUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/login.html');
     const { data, error } = await sbClient.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: redirectUrl }
@@ -274,7 +310,7 @@ async function handleAuth(e) {
   // 2. ĐĂNG NHẬP BẰNG FACEBOOK / GITHUB / APPLE
   async function loginWithSocial(providerName) {
     const msg = document.getElementById('authMsg');
-    const redirectUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/dashboard.html');
+    const redirectUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/login.html');
     const { data, error } = await sbClient.auth.signInWithOAuth({
       provider: providerName,
       options: { redirectTo: redirectUrl }
@@ -282,38 +318,6 @@ async function handleAuth(e) {
     if (error) {
       msg.innerHTML = `<i class="bi bi-dash-circle-fill"></i> Lỗi đăng nhập ${providerName}: ${error.message}`;
       msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
-    }
-  }
-
-  // 3. ĐĂNG NHẬP BẰNG EMAIL & MẬT KHẨU TRUYỀN THỐNG
-  async function loginWithEmail(email, password) {
-    const msg = document.getElementById('authMsg');
-    const { data, error } = await sbClient.auth.signInWithPassword({
-      email: email,
-      password: password
-    });
-    if (error) {
-      msg.innerHTML = '<i class="bi bi-dash-circle-fill"></i> Sai email hoặc mật khẩu!';
-      msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
-    } else {
-      window.location.href = 'dashboard.html';
-    }
-  }
-
-  // 4. ĐĂNG NHẬP KHÔNG CẦN MẬT KHẨU (MAGIC LINK)
-  async function loginWithMagicLink(email) {
-    const msg = document.getElementById('authMsg');
-    const { data, error } = await sbClient.auth.signInWithOtp({
-      email: email,
-      options: {
-        emailRedirectTo: window.location.origin + '/dashboard.html'
-      }
-    });
-    if (error) {
-      msg.innerHTML = `<i class="bi bi-dash-circle-fill"></i> Lỗi gửi liên kết: ${error.message}`;
-      msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
-    } else {
-      alert("✉️ Đã gửi link đăng nhập vào Email của bạn!");
     }
   }
 
@@ -345,23 +349,9 @@ async function handleAuth(e) {
       `;
     }
   }
-  function formatToISO(vnDateStr) {
-  if (!vnDateStr) return null;
-  const parts = vnDateStr.trim().split('/');
-  if (parts.length === 3) {
-    const day = parts[0].padStart(2, '0');
-    const month = parts[1].padStart(2, '0');
-    const year = parts[2];
-    
-    // Kiểm tra tính hợp lệ cơ bản của ngày, tháng, năm
-    if (Number(day) > 0 && Number(day) <= 31 && Number(month) > 0 && Number(month) <= 12 && year.length === 4) {
-      return `${year}-${month}-${day}`;
-    }
-  }
-  return null;
-}
+
   let phoneInputIti;
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const phoneInputField = document.getElementById("phone");
   if (phoneInputField) {
     phoneInputIti = window.intlTelInput(phoneInputField, {
@@ -381,6 +371,15 @@ document.addEventListener("DOMContentLoaded", () => {
     allowInput: true,
     maxDate: "today"
   });
+
+  // 3. Nếu trang này được mở lại SAU KHI đăng nhập Google/Facebook thành công
+  // (Supabase tự xử lý OAuth callback và lưu phiên đăng nhập trước khi trang
+  // load xong), tự động kiểm tra role và điều hướng luôn — người dùng không
+  // phải bấm gì thêm.
+  const { data: { session } } = await sbClient.auth.getSession();
+  if (session?.user) {
+    await redirectByProfile(session.user);
+  }
 });
 </script>
 </body>
