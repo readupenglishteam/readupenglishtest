@@ -28,7 +28,10 @@
 </div>
 
 <!-- KHUNG TOAST GÓC PHẢI TRÊN (đường màu đỏ chạy phía dưới mỗi thông báo) -->
-<div id="toastContainer" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+<div id="toastContainer" class="fixed top-5 right-5 z-[100000] flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+<!-- Nút nổi "Highlight" hiện lên khi học sinh bôi đen văn bản trong bài đọc (hoạt động cả trên điện thoại) -->
+<button id="rdHlBtn" class="rd-hl-btn">🖍️ Đánh dấu</button>
 
 <style>
   @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
@@ -53,6 +56,29 @@
   .qcontent-2col img,.qcontent-2col table{break-inside:avoid}
   .opt-correct{background:rgba(16,185,129,.12)!important;border-color:#10b981!important}
   .opt-wrong{background:rgba(239,68,68,.12)!important;border-color:#ef4444!important}
+  .rd-hl{background:#fde68a;border-radius:2px;padding:0 1px}
+  .dark .rd-hl{background:#92400e;color:#fde68a}
+  .rd-split{display:flex;border:1px solid #e5e7eb;border-radius:1rem;overflow:hidden;background:#fff}
+  .dark .rd-split{border-color:#3f3f46;background:#18181b}
+  .rd-pane{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1rem}
+  .rd-passage{max-height:65vh}
+  .rd-questions{max-height:65vh;border-left:1px solid #e5e7eb}
+  .dark .rd-questions{border-color:#3f3f46}
+  .rd-resizer{width:6px;cursor:col-resize;background:#f3f4f6;flex-shrink:0;position:relative}
+  .dark .rd-resizer{background:#27272a}
+  .rd-resizer::after{content:'';position:absolute;top:50%;left:50%;width:3px;height:32px;background:#cf1717;border-radius:3px;transform:translate(-50%,-50%);opacity:.5}
+  @media (max-width:768px){
+    .rd-split{flex-direction:column}
+    .rd-resizer{display:none}
+    .rd-pane{max-height:none!important}
+    .rd-tabs{display:flex;border-bottom:1px solid #e5e7eb}
+    .dark .rd-tabs{border-color:#3f3f46}
+  }
+  .rd-tabs{display:none}
+  .rd-tab-btn{flex:1;padding:.6rem;font-size:.75rem;font-weight:800;text-align:center;color:#9ca3af;border-bottom:3px solid transparent}
+  .rd-tab-btn.active{color:#cf1717;border-color:#cf1717}
+  .rd-hl-btn{position:fixed;z-index:9999;background:#18181b;color:#fde68a;font-size:11px;font-weight:700;padding:6px 10px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.3);cursor:pointer;display:none;white-space:nowrap}
+  .fillbox{display:inline-block;vertical-align:middle;resize:none;overflow:hidden;line-height:1.4}
 </style>
 
 <!-- ================= HEADER HỌC SINH ================= -->
@@ -368,24 +394,64 @@
     const { data: membership } = await sbClient.from('class_students').select('id').eq('class_id', a.class_id).eq('student_id', currentUser.id).maybeSingle();
     if (!membership) { notify('❌ Bạn không thuộc lớp học của bài tập này.'); pel('listView').classList.remove('hidden'); pel('loadingMsg').classList.add('hidden'); pel('emptyMsg').classList.remove('hidden'); return; }
 
-    // Nếu đã nộp rồi -> hiển thị lại kết quả cũ thay vì cho làm lại
-    const { data: prevAttempt } = await sbClient.from('assignment_attempts').select('*').eq('assignment_id', a.id).eq('student_id', currentUser.id).order('submitted_at', { ascending: false }).limit(1).maybeSingle();
-    if (prevAttempt) { showResult(a, prevAttempt); return; }
+    // Lấy toàn bộ số lần đã làm để áp dụng giới hạn số lần làm (max_attempts). Nếu đã hết lượt -> chỉ xem lại bài gần nhất.
+    const { data: allAttempts } = await sbClient.from('assignment_attempts').select('*').eq('assignment_id', a.id).eq('student_id', currentUser.id).order('submitted_at', { ascending: false });
+    const attemptsUsed = (allAttempts || []).length;
+    if (attemptsUsed > 0 && a.max_attempts && attemptsUsed >= a.max_attempts) {
+      notify(`ℹ️ Bạn đã làm bài này ${attemptsUsed}/${a.max_attempts} lần — đã hết lượt làm, đây là kết quả gần nhất.`);
+      showResult(a, allAttempts[0]);
+      return;
+    }
+    // Chưa vượt giới hạn (hoặc không giới hạn) nhưng đã từng nộp trước đó -> cho làm lại, không tự hiện lại kết quả cũ
+    if (attemptsUsed > 0) {
+      notify(`✏️ Bạn đang làm lại bài này (lần ${attemptsUsed + 1}${a.max_attempts ? '/' + a.max_attempts : ''}).`);
+    }
 
     currentAssignment = a;
     pel('atTitle').innerText = a.title;
     pel('atDesc').innerText = a.description || '';
     pel('attemptView').classList.remove('hidden');
 
-    const gradable = (a.questions || []).filter(q => q.type !== 'text');
-    let qNo = 0;
-    pel('questionArea').innerHTML = (a.questions || []).map(q => {
-      if (q.type === 'text') return `<div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-2xl p-4 qcontent text-sm ${q.two_col ? 'qcontent-2col' : ''}">${q.content || ''}</div>`;
-      qNo++;
-      return renderQuestionInput(q, qNo);
-    }).join('');
+    const counter = { n: 0 };
+    pel('questionArea').innerHTML = (a.questions || []).map(q => renderTopLevelBlock(q, counter, 'attempt')).join('');
+    initReadingHighlighting();
 
     if (a.time_limit_minutes) startTimer(a.time_limit_minutes * 60);
+  }
+
+  // Vẽ 1 khối cấp cao nhất (text / reading / câu hỏi thường) ở chế độ làm bài ('attempt') hoặc xem lại ('review')
+  function renderTopLevelBlock(q, counter, mode, attempt) {
+    if (q.type === 'text') return `<div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-2xl p-4 qcontent text-sm ${q.two_col ? 'qcontent-2col' : ''}">${q.content || ''}</div>`;
+    if (q.type === 'reading') return renderReadingSplit(q, counter, mode, attempt);
+    counter.n++;
+    return mode === 'attempt' ? renderQuestionInput(q, counter.n) : renderReviewQuestion(q, counter.n, attempt);
+  }
+
+  let readingBlockSeq = 0;
+  function renderReadingSplit(q, counter, mode, attempt) {
+    readingBlockSeq++;
+    const rid = 'rd' + readingBlockSeq + '-' + q.id;
+    const qHtml = (q.sub_blocks || []).map(sb => renderTopLevelBlock(sb, counter, mode, attempt)).join('<div class="h-3"></div>');
+    return `
+      <div class="space-y-2">
+        <div class="rd-tabs rounded-t-2xl overflow-hidden">
+          <button type="button" class="rd-tab-btn active" onclick="switchRdTab('${rid}','passage',this)">📖 Bài đọc</button>
+          <button type="button" class="rd-tab-btn" onclick="switchRdTab('${rid}','questions',this)">❓ Câu hỏi</button>
+        </div>
+        <div class="rd-split shadow-sm">
+          <div id="${rid}-passage" data-rd-passage="${rid}" class="rd-pane rd-passage qcontent text-sm ${q.two_col ? 'qcontent-2col' : ''}" style="flex:1 1 50%">${q.content || ''}</div>
+          <div class="rd-resizer" data-resizer-for="${rid}"></div>
+          <div id="${rid}-questions" class="rd-pane rd-questions space-y-3" style="flex:1 1 50%">${qHtml}</div>
+        </div>
+      </div>`;
+  }
+  function switchRdTab(rid, which, btn) {
+    const wrap = btn.closest('.space-y-2');
+    wrap.querySelectorAll('.rd-tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const passage = pel(rid + '-passage'), questions = pel(rid + '-questions');
+    if (which === 'passage') { passage.style.display = ''; questions.style.display = 'none'; }
+    else { passage.style.display = 'none'; questions.style.display = ''; }
   }
 
   function renderQuestionInput(q, qNo) {
@@ -422,11 +488,11 @@
         const hintLen = (bl && bl.accepted_answers && bl.accepted_answers.length)
           ? Math.max(...bl.accepted_answers.map(a => String(a).length)) : 6;
         const chWidth = Math.min(Math.max(hintLen + 3, 5), 28);
-        return `<input type="text" id="ans-${q.id}-${n}" data-gap="${n}" placeholder="…" oninput="autoGrowFillInput(this)" style="width:${chWidth}ch"
-          class="inline-block mx-1 px-2 py-1 rounded-lg border-2 border-[#cf1717]/40 dark:bg-zinc-800 dark:border-red-900 text-sm font-semibold align-middle focus:outline-none focus:ring-2 focus:ring-[#cf1717]">`;
+        return `<textarea id="ans-${q.id}-${n}" data-gap="${n}" placeholder="…" rows="1" oninput="autoGrowFillInput(this)" style="width:${chWidth}ch"
+          class="fillbox mx-1 px-2 py-1 rounded-lg border-2 border-[#cf1717]/40 dark:bg-zinc-800 dark:border-red-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#cf1717]"></textarea>`;
       });
     } else {
-      contentHtml = `${q.content || ''}<div class="mt-3"><input type="text" id="ans-${q.id}" placeholder="Nhập câu trả lời..." class="w-full p-2.5 rounded-xl border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></div>`;
+      contentHtml = `${q.content || ''}<div class="mt-3"><textarea id="ans-${q.id}" rows="2" oninput="autoGrowFillInput(this)" placeholder="Nhập câu trả lời..." class="w-full p-2.5 rounded-xl border dark:bg-zinc-800 dark:border-zinc-700 text-sm resize-none overflow-hidden"></textarea></div>`;
     }
     return `
       <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm" data-q="${q.id}">
@@ -435,10 +501,151 @@
       </div>`;
   }
 
-  // Ô điền khuyết tự nới rộng theo độ dài học sinh đang gõ, để dễ nhìn & sửa (tối thiểu 5ch, tối đa 32ch)
+  // Ô điền khuyết tự nới rộng theo độ dài học sinh đang gõ: rộng ra tới một mức rồi tự xuống hàng như văn bản thường,
+  // và tự cao lên theo số dòng — không còn giới hạn 1 đoạn ngắn như trước.
   function autoGrowFillInput(el) {
-    const len = Math.max(el.value.length + 3, 5);
-    el.style.width = Math.min(len, 32) + 'ch';
+    const lines = el.value.split('\n');
+    const longest = Math.max(...lines.map(l => l.length), 5);
+    el.style.width = Math.min(Math.max(longest + 3, 5), 34) + 'ch';
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }
+
+  // =====================================================================
+  // BÀI ĐỌC (READING): thanh trượt chia cột (desktop) / tab chuyển (mobile) + bôi đen highlight
+  // =====================================================================
+  function initReadingSplits() {
+    document.querySelectorAll('.rd-resizer').forEach(resizer => {
+      if (resizer.dataset.bound) return; resizer.dataset.bound = '1';
+      const rid = resizer.getAttribute('data-resizer-for');
+      const passage = pel(rid + '-passage'), wrap = resizer.parentElement;
+      let dragging = false;
+      function onMove(clientX) {
+        const rect = wrap.getBoundingClientRect();
+        let pct = ((clientX - rect.left) / rect.width) * 100;
+        pct = Math.min(75, Math.max(25, pct));
+        passage.style.flex = `0 0 ${pct}%`;
+      }
+      resizer.addEventListener('mousedown', e => { dragging = true; e.preventDefault(); });
+      resizer.addEventListener('touchstart', () => { dragging = true; }, { passive: true });
+      window.addEventListener('mousemove', e => { if (dragging) onMove(e.clientX); });
+      window.addEventListener('touchmove', e => { if (dragging && e.touches[0]) onMove(e.touches[0].clientX); }, { passive: true });
+      window.addEventListener('mouseup', () => dragging = false);
+      window.addEventListener('touchend', () => dragging = false);
+    });
+    // Trên điện thoại: mặc định chỉ hiện bài đọc, bấm tab để xem câu hỏi (đủ chỗ hơn là chia đôi màn hình nhỏ)
+    if (window.innerWidth <= 768) {
+      document.querySelectorAll('.rd-questions').forEach(el => { el.style.display = 'none'; });
+    }
+  }
+
+  let currentHlToken = null;
+  function initReadingHighlighting() {
+    currentHlToken = new URLSearchParams(window.location.search).get('token') || 'preview';
+    document.querySelectorAll('[data-rd-passage]').forEach(applyStoredHighlights);
+    initReadingSplits();
+    if (!window._rdHlBound) {
+      window._rdHlBound = true;
+      document.addEventListener('selectionchange', handleSelectionForHighlight);
+      const btn = pel('rdHlBtn');
+      btn.addEventListener('mousedown', e => e.preventDefault());
+      btn.addEventListener('click', applyHighlightFromSelection);
+    }
+  }
+
+  function closestPassage(node) {
+    const el = node.nodeType === 3 ? node.parentElement : node;
+    return el ? el.closest('[data-rd-passage]') : null;
+  }
+  let rdSavedRange = null, rdSavedContainer = null;
+  function handleSelectionForHighlight() {
+    const btn = pel('rdHlBtn'); if (!btn) return;
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.rangeCount) { btn.style.display = 'none'; return; }
+    const range = sel.getRangeAt(0);
+    const container = closestPassage(range.commonAncestorContainer);
+    if (!container) { btn.style.display = 'none'; return; }
+    rdSavedRange = range.cloneRange();
+    rdSavedContainer = container;
+    const rect = range.getBoundingClientRect();
+    if (!rect || (!rect.width && !rect.height)) { btn.style.display = 'none'; return; }
+    btn.textContent = isRangeFullyHighlighted(range) ? '🧹 Bỏ đánh dấu' : '🖍️ Đánh dấu';
+    btn.style.left = Math.max(8, Math.min(window.innerWidth - 110, rect.left + rect.width / 2 - 50)) + 'px';
+    btn.style.top = Math.max(8, rect.top - 40) + 'px';
+    btn.style.display = 'block';
+  }
+  function isRangeFullyHighlighted(range) {
+    const s = (range.startContainer.nodeType === 3 ? range.startContainer.parentElement : range.startContainer);
+    const e = (range.endContainer.nodeType === 3 ? range.endContainer.parentElement : range.endContainer);
+    const sm = s && s.closest('mark.rd-hl'), em = e && e.closest('mark.rd-hl');
+    return !!(sm && sm === em);
+  }
+  function applyHighlightFromSelection() {
+    if (!rdSavedRange || !rdSavedContainer) return;
+    const range = rdSavedRange, container = rdSavedContainer;
+    if (isRangeFullyHighlighted(range)) {
+      const s = (range.startContainer.nodeType === 3 ? range.startContainer.parentElement : range.startContainer);
+      const mark = s && s.closest('mark.rd-hl');
+      if (mark) unwrapMark(mark);
+    } else {
+      const { start, end } = getCharOffsets(container, range);
+      wrapCharRange(container, start, end);
+    }
+    saveHighlightsForContainer(container);
+    pel('rdHlBtn').style.display = 'none';
+    window.getSelection().removeAllRanges();
+  }
+  function unwrapMark(mark) {
+    const parent = mark.parentNode; if (!parent) return;
+    while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
+    parent.removeChild(mark); parent.normalize();
+  }
+  function getCharOffsets(container, range) {
+    let start = -1, end = -1, pos = 0;
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+    let node;
+    while (node = walker.nextNode()) {
+      const len = node.textContent.length;
+      if (node === range.startContainer) start = pos + range.startOffset;
+      if (node === range.endContainer) end = pos + range.endOffset;
+      pos += len;
+    }
+    if (start === -1) start = 0;
+    if (end === -1) end = pos;
+    return { start, end };
+  }
+  function wrapCharRange(container, start, end) {
+    if (end <= start) return;
+    let pos = 0; const targets = [];
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+    let node;
+    while (node = walker.nextNode()) {
+      const len = node.textContent.length;
+      const nodeStart = pos, nodeEnd = pos + len;
+      if (nodeEnd > start && nodeStart < end) targets.push({ node, from: Math.max(0, start - nodeStart), to: Math.min(len, end - nodeStart) });
+      pos += len;
+      if (pos >= end) break;
+    }
+    targets.reverse().forEach(t => {
+      const r = document.createRange();
+      try {
+        r.setStart(t.node, t.from); r.setEnd(t.node, t.to);
+        if (r.collapsed) return;
+        const mark = document.createElement('mark'); mark.className = 'rd-hl';
+        r.surroundContents(mark);
+      } catch (e) { /* bỏ qua đoạn không bọc được (VD nằm giữa ảnh/bảng) */ }
+    });
+  }
+  function highlightKey(container) { return 'rd_hl_' + (currentHlToken || 'x') + '_' + container.id; }
+  function saveHighlightsForContainer(container) {
+    const marks = Array.from(container.querySelectorAll('mark.rd-hl'));
+    const ranges = marks.map(m => { const r = document.createRange(); r.selectNodeContents(m); return getCharOffsets(container, r); });
+    try { localStorage.setItem(highlightKey(container), JSON.stringify(ranges)); } catch (e) {}
+  }
+  function applyStoredHighlights(container) {
+    let ranges = [];
+    try { ranges = JSON.parse(localStorage.getItem(highlightKey(container)) || '[]'); } catch (e) {}
+    ranges.forEach(r => wrapCharRange(container, r.start, r.end));
   }
 
   function startTimer(seconds) {
@@ -463,7 +670,12 @@
 
     const answers = {};
     let auto_score = 0, has_essay = false;
+    const flatQuestions = [];
     (currentAssignment.questions || []).forEach(q => {
+      if (q.type === 'reading') (q.sub_blocks || []).forEach(sb => flatQuestions.push(sb));
+      else flatQuestions.push(q);
+    });
+    flatQuestions.forEach(q => {
       if (q.type === 'text') return;
       if (q.type === 'mcq' || q.type === 'tf') {
         const el = document.querySelector(`input[name="ans-${q.id}"]:checked`);
@@ -531,55 +743,58 @@
     const allEssayGraded = essayQs.length > 0 && essayQs.every(q => attempt.manual_scores && attempt.manual_scores[q.id] !== undefined);
     if (attempt.has_essay && !allEssayGraded) pel('rsEssayNote').classList.remove('hidden');
 
-    let qNo = 0;
-    pel('reviewArea').innerHTML = (a.questions || []).map(q => {
-      if (q.type === 'text') return `<div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-2xl p-4 qcontent text-sm ${q.two_col ? 'qcontent-2col' : ''}">${q.content || ''}</div>`;
-      qNo++;
-      const given = attempt.answers ? attempt.answers[q.id] : null;
-      let bodyHtml = '';
-      if (q.type === 'mcq' || q.type === 'tf' || q.type === 'multi') {
-        const givenArr = Array.isArray(given) ? given : (given ? [given] : []);
-        bodyHtml = (q.options || []).map(o => {
-          let cls = 'border dark:border-zinc-700';
-          if (o.correct) cls = 'opt-correct border';
-          else if (givenArr.includes(o.id)) cls = 'opt-wrong border';
-          return `<div class="p-2.5 rounded-xl ${cls} text-sm flex items-center gap-2">
-            ${givenArr.includes(o.id) ? '👉 ' : ''}${esc(o.text)} ${o.correct ? ' <span class="text-emerald-600 font-bold text-xs">(Đáp án đúng)</span>' : ''}
+    const counter = { n: 0 };
+    pel('reviewArea').innerHTML = (a.questions || []).map(q => renderTopLevelBlock(q, counter, 'review', attempt)).join('');
+    initReadingHighlighting();
+  }
+
+  function renderReviewQuestion(q, qNo, attempt) {
+    const given = attempt.answers ? attempt.answers[q.id] : null;
+    let bodyHtml = '';
+    if (q.type === 'mcq' || q.type === 'tf' || q.type === 'multi') {
+      const givenArr = Array.isArray(given) ? given : (given ? [given] : []);
+      bodyHtml = (q.options || []).map(o => {
+        let cls = 'border dark:border-zinc-700';
+        if (o.correct) cls = 'opt-correct border';
+        else if (givenArr.includes(o.id)) cls = 'opt-wrong border';
+        return `<div class="p-2.5 rounded-xl ${cls} text-sm flex items-center gap-2">
+          ${givenArr.includes(o.id) ? '👉 ' : ''}${esc(o.text)} ${o.correct ? ' <span class="text-emerald-600 font-bold text-xs">(Đáp án đúng)</span>' : ''}
+        </div>`;
+      }).join('');
+    } else if (q.type === 'fill') {
+      if (q.blanks && q.blanks.length) {
+        const givenObj = (given && typeof given === 'object') ? given : {};
+        bodyHtml = q.blanks.map(bl => {
+          const gv = (givenObj[bl.gap] || '').trim();
+          const accepted = bl.accepted_answers || [];
+          const isCorrect = accepted.map(x => x.toLowerCase().trim()).includes(gv.toLowerCase());
+          return `<div class="p-2.5 rounded-xl border text-sm ${isCorrect ? 'opt-correct' : 'opt-wrong'}">
+            Chỗ trống ${bl.gap}: bạn trả lời <b class="whitespace-pre-wrap">${esc(gv || '(bỏ trống)')}</b>
+            <span class="block text-xs text-gray-500 mt-0.5">Đáp án chấp nhận: ${esc(accepted.join(', '))}</span>
           </div>`;
         }).join('');
-      } else if (q.type === 'fill') {
-        if (q.blanks && q.blanks.length) {
-          const givenObj = (given && typeof given === 'object') ? given : {};
-          bodyHtml = q.blanks.map(bl => {
-            const gv = (givenObj[bl.gap] || '').trim();
-            const accepted = bl.accepted_answers || [];
-            const isCorrect = accepted.map(x => x.toLowerCase().trim()).includes(gv.toLowerCase());
-            return `<div class="p-2.5 rounded-xl border text-sm ${isCorrect ? 'opt-correct' : 'opt-wrong'}">
-              Chỗ trống ${bl.gap}: bạn trả lời <b>${esc(gv || '(bỏ trống)')}</b>
-              <span class="block text-xs text-gray-500 mt-0.5">Đáp án chấp nhận: ${esc(accepted.join(', '))}</span>
-            </div>`;
-          }).join('');
-        } else {
-          const accepted = (q.accepted_answers || []).join(', ');
-          const isCorrect = (q.accepted_answers || []).map(x => x.toLowerCase().trim()).includes((given || '').toLowerCase().trim());
-          bodyHtml = `<div class="p-2.5 rounded-xl border text-sm ${isCorrect ? 'opt-correct' : 'opt-wrong'}">Bạn trả lời: <b>${esc(given || '(bỏ trống)')}</b></div>
-            <p class="text-xs text-gray-500 mt-1">Đáp án chấp nhận: ${esc(accepted)}</p>`;
-        }
-      } else if (q.type === 'essay') {
-        const gradedScore = attempt.manual_scores && attempt.manual_scores[q.id] !== undefined ? attempt.manual_scores[q.id] : null;
-        bodyHtml = `<div class="p-2.5 rounded-xl border dark:border-zinc-700 text-sm whitespace-pre-wrap">${esc(given || '(bỏ trống)')}</div>
-          ${gradedScore !== null
-            ? `<p class="text-xs font-bold text-emerald-600 mt-1">✅ Giáo viên đã chấm: ${gradedScore}/${q.points} điểm</p>`
-            : `<p class="text-xs text-amber-500 mt-1">📄 Câu tự luận — chờ giáo viên chấm điểm.</p>`}`;
+      } else {
+        const accepted = (q.accepted_answers || []).join(', ');
+        const isCorrect = (q.accepted_answers || []).map(x => x.toLowerCase().trim()).includes((given || '').toLowerCase().trim());
+        bodyHtml = `<div class="p-2.5 rounded-xl border text-sm ${isCorrect ? 'opt-correct' : 'opt-wrong'} whitespace-pre-wrap">Bạn trả lời: <b>${esc(given || '(bỏ trống)')}</b></div>
+          <p class="text-xs text-gray-500 mt-1">Đáp án chấp nhận: ${esc(accepted)}</p>`;
       }
-      return `
-        <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm">
-          <p class="text-xs font-bold text-[#cf1717]">Câu ${qNo} · ${q.points} điểm</p>
-          <div class="qcontent text-sm text-gray-900 dark:text-white">${q.content || ''}</div>
-          <div class="space-y-2">${bodyHtml}</div>
-          ${q.explanation ? `<div class="pt-2 border-t dark:border-zinc-800"><p class="text-[10px] font-bold uppercase text-gray-400 mb-1">💡 Giải thích</p><div class="qcontent text-xs text-gray-600 dark:text-gray-300">${q.explanation}</div></div>` : ''}
-        </div>`;
-    }).join('');
+    } else if (q.type === 'essay') {
+      const gradedScore = attempt.manual_scores && attempt.manual_scores[q.id] !== undefined ? attempt.manual_scores[q.id] : null;
+      const comment = (attempt.manual_comments && attempt.manual_comments[q.id]) || '';
+      bodyHtml = `<div class="p-2.5 rounded-xl border dark:border-zinc-700 text-sm whitespace-pre-wrap">${esc(given || '(bỏ trống)')}</div>
+        ${gradedScore !== null
+          ? `<p class="text-xs font-bold text-emerald-600 mt-1">✅ Giáo viên đã chấm: ${gradedScore}/${q.points} điểm</p>`
+          : `<p class="text-xs text-amber-500 mt-1">📄 Câu tự luận — chờ giáo viên chấm điểm.</p>`}
+        ${comment ? `<div class="mt-2 p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 text-xs"><b class="text-blue-600 dark:text-blue-400">📝 Nhận xét của giáo viên:</b> <span class="whitespace-pre-wrap">${esc(comment)}</span></div>` : ''}`;
+    }
+    return `
+      <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm" data-q="${q.id}">
+        <p class="text-xs font-bold text-[#cf1717]">Câu ${qNo} · ${q.points} điểm</p>
+        <div class="qcontent text-sm text-gray-900 dark:text-white">${q.content || ''}</div>
+        <div class="space-y-2">${bodyHtml}</div>
+        ${q.explanation ? `<div class="pt-2 border-t dark:border-zinc-800"><p class="text-[10px] font-bold uppercase text-gray-400 mb-1">💡 Giải thích</p><div class="qcontent text-xs text-gray-600 dark:text-gray-300">${q.explanation}</div></div>` : ''}
+      </div>`;
   }
 
   window.onload = init;
