@@ -9,6 +9,7 @@
     tailwind.config = { darkMode: 'class' }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
   <script>
     if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       document.documentElement.classList.add('dark');
@@ -193,15 +194,16 @@
         <input id="asTimeLimit" type="number" min="0" placeholder="Để trống = không giới hạn" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
       </div>
       <div>
-        <label class="block font-bold uppercase mb-1">Giới hạn số lần làm bài</label>
-        <input id="asMaxAttempts" type="number" min="1" step="1" placeholder="Để trống = không giới hạn" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
+        <label class="block font-bold uppercase mb-1">Số lần làm tối đa</label>
+        <input id="asMaxAttempts" type="number" min="1" placeholder="Để trống = không giới hạn" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
       </div>
-      <div class="sm:col-span-3">
+      <div class="sm:col-span-2">
         <label class="block font-bold uppercase mb-1">Mô tả / hướng dẫn làm bài</label>
         <textarea id="asDesc" rows="2" placeholder="Hướng dẫn ngắn cho học sinh..." class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></textarea>
       </div>
-      <div class="sm:col-span-3 text-gray-400">
+      <div class="sm:col-span-3 text-gray-400 flex items-center gap-2">
         Đường dẫn bài tập: <code id="asTokenPreview" class="text-[#cf1717] font-bold">assignment.html?token=...</code>
+        <button type="button" onclick="copyAsToken()" class="text-[11px] font-bold text-blue-500 hover:underline">📋 Sao chép</button>
       </div>
     </div>
 
@@ -247,9 +249,13 @@
         <button type="button" onclick="addBlock('fill')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">✏️ Điền khuyết</button>
         <button type="button" onclick="addBlock('essay')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">📄 Tự luận</button>
         <button type="button" onclick="addBlock('text')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">📌 Đoạn văn bản / hướng dẫn (không chấm điểm)</button>
-        <button type="button" onclick="addBlock('reading')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border-2 border-dashed border-[#cf1717]/50 rounded-lg font-bold text-[#cf1717] hover:bg-red-50 dark:hover:bg-red-950/30 transition">📖 Bài Đọc Chia Đôi (Reading)</button>
+        <button type="button" onclick="addBlock('reading')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border-2 border-[#cf1717]/50 rounded-lg font-bold text-[#cf1717] hover:bg-red-50 dark:hover:bg-red-950/30 transition">📖 Bài đọc (Reading — chia đôi màn hình)</button>
+        <label class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition cursor-pointer">
+          📥 Nhập câu hỏi từ Word
+          <input type="file" accept=".docx" class="hidden" onchange="importFromWord(this)">
+        </label>
       </div>
-      <p class="text-[10px] text-gray-400 mt-2">💡 "Bài Đọc Chia Đôi" tạo 1 khối riêng: bên trái là bài văn để đọc, bên phải là các câu hỏi <b>chỉ thuộc riêng bài đọc đó</b> — hoàn toàn tách biệt với các câu hỏi bạn thêm ở ngoài.</p>
+      <p class="text-[10px] text-gray-400 mt-2">💡 Khối "Bài đọc" tách riêng: bên trái nhập bài văn, bên phải thêm các câu hỏi thuộc riêng bài đọc đó — không liên quan gì tới các câu hỏi ở ngoài.</p>
     </div>
 
     <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t dark:border-zinc-800">
@@ -268,6 +274,17 @@
     <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
       <h3 class="font-extrabold text-lg text-[#cf1717] dark:text-red-400 flex items-center gap-2">📊 Kết Quả: <span id="rmTitle" class="text-gray-900 dark:text-white"></span></h3>
       <button onclick="closeResultsModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
+    </div>
+    <div id="rmDist" class="hidden"></div>
+    <div class="flex flex-wrap items-center gap-2 text-xs">
+      <input id="rmSearchName" oninput="renderResultsList()" placeholder="🔎 Tìm theo tên học sinh..." class="flex-1 min-w-[140px] p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
+      <select id="rmSort" onchange="renderResultsList()" class="p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
+        <option value="latest">Mới nộp trước</option>
+        <option value="earliest">Nộp sớm nhất trước</option>
+        <option value="score_desc">Điểm cao → thấp</option>
+        <option value="score_asc">Điểm thấp → cao</option>
+        <option value="name">Theo tên A-Z</option>
+      </select>
     </div>
     <div id="rmList" class="space-y-2 max-h-96 overflow-y-auto pr-1 text-xs">
       <p class="text-gray-400 italic">Đang tải...</p>
@@ -289,26 +306,6 @@
         <button type="button" onclick="saveGrade()" class="bg-[#cf1717] hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-lg text-sm shadow transition">💾 Lưu điểm</button>
         <button type="button" onclick="closeGradeModal()" class="bg-gray-200 dark:bg-zinc-700 font-bold px-4 py-2.5 rounded-lg text-sm">Đóng</button>
       </div>
-    </div>
-  </div>
-</div>
-
-<!-- ================= MODAL: SAO CHÉP BÀI TẬP SANG LỚP KHÁC ================= -->
-<div id="copyModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 z-[9999]">
-  <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-5 w-full max-w-sm shadow-2xl space-y-3">
-    <div class="flex justify-between items-center">
-      <h3 class="font-extrabold text-base text-[#cf1717] dark:text-red-400">📋 Sao chép bài tập</h3>
-      <button onclick="closeCopyModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
-    </div>
-    <p class="text-xs text-gray-500">Bài: <b id="copyAsTitle" class="text-gray-800 dark:text-gray-200"></b></p>
-    <div>
-      <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">Sao chép sang lớp</label>
-      <select id="copyTargetClass" class="w-full p-2.5 text-xs rounded-lg border dark:bg-zinc-800 dark:border-zinc-700"></select>
-    </div>
-    <p class="text-[11px] text-gray-400">💡 Bài sao chép sẽ được lưu ở dạng <b>bản nháp</b> trong lớp đích — hãy mở để kiểm tra nội dung rồi xuất bản.</p>
-    <div class="flex justify-end gap-2 pt-1">
-      <button onclick="closeCopyModal()" class="px-3 py-1.5 text-xs font-bold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">Hủy</button>
-      <button onclick="confirmCopyAssignment()" class="px-4 py-1.5 bg-[#cf1717] hover:bg-red-700 text-white text-xs font-bold rounded-lg shadow transition">Sao chép</button>
     </div>
   </div>
 </div>
@@ -531,6 +528,10 @@
   // =====================================================================
   // 2. QUẢN LÝ BÀI TẬP
   // =====================================================================
+  function countGradable(arr) {
+    return (arr || []).reduce((s, q) => s + (q.type === 'text' ? 0 : q.type === 'reading' ? countGradable(q.sub_blocks || []) : 1), 0);
+  }
+
   async function loadAssignmentsForClass() {
     currentClassForAssignments = pel('assignClassFilter').value;
     pel('btnNewAssignment').disabled = !currentClassForAssignments;
@@ -543,19 +544,50 @@
       <div class="bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-2xl p-4 space-y-2">
         <div class="flex items-center justify-between">
           <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${a.is_published ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400' : 'bg-gray-200 text-gray-600 dark:bg-zinc-700'}">${a.is_published ? 'Đã xuất bản' : 'Bản nháp'}</span>
-          <span class="text-[10px] text-gray-400">${countGradableQuestions(a.questions)} câu · ${a.total_points || 0} điểm</span>
+          <span class="text-[10px] text-gray-400">${countGradable(a.questions || [])} câu · ${a.total_points || 0} điểm</span>
         </div>
         <h4 class="font-bold text-sm text-gray-900 dark:text-white">${esc(a.title)}</h4>
-        <p class="text-[11px] text-gray-400 truncate">token: ${esc(a.token)}</p>
-        <p class="text-[10px] text-gray-400">🔁 ${a.max_attempts ? `Tối đa ${a.max_attempts} lần làm` : 'Không giới hạn số lần làm'}</p>
+        <p class="text-[11px] text-gray-400 truncate flex items-center gap-1">token: ${esc(a.token)}
+          <button onclick="copyTokenOf('${esc(a.token)}')" title="Sao chép token" class="text-blue-400 hover:text-blue-600">📋</button>
+        </p>
         <div class="flex flex-wrap gap-3 pt-1">
           <button onclick="editAssignment('${a.id}')" class="text-xs font-bold text-blue-500 hover:underline">Sửa</button>
           <button onclick="openResultsModal('${a.id}')" class="text-xs font-bold text-amber-500 hover:underline">Kết quả</button>
-          <button onclick="openCopyModal('${a.id}')" class="text-xs font-bold text-purple-500 hover:underline">Sao chép</button>
+          <button onclick="openCopyToClassPrompt('${a.id}')" class="text-xs font-bold text-indigo-500 hover:underline">Sao chép sang lớp khác</button>
           <a href="assignment.html?token=${encodeURIComponent(a.token)}" target="_blank" class="text-xs font-bold text-[#cf1717] hover:underline">Xem thử ↗</a>
           <button onclick="deleteAssignment('${a.id}')" class="text-xs font-bold text-red-500 hover:underline">Xóa</button>
         </div>
       </div>`).join('') || '<p class="text-gray-400 text-sm col-span-full">Lớp này chưa có bài tập nào.</p>';
+  }
+
+  function copyTokenOf(token) {
+    navigator.clipboard?.writeText('assignment.html?token=' + token).then(() => notify('📋 Đã sao chép đường dẫn!')).catch(() => {});
+  }
+
+  // ---- Sao chép bài tập sang lớp khác ----
+  function openCopyToClassPrompt(assignmentId) {
+    const a = currentAssignments.find(x => x.id === assignmentId); if (!a) return;
+    const others = myClasses.filter(c => c.id !== a.class_id);
+    if (!others.length) return notify('⚠️ Bạn chưa có lớp nào khác để sao chép sang.');
+    const optionsText = others.map((c, i) => `${i + 1}. ${c.class_code} — ${c.title}`).join('\n');
+    const pick = prompt(`Sao chép bài "${a.title}" sang lớp nào? Nhập số thứ tự:\n${optionsText}`);
+    const idx = parseInt(pick) - 1;
+    if (isNaN(idx) || !others[idx]) return;
+    copyAssignmentToClass(a, others[idx]);
+  }
+  async function copyAssignmentToClass(a, targetClass) {
+    let token = `${slugify(targetClass.class_code)}-${slugify(a.title)}`;
+    const { data: dup } = await sbClient.from('assignments').select('id').eq('token', token).maybeSingle();
+    if (dup) token += '-' + Math.random().toString(36).slice(2, 6);
+    const row = {
+      class_id: targetClass.id, teacher_id: currentUser.id, token, title: a.title,
+      description: a.description, time_limit_minutes: a.time_limit_minutes, max_attempts: a.max_attempts,
+      questions: a.questions, total_points: a.total_points, is_published: a.is_published
+    };
+    const { error } = await sbClient.from('assignments').insert([row]);
+    if (error) return notify('❌ Lỗi sao chép: ' + error.message);
+    notify(`🎉 Đã sao chép "${a.title}" sang lớp ${targetClass.class_code}!`);
+    if (currentClassForAssignments === targetClass.id) loadAssignmentsForClass();
   }
 
   async function deleteAssignment(id) {
@@ -563,42 +595,6 @@
     const { error } = await sbClient.from('assignments').delete().eq('id', id);
     if (error) return notify('❌ Lỗi: ' + error.message);
     notify('✅ Đã xóa bài tập.'); loadAssignmentsForClass();
-  }
-
-  // ===== Sao chép bài tập từ lớp này sang lớp khác =====
-  let assignmentToCopy = null;
-  function openCopyModal(id) {
-    const a = currentAssignments.find(x => x.id === id); if (!a) return;
-    if (!myClasses.length) return notify('⚠️ Bạn chưa có lớp nào khác để sao chép sang.');
-    assignmentToCopy = a;
-    pel('copyAsTitle').innerText = a.title;
-    pel('copyTargetClass').innerHTML = myClasses.map(c => `<option value="${c.id}" ${c.id === currentClassForAssignments ? 'selected' : ''}>${esc(c.class_code)} — ${esc(c.title)}</option>`).join('');
-    pel('copyModal').classList.remove('hidden'); pel('copyModal').classList.add('flex');
-  }
-  function closeCopyModal() { pel('copyModal').classList.add('hidden'); pel('copyModal').classList.remove('flex'); assignmentToCopy = null; }
-  async function confirmCopyAssignment() {
-    if (!assignmentToCopy) return;
-    const targetClassId = pel('copyTargetClass').value;
-    if (!targetClassId) return notify('⚠️ Vui lòng chọn lớp đích.');
-    const cls = myClasses.find(c => c.id === targetClassId);
-    if (!cls) return notify('❌ Không tìm thấy lớp đích.');
-    let token = `${slugify(cls.class_code)}-${slugify(assignmentToCopy.title)}`;
-    const { data: dup } = await sbClient.from('assignments').select('id').eq('token', token).maybeSingle();
-    if (dup) token += '-' + Math.random().toString(36).slice(2, 6);
-    const row = {
-      class_id: targetClassId, teacher_id: currentUser.id, token, title: assignmentToCopy.title,
-      description: assignmentToCopy.description || null,
-      time_limit_minutes: assignmentToCopy.time_limit_minutes || null,
-      max_attempts: assignmentToCopy.max_attempts || null,
-      questions: JSON.parse(JSON.stringify(assignmentToCopy.questions || [])),
-      total_points: assignmentToCopy.total_points || 0,
-      is_published: false
-    };
-    const { error } = await sbClient.from('assignments').insert([row]);
-    if (error) return notify('❌ Lỗi sao chép: ' + error.message);
-    notify(`🎉 Đã sao chép "${assignmentToCopy.title}" sang lớp ${cls.class_code} (bản nháp)!`);
-    closeCopyModal();
-    if (targetClassId === currentClassForAssignments) loadAssignmentsForClass();
   }
 
   // =====================================================================
@@ -650,6 +646,54 @@
     reader.readAsDataURL(file);
   }
 
+  // =====================================================================
+  // NHẬP CÂU HỎI TỪ FILE WORD (.docx) — bóc tách cơ bản, giáo viên chỉnh lại đáp án/giải thích sau
+  // Quy ước nhận diện: câu hỏi bắt đầu bằng "1. ", lựa chọn bắt đầu bằng "A. "/"B. "..., đáp án đúng thêm dấu * ở cuối dòng.
+  // =====================================================================
+  async function importFromWord(input) {
+    const file = input.files[0]; input.value = '';
+    if (!file) return;
+    if (!window.mammoth) return notify('❌ Không tải được thư viện đọc file Word, hãy tải lại trang và thử lại.');
+    notify('⏳ Đang đọc file Word...');
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer });
+      const newBlocks = parseWordText(result.value);
+      if (!newBlocks.length) return notify('⚠️ Không nhận diện được câu hỏi nào. Mỗi câu cần bắt đầu bằng số (VD: "1. ") và các lựa chọn bắt đầu bằng "A. B. C. D. ", đáp án đúng thêm dấu * cuối dòng.');
+      blocks.push(...newBlocks);
+      renderBlocks();
+      notify(`🎉 Đã nhập ${newBlocks.length} câu trắc nghiệm từ Word! Hãy kiểm tra lại đáp án đúng & thêm phần giải thích cho từng câu.`);
+    } catch (err) {
+      notify('❌ Lỗi đọc file Word: ' + (err.message || 'không xác định'));
+    }
+  }
+  function parseWordText(text) {
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const qRe = /^(\d+)[\.\)]\s+(.*)/;
+    const optRe = /^([A-Da-d])[\.\)]\s+(.*)/;
+    const out = [];
+    let current = null;
+    lines.forEach(line => {
+      const qm = line.match(qRe), om = line.match(optRe);
+      if (qm && !om) {
+        if (current) out.push(current);
+        current = { id: newId(), type: 'mcq', content: esc(qm[2]), points: 1, explanation: '', options: [] };
+      } else if (om && current) {
+        let t = om[2], correct = false;
+        if (/\*\s*$/.test(t)) { correct = true; t = t.replace(/\*\s*$/, '').trim(); }
+        if (/\(correct\)\s*$/i.test(t)) { correct = true; t = t.replace(/\(correct\)\s*$/i, '').trim(); }
+        current.options.push({ id: om[1].toLowerCase() + Math.random().toString(36).slice(2, 6), text: esc(t), correct });
+      } else if (current && !current.options.length) {
+        current.content += ' ' + esc(line);
+      }
+    });
+    if (current) out.push(current);
+    return out.filter(b => b.options.length >= 2).map(b => {
+      if (!b.options.some(o => o.correct)) b.options[0].correct = true; // chưa nhận diện được đáp án đúng -> tạm đánh dấu câu A, giáo viên tự sửa
+      return b;
+    });
+  }
+
   function openBuilder(assignmentToEdit) {
     pel('editingAssignmentId').value = assignmentToEdit ? assignmentToEdit.id : '';
     pel('builderModeTitle').innerText = assignmentToEdit ? 'Chỉnh Sửa Bài Tập' : 'Tạo Bài Tập Mới';
@@ -662,18 +706,19 @@
     // Bài đã lưu trước đó có blanks ở dạng mảng [{gap, accepted_answers}] (định dạng lưu xuống DB),
     // trong khi khung soạn thảo cần dạng object {gap: "đáp án;đáp án"} để hiển thị ô nhập.
     // Nếu không chuẩn hoá lại ở đây thì lúc lưu (saveAssignment) sẽ bị lỗi "...split is not a function".
-    function normalizeFillBlanks(list) {
-      return (list || []).map(b => {
-        if (b.type === 'fill' && Array.isArray(b.blanks)) {
-          const map = {};
-          b.blanks.forEach(bl => { map[bl.gap] = (bl.accepted_answers || []).join('; '); });
-          b.blanks = map;
-        }
-        if (b.type === 'reading') b.subBlocks = normalizeFillBlanks(b.subBlocks);
-        return b;
-      });
+    function denormalizeFill(b) {
+      if (b.type === 'fill' && Array.isArray(b.blanks)) {
+        const map = {};
+        b.blanks.forEach(bl => { map[bl.gap] = (bl.accepted_answers || []).join('; '); });
+        b.blanks = map;
+      }
+      return b;
     }
-    blocks = normalizeFillBlanks(rawBlocks);
+    blocks = rawBlocks.map(b => {
+      b = denormalizeFill(b);
+      if (b.type === 'reading') b.sub_blocks = (b.sub_blocks || []).map(denormalizeFill);
+      return b;
+    });
     renderBlocks();
     previewAsToken();
     pel('asTitle').oninput = previewAsToken;
@@ -681,6 +726,11 @@
   }
   function closeBuilder() { pel('builderModal').classList.add('hidden'); pel('builderModal').classList.remove('flex'); }
   function editAssignment(id) { const a = currentAssignments.find(x => x.id === id); if (a) openBuilder(a); }
+
+  function copyAsToken() {
+    const text = pel('asTokenPreview').innerText;
+    navigator.clipboard?.writeText(text).then(() => notify('📋 Đã sao chép đường dẫn!')).catch(() => notify('⚠️ Không sao chép được, hãy bôi đen và copy thủ công.'));
+  }
 
   function previewAsToken() {
     const cls = myClasses.find(c => c.id === currentClassForAssignments);
@@ -690,90 +740,71 @@
 
   function newId() { return 'q_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 
-  // ===== Tìm block theo id, kể cả bên trong subBlocks của khối "reading" (đệ quy) =====
-  function findBlockContainer(id, list) {
-    list = list || blocks;
-    for (let i = 0; i < list.length; i++) {
-      if (list[i].id === id) return { arr: list, idx: i };
-      if (list[i].type === 'reading') {
-        if (!list[i].subBlocks) list[i].subBlocks = [];
-        const r = findBlockContainer(id, list[i].subBlocks);
-        if (r) return r;
-      }
-    }
-    return null;
-  }
-  function getBlock(id) { const c = findBlockContainer(id); return c ? c.arr[c.idx] : null; }
-
-  function addBlock(type, parentId) {
+  function addBlock(type) {
     const base = { id: newId(), type, content: '', points: 1, explanation: '' };
     if (type === 'mcq' || type === 'multi') base.options = [{ id: 'a', text: '', correct: type === 'mcq' }, { id: 'b', text: '', correct: false }];
     if (type === 'tf') base.options = [{ id: 'true', text: 'Đúng', correct: true }, { id: 'false', text: 'Sai', correct: false }];
     if (type === 'fill') { base.blanks = {}; }
     if (type === 'text') { base.points = 0; }
-    if (type === 'reading') { base.points = 0; base.subBlocks = []; delete base.explanation; }
-    if (parentId) {
-      const parent = getBlock(parentId);
-      if (!parent) return;
-      parent.subBlocks = parent.subBlocks || [];
-      parent.subBlocks.push(base);
-    } else {
-      blocks.push(base);
-    }
+    if (type === 'reading') { base.points = 0; base.sub_blocks = []; }
+    blocks.push(base);
     renderBlocks();
   }
-  function removeBlock(id) {
-    const c = findBlockContainer(id); if (!c) return;
-    c.arr.splice(c.idx, 1); renderBlocks();
-  }
+  function removeBlock(id) { blocks = blocks.filter(b => b.id !== id); renderBlocks(); }
   function moveBlock(id, dir) {
-    const c = findBlockContainer(id); if (!c) return;
-    const i = c.idx, j = i + dir;
-    if (j < 0 || j >= c.arr.length) return;
-    [c.arr[i], c.arr[j]] = [c.arr[j], c.arr[i]]; renderBlocks();
+    const i = blocks.findIndex(b => b.id === id); const j = i + dir;
+    if (i < 0 || j < 0 || j >= blocks.length) return;
+    [blocks[i], blocks[j]] = [blocks[j], blocks[i]]; renderBlocks();
   }
-  function readingPoints(b) { return (b.subBlocks || []).reduce((s, x) => s + (x.type === 'text' ? 0 : (parseFloat(x.points) || 0)), 0); }
 
-  const typeLabel = { mcq: '☑️ Trắc nghiệm 1 đáp án', multi: '☑️☑️ Trắc nghiệm nhiều đáp án', tf: '✅❌ Đúng/Sai', fill: '✏️ Điền khuyết', essay: '📄 Tự luận', text: '📌 Văn bản / hướng dẫn', reading: '📖 Bài Đọc Chia Đôi' };
-
-  // Đếm tổng số câu hỏi được chấm điểm trong 1 bài tập (bỏ qua 'text', tính cả câu con trong 'reading')
-  // Đây là hàm bị thiếu gây lỗi "countGradableQuestions is not defined" khi tải danh sách bài tập.
-  function countGradableQuestions(list) {
-    let n = 0;
-    (list || []).forEach(b => {
-      if (b.type === 'reading') n += countGradableQuestions(b.subBlocks || []);
-      else if (b.type !== 'text') n++;
-    });
-    return n;
+  // ---- Câu hỏi con bên trong khối Reading ----
+  function addSubBlock(readingId, type) {
+    const rb = blocks.find(b => b.id === readingId); if (!rb) return;
+    const base = { id: newId(), type, content: '', points: 1, explanation: '' };
+    if (type === 'mcq' || type === 'multi') base.options = [{ id: 'a', text: '', correct: type === 'mcq' }, { id: 'b', text: '', correct: false }];
+    if (type === 'tf') base.options = [{ id: 'true', text: 'Đúng', correct: true }, { id: 'false', text: 'Sai', correct: false }];
+    if (type === 'fill') base.blanks = {};
+    if (type === 'text') base.points = 0;
+    rb.sub_blocks = rb.sub_blocks || [];
+    rb.sub_blocks.push(base);
+    renderBlocks();
   }
-  // Đếm số thứ tự câu hỏi (bỏ qua 'text' và chính khối 'reading', nhưng tính các câu con bên trong reading)
-  function countGradableUpTo(list, targetId, counter) {
-    counter = counter || { n: 0, found: false };
-    for (const b of list) {
-      if (b.type === 'reading') {
-        countGradableUpTo(b.subBlocks || [], targetId, counter);
-        if (counter.found) return counter;
-        continue;
+  function removeSubBlock(readingId, id) {
+    const rb = blocks.find(b => b.id === readingId); if (!rb) return;
+    rb.sub_blocks = (rb.sub_blocks || []).filter(b => b.id !== id); renderBlocks();
+  }
+  function moveSubBlock(readingId, id, dir) {
+    const rb = blocks.find(b => b.id === readingId); if (!rb) return;
+    const arr = rb.sub_blocks || [];
+    const i = arr.findIndex(b => b.id === id); const j = i + dir;
+    if (i < 0 || j < 0 || j >= arr.length) return;
+    [arr[i], arr[j]] = [arr[j], arr[i]]; renderBlocks();
+  }
+
+  const typeLabel = { mcq: '☑️ Trắc nghiệm 1 đáp án', multi: '☑️☑️ Trắc nghiệm nhiều đáp án', tf: '✅❌ Đúng/Sai', fill: '✏️ Điền khuyết', essay: '📄 Tự luận', text: '📌 Văn bản / hướng dẫn', reading: '📖 Bài đọc (Reading)' };
+  // Các dạng câu hỏi con được phép thêm bên trong 1 khối Reading (không cho lồng Reading trong Reading)
+  const subBlockTypes = [
+    ['mcq', '☑️ 1 đáp án'], ['multi', '☑️☑️ Nhiều đáp án'], ['tf', '✅❌ Đúng/Sai'],
+    ['fill', '✏️ Điền khuyết'], ['essay', '📄 Tự luận'], ['text', '📌 Hướng dẫn']
+  ];
+
+  // Tìm 1 khối theo id, tìm cả trong danh sách chính lẫn bên trong các khối Reading (sub_blocks)
+  function findBlock(id) {
+    for (const b of blocks) {
+      if (b.id === id) return b;
+      if (b.type === 'reading' && Array.isArray(b.sub_blocks)) {
+        const sub = b.sub_blocks.find(x => x.id === id);
+        if (sub) return sub;
       }
-      if (b.type !== 'text') counter.n++;
-      if (b.id === targetId) { counter.found = true; return counter; }
     }
-    return counter;
-  }
-  function qNumberOf(id) { return countGradableUpTo(blocks, id).n; }
-
-  function renderBlockList(list, parentId) {
-    return list.map((b) => {
-      if (b.type === 'reading') return renderReadingBlockHtml(b);
-      return renderQuestionBlockHtml(b, parentId);
-    }).join('') || (parentId ? '<p class="text-[11px] text-gray-400 italic text-center py-3">Chưa có câu hỏi nào cho bài đọc này.</p>' : '<p class="text-xs text-gray-400 italic text-center py-6">Chưa có câu hỏi nào — bấm nút bên dưới để thêm.</p>');
+    return null;
   }
 
-  function renderQuestionBlockHtml(b, parentId) {
-    return `
+  function renderBlocks() {
+    pel('questionBlocks').innerHTML = blocks.map((b, idx) => `
       <div class="border dark:border-zinc-700 rounded-2xl p-4 space-y-3 bg-white dark:bg-zinc-900" data-block="${b.id}">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-extrabold text-[#cf1717]">Câu ${b.type === 'text' ? '' : qNumberOf(b.id)} — ${typeLabel[b.type]}</span>
+          <span class="text-xs font-extrabold text-[#cf1717]">Câu ${b.type === 'text' ? '' : (blocks.slice(0, idx + 1).filter(x => x.type !== 'text').length)} — ${typeLabel[b.type]}</span>
           <div class="flex items-center gap-2 text-xs">
             ${b.type !== 'text' ? `<label class="flex items-center gap-1">Điểm: <input type="number" min="0" step="0.5" value="${b.points}" oninput="updateField('${b.id}','points',this.value,true)" class="w-14 p-1 rounded border dark:bg-zinc-800 dark:border-zinc-700"></label>` : ''}
             <button type="button" onclick="moveBlock('${b.id}',-1)" title="Lên">⬆️</button>
@@ -782,13 +813,14 @@
           </div>
         </div>
 
+        ${b.type !== 'reading' ? `
         <div>
           <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">${b.type === 'text' ? 'Nội dung' : 'Nội dung câu hỏi'}</label>
           ${b.type === 'text' ? `<label class="flex items-center gap-2 text-[11px] font-bold text-gray-600 dark:text-gray-300 mb-1">
             <input type="checkbox" ${b.two_col ? 'checked' : ''} onchange="updateField('${b.id}','two_col',this.checked); renderBlocks()"> 📰 Hiển thị bài đọc chia 2 cột (cho bài dài, dễ đọc hơn với học sinh)
           </label>` : ''}
           <div id="qc-${b.id}" class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700 ${b.type === 'text' && b.two_col ? 'qeditor-2col' : ''}" contenteditable="true" oninput="updateField('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
-        </div>
+        </div>` : renderReadingBlockBody(b)}
 
         ${(b.type === 'mcq' || b.type === 'multi' || b.type === 'tf') ? `
           <div class="space-y-2">
@@ -806,79 +838,90 @@
 
         ${b.type === 'fill' ? renderFillGapsUI(b) : ''}
 
-        ${b.type !== 'text' ? `
+        ${(b.type !== 'text' && b.type !== 'reading') ? `
           <div>
             <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">💡 Đáp án & giải thích (hiện ra sau khi học sinh nộp bài)</label>
             <div class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700" contenteditable="true" oninput="updateField('${b.id}','explanation',this.innerHTML)">${b.explanation || ''}</div>
           </div>` : ''}
-      </div>`;
+      </div>`).join('') || '<p class="text-xs text-gray-400 italic text-center py-6">Chưa có câu hỏi nào — bấm nút bên dưới để thêm.</p>';
+    pel('questionBlocks').querySelectorAll('textarea[oninput*="updateBlankAnswer"]').forEach(autoGrowTextarea);
   }
 
-  // ===== Khối "Bài Đọc Chia Đôi": trái = bài văn, phải = câu hỏi riêng của bài đọc đó =====
-  function renderReadingBlockHtml(b) {
-    b.subBlocks = b.subBlocks || [];
+  // ---- Render riêng cho khối Reading: chia 2 cột — trái nhập bài văn, phải quản lý câu hỏi con ----
+  function renderReadingBlockBody(b) {
+    const subCount = (b.sub_blocks || []).length;
     return `
-      <div class="border-2 border-[#cf1717]/40 rounded-2xl p-4 space-y-3 bg-red-50/30 dark:bg-red-950/10" data-block="${b.id}">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-extrabold text-[#cf1717]">📖 Bài Đọc Chia Đôi — ${readingPoints(b)} điểm (tự tính từ các câu bên phải)</span>
-          <div class="flex items-center gap-2 text-xs">
-            <button type="button" onclick="moveBlock('${b.id}',-1)" title="Lên">⬆️</button>
-            <button type="button" onclick="moveBlock('${b.id}',1)" title="Xuống">⬇️</button>
-            <button type="button" onclick="removeBlock('${b.id}')" class="text-red-500 font-bold" title="Xóa">🗑️</button>
-          </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 border-t dark:border-zinc-700 pt-3">
+        <div>
+          <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">📖 Bài văn (Reading passage)</label>
+          <label class="flex items-center gap-2 text-[11px] font-bold text-gray-600 dark:text-gray-300 mb-1">
+            <input type="checkbox" ${b.two_col ? 'checked' : ''} onchange="updateField('${b.id}','two_col',this.checked); renderBlocks()"> 📰 Hiển thị bài đọc chia 2 cột chữ (cho bài dài)
+          </label>
+          <div id="qc-${b.id}" class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700 ${b.two_col ? 'qeditor-2col' : ''}" style="min-height:220px;max-height:420px;overflow-y:auto" contenteditable="true" oninput="updateField('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
         </div>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
-          <div class="space-y-1">
-            <div class="flex items-center justify-between">
-              <label class="block text-[10px] font-bold uppercase text-gray-500">📄 Bài đọc (văn bản)</label>
-              <label class="flex items-center gap-1 text-[10px] font-bold text-gray-600 dark:text-gray-300">
-                <input type="checkbox" ${b.two_col ? 'checked' : ''} onchange="updateField('${b.id}','two_col',this.checked); renderBlocks()"> 📰 Chia 2 cột
-              </label>
-            </div>
-            <div id="qc-${b.id}" class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700 max-h-[60vh] overflow-y-auto ${b.two_col ? 'qeditor-2col' : ''}" contenteditable="true" oninput="updateField('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
+        <div class="bg-gray-50 dark:bg-zinc-800/40 rounded-lg border dark:border-zinc-700 p-2 flex flex-col" style="max-height:420px">
+          <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">❓ Câu hỏi thuộc bài đọc này (${subCount})</label>
+          <div class="space-y-2 overflow-y-auto flex-1 pr-1" id="subList-${b.id}">
+            ${renderSubBlocksHtml(b)}
           </div>
-          <div class="space-y-2">
-            <label class="block text-[10px] font-bold uppercase text-gray-500">❓ Câu hỏi riêng cho bài đọc này</label>
-            <div class="max-h-[60vh] overflow-y-auto pr-1 space-y-3">
-              ${renderBlockList(b.subBlocks, b.id)}
-            </div>
-            <div class="p-2 bg-white dark:bg-zinc-900 rounded-lg border dark:border-zinc-700">
-              <p class="text-[10px] font-bold uppercase text-gray-500 mb-1.5">➕ Thêm dạng câu hỏi cho bài đọc</p>
-              <div class="flex flex-wrap gap-1.5 text-[11px]">
-                <button type="button" onclick="addBlock('mcq','${b.id}')" class="px-2 py-1 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded font-bold hover:border-[#cf1717] hover:text-[#cf1717]">☑️ 1 đáp án</button>
-                <button type="button" onclick="addBlock('multi','${b.id}')" class="px-2 py-1 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded font-bold hover:border-[#cf1717] hover:text-[#cf1717]">☑️☑️ Nhiều đáp án</button>
-                <button type="button" onclick="addBlock('tf','${b.id}')" class="px-2 py-1 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded font-bold hover:border-[#cf1717] hover:text-[#cf1717]">✅❌ Đúng/Sai</button>
-                <button type="button" onclick="addBlock('fill','${b.id}')" class="px-2 py-1 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded font-bold hover:border-[#cf1717] hover:text-[#cf1717]">✏️ Điền khuyết</button>
-                <button type="button" onclick="addBlock('essay','${b.id}')" class="px-2 py-1 bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded font-bold hover:border-[#cf1717] hover:text-[#cf1717]">📄 Tự luận</button>
-              </div>
-            </div>
+          <div class="flex flex-wrap gap-1 pt-2 border-t dark:border-zinc-700 mt-2">
+            ${subBlockTypes.map(([t, label]) => `<button type="button" onclick="addSubBlock('${b.id}','${t}')" class="px-2 py-1 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded text-[10px] font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">${label}</button>`).join('')}
           </div>
         </div>
       </div>`;
   }
 
-  function renderBlocks() {
-    pel('questionBlocks').innerHTML = renderBlockList(blocks, null);
+  function renderSubBlocksHtml(rb) {
+    const arr = rb.sub_blocks || [];
+    if (!arr.length) return '<p class="text-[11px] text-gray-400 italic">Chưa có câu hỏi — bấm nút bên dưới để thêm.</p>';
+    return arr.map((b, idx) => `
+      <div class="border dark:border-zinc-700 rounded-xl p-2 space-y-2 bg-white dark:bg-zinc-900 text-xs" data-block="${b.id}">
+        <div class="flex items-center justify-between">
+          <span class="font-extrabold text-[#cf1717]">Câu con ${b.type === 'text' ? '' : (arr.slice(0, idx + 1).filter(x => x.type !== 'text').length)} · ${typeLabel[b.type]}</span>
+          <div class="flex items-center gap-1.5">
+            ${b.type !== 'text' ? `<label class="flex items-center gap-1">Đ: <input type="number" min="0" step="0.5" value="${b.points}" oninput="updateField('${b.id}','points',this.value,true)" class="w-10 p-0.5 rounded border dark:bg-zinc-800 dark:border-zinc-700"></label>` : ''}
+            <button type="button" onclick="moveSubBlock('${rb.id}','${b.id}',-1)" title="Lên">⬆️</button>
+            <button type="button" onclick="moveSubBlock('${rb.id}','${b.id}',1)" title="Xuống">⬇️</button>
+            <button type="button" onclick="removeSubBlock('${rb.id}','${b.id}')" class="text-red-500 font-bold">🗑️</button>
+          </div>
+        </div>
+        <div id="qc-${b.id}" class="qeditor p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700 text-xs" style="min-height:50px" contenteditable="true" oninput="updateField('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
+        ${(b.type === 'mcq' || b.type === 'multi' || b.type === 'tf') ? `
+          <div class="space-y-1">
+            ${b.options.map(o => `
+              <div class="flex items-center gap-1.5">
+                <input type="${b.type === 'multi' ? 'checkbox' : 'radio'}" name="correct-${b.id}" ${o.correct ? 'checked' : ''}
+                  onchange="setCorrect('${b.id}','${o.id}', ${b.type === 'multi'} ? this.checked : true, ${b.type !== 'multi'})">
+                <input type="text" value="${esc(o.text)}" placeholder="Lựa chọn..." ${b.type === 'tf' ? 'readonly' : ''}
+                  oninput="setOptionText('${b.id}','${o.id}',this.value)" class="flex-1 p-1 rounded border dark:bg-zinc-800 dark:border-zinc-700">
+                ${b.type !== 'tf' && b.options.length > 2 ? `<button type="button" onclick="removeOption('${b.id}','${o.id}')" class="text-red-400">✕</button>` : ''}
+              </div>`).join('')}
+            ${b.type !== 'tf' ? `<button type="button" onclick="addOption('${b.id}')" class="text-[11px] font-bold text-[#cf1717] hover:underline">+ Thêm lựa chọn</button>` : ''}
+          </div>` : ''}
+        ${b.type === 'fill' ? renderFillGapsUI(b) : ''}
+        ${b.type !== 'text' ? `<div><label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">💡 Giải thích</label>
+          <div class="qeditor p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700 text-xs" contenteditable="true" oninput="updateField('${b.id}','explanation',this.innerHTML)">${b.explanation || ''}</div></div>` : ''}
+      </div>`).join('');
   }
 
   function updateField(id, field, value, isNumber) {
-    const b = getBlock(id); if (!b) return;
+    const b = findBlock(id); if (!b) return;
     b[field] = isNumber ? parseFloat(value || 0) : value;
   }
-  function setOptionText(bid, oid, val) { const b = getBlock(bid); const o = b.options.find(x => x.id === oid); if (o) o.text = val; }
+  function setOptionText(bid, oid, val) { const b = findBlock(bid); const o = b.options.find(x => x.id === oid); if (o) o.text = val; }
   function setCorrect(bid, oid, checked, single) {
-    const b = getBlock(bid); if (!b) return;
+    const b = findBlock(bid); if (!b) return;
     if (single) b.options.forEach(o => o.correct = (o.id === oid));
     else { const o = b.options.find(x => x.id === oid); if (o) o.correct = checked; }
   }
   function addOption(bid) {
-    const b = getBlock(bid); if (!b) return;
+    const b = findBlock(bid); if (!b) return;
     const nextLetter = String.fromCharCode(97 + b.options.length);
     b.options.push({ id: nextLetter + Date.now().toString(36).slice(-3), text: '', correct: false });
     renderBlocks();
   }
   function removeOption(bid, oid) {
-    const b = getBlock(bid); if (!b) return;
+    const b = findBlock(bid); if (!b) return;
     b.options = b.options.filter(o => o.id !== oid); renderBlocks();
   }
 
@@ -905,20 +948,23 @@
         <button type="button" onclick="insertGapAtCursor('${b.id}')" class="text-xs font-bold text-[#cf1717] hover:underline">+ Thêm chỗ trống</button>
       </div>
       ${gaps.map(n => `
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] font-extrabold text-white bg-[#cf1717] rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">${n}</span>
-          <input type="text" value="${esc(b.blanks[n] || '')}" placeholder="VD: cost; costs"
-            oninput="updateBlankAnswer('${b.id}',${n},this.value)" class="flex-1 p-2 rounded border dark:bg-zinc-800 dark:border-zinc-700 text-xs">
+        <div class="flex items-start gap-2">
+          <span class="text-[10px] font-extrabold text-white bg-[#cf1717] rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-1">${n}</span>
+          <textarea rows="1" placeholder="VD: cost; costs (nhiều đáp án cách nhau bởi dấu ;)"
+            oninput="updateBlankAnswer('${b.id}',${n},this.value); autoGrowTextarea(this)"
+            class="flex-1 p-2 rounded border dark:bg-zinc-800 dark:border-zinc-700 text-xs resize-none overflow-hidden leading-relaxed"
+            style="min-height:34px">${esc(b.blanks[n] || '')}</textarea>
         </div>`).join('')}
     </div>`;
   }
   function updateBlankAnswer(bid, gapNum, value) {
-    const b = getBlock(bid); if (!b) return;
+    const b = findBlock(bid); if (!b) return;
     b.blanks = b.blanks || {};
     b.blanks[gapNum] = value;
   }
+  function autoGrowTextarea(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
   function insertGapAtCursor(bid) {
-    const b = getBlock(bid); if (!b) return;
+    const b = findBlock(bid); if (!b) return;
     const div = pel('qc-' + bid); if (!div) return;
     div.focus();
     const nums = extractGapNumbers(b.content);
@@ -933,39 +979,39 @@
     if (!title) return notify('⚠️ Vui lòng nhập tiêu đề bài tập.');
     if (!blocks.length) return notify('⚠️ Vui lòng thêm ít nhất 1 câu hỏi.');
 
-    // Kiểm tra mỗi câu điền khuyết (kể cả bên trong bài đọc chia đôi) phải có ít nhất 1 chỗ trống đã chèn
-    function checkFillGaps(list) {
-      for (const b of list) {
-        if (b.type === 'fill' && extractGapNumbers(b.content).length === 0) return false;
-        if (b.type === 'reading' && !checkFillGaps(b.subBlocks || [])) return false;
+    // Kiểm tra mỗi câu điền khuyết (kể cả bên trong Reading) phải có ít nhất 1 chỗ trống đã chèn
+    const allFillLeaves = [];
+    blocks.forEach(b => {
+      if (b.type === 'fill') allFillLeaves.push(b);
+      if (b.type === 'reading') (b.sub_blocks || []).forEach(sb => { if (sb.type === 'fill') allFillLeaves.push(sb); });
+    });
+    for (const fb of allFillLeaves) {
+      if (extractGapNumbers(fb.content).length === 0) {
+        return notify(`⚠️ Câu điền khuyết chưa có chỗ trống nào — hãy bấm "+ Chèn chỗ trống" trong câu đó trước khi lưu.`);
       }
-      return true;
     }
-    if (!checkFillGaps(blocks)) {
-      return notify(`⚠️ Câu điền khuyết chưa có chỗ trống nào — hãy bấm "+ Chèn chỗ trống" trong câu đó trước khi lưu.`);
+    if (blocks.some(b => b.type === 'reading' && (!b.sub_blocks || !b.sub_blocks.length))) {
+      return notify('⚠️ Có khối "Bài đọc" chưa có câu hỏi con nào — hãy thêm ít nhất 1 câu hỏi cho bài đọc đó.');
     }
 
     // Chuẩn hoá dữ liệu fill-blank: chuyển blanks (map theo số chỗ trống) -> mảng {gap, accepted_answers} theo thứ tự
-    // (đệ quy để xử lý cả câu hỏi nằm trong khối "Bài Đọc Chia Đôi")
-    function normalizeForSave(list) {
-      return list.map(b => {
-        const nb = { ...b };
-        if (nb.type === 'fill') {
-          const gaps = extractGapNumbers(nb.content);
-          nb.blanks = gaps.map(n => ({
-            gap: n,
-            accepted_answers: ((nb.blanks && nb.blanks[n]) || '').split(';').map(s => s.trim()).filter(Boolean)
-          }));
-        }
-        if (nb.type === 'reading') {
-          nb.subBlocks = normalizeForSave(nb.subBlocks || []);
-          nb.points = nb.subBlocks.reduce((s, x) => s + (x.type === 'text' ? 0 : (parseFloat(x.points) || 0)), 0);
-        }
-        return nb;
-      });
+    function normalizeFill(nb) {
+      if (nb.type === 'fill') {
+        const gaps = extractGapNumbers(nb.content);
+        nb.blanks = gaps.map(n => ({
+          gap: n,
+          accepted_answers: ((nb.blanks && nb.blanks[n]) || '').split(';').map(s => s.trim()).filter(Boolean)
+        }));
+      }
+      return nb;
     }
-    const finalBlocks = normalizeForSave(blocks);
-    const total_points = finalBlocks.reduce((s, b) => s + (b.type === 'text' ? 0 : (parseFloat(b.points) || 0)), 0);
+    const finalBlocks = blocks.map(b => {
+      const nb = { ...b };
+      if (nb.type === 'reading') { nb.sub_blocks = (nb.sub_blocks || []).map(sb => normalizeFill({ ...sb })); return nb; }
+      return normalizeFill(nb);
+    });
+    const sumPoints = arr => arr.reduce((s, b) => s + (b.type === 'text' ? 0 : (b.type === 'reading' ? sumPoints(b.sub_blocks || []) : (parseFloat(b.points) || 0))), 0);
+    const total_points = sumPoints(finalBlocks);
 
     const cls = myClasses.find(c => c.id === currentClassForAssignments);
     const editingId = pel('editingAssignmentId').value;
@@ -1010,11 +1056,53 @@
     const { data, error } = await sbClient.from('assignment_attempts').select('*, profiles(full_name)').eq('assignment_id', assignmentId).order('submitted_at', { ascending: false });
     if (error) { pel('rmList').innerHTML = `<p class="text-red-500">${esc(error.message)}</p>`; return; }
     currentAttemptsList = data || [];
+    pel('rmSearchName').value = ''; pel('rmSort').value = 'latest';
+    renderScoreDistribution();
     renderResultsList();
   }
+  function scoreOf(r) { return Math.round(((r.auto_score || 0) + sumManualScores(r.manual_scores)) * 100) / 100; }
+
+  function renderScoreDistribution() {
+    const box = pel('rmDist');
+    if (!currentAttemptsList.length) { box.classList.add('hidden'); return; }
+    const total = currentAttemptsList[0]?.total_points || 1;
+    const buckets = [0, 0, 0, 0, 0]; // 0-20% 20-40% 40-60% 60-80% 80-100%
+    currentAttemptsList.forEach(r => {
+      const pct = total > 0 ? scoreOf(r) / total : 0;
+      const idx = Math.min(4, Math.floor(pct * 5));
+      buckets[idx]++;
+    });
+    const max = Math.max(...buckets, 1);
+    const labels = ['0-20%', '20-40%', '40-60%', '60-80%', '80-100%'];
+    box.classList.remove('hidden');
+    box.innerHTML = `
+      <div class="bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl p-3 mb-1">
+        <p class="text-[10px] font-bold uppercase text-gray-500 mb-2">📊 Phổ điểm (${currentAttemptsList.length} bài nộp)</p>
+        <div class="flex items-end gap-2 h-20">
+          ${buckets.map((c, i) => `
+            <div class="flex-1 flex flex-col items-center justify-end gap-1">
+              <span class="text-[10px] font-bold text-gray-500">${c}</span>
+              <div class="w-full bg-[#cf1717] rounded-t" style="height:${Math.max(4, (c / max) * 56)}px"></div>
+              <span class="text-[9px] text-gray-400">${labels[i]}</span>
+            </div>`).join('')}
+        </div>
+      </div>`;
+  }
+
   function renderResultsList() {
-    pel('rmList').innerHTML = currentAttemptsList.map(r => {
-      const finalScore = Math.round(((r.auto_score || 0) + sumManualScores(r.manual_scores)) * 100) / 100;
+    const search = (pel('rmSearchName').value || '').toLowerCase().trim();
+    const sort = pel('rmSort').value;
+    let list = currentAttemptsList.filter(r => !search || (r.profiles?.full_name || '').toLowerCase().includes(search));
+    list = [...list].sort((a, b) => {
+      if (sort === 'earliest') return new Date(a.submitted_at) - new Date(b.submitted_at);
+      if (sort === 'latest') return new Date(b.submitted_at) - new Date(a.submitted_at);
+      if (sort === 'score_desc') return scoreOf(b) - scoreOf(a);
+      if (sort === 'score_asc') return scoreOf(a) - scoreOf(b);
+      if (sort === 'name') return (a.profiles?.full_name || '').localeCompare(b.profiles?.full_name || '');
+      return 0;
+    });
+    pel('rmList').innerHTML = list.map(r => {
+      const finalScore = scoreOf(r);
       return `
       <div class="flex items-center justify-between bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl px-3 py-2">
         <div>
@@ -1026,27 +1114,29 @@
           <span class="font-extrabold text-[#cf1717]">${finalScore}/${r.total_points}</span>
         </div>
       </div>`;
-    }).join('') || '<p class="text-gray-400 italic">Chưa có học sinh nào nộp bài.</p>';
+    }).join('') || '<p class="text-gray-400 italic">Không có học sinh nào khớp với bộ lọc.</p>';
   }
   function closeResultsModal() { pel('resultsModal').classList.add('hidden'); pel('resultsModal').classList.remove('flex'); }
 
   // ---- Modal chấm bài chi tiết (xem từng câu + cho điểm câu tự luận) ----
   let currentGradingAttempt = null;
 
-  // Đệ quy để hiển thị cả câu hỏi nằm trong khối "Bài Đọc Chia Đôi" (reading) khi chấm bài
-  function renderGradeQuestionsList(list, r, counterObj) {
-    return (list || []).map(q => {
-      if (q.type === 'text') return `<div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-xl p-3 qeditor text-xs ${q.two_col ? 'qeditor-2col' : ''}">${q.content || ''}</div>`;
+  function openGradeAttempt(attemptId) {
+    const r = currentAttemptsList.find(x => x.id === attemptId); if (!r || !currentResultsAssignment) return;
+    currentGradingAttempt = r;
+    pel('gmStudentName').innerText = r.profiles?.full_name || 'N/A';
+    const rawQuestions = currentResultsAssignment.questions || [];
+    const questions = [];
+    rawQuestions.forEach(q => {
       if (q.type === 'reading') {
-        return `
-          <div class="border-2 border-[#cf1717]/30 rounded-2xl p-3 space-y-2 bg-red-50/20 dark:bg-red-950/10">
-            <p class="text-[10px] font-extrabold text-[#cf1717] uppercase">📖 Bài đọc</p>
-            <div class="qeditor text-xs ${q.two_col ? 'qeditor-2col' : ''}">${q.content || ''}</div>
-            <div class="space-y-2 pt-1">${renderGradeQuestionsList(q.subBlocks || [], r, counterObj)}</div>
-          </div>`;
-      }
-      counterObj.n++;
-      const qNo = counterObj.n;
+        questions.push({ type: 'text', content: `<b>📖 Bài đọc:</b><div class="mt-1">${q.content || ''}</div>`, two_col: q.two_col });
+        (q.sub_blocks || []).forEach(sb => questions.push(sb));
+      } else questions.push(q);
+    });
+    let qNo = 0;
+    pel('gmList').innerHTML = questions.map(q => {
+      if (q.type === 'text') return `<div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-xl p-3 qeditor text-xs ${q.two_col ? 'qeditor-2col' : ''}">${q.content || ''}</div>`;
+      qNo++;
       const given = r.answers ? r.answers[q.id] : null;
       let bodyHtml = '';
       if (q.type === 'mcq' || q.type === 'tf' || q.type === 'multi') {
@@ -1061,7 +1151,7 @@
         }
       } else if (q.type === 'essay') {
         const currentVal = (r.manual_scores && r.manual_scores[q.id] !== undefined) ? r.manual_scores[q.id] : '';
-        const currentFb = (r.manual_feedback && r.manual_feedback[q.id]) || '';
+        const currentComment = (r.manual_comments && r.manual_comments[q.id]) || '';
         bodyHtml = `
           <div class="p-2.5 rounded-xl border dark:border-zinc-700 text-xs whitespace-pre-wrap bg-gray-50 dark:bg-zinc-800/60">${esc(given || '(bỏ trống)')}</div>
           <div class="flex items-center gap-2 mt-2">
@@ -1069,8 +1159,8 @@
             <input type="number" min="0" max="${q.points}" step="0.25" value="${currentVal}" data-essay-score="${q.id}" oninput="updateGmTotal()" class="w-20 p-1.5 rounded border dark:bg-zinc-800 dark:border-zinc-700 text-xs">
           </div>
           <div class="mt-2">
-            <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">📝 Nhận xét cho học sinh (tùy chọn)</label>
-            <textarea data-essay-feedback="${q.id}" rows="2" placeholder="Nhận xét về bài làm của học sinh..." class="w-full p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-xs">${esc(currentFb)}</textarea>
+            <label class="text-xs font-bold text-gray-600 dark:text-gray-300 block mb-1">📝 Nhận xét của giáo viên (học sinh sẽ thấy sau khi chấm)</label>
+            <textarea rows="2" data-essay-comment="${q.id}" placeholder="VD: Bài viết tốt nhưng cần chú ý thì hiện tại..." class="w-full p-2 rounded border dark:bg-zinc-800 dark:border-zinc-700 text-xs">${esc(currentComment)}</textarea>
           </div>`;
       }
       return `
@@ -1080,14 +1170,6 @@
           <div class="space-y-1">${bodyHtml}</div>
         </div>`;
     }).join('');
-  }
-
-  function openGradeAttempt(attemptId) {
-    const r = currentAttemptsList.find(x => x.id === attemptId); if (!r || !currentResultsAssignment) return;
-    currentGradingAttempt = r;
-    pel('gmStudentName').innerText = r.profiles?.full_name || 'N/A';
-    const questions = currentResultsAssignment.questions || [];
-    pel('gmList').innerHTML = renderGradeQuestionsList(questions, r, { n: 0 });
     updateGmTotal();
     pel('gradeModal').classList.remove('hidden'); pel('gradeModal').classList.add('flex');
   }
@@ -1101,16 +1183,22 @@
   async function saveGrade() {
     if (!currentGradingAttempt) return;
     const manual_scores = { ...(currentGradingAttempt.manual_scores || {}) };
+    const manual_comments = { ...(currentGradingAttempt.manual_comments || {}) };
     document.querySelectorAll('[data-essay-score]').forEach(inp => {
       const qid = inp.getAttribute('data-essay-score');
       if (inp.value !== '') manual_scores[qid] = parseFloat(inp.value) || 0;
     });
-    const { error } = await sbClient.from('assignment_attempts').update({ manual_scores }).eq('id', currentGradingAttempt.id);
+    document.querySelectorAll('[data-essay-comment]').forEach(ta => {
+      const qid = ta.getAttribute('data-essay-comment');
+      manual_comments[qid] = ta.value.trim();
+    });
+    const { error } = await sbClient.from('assignment_attempts').update({ manual_scores, manual_comments }).eq('id', currentGradingAttempt.id);
     if (error) return notify('❌ Lỗi lưu điểm: ' + error.message);
     currentGradingAttempt.manual_scores = manual_scores;
+    currentGradingAttempt.manual_comments = manual_comments;
     const idx = currentAttemptsList.findIndex(x => x.id === currentGradingAttempt.id);
-    if (idx >= 0) currentAttemptsList[idx].manual_scores = manual_scores;
-    notify('🎉 Đã lưu điểm chấm tay!');
+    if (idx >= 0) { currentAttemptsList[idx].manual_scores = manual_scores; currentAttemptsList[idx].manual_comments = manual_comments; }
+    notify('🎉 Đã lưu điểm & nhận xét!');
     renderResultsList();
     closeGradeModal();
   }
