@@ -248,7 +248,7 @@ async function handleAuth(e) {
   msg.innerHTML = '<i class="bi bi-gear"></i> Đăng nhập Admin thành công';
   msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
   setTimeout(() => window.location.href = 'admin.html', 1000);
-} else if (role === 'teacher') {
+} else if (role === 'teacher' || role === 'assistant') {
   msg.innerHTML = '<i class="bi bi-person-badge"></i> Đăng nhập Giảng viên thành công';
   msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
   setTimeout(() => window.location.href = 'teacher.html', 1000);
