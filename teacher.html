@@ -19,6 +19,7 @@
     }
   </script>
   <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen transition-colors duration-300 flex flex-col justify-between">
 
@@ -70,11 +71,11 @@
     </div>
     <div class="flex items-center gap-2 sm:gap-3">
       <a href="assignment.html" target="_blank" class="bg-white/80 dark:bg-zinc-800/80 text-[#cf1717] font-bold px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm border border-[#cf1717]/40 hover:bg-red-50 transition flex items-center gap-1">
-        <span>🎓</span><span class="hidden sm:inline">Xem trang Học Sinh</span>
+        <span><i class="bi bi-mortarboard-fill"></i></span><span class="hidden sm:inline">Xem trang Học Sinh</span>
       </a>
       <div class="relative">
         <button onclick="toggleNotifDropdown()" id="notifBellBtn" class="relative p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50">
-          🔔
+          <i class="bi bi-bell-fill"></i>
           <span id="notifBadge" class="hidden absolute -top-1.5 -right-1.5 bg-[#cf1717] text-white text-[9px] font-black rounded-full min-w-[17px] h-[17px] px-1 flex items-center justify-center shadow-sm animate-pulse">0</span>
         </button>
         <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 max-w-[90vw] max-h-96 overflow-y-auto bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-xl shadow-2xl z-[100001] p-2 space-y-1">
@@ -85,7 +86,7 @@
         Đăng xuất
       </button>
       <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50">
-        <span id="themeIcon">🌙</span>
+        <span id="themeIcon"><i class="bi bi-moon-stars-fill"></i></span>
       </button>
     </div>
   </div>
@@ -95,19 +96,19 @@
 
   <!-- ============ 0. BANNER THÔNG BÁO (hiện ngay ngoài màn hình, không ẩn trong modal) ============ -->
   <div id="notifBanner" class="hidden bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold flex items-center justify-between gap-3 shadow-sm">
-    <span id="notifBannerText" class="flex items-center gap-2"><span class="text-lg leading-none">🔔</span> <span>Bạn có yêu cầu cần xử lý.</span></span>
+    <span id="notifBannerText" class="flex items-center gap-2"><span class="text-lg leading-none"><i class="bi bi-bell-fill"></i></span> <span>Bạn có yêu cầu cần xử lý.</span></span>
     <button onclick="toggleNotifDropdown()" class="underline whitespace-nowrap hover:text-amber-900 dark:hover:text-amber-200 transition">Xem ngay</button>
   </div>
 
   <!-- ============ 1. TẠO LỚP HỌC ============ -->
   <section class="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border dark:border-zinc-800 shadow-sm space-y-4">
     <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
-      <h2 id="classSectionTitle" class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white">🏫 Lớp Học Của Tôi</h2>
+      <h2 id="classSectionTitle" class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white"><i class="bi bi-building"></i> Lớp Học Của Tôi</h2>
       <span id="classCount" class="text-xs font-bold px-2.5 py-1 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">0 lớp</span>
     </div>
 
     <!-- Giáo viên phụ trách (role=assistant) không được tạo lớp -> ẩn cả form này -->
-    <p id="assistantHint" class="hidden text-xs text-gray-400 bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl p-3">👤 Bạn đang đăng nhập với vai trò <b>Giáo viên phụ trách</b> — chỉ có thể xem lịch học và thêm bài tập cho các lớp được phân công, không tạo/sửa lớp hay quản lý học sinh.</p>
+    <p id="assistantHint" class="hidden text-xs text-gray-400 bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl p-3"><i class="bi bi-person-fill"></i> Bạn đang đăng nhập với vai trò <b>Giáo viên phụ trách</b> — chỉ có thể xem lịch học và thêm bài tập cho các lớp được phân công, không tạo/sửa lớp hay quản lý học sinh.</p>
     <form id="createClassForm" onsubmit="createClass(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
       <div>
         <label class="block font-bold uppercase mb-1">Mã lớp (*)</label>
@@ -135,8 +136,8 @@
   <!-- ============ 1B. LỊCH HỌC CỦA TÔI (CHỈ HIỆN CHO GIÁO VIÊN PHỤ TRÁCH) ============ -->
   <section id="assistantCalendarSection" class="hidden bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border dark:border-zinc-800 shadow-sm space-y-4">
     <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
-      <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white">📅 Lịch Học Của Tôi</h2>
-      <button onclick="loadAssistantScheduleCalendar()" class="text-xs font-bold text-indigo-500 hover:underline">🔄 Làm mới</button>
+      <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white"><i class="bi bi-calendar-event"></i> Lịch Học Của Tôi</h2>
+      <button onclick="loadAssistantScheduleCalendar()" class="text-xs font-bold text-indigo-500 hover:underline"><i class="bi bi-arrow-repeat"></i> Làm mới</button>
     </div>
     <p class="text-xs text-gray-400">Tổng hợp lịch học của tất cả các lớp bạn phụ trách. Bấm vào 1 ngày để xem chi tiết, hoặc gửi yêu cầu tạm ngưng buổi học đó.</p>
 
@@ -145,7 +146,7 @@
       <div class="lg:col-span-5 space-y-3">
         <div class="relative">
           <input type="text" id="acalSearchInput" oninput="searchAssistantSchedule(this.value)"
-                 placeholder="🔍 Tìm theo tên lớp, ca học, ghi chú..."
+                 placeholder="<i class="bi bi-search"></i> Tìm theo tên lớp, ca học, ghi chú..."
                  class="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
           <div id="acalSearchResults" class="hidden absolute z-20 mt-1 w-full bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl shadow-lg max-h-60 overflow-y-auto"></div>
         </div>
@@ -171,7 +172,7 @@
       <div class="lg:col-span-7 border-t lg:border-t-0 lg:border-l border-gray-100 dark:border-zinc-800 pt-4 lg:pt-0 lg:pl-6 space-y-3">
         <div class="flex items-center justify-between border-b border-gray-100 dark:border-zinc-800 pb-2">
           <h3 id="acalSelectedTitle" class="font-extrabold text-sm sm:text-base text-[#cf1717] flex items-center gap-2">
-            <span>📌</span> Chi tiết ngày: --/--/----
+            <span><i class="bi bi-pin-angle-fill"></i></span> Chi tiết ngày: --/--/----
           </h3>
           <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-red-50 dark:bg-red-950 text-[#cf1717]">Lịch ReadUp</span>
         </div>
@@ -185,7 +186,7 @@
   <!-- ============ 2. QUẢN LÝ BÀI TẬP ============ -->
   <section class="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border dark:border-zinc-800 shadow-sm space-y-4">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-l-4 border-[#cf1717] pl-3">
-      <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white">📚 Bài Tập</h2>
+      <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white"><i class="bi bi-journal-bookmark-fill"></i> Bài Tập</h2>
       <div class="flex items-center gap-2">
         <select id="assignClassFilter" onchange="loadAssignmentsForClass()" class="p-2 text-xs rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
           <option value="">-- Chọn lớp để quản lý bài tập --</option>
@@ -194,7 +195,7 @@
       </div>
     </div>
     <div id="assignmentList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <p class="text-gray-400 text-sm col-span-full">👆 Hãy chọn một lớp ở trên để xem bài tập.</p>
+      <p class="text-gray-400 text-sm col-span-full"><i class="bi bi-hand-index-thumb-fill"></i> Hãy chọn một lớp ở trên để xem bài tập.</p>
     </div>
   </section>
 
@@ -211,7 +212,7 @@
   <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 w-full max-w-2xl my-8 shadow-2xl space-y-5">
     <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
       <h3 class="font-extrabold text-lg text-[#cf1717] dark:text-red-400 flex items-center gap-2">
-        <span>👥</span> Quản Lý Lớp: <span id="cmClassTitle">...</span>
+        <span><i class="bi bi-people-fill"></i></span> Quản Lý Lớp: <span id="cmClassTitle">...</span>
       </h3>
       <button onclick="closeClassModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
     </div>
@@ -219,8 +220,8 @@
 
     <div class="bg-gray-50 dark:bg-zinc-800/60 p-4 rounded-xl border dark:border-zinc-700 space-y-3">
       <div class="flex gap-1 text-xs">
-        <button type="button" onclick="switchAddStuTab('new')" id="tabAddStuNew" class="flex-1 py-1.5 rounded-lg font-bold bg-[#cf1717] text-white">➕ Tạo học sinh mới</button>
-        <button type="button" onclick="switchAddStuTab('existing')" id="tabAddStuExisting" class="flex-1 py-1.5 rounded-lg font-bold bg-white dark:bg-zinc-800 border dark:border-zinc-700 text-gray-600 dark:text-gray-300">👤 Thêm học sinh đã có tài khoản</button>
+        <button type="button" onclick="switchAddStuTab('new')" id="tabAddStuNew" class="flex-1 py-1.5 rounded-lg font-bold bg-[#cf1717] text-white"><i class="bi bi-plus-circle-fill"></i> Tạo học sinh mới</button>
+        <button type="button" onclick="switchAddStuTab('existing')" id="tabAddStuExisting" class="flex-1 py-1.5 rounded-lg font-bold bg-white dark:bg-zinc-800 border dark:border-zinc-700 text-gray-600 dark:text-gray-300"><i class="bi bi-person-fill"></i> Thêm học sinh đã có tài khoản</button>
       </div>
 
       <form id="formAddStuNew" onsubmit="addStudent(event)" class="space-y-3">
@@ -229,12 +230,12 @@
           <input id="stuEmail" type="email" required placeholder="Email đăng nhập" class="p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
           <div class="flex gap-1">
             <input id="stuPassword" required minlength="6" placeholder="Mật khẩu (≥6 ký tự)" class="flex-1 p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
-            <button type="button" onclick="pel('stuPassword').value = genPassword()" class="px-2 rounded-lg border dark:border-zinc-700 text-xs" title="Tạo mật khẩu ngẫu nhiên">🎲</button>
+            <button type="button" onclick="pel('stuPassword').value = genPassword()" class="px-2 rounded-lg border dark:border-zinc-700 text-xs" title="Tạo mật khẩu ngẫu nhiên"><i class="bi bi-dice-5-fill"></i></button>
           </div>
         </div>
         <label class="flex items-center gap-2 text-xs font-bold"><input type="checkbox" id="stuVip" checked> ⭐ Cấp quyền VIP ngay (học sinh làm được bài tập luôn, khỏi cần đổi tay trong Supabase)</label>
         <button type="submit" id="addStuBtn" class="bg-[#cf1717] hover:bg-red-700 text-white font-bold px-5 py-2 rounded-xl text-xs shadow transition">Tạo tài khoản & thêm vào lớp</button>
-        <p class="text-[11px] text-gray-400">💡 Dùng khi học sinh CHƯA từng có tài khoản ReadUp nào. Học sinh dùng đúng Email + Mật khẩu này để đăng nhập, sau đó tự đổi mật khẩu trong trang Hồ sơ cá nhân.</p>
+        <p class="text-[11px] text-gray-400"><i class="bi bi-lightbulb-fill"></i> Dùng khi học sinh CHƯA từng có tài khoản ReadUp nào. Học sinh dùng đúng Email + Mật khẩu này để đăng nhập, sau đó tự đổi mật khẩu trong trang Hồ sơ cá nhân.</p>
       </form>
 
       <form id="formAddStuExisting" onsubmit="addExistingStudent(event)" class="hidden space-y-3">
@@ -243,25 +244,25 @@
           <label class="flex items-center gap-2 text-xs font-bold p-2.5"><input type="checkbox" id="existingStuVip" checked> ⭐ Cấp VIP ở lớp này</label>
         </div>
         <button type="submit" id="addExistingStuBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2 rounded-xl text-xs shadow transition">Thêm vào lớp (không tạo tài khoản mới)</button>
-        <p class="text-[11px] text-gray-400">💡 Dùng khi học sinh ĐÃ có tài khoản (VD: đang học ở lớp khác) — nhập đúng email cũ để thêm vào lớp này, không tạo email/tài khoản mới. Cần chạy hàm SQL <code>teacher_add_existing_student_by_email</code> trong Supabase trước khi dùng (xem file SQL đi kèm).</p>
+        <p class="text-[11px] text-gray-400"><i class="bi bi-lightbulb-fill"></i> Dùng khi học sinh ĐÃ có tài khoản (VD: đang học ở lớp khác) — nhập đúng email cũ để thêm vào lớp này, không tạo email/tài khoản mới. Cần chạy hàm SQL <code>teacher_add_existing_student_by_email</code> trong Supabase trước khi dùng (xem file SQL đi kèm).</p>
       </form>
     </div>
 
     <div class="space-y-2">
-      <h4 class="font-bold text-xs uppercase text-gray-500">📋 Danh Sách Học Sinh (<span id="cmStuCount">0</span>)</h4>
+      <h4 class="font-bold text-xs uppercase text-gray-500"><i class="bi bi-clipboard-fill"></i> Danh Sách Học Sinh (<span id="cmStuCount">0</span>)</h4>
       <div id="cmStuList" class="space-y-2 max-h-72 overflow-y-auto pr-1">
         <p class="text-xs text-gray-400 italic">Đang tải...</p>
       </div>
     </div>
 
     <div class="bg-indigo-50 dark:bg-indigo-950/30 p-4 rounded-xl border border-indigo-200 dark:border-indigo-900 space-y-3">
-      <h4 class="font-bold text-xs uppercase text-indigo-600 dark:text-indigo-400">👩‍🏫 Giáo Viên Phụ Trách Lớp Này</h4>
+      <h4 class="font-bold text-xs uppercase text-indigo-600 dark:text-indigo-400"><i class="bi bi-person-workspace"></i> Giáo Viên Phụ Trách Lớp Này</h4>
       <p class="text-[11px] text-gray-500">Giáo viên phụ trách đăng nhập chung trang này nhưng chỉ xem lịch học & thêm bài tập cho lớp được gán — không tạo/sửa lớp, không quản lý học sinh, không sửa lịch học.</p>
       <div id="cmAssistList" class="space-y-1.5"><p class="text-xs text-gray-400 italic">Đang tải...</p></div>
 
       <div class="flex gap-1 text-xs pt-1">
-        <button type="button" onclick="switchAddAsstTab('new')" id="tabAddAsstNew" class="flex-1 py-1.5 rounded-lg font-bold bg-indigo-600 text-white">➕ Tạo tài khoản mới</button>
-        <button type="button" onclick="switchAddAsstTab('existing')" id="tabAddAsstExisting" class="flex-1 py-1.5 rounded-lg font-bold bg-white dark:bg-zinc-800 border dark:border-zinc-700 text-gray-600 dark:text-gray-300">👤 Thêm đã có tài khoản</button>
+        <button type="button" onclick="switchAddAsstTab('new')" id="tabAddAsstNew" class="flex-1 py-1.5 rounded-lg font-bold bg-indigo-600 text-white"><i class="bi bi-plus-circle-fill"></i> Tạo tài khoản mới</button>
+        <button type="button" onclick="switchAddAsstTab('existing')" id="tabAddAsstExisting" class="flex-1 py-1.5 rounded-lg font-bold bg-white dark:bg-zinc-800 border dark:border-zinc-700 text-gray-600 dark:text-gray-300"><i class="bi bi-person-fill"></i> Thêm đã có tài khoản</button>
       </div>
       <form id="formAddAsstNew" onsubmit="addAssistant(event)" class="space-y-2">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -269,7 +270,7 @@
           <input id="asstEmail" type="email" required placeholder="Email đăng nhập" class="p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
           <div class="flex gap-1">
             <input id="asstPassword" required minlength="6" placeholder="Mật khẩu (≥6 ký tự)" class="flex-1 p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
-            <button type="button" onclick="pel('asstPassword').value = genPassword()" class="px-2 rounded-lg border dark:border-zinc-700 text-xs">🎲</button>
+            <button type="button" onclick="pel('asstPassword').value = genPassword()" class="px-2 rounded-lg border dark:border-zinc-700 text-xs"><i class="bi bi-dice-5-fill"></i></button>
           </div>
         </div>
         <button type="submit" id="addAsstBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2 rounded-xl text-xs shadow transition">Tạo tài khoản & gán vào lớp</button>
@@ -277,7 +278,7 @@
       <form id="formAddAsstExisting" onsubmit="addExistingAssistant(event)" class="hidden space-y-2">
         <input id="existingAsstEmail" type="email" required placeholder="Email giáo viên đã có tài khoản" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
         <button type="submit" id="addExistingAsstBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2 rounded-xl text-xs shadow transition">Gán vào lớp (không tạo tài khoản mới)</button>
-        <p class="text-[11px] text-gray-400">💡 Cần chạy 2 hàm SQL <code>teacher_provision_assistant</code> / <code>teacher_add_existing_assistant_by_email</code> trong file SQL đi kèm trước khi dùng.</p>
+        <p class="text-[11px] text-gray-400"><i class="bi bi-lightbulb-fill"></i> Cần chạy 2 hàm SQL <code>teacher_provision_assistant</code> / <code>teacher_add_existing_assistant_by_email</code> trong file SQL đi kèm trước khi dùng.</p>
       </form>
     </div>
   </div>
@@ -288,7 +289,7 @@
   <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 w-full max-w-4xl my-8 shadow-2xl space-y-5">
     <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
       <h3 class="font-extrabold text-lg text-[#cf1717] dark:text-red-400 flex items-center gap-2">
-        <span>📅</span> Lịch Học: <span id="smClassTitle">...</span>
+        <span><i class="bi bi-calendar-event"></i></span> Lịch Học: <span id="smClassTitle">...</span>
       </h3>
       <button onclick="closeScheduleModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
     </div>
@@ -297,10 +298,10 @@
     <div id="smUploadBox" class="hidden bg-gray-50 dark:bg-zinc-800/60 p-4 rounded-xl border dark:border-zinc-700 space-y-2">
       <div class="flex flex-wrap gap-2">
         <label class="flex items-center gap-2 text-xs font-bold cursor-pointer w-fit px-3 py-2 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg hover:border-[#cf1717] hover:text-[#cf1717] transition">
-          📥 Tải lịch học từ file Excel
+          <i class="bi bi-download"></i> Tải lịch học từ file Excel
           <input type="file" accept=".xlsx,.xls" class="hidden" onchange="uploadScheduleExcel(this)">
         </label>
-        <button type="button" onclick="toggleManualAddForm()" class="text-xs font-bold px-3 py-2 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg hover:border-indigo-500 hover:text-indigo-500 transition">➕ Thêm 1 buổi học thủ công</button>
+        <button type="button" onclick="toggleManualAddForm()" class="text-xs font-bold px-3 py-2 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg hover:border-indigo-500 hover:text-indigo-500 transition"><i class="bi bi-plus-circle-fill"></i> Thêm 1 buổi học thủ công</button>
       </div>
       <p class="text-[11px] text-gray-400">File Excel cần có dòng tiêu đề với các cột: <code>tiedelophoc</code>, <code>NgayHoc</code>, <code>CaHoc</code>, <code>PhongHoc</code>, <code>GiangVien</code>, <code>GhiChu</code> (không phân biệt hoa/thường). Tải lên sẽ <b>thay thế toàn bộ</b> lịch học hiện tại của lớp này.</p>
 
@@ -317,12 +318,12 @@
 
     <!-- Các yêu cầu tạm ngưng đang chờ owner duyệt -->
     <div id="smPendingBox" class="hidden space-y-2">
-      <h4 class="font-bold text-xs uppercase text-amber-600">🔔 Yêu Cầu Chờ Duyệt</h4>
+      <h4 class="font-bold text-xs uppercase text-amber-600"><i class="bi bi-bell-fill"></i> Yêu Cầu Chờ Duyệt</h4>
       <div id="smPendingList" class="space-y-2"></div>
     </div>
 
     <div class="space-y-2">
-      <h4 class="font-bold text-xs uppercase text-gray-500">📋 Danh Sách Buổi Học (<span id="smCount">0</span>)</h4>
+      <h4 class="font-bold text-xs uppercase text-gray-500"><i class="bi bi-clipboard-fill"></i> Danh Sách Buổi Học (<span id="smCount">0</span>)</h4>
       <div id="smList" class="space-y-2 max-h-[28rem] overflow-y-auto pr-1">
         <p class="text-xs text-gray-400 italic">Đang tải...</p>
       </div>
@@ -335,7 +336,7 @@
   <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-5 sm:p-6 w-full max-w-lg my-8 shadow-2xl space-y-4">
     <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
       <h3 class="font-extrabold text-lg text-[#cf1717] dark:text-red-400 flex items-center gap-2">
-        <span>💬</span> Hỗ Trợ Buổi Học
+        <span><i class="bi bi-chat-dots-fill"></i></span> Hỗ Trợ Buổi Học
       </h3>
       <button onclick="closeSupportModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
     </div>
@@ -356,7 +357,7 @@
   <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-5 sm:p-6 w-full max-w-lg my-8 shadow-2xl space-y-4">
     <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
       <h3 class="font-extrabold text-lg text-[#cf1717] dark:text-red-400 flex items-center gap-2">
-        <span>🕘</span> Lịch Sử Thay Đổi
+        <span><i class="bi bi-clock-history"></i></span> Lịch Sử Thay Đổi
       </h3>
       <button onclick="closeHistoryModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
     </div>
@@ -372,7 +373,7 @@
   <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 w-full max-w-4xl my-4 sm:my-8 shadow-2xl space-y-5">
     <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
       <h3 class="font-extrabold text-lg text-[#cf1717] dark:text-red-400 flex items-center gap-2">
-        <span>📝</span> <span id="builderModeTitle">Tạo Bài Tập Mới</span>
+        <span><i class="bi bi-pencil-square"></i></span> <span id="builderModeTitle">Tạo Bài Tập Mới</span>
       </h3>
       <button onclick="closeBuilder()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
     </div>
@@ -397,7 +398,7 @@
       </div>
       <div class="sm:col-span-3 text-gray-400 flex items-center gap-2">
         Đường dẫn bài tập: <code id="asTokenPreview" class="text-[#cf1717] font-bold">assignment.html?token=...</code>
-        <button type="button" onclick="copyAsToken()" class="text-[11px] font-bold text-blue-500 hover:underline">📋 Sao chép</button>
+        <button type="button" onclick="copyAsToken()" class="text-[11px] font-bold text-blue-500 hover:underline"><i class="bi bi-clipboard-fill"></i> Sao chép</button>
       </div>
     </div>
 
@@ -420,14 +421,14 @@
       </select>
       <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('insertUnorderedList')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs">•≡</button>
       <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('insertOrderedList')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs">1≡</button>
-      <label class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs flex items-center justify-center cursor-pointer" title="Chèn ảnh">🖼️
+      <label class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs flex items-center justify-center cursor-pointer" title="Chèn ảnh"><i class="bi bi-image-fill"></i>
         <input type="file" accept="image/*" class="hidden" onchange="qInsertImage(this)">
       </label>
       <button type="button" onmousedown="event.preventDefault()" onclick="qInsertTable()" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-sm" title="Chèn bảng">▦</button>
-      <label class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs flex items-center justify-center cursor-pointer" title="Chèn âm thanh (Listening)">🔊
+      <label class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs flex items-center justify-center cursor-pointer" title="Chèn âm thanh (Listening)"><i class="bi bi-volume-up-fill"></i>
         <input type="file" accept="audio/*" class="hidden" onchange="qInsertAudio(this)">
       </label>
-      <span class="text-[10px] text-gray-400 ml-2">💡 Bấm vào ô câu hỏi/giải thích rồi dùng nút trên như soạn Word.</span>
+      <span class="text-[10px] text-gray-400 ml-2"><i class="bi bi-lightbulb-fill"></i> Bấm vào ô câu hỏi/giải thích rồi dùng nút trên như soạn Word.</span>
     </div>
 
     <!-- Danh sách khối câu hỏi -->
@@ -435,28 +436,28 @@
 
     <!-- Thêm khối câu hỏi -->
     <div class="p-3 bg-gray-50 dark:bg-zinc-800/60 rounded-xl border dark:border-zinc-700">
-      <p class="text-[11px] font-bold uppercase text-gray-500 mb-2">➕ Thêm dạng câu hỏi</p>
+      <p class="text-[11px] font-bold uppercase text-gray-500 mb-2"><i class="bi bi-plus-circle-fill"></i> Thêm dạng câu hỏi</p>
       <div class="flex flex-wrap gap-2 text-xs">
-        <button type="button" onclick="addBlock('mcq')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">☑️ Trắc nghiệm 1 đáp án</button>
-        <button type="button" onclick="addBlock('multi')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">☑️☑️ Trắc nghiệm nhiều đáp án</button>
-        <button type="button" onclick="addBlock('tf')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">✅❌ Đúng / Sai</button>
-        <button type="button" onclick="addBlock('fill')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">✏️ Điền khuyết</button>
-        <button type="button" onclick="addBlock('essay')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">📄 Tự luận</button>
-        <button type="button" onclick="addBlock('text')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">📌 Đoạn văn bản / hướng dẫn (không chấm điểm)</button>
-        <button type="button" onclick="addBlock('reading')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border-2 border-[#cf1717]/50 rounded-lg font-bold text-[#cf1717] hover:bg-red-50 dark:hover:bg-red-950/30 transition">📖 Bài đọc (Reading — chia đôi màn hình)</button>
+        <button type="button" onclick="addBlock('mcq')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition"><i class="bi bi-check2-square"></i> Trắc nghiệm 1 đáp án</button>
+        <button type="button" onclick="addBlock('multi')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition"><i class="bi bi-check2-all"></i> Trắc nghiệm nhiều đáp án</button>
+        <button type="button" onclick="addBlock('tf')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition"><i class="bi bi-toggle2-on"></i> Đúng / Sai</button>
+        <button type="button" onclick="addBlock('fill')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition"><i class="bi bi-pencil-fill"></i> Điền khuyết</button>
+        <button type="button" onclick="addBlock('essay')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition"><i class="bi bi-file-earmark-text-fill"></i> Tự luận</button>
+        <button type="button" onclick="addBlock('text')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition"><i class="bi bi-pin-angle-fill"></i> Đoạn văn bản / hướng dẫn (không chấm điểm)</button>
+        <button type="button" onclick="addBlock('reading')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border-2 border-[#cf1717]/50 rounded-lg font-bold text-[#cf1717] hover:bg-red-50 dark:hover:bg-red-950/30 transition"><i class="bi bi-book-half"></i> Bài đọc (Reading — chia đôi màn hình)</button>
         <label class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition cursor-pointer">
-          📥 Nhập câu hỏi từ Word
+          <i class="bi bi-download"></i> Nhập câu hỏi từ Word
           <input type="file" accept=".docx" class="hidden" onchange="importFromWord(this)">
         </label>
       </div>
-      <p class="text-[10px] text-gray-400 mt-2">💡 Khối "Bài đọc" tách riêng: bên trái nhập bài văn, bên phải thêm các câu hỏi thuộc riêng bài đọc đó — không liên quan gì tới các câu hỏi ở ngoài.</p>
-      <p class="text-[10px] text-gray-400">📄 Nhập từ Word cần trình bày đúng quy ước thẻ <code>[MCQ] [MULTI] [TF] [FILL] [ESSAY]</code> — tải file <b>Mau_Cau_Hoi_Word.docx</b> mẫu (gửi kèm cùng bản cập nhật này) để xem ví dụ từng dạng trước khi soạn. Dạng "Bài đọc" không nhập được từ Word, phải tạo trực tiếp trong khối 📖 Bài đọc ở trên.</p>
+      <p class="text-[10px] text-gray-400 mt-2"><i class="bi bi-lightbulb-fill"></i> Khối "Bài đọc" tách riêng: bên trái nhập bài văn, bên phải thêm các câu hỏi thuộc riêng bài đọc đó — không liên quan gì tới các câu hỏi ở ngoài.</p>
+      <p class="text-[10px] text-gray-400"><i class="bi bi-file-earmark-text-fill"></i> Nhập từ Word cần trình bày đúng quy ước thẻ <code>[MCQ] [MULTI] [TF] [FILL] [ESSAY]</code> — tải file <b>Mau_Cau_Hoi_Word.docx</b> mẫu (gửi kèm cùng bản cập nhật này) để xem ví dụ từng dạng trước khi soạn. Dạng "Bài đọc" không nhập được từ Word, phải tạo trực tiếp trong khối <i class="bi bi-book-half"></i> Bài đọc ở trên.</p>
     </div>
 
     <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t dark:border-zinc-800">
       <label class="flex items-center gap-2 font-bold text-xs"><input type="checkbox" id="asPublished" checked> Xuất bản cho học sinh VIP trong lớp</label>
       <div class="flex flex-wrap gap-2">
-        <button type="button" onclick="saveAssignment()" class="bg-[#cf1717] hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm shadow transition">💾 Lưu & Xuất Bản</button>
+        <button type="button" onclick="saveAssignment()" class="bg-[#cf1717] hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm shadow transition"><i class="bi bi-floppy-fill"></i> Lưu & Xuất Bản</button>
         <button type="button" onclick="closeBuilder()" class="bg-gray-200 dark:bg-zinc-700 font-bold px-4 py-2.5 rounded-lg text-sm">Hủy</button>
       </div>
     </div>
@@ -467,12 +468,12 @@
 <div id="resultsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-start justify-center p-4 z-[9999] overflow-y-auto">
   <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 w-full max-w-2xl my-8 shadow-2xl space-y-4">
     <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
-      <h3 class="font-extrabold text-lg text-[#cf1717] dark:text-red-400 flex items-center gap-2">📊 Kết Quả: <span id="rmTitle" class="text-gray-900 dark:text-white"></span></h3>
+      <h3 class="font-extrabold text-lg text-[#cf1717] dark:text-red-400 flex items-center gap-2"><i class="bi bi-bar-chart-fill"></i> Kết Quả: <span id="rmTitle" class="text-gray-900 dark:text-white"></span></h3>
       <button onclick="closeResultsModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
     </div>
     <div id="rmDist" class="hidden"></div>
     <div class="flex flex-wrap items-center gap-2 text-xs">
-      <input id="rmSearchName" oninput="renderResultsList()" placeholder="🔎 Tìm theo tên học sinh..." class="flex-1 min-w-[140px] p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
+      <input id="rmSearchName" oninput="renderResultsList()" placeholder="<i class="bi bi-search"></i> Tìm theo tên học sinh..." class="flex-1 min-w-[140px] p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
       <select id="rmSort" onchange="renderResultsList()" class="p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
         <option value="latest">Mới nộp trước</option>
         <option value="earliest">Nộp sớm nhất trước</option>
@@ -491,14 +492,14 @@
 <div id="gradeModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-start justify-center p-2 sm:p-4 z-[9999] overflow-y-auto">
   <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 w-full max-w-3xl my-4 sm:my-8 shadow-2xl space-y-4">
     <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
-      <h3 class="font-extrabold text-lg text-[#cf1717] dark:text-red-400 flex items-center gap-2">✏️ Chấm bài: <span id="gmStudentName" class="text-gray-900 dark:text-white"></span></h3>
+      <h3 class="font-extrabold text-lg text-[#cf1717] dark:text-red-400 flex items-center gap-2"><i class="bi bi-pencil-fill"></i> Chấm bài: <span id="gmStudentName" class="text-gray-900 dark:text-white"></span></h3>
       <button onclick="closeGradeModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
     </div>
     <div id="gmList" class="space-y-4 max-h-[65vh] overflow-y-auto pr-1"></div>
     <div class="flex items-center justify-between pt-2 border-t dark:border-zinc-800">
       <p class="text-xs font-bold text-gray-500">Tổng điểm: <span id="gmTotalPreview" class="text-[#cf1717]"></span></p>
       <div class="flex gap-2">
-        <button type="button" onclick="saveGrade()" class="bg-[#cf1717] hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-lg text-sm shadow transition">💾 Lưu điểm</button>
+        <button type="button" onclick="saveGrade()" class="bg-[#cf1717] hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-lg text-sm shadow transition"><i class="bi bi-floppy-fill"></i> Lưu điểm</button>
         <button type="button" onclick="closeGradeModal()" class="bg-gray-200 dark:bg-zinc-700 font-bold px-4 py-2.5 rounded-lg text-sm">Đóng</button>
       </div>
     </div>
@@ -525,27 +526,24 @@
   // =====================================================================
   function notify(rawMessage) {
     const msg = String(rawMessage ?? '');
-    const emojiMatch = msg.match(/^(?:\p{Extended_Pictographic}|\uFE0F|\u200D)+\s*/u);
-    let icon = '🔔', text = msg;
-    if (emojiMatch && emojiMatch[0].trim()) { icon = emojiMatch[0].trim(); text = msg.slice(emojiMatch[0].length).trim() || msg; }
-    let title = 'Thông báo';
-    if (/❌/.test(msg) || /lỗi|thất bại|không thể/i.test(msg)) title = 'Lỗi';
-    else if (/⚠️/.test(msg)) title = 'Cảnh báo';
-    else if (/🎉|✅|❤️|💪|💾|📋/.test(msg)) title = 'Thành công';
-    showToastNotification({ title, message: text, icon });
+    let title = 'Thông báo', icon = 'bi-bell-fill';
+    if (/lỗi|thất bại|không thể/i.test(msg)) { title = 'Lỗi'; icon = 'bi-x-circle-fill'; }
+    else if (/^(vui lòng|hãy|đặt con trỏ)|cần (chọn|nhập|có)/i.test(msg)) { title = 'Cảnh báo'; icon = 'bi-exclamation-triangle-fill'; }
+    else if (/đã (tạo|xóa|lưu|thêm|cập nhật|duyệt|từ chối|gỡ|sao chép|gửi)|thành công/i.test(msg)) { title = 'Thành công'; icon = 'bi-check-circle-fill'; }
+    showToastNotification({ title, message: msg, icon });
   }
-  function showToastNotification({ title, message, icon = '🔔' }) {
+  function showToastNotification({ title, message, icon = 'bi-bell-fill' }) {
     const container = pel('toastContainer'); if (!container) return;
     const toastId = 'toast-' + Date.now() + Math.random().toString(36).slice(2,6);
     const html = `
       <div id="${toastId}" class="pointer-events-auto bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden transform transition-all duration-300 translate-x-full opacity-0 relative">
         <div class="p-3.5 sm:p-4 flex items-start gap-3">
-          <div class="w-9 h-9 rounded-full bg-red-50 dark:bg-red-950/80 flex-shrink-0 flex items-center justify-center text-[#cf1717] dark:text-red-400 font-bold text-base shadow-sm">${icon}</div>
+          <div class="w-9 h-9 rounded-full bg-red-50 dark:bg-red-950/80 flex-shrink-0 flex items-center justify-center text-[#cf1717] dark:text-red-400 text-base shadow-sm"><i class="bi ${icon}"></i></div>
           <div class="flex-1 pr-4">
             <h4 class="text-xs sm:text-sm font-bold text-gray-900 dark:text-white leading-tight">${title}</h4>
             <p class="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">${message}</p>
           </div>
-          <button onclick="closeToast('${toastId}')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white text-base leading-none p-1">✕</button>
+          <button onclick="closeToast('${toastId}')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white text-base leading-none p-1"><i class="bi bi-x-lg"></i></button>
         </div>
         <div class="h-1 bg-red-100 dark:bg-zinc-800 w-full"><div class="h-full bg-[#cf1717] animate-toast-bar"></div></div>
       </div>`;
@@ -556,9 +554,14 @@
   }
   function closeToast(id) { const el = pel(id); if (!el) return; el.classList.add('translate-x-full', 'opacity-0'); setTimeout(() => el.remove(), 300); }
 
+  function updateThemeIcon() {
+    const el = pel('themeIcon'); if (!el) return;
+    el.innerHTML = document.documentElement.classList.contains('dark') ? '<i class="bi bi-sun-fill"></i>' : '<i class="bi bi-moon-stars-fill"></i>';
+  }
   function toggleDarkMode() {
     if (document.documentElement.classList.contains('dark')) { document.documentElement.classList.remove('dark'); localStorage.theme = 'light'; }
     else { document.documentElement.classList.add('dark'); localStorage.theme = 'dark'; }
+    updateThemeIcon();
   }
   async function handleLogout() { await sbClient.auth.signOut(); window.location.href = 'index.html'; }
 
@@ -595,7 +598,7 @@
     if (isAssistantRole()) {
       pel('createClassForm').classList.add('hidden');
       pel('assistantHint').classList.remove('hidden');
-      pel('classSectionTitle').innerText = '🏫 Lớp Tôi Phụ Trách';
+      pel('classSectionTitle').innerText = 'Lớp Tôi Phụ Trách';
       pel('assistantCalendarSection').classList.remove('hidden');
     }
   }
@@ -626,8 +629,8 @@
     const title = pel('newClassTitle').value.trim();
     const info = pel('newClassInfo').value.trim() || null;
     const { error } = await sbClient.from('classes').insert([{ class_code, title, info, teacher_id: currentUser.id }]);
-    if (error) return notify('❌ Lỗi tạo lớp: ' + (error.message.includes('duplicate') ? 'Mã lớp đã tồn tại!' : error.message));
-    notify('🎉 Đã tạo lớp "' + title + '"!');
+    if (error) return notify('Lỗi tạo lớp: ' + (error.message.includes('duplicate') ? 'Mã lớp đã tồn tại!' : error.message));
+    notify('Đã tạo lớp "' + title + '"!');
     pel('newClassCode').value = ''; pel('newClassTitle').value = ''; pel('newClassInfo').value = '';
     loadClasses();
   }
@@ -663,11 +666,11 @@
         ${c.info ? `<p class="text-xs text-gray-500 line-clamp-2">${esc(c.info)}</p>` : ''}
         <div class="flex flex-wrap gap-3 pt-1">
           ${isOwnerRole() ? `
-            <button onclick="openClassModal('${c.id}')" class="text-xs font-bold text-[#cf1717] hover:underline">👥 Quản lý học sinh</button>
-            <button onclick="openScheduleModal('${c.id}')" class="text-xs font-bold text-indigo-500 hover:underline">📅 Lịch học</button>
+            <button onclick="openClassModal('${c.id}')" class="text-xs font-bold text-[#cf1717] hover:underline"><i class="bi bi-people-fill"></i> Quản lý học sinh</button>
+            <button onclick="openScheduleModal('${c.id}')" class="text-xs font-bold text-indigo-500 hover:underline"><i class="bi bi-calendar-event"></i> Lịch học</button>
             <button onclick="deleteClass('${c.id}','${esc(c.title)}')" class="text-xs font-bold text-red-500 hover:underline">Xóa lớp</button>
           ` : `
-            <button onclick="openScheduleModal('${c.id}')" class="text-xs font-bold text-indigo-500 hover:underline">📅 Xem lịch học</button>
+            <button onclick="openScheduleModal('${c.id}')" class="text-xs font-bold text-indigo-500 hover:underline"><i class="bi bi-calendar-event"></i> Xem lịch học</button>
           `}
         </div>
       </div>`).join('') || `<p class="text-gray-400 text-sm col-span-full">${isAssistantRole() ? 'Bạn chưa được phân công phụ trách lớp nào.' : 'Chưa có lớp nào. Hãy tạo lớp đầu tiên ở trên!'}</p>`;
@@ -678,8 +681,8 @@
   async function deleteClass(id, title) {
     if (!confirm(`Xóa lớp "${title}"? Toàn bộ bài tập và danh sách học sinh trong lớp sẽ bị xóa.`)) return;
     const { error } = await sbClient.from('classes').delete().eq('id', id);
-    if (error) return notify('❌ Lỗi xóa lớp: ' + error.message);
-    notify('✅ Đã xóa lớp.'); loadClasses();
+    if (error) return notify('Lỗi xóa lớp: ' + error.message);
+    notify('Đã xóa lớp.'); loadClasses();
   }
 
   // ---- Modal quản lý học sinh trong lớp ----
@@ -720,8 +723,8 @@
     if (!currentClassForModal) return;
     const newRole = isCurrentlyVip ? 'student' : 'vip';
     const { error } = await sbClient.rpc('teacher_set_student_role', { p_student_id: studentId, p_class_id: currentClassForModal.id, p_role: newRole });
-    if (error) return notify('❌ Lỗi: ' + error.message);
-    notify(newRole === 'vip' ? '🎉 Đã cấp VIP cho học sinh!' : '✅ Đã gỡ VIP.');
+    if (error) return notify('Lỗi: ' + error.message);
+    notify(newRole === 'vip' ? '<i class="bi bi-stars"></i> Đã cấp VIP cho học sinh!' : '<i class="bi bi-check-circle-fill"></i> Đã gỡ VIP.');
     loadClassStudents();
   }
 
@@ -742,11 +745,11 @@
       const chosenRole = pel('stuVip').checked ? 'vip' : 'student';
       const { error: rpcErr } = await sbClient.rpc('teacher_provision_student', { p_student_id: newId, p_full_name: name, p_class_id: currentClassForModal.id, p_role: chosenRole });
       if (rpcErr) throw rpcErr;
-      notify((chosenRole === 'vip' ? '🎉 Đã tạo tài khoản VIP & thêm "' : '🎉 Đã tạo tài khoản & thêm "') + name + '" vào lớp!');
+      notify((chosenRole === 'vip' ? '<i class="bi bi-stars"></i> Đã tạo tài khoản VIP & thêm "' : '<i class="bi bi-stars"></i> Đã tạo tài khoản & thêm "') + name + '" vào lớp!');
       pel('stuName').value = ''; pel('stuEmail').value = ''; pel('stuPassword').value = ''; pel('stuVip').checked = true;
       loadClassStudents(); loadClasses();
     } catch (err) {
-      notify('❌ Lỗi thêm học sinh: ' + (err.message || 'Vui lòng thử lại.'));
+      notify('Lỗi thêm học sinh: ' + (err.message || 'Vui lòng thử lại.'));
     } finally { btn.disabled = false; btn.innerText = 'Tạo tài khoản & thêm vào lớp'; }
   }
 
@@ -769,11 +772,11 @@
     try {
       const { data, error } = await sbClient.rpc('teacher_add_existing_student_by_email', { p_email: email, p_class_id: currentClassForModal.id, p_role: role });
       if (error) throw error;
-      notify(`🎉 Đã thêm "${data || email}" vào lớp!`);
+      notify(`Đã thêm "${data || email}" vào lớp!`);
       pel('existingStuEmail').value = ''; pel('existingStuVip').checked = true;
       loadClassStudents(); loadClasses();
     } catch (err) {
-      notify('❌ Lỗi: ' + (err.message || 'Không thêm được học sinh này — kiểm tra lại email hoặc đã tạo hàm SQL teacher_add_existing_student_by_email chưa.'));
+      notify('Lỗi: ' + (err.message || 'Không thêm được học sinh này — kiểm tra lại email hoặc đã tạo hàm SQL teacher_add_existing_student_by_email chưa.'));
     } finally { btn.disabled = false; btn.innerText = 'Thêm vào lớp (không tạo tài khoản mới)'; }
   }
 
@@ -785,7 +788,7 @@
     if (error) { pel('cmAssistList').innerHTML = `<p class="text-red-500 text-xs">Lỗi: ${esc(error.message)}</p>`; return; }
     pel('cmAssistList').innerHTML = (data || []).map(row => `
       <div class="flex items-center justify-between bg-white dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl px-3 py-2">
-        <p class="font-bold text-xs text-gray-900 dark:text-white">👤 ${esc(row.profiles?.full_name || '(chưa có tên)')}</p>
+        <p class="font-bold text-xs text-gray-900 dark:text-white"><i class="bi bi-person-fill"></i> ${esc(row.profiles?.full_name || '(chưa có tên)')}</p>
         <button onclick="removeAssistant('${row.id}')" class="text-[11px] font-bold text-red-500 hover:underline">Gỡ khỏi lớp</button>
       </div>`).join('') || '<p class="text-xs text-gray-400 italic">Lớp này chưa có giáo viên phụ trách nào.</p>';
   }
@@ -807,11 +810,11 @@
       const newId = signUpData.user?.id; if (!newId) throw new Error('Không lấy được ID tài khoản mới.');
       const { error: rpcErr } = await sbClient.rpc('teacher_provision_assistant', { p_teacher_id: newId, p_full_name: name, p_class_id: currentClassForModal.id });
       if (rpcErr) throw rpcErr;
-      notify(`🎉 Đã tạo tài khoản giáo viên phụ trách "${name}"!`);
+      notify(`Đã tạo tài khoản giáo viên phụ trách "${name}"!`);
       pel('asstName').value = ''; pel('asstEmail').value = ''; pel('asstPassword').value = '';
       loadClassAssistants();
     } catch (err) {
-      notify('❌ Lỗi: ' + (err.message || 'không xác định'));
+      notify('Lỗi: ' + (err.message || 'không xác định'));
     } finally { btn.disabled = false; btn.innerText = 'Tạo tài khoản & gán vào lớp'; }
   }
   async function addExistingAssistant(e) {
@@ -822,25 +825,25 @@
     try {
       const { data, error } = await sbClient.rpc('teacher_add_existing_assistant_by_email', { p_email: email, p_class_id: currentClassForModal.id });
       if (error) throw error;
-      notify(`🎉 Đã gán "${data || email}" làm giáo viên phụ trách lớp này!`);
+      notify(`Đã gán "${data || email}" làm giáo viên phụ trách lớp này!`);
       pel('existingAsstEmail').value = '';
       loadClassAssistants();
     } catch (err) {
-      notify('❌ Lỗi: ' + (err.message || 'Kiểm tra lại email hoặc đã chạy hàm SQL teacher_add_existing_assistant_by_email chưa.'));
+      notify('Lỗi: ' + (err.message || 'Kiểm tra lại email hoặc đã chạy hàm SQL teacher_add_existing_assistant_by_email chưa.'));
     } finally { btn.disabled = false; btn.innerText = 'Gán vào lớp (không tạo tài khoản mới)'; }
   }
   async function removeAssistant(rowId) {
     if (!confirm('Gỡ giáo viên này khỏi lớp? Họ sẽ không còn thấy lớp/lịch học/bài tập của lớp này nữa.')) return;
     const { error } = await sbClient.from('class_assistants').delete().eq('id', rowId);
-    if (error) return notify('❌ Lỗi: ' + error.message);
-    notify('✅ Đã gỡ khỏi lớp.'); loadClassAssistants();
+    if (error) return notify('Lỗi: ' + error.message);
+    notify('Đã gỡ khỏi lớp.'); loadClassAssistants();
   }
 
   async function removeStudent(rowId) {
     if (!confirm('Xóa học sinh này khỏi lớp?')) return;
     const { error } = await sbClient.from('class_students').delete().eq('id', rowId);
-    if (error) return notify('❌ Lỗi: ' + error.message);
-    notify('✅ Đã xóa khỏi lớp.'); loadClassStudents(); loadClasses();
+    if (error) return notify('Lỗi: ' + error.message);
+    notify('Đã xóa khỏi lớp.'); loadClassStudents(); loadClasses();
   }
 
   // =====================================================================
@@ -861,7 +864,7 @@
   }
   function closeScheduleModal() { pel('scheduleModal').classList.add('hidden'); pel('scheduleModal').classList.remove('flex'); currentClassForSchedule = null; }
 
-  const statusLabel = { active: '🟢 Đang học', pending_suspend: '🟡 Chờ duyệt tạm ngưng', suspended: '🔴 Đã tạm ngưng' };
+  const statusLabel = { active: '<i class="bi bi-circle-fill"></i> Đang học', pending_suspend: '<i class="bi bi-circle-fill"></i> Chờ duyệt tạm ngưng', suspended: '<i class="bi bi-circle-fill"></i> Đã tạm ngưng' };
 
   async function loadSchedule() {
     if (!currentClassForSchedule) return;
@@ -884,8 +887,8 @@
           <p class="font-bold text-gray-900 dark:text-white">${esc(r.subject_name || '')} — ${fmtDate(r.session_date)} · ${esc(r.session_time || '')}</p>
           ${r.request_note ? `<p class="text-gray-500">Lý do: ${esc(r.request_note)}</p>` : ''}
           <div class="flex gap-3 pt-1">
-            <button onclick="approveSuspend('${r.id}')" class="font-bold text-emerald-600 hover:underline">✅ Duyệt tạm ngưng</button>
-            <button onclick="rejectSuspend('${r.id}')" class="font-bold text-red-500 hover:underline">❌ Từ chối</button>
+            <button onclick="approveSuspend('${r.id}')" class="font-bold text-emerald-600 hover:underline"><i class="bi bi-check-circle-fill"></i> Duyệt tạm ngưng</button>
+            <button onclick="rejectSuspend('${r.id}')" class="font-bold text-red-500 hover:underline"><i class="bi bi-x-circle-fill"></i> Từ chối</button>
           </div>
         </div>`).join('');
     }
@@ -898,25 +901,25 @@
           <p class="font-bold text-gray-900 dark:text-white flex-1">${esc(r.subject_name || '(chưa rõ tên lớp học phần)')}</p>
           ${owner ? `
             <select onchange="quickSetStatus('${r.id}', this.value)" class="text-[10px] font-bold rounded-full border-0 px-2 py-0.5 ${r.status === 'active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400' : r.status === 'pending_suspend' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400' : 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400'}">
-              <option value="active" ${r.status === 'active' ? 'selected' : ''}>🟢 Đang học</option>
-              <option value="suspended" ${r.status === 'suspended' ? 'selected' : ''}>🔴 Đã tạm ngưng</option>
-              <option value="pending_suspend" ${r.status === 'pending_suspend' ? 'selected' : ''}>🟡 Chờ duyệt tạm ngưng</option>
+              <option value="active" ${r.status === 'active' ? 'selected' : ''}>Đang học</option>
+              <option value="suspended" ${r.status === 'suspended' ? 'selected' : ''}>Đã tạm ngưng</option>
+              <option value="pending_suspend" ${r.status === 'pending_suspend' ? 'selected' : ''}>Chờ duyệt tạm ngưng</option>
             </select>
           ` : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${r.status === 'active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400' : r.status === 'pending_suspend' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400' : 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400'}">${statusLabel[r.status] || r.status}</span>`}
         </div>
-        <p class="text-gray-500">📅 ${fmtDate(r.session_date)} · 🕐 ${esc(r.session_time || '')} ${r.room ? '· 🚪 ' + esc(r.room) : ''} ${r.lecturer ? '· 👤 ' + esc(r.lecturer) : ''}</p>
+        <p class="text-gray-500"><i class="bi bi-calendar-event"></i> ${fmtDate(r.session_date)} · <i class="bi bi-clock-fill"></i> ${esc(r.session_time || '')} ${r.room ? '· <i class="bi bi-door-open-fill"></i> ' + esc(r.room) : ''} ${r.lecturer ? '· <i class="bi bi-person-fill"></i> ' + esc(r.lecturer) : ''}</p>
         ${r.note ? `<p class="text-gray-400">Ghi chú: ${esc(r.note)}</p>` : ''}
         <div class="flex flex-wrap items-center gap-3 pt-1">
           ${owner ? `
-            <button onclick="startEditRow('${r.id}')" class="font-bold text-blue-500 hover:underline">✏️ Sửa chi tiết</button>
-            <button onclick="deleteScheduleRow('${r.id}')" class="font-bold text-red-500 hover:underline">🗑️ Xóa buổi học</button>
+            <button onclick="startEditRow('${r.id}')" class="font-bold text-blue-500 hover:underline"><i class="bi bi-pencil-fill"></i> Sửa chi tiết</button>
+            <button onclick="deleteScheduleRow('${r.id}')" class="font-bold text-red-500 hover:underline"><i class="bi bi-trash-fill"></i> Xóa buổi học</button>
           ` : ''}
-          ${!owner && r.status === 'active' ? `<button onclick="requestSuspend('${r.id}')" class="font-bold text-amber-600 hover:underline">🚫 Yêu cầu tạm ngưng</button>` : ''}
+          ${!owner && r.status === 'active' ? `<button onclick="requestSuspend('${r.id}')" class="font-bold text-amber-600 hover:underline"><i class="bi bi-slash-circle-fill"></i> Yêu cầu tạm ngưng</button>` : ''}
           <button onclick="openSupportModal('${r.id}')" class="relative font-bold text-indigo-500 hover:underline flex items-center gap-1" title="Gửi/xem trao đổi hỗ trợ về buổi học này">
             <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-indigo-500 text-white text-[10px] font-black not-italic">i</span> Hỗ trợ
             ${unreadSupportSessionIds.has(r.id) ? '<span class="absolute -top-1 -right-1 w-2 h-2 bg-[#cf1717] rounded-full animate-pulse"></span>' : ''}
           </button>
-          <button onclick="openHistoryModal('${r.id}')" class="font-bold text-gray-500 hover:underline">🕘 Lịch sử</button>
+          <button onclick="openHistoryModal('${r.id}')" class="font-bold text-gray-500 hover:underline"><i class="bi bi-clock-history"></i> Lịch sử</button>
         </div>
       </div>`;
     }).join('') || '<p class="text-xs text-gray-400 italic">Lớp này chưa có lịch học. ' + (owner ? 'Hãy tải file Excel lên hoặc thêm thủ công ở trên.' : '') + '</p>';
@@ -934,7 +937,7 @@
         <input id="er-note-${r.id}" value="${esc(r.note || '')}" placeholder="Ghi chú" class="col-span-2 sm:col-span-3 p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
       </div>
       <div class="flex gap-3">
-        <button onclick="saveEditRow('${r.id}')" class="font-bold text-emerald-600 hover:underline">💾 Lưu</button>
+        <button onclick="saveEditRow('${r.id}')" class="font-bold text-emerald-600 hover:underline"><i class="bi bi-floppy-fill"></i> Lưu</button>
         <button onclick="cancelEditRow()" class="font-bold text-gray-500 hover:underline">Hủy</button>
       </div>
     </div>`;
@@ -951,9 +954,9 @@
       lecturer: pel('er-lecturer-' + id).value.trim() || null,
       note: pel('er-note-' + id).value.trim() || null,
     };
-    if (!patch.session_date) return notify('⚠️ Cần chọn ngày học.');
+    if (!patch.session_date) return notify('Cần chọn ngày học.');
     const { error } = await sbClient.from('class_schedule_sessions').update(patch).eq('id', id);
-    if (error) return notify('❌ Lỗi lưu: ' + error.message);
+    if (error) return notify('Lỗi lưu: ' + error.message);
     if (oldRow) {
       const fieldLabel = { subject_name: 'Tên buổi', session_date: 'Ngày học', session_time: 'Ca học', room: 'Phòng', lecturer: 'Giảng viên', note: 'Ghi chú' };
       const changes = Object.keys(patch)
@@ -961,16 +964,16 @@
         .map(k => `${fieldLabel[k]}: "${oldRow[k] || ''}" → "${patch[k] || ''}"`);
       if (changes.length) logHistory(oldRow, 'edit', changes.join('; '));
     }
-    notify('✅ Đã lưu thay đổi.'); scheduleEditingId = null; loadSchedule();
+    notify('Đã lưu thay đổi.'); scheduleEditingId = null; loadSchedule();
   }
   async function quickSetStatus(id, status) {
     const row = currentScheduleRows.find(r => r.id === id);
     const patch = { status };
     if (status !== 'pending_suspend') { patch.requested_by = null; patch.request_note = null; }
     const { error } = await sbClient.from('class_schedule_sessions').update(patch).eq('id', id);
-    if (error) { notify('❌ Lỗi: ' + error.message); loadSchedule(); return; }
+    if (error) { notify('Lỗi: ' + error.message); loadSchedule(); return; }
     if (row) logHistory(row, 'status_change', `${statusLabel[row.status] || row.status} → ${statusLabel[status] || status}`);
-    notify('✅ Đã cập nhật trạng thái.'); loadSchedule();
+    notify('Đã cập nhật trạng thái.'); loadSchedule();
   }
   function toggleManualAddForm() { pel('manualAddForm').classList.toggle('hidden'); }
   async function addManualSession(e) {
@@ -986,9 +989,9 @@
       note: pel('maNote').value.trim() || null,
     };
     const { data, error } = await sbClient.from('class_schedule_sessions').insert([row]).select().single();
-    if (error) return notify('❌ Lỗi thêm buổi học: ' + error.message);
+    if (error) return notify('Lỗi thêm buổi học: ' + error.message);
     if (data) logHistory(data, 'create', `Đã thêm buổi học ${fmtDate(data.session_date)}${data.session_time ? ' · ' + data.session_time : ''}`);
-    notify('🎉 Đã thêm buổi học!');
+    notify('Đã thêm buổi học!');
     ['maSubject', 'maDate', 'maTime', 'maRoom', 'maLecturer', 'maNote'].forEach(id => pel(id).value = '');
     loadSchedule();
   }
@@ -1003,32 +1006,32 @@
     if (!confirm('Xóa buổi học này khỏi lịch?')) return;
     const row = currentScheduleRows.find(r => r.id === id);
     const { error } = await sbClient.from('class_schedule_sessions').delete().eq('id', id);
-    if (error) return notify('❌ Lỗi: ' + error.message);
+    if (error) return notify('Lỗi: ' + error.message);
     if (row) logHistory(row, 'delete', `Đã xóa buổi học ${fmtDate(row.session_date)}${row.session_time ? ' · ' + row.session_time : ''}`);
-    notify('✅ Đã xóa buổi học.'); loadSchedule();
+    notify('Đã xóa buổi học.'); loadSchedule();
   }
   async function approveSuspend(id) {
     const row = currentScheduleRows.find(r => r.id === id);
     const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'suspended' }).eq('id', id);
-    if (error) return notify('❌ Lỗi: ' + error.message);
+    if (error) return notify('Lỗi: ' + error.message);
     if (row) logHistory(row, 'approve_suspend', `Đã duyệt tạm ngưng buổi ${fmtDate(row.session_date)}${row.session_time ? ' · ' + row.session_time : ''}`);
-    notify('✅ Đã duyệt tạm ngưng buổi học.'); loadSchedule(); loadNotifCounts();
+    notify('Đã duyệt tạm ngưng buổi học.'); loadSchedule(); loadNotifCounts();
   }
   async function rejectSuspend(id) {
     const row = currentScheduleRows.find(r => r.id === id);
     const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'active', requested_by: null, request_note: null }).eq('id', id);
-    if (error) return notify('❌ Lỗi: ' + error.message);
+    if (error) return notify('Lỗi: ' + error.message);
     if (row) logHistory(row, 'reject_suspend', `Đã từ chối yêu cầu tạm ngưng buổi ${fmtDate(row.session_date)}`);
-    notify('✅ Đã từ chối yêu cầu — buổi học trở lại bình thường.'); loadSchedule(); loadNotifCounts();
+    notify('Đã từ chối yêu cầu — buổi học trở lại bình thường.'); loadSchedule(); loadNotifCounts();
   }
   async function requestSuspend(id) {
     const reason = prompt('Lý do đề nghị tạm ngưng buổi học này (giáo viên chủ nhiệm sẽ thấy lý do này để duyệt):');
     if (reason === null) return;
     const row = currentScheduleRows.find(r => r.id === id);
     const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'pending_suspend', requested_by: currentUser.id, request_note: reason.trim() || null }).eq('id', id);
-    if (error) return notify('❌ Lỗi: ' + error.message + ' (kiểm tra đã tạo policy "assistant requests suspend" trong SQL chưa)');
+    if (error) return notify('Lỗi: ' + error.message + ' (kiểm tra đã tạo policy "assistant requests suspend" trong SQL chưa)');
     if (row) logHistory(row, 'request_suspend', reason.trim() || null);
-    notify('📨 Đã gửi yêu cầu — chờ giáo viên chủ nhiệm duyệt.'); loadSchedule();
+    notify('Đã gửi yêu cầu — chờ giáo viên chủ nhiệm duyệt.'); loadSchedule();
     if (isAssistantRole()) loadAssistantScheduleCalendar();
     loadNotifCounts();
   }
@@ -1062,13 +1065,13 @@
   async function uploadScheduleExcel(input) {
     const file = input.files[0]; input.value = '';
     if (!file || !currentClassForSchedule) return;
-    if (!window.XLSX) return notify('❌ Không tải được thư viện đọc Excel, hãy tải lại trang.');
+    if (!window.XLSX) return notify('Không tải được thư viện đọc Excel, hãy tải lại trang.');
     try {
       const buf = await file.arrayBuffer();
       const wb = XLSX.read(buf, { type: 'array', cellDates: false });
       const sheet = wb.Sheets[wb.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-      if (!rows.length) return notify('⚠️ File Excel không có dữ liệu.');
+      if (!rows.length) return notify('File Excel không có dữ liệu.');
 
       // Ánh xạ tên cột trong file với các trường cần dùng
       const sampleKeys = Object.keys(rows[0]);
@@ -1076,7 +1079,7 @@
       Object.keys(HEADER_MAP).forEach(field => {
         colFor[field] = sampleKeys.find(k => HEADER_MAP[field].includes(normalizeHeader(k)));
       });
-      if (!colFor.session_date) return notify('⚠️ Không tìm thấy cột ngày học (VD: "NgayHoc") trong file. Cần có dòng tiêu đề đúng như file mẫu.');
+      if (!colFor.session_date) return notify('Không tìm thấy cột ngày học (VD: "NgayHoc") trong file. Cần có dòng tiêu đề đúng như file mẫu.');
 
       const parsed = rows.map(r => ({
         class_id: currentClassForSchedule.id,
@@ -1088,18 +1091,18 @@
         note: colFor.note ? String(r[colFor.note] || '').trim() || null : null,
       })).filter(r => r.session_date);
 
-      if (!parsed.length) return notify('⚠️ Không đọc được buổi học nào hợp lệ (thiếu ngày học đúng định dạng).');
+      if (!parsed.length) return notify('Không đọc được buổi học nào hợp lệ (thiếu ngày học đúng định dạng).');
       if (!confirm(`Tìm thấy ${parsed.length} buổi học trong file. Thao tác này sẽ XÓA TOÀN BỘ lịch học cũ của lớp và thay bằng danh sách mới — tiếp tục?`)) return;
 
       notify('⏳ Đang cập nhật lịch học...');
       const { error: delErr } = await sbClient.from('class_schedule_sessions').delete().eq('class_id', currentClassForSchedule.id);
-      if (delErr) return notify('❌ Lỗi xóa lịch cũ: ' + delErr.message);
+      if (delErr) return notify('Lỗi xóa lịch cũ: ' + delErr.message);
       const { error: insErr } = await sbClient.from('class_schedule_sessions').insert(parsed);
-      if (insErr) return notify('❌ Lỗi thêm lịch mới: ' + insErr.message);
-      notify(`🎉 Đã cập nhật ${parsed.length} buổi học!`);
+      if (insErr) return notify('Lỗi thêm lịch mới: ' + insErr.message);
+      notify(`Đã cập nhật ${parsed.length} buổi học!`);
       loadSchedule();
     } catch (err) {
-      notify('❌ Lỗi đọc file Excel: ' + (err.message || 'không xác định'));
+      notify('Lỗi đọc file Excel: ' + (err.message || 'không xác định'));
     }
   }
 
@@ -1190,14 +1193,14 @@
     const contentElem = pel('acalSelectedContent');
     if (!titleElem || !contentElem) return;
     const [y, m, d] = acalSelectedDateStr.split('-');
-    titleElem.innerHTML = `<span>📌</span> Chi tiết ngày: ${d}/${m}/${y}`;
+    titleElem.innerHTML = `<span><i class="bi bi-pin-angle-fill"></i></span> Chi tiết ngày: ${d}/${m}/${y}`;
 
     const daySessions = allAssistantSessions.filter(s => s.session_date === acalSelectedDateStr);
 
     if (!daySessions.length) {
       contentElem.innerHTML = `
         <div class="p-8 text-center bg-gray-50 dark:bg-zinc-800/40 rounded-2xl border border-dashed border-gray-200 dark:border-zinc-800">
-          <span class="text-2xl block mb-1">☕</span>
+          <span class="text-2xl block mb-1"><i class="bi bi-cup-hot-fill"></i></span>
           <p class="text-xs text-gray-400 font-medium">Không có buổi học nào trong ngày này.</p>
         </div>`;
       return;
@@ -1206,10 +1209,10 @@
     contentElem.innerHTML = daySessions.map(s => {
       const cls = classInfoOf(s.class_id);
       const badge = s.status === 'active'
-        ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">🟢 Đang học</span>`
+        ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"><i class="bi bi-circle-fill"></i> Đang học</span>`
         : s.status === 'pending_suspend'
-          ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400">🟡 Chờ duyệt tạm ngưng</span>`
-          : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400">🔴 Đã tạm ngưng</span>`;
+          ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400"><i class="bi bi-circle-fill"></i> Chờ duyệt tạm ngưng</span>`
+          : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400"><i class="bi bi-circle-fill"></i> Đã tạm ngưng</span>`;
       return `
       <div class="p-4 bg-gray-50 dark:bg-zinc-800/90 rounded-2xl border border-gray-200/80 dark:border-zinc-700/80 space-y-2.5">
         <div class="flex items-center justify-between">
@@ -1217,16 +1220,16 @@
           ${badge}
         </div>
         <h4 class="font-extrabold text-sm sm:text-base text-gray-900 dark:text-white leading-snug">${esc(cls.title || 'Lớp học')}</h4>
-        <p class="text-xs text-gray-500 dark:text-gray-400">${esc(s.subject_name || '(chưa rõ tên buổi)')} · 🕐 ${esc(s.session_time || '')} ${s.room ? '· 🚪 ' + esc(s.room) : ''} ${s.lecturer ? '· 👤 ' + esc(s.lecturer) : ''}</p>
-        ${s.note ? `<p class="text-xs text-gray-400 italic border-t border-gray-200/60 dark:border-zinc-700/60 pt-2">📝 ${esc(s.note)}</p>` : ''}
+        <p class="text-xs text-gray-500 dark:text-gray-400">${esc(s.subject_name || '(chưa rõ tên buổi)')} · <i class="bi bi-clock-fill"></i> ${esc(s.session_time || '')} ${s.room ? '· <i class="bi bi-door-open-fill"></i> ' + esc(s.room) : ''} ${s.lecturer ? '· <i class="bi bi-person-fill"></i> ' + esc(s.lecturer) : ''}</p>
+        ${s.note ? `<p class="text-xs text-gray-400 italic border-t border-gray-200/60 dark:border-zinc-700/60 pt-2"><i class="bi bi-pencil-square"></i> ${esc(s.note)}</p>` : ''}
         ${s.status === 'pending_suspend' && s.request_note ? `<p class="text-xs text-amber-600 dark:text-amber-400">Lý do đã gửi: ${esc(s.request_note)}</p>` : ''}
         <div class="flex flex-wrap items-center gap-3 pt-1 border-t border-gray-200/60 dark:border-zinc-700/60">
-          ${s.status === 'active' ? `<button onclick="requestSuspendFromCalendar('${s.id}')" class="text-xs font-bold text-amber-600 hover:underline">🚫 Yêu cầu tạm ngưng buổi này</button>` : ''}
+          ${s.status === 'active' ? `<button onclick="requestSuspendFromCalendar('${s.id}')" class="text-xs font-bold text-amber-600 hover:underline"><i class="bi bi-slash-circle-fill"></i> Yêu cầu tạm ngưng buổi này</button>` : ''}
           <button onclick="openSupportModal('${s.id}')" class="relative text-xs font-bold text-indigo-500 hover:underline flex items-center gap-1" title="Gửi/xem trao đổi hỗ trợ về buổi học này">
             <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-indigo-500 text-white text-[10px] font-black not-italic">i</span> Hỗ trợ
             ${unreadSupportSessionIds.has(s.id) ? '<span class="absolute -top-1 -right-1 w-2 h-2 bg-[#cf1717] rounded-full animate-pulse"></span>' : ''}
           </button>
-          <button onclick="openHistoryModal('${s.id}')" class="text-xs font-bold text-gray-500 hover:underline">🕘 Lịch sử</button>
+          <button onclick="openHistoryModal('${s.id}')" class="text-xs font-bold text-gray-500 hover:underline"><i class="bi bi-clock-history"></i> Lịch sử</button>
         </div>
       </div>`;
     }).join('');
@@ -1237,15 +1240,15 @@
     if (reason === null) return;
     const row = allAssistantSessions.find(r => r.id === id);
     const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'pending_suspend', requested_by: currentUser.id, request_note: reason.trim() || null }).eq('id', id);
-    if (error) return notify('❌ Lỗi: ' + error.message);
+    if (error) return notify('Lỗi: ' + error.message);
     if (row) logHistory(row, 'request_suspend', reason.trim() || null);
-    notify('📨 Đã gửi yêu cầu — chờ giáo viên chủ nhiệm duyệt.');
+    notify('Đã gửi yêu cầu — chờ giáo viên chủ nhiệm duyệt.');
     loadAssistantScheduleCalendar();
     loadNotifCounts();
   }
 
   // =====================================================================
-  // HỆ THỐNG THÔNG BÁO NGOÀI MÀN HÌNH (chuông 🔔 + banner đầu trang)
+  // HỆ THỐNG THÔNG BÁO NGOÀI MÀN HÌNH (chuông <i class="bi bi-bell-fill"></i> + banner đầu trang)
   // Gom: (a) yêu cầu tạm ngưng đang chờ owner duyệt, (b) tin nhắn hỗ trợ chưa đọc
   // =====================================================================
   let notifItems = [];
@@ -1263,7 +1266,7 @@
         (pendingRows || []).forEach(r => {
           const cls = classInfoOf(r.class_id);
           notifItems.push({
-            label: `🚫 Yêu cầu tạm ngưng — ${esc(cls.title || cls.class_code || 'Lớp học')} · ${fmtDate(r.session_date)}`,
+            label: `<i class="bi bi-slash-circle-fill"></i> Yêu cầu tạm ngưng — ${esc(cls.title || cls.class_code || 'Lớp học')} · ${fmtDate(r.session_date)}`,
             action: () => openScheduleModal(r.class_id)
           });
         });
@@ -1272,7 +1275,7 @@
           unreadSupportSessionIds.add(m.session_id);
           const cls = classInfoOf(m.class_id);
           notifItems.push({
-            label: `💬 Tin nhắn hỗ trợ mới — ${esc(cls.title || cls.class_code || 'Lớp học')}`,
+            label: `<i class="bi bi-chat-dots-fill"></i> Tin nhắn hỗ trợ mới — ${esc(cls.title || cls.class_code || 'Lớp học')}`,
             action: () => openSupportModal(m.session_id)
           });
         });
@@ -1284,7 +1287,7 @@
           unreadSupportSessionIds.add(m.session_id);
           const cls = classInfoOf(m.class_id);
           notifItems.push({
-            label: `💬 Giáo viên chủ nhiệm đã phản hồi — ${esc(cls.title || cls.class_code || 'Lớp học')}`,
+            label: `<i class="bi bi-chat-dots-fill"></i> Giáo viên chủ nhiệm đã phản hồi — ${esc(cls.title || cls.class_code || 'Lớp học')}`,
             action: () => openSupportModal(m.session_id)
           });
         });
@@ -1306,8 +1309,8 @@
       badge.classList.remove('hidden'); badge.innerText = count > 9 ? '9+' : String(count);
       banner.classList.remove('hidden');
       bannerText.innerHTML = isOwnerRole()
-        ? `<span class="text-lg leading-none">🔔</span> <span>Bạn có ${count} việc cần xử lý: yêu cầu tạm ngưng và/hoặc tin nhắn hỗ trợ từ giáo viên phụ trách.</span>`
-        : `<span class="text-lg leading-none">🔔</span> <span>Bạn có ${count} phản hồi mới từ giáo viên chủ nhiệm.</span>`;
+        ? `<span class="text-lg leading-none"><i class="bi bi-bell-fill"></i></span> <span>Bạn có ${count} việc cần xử lý: yêu cầu tạm ngưng và/hoặc tin nhắn hỗ trợ từ giáo viên phụ trách.</span>`
+        : `<span class="text-lg leading-none"><i class="bi bi-bell-fill"></i></span> <span>Bạn có ${count} phản hồi mới từ giáo viên chủ nhiệm.</span>`;
     } else {
       badge.classList.add('hidden'); banner.classList.add('hidden');
     }
@@ -1341,12 +1344,12 @@
 
   async function openSupportModal(sessionId) {
     const session = await findSessionAnywhere(sessionId);
-    if (!session) return notify('❌ Không tìm thấy buổi học này.');
+    if (!session) return notify('Không tìm thấy buổi học này.');
     currentSupportSession = session;
     currentSupportAssistantId = null;
     currentSupportMessages = [];
     const cls = classInfoOf(session.class_id);
-    pel('smSupportSessionInfo').innerHTML = `<b>${esc(cls.title || cls.class_code || 'Lớp học')}</b> — 📅 ${fmtDate(session.session_date)} · 🕐 ${esc(session.session_time || '')} ${session.room ? '· 🚪 ' + esc(session.room) : ''}`;
+    pel('smSupportSessionInfo').innerHTML = `<b>${esc(cls.title || cls.class_code || 'Lớp học')}</b> — <i class="bi bi-calendar-event"></i> ${fmtDate(session.session_date)} · <i class="bi bi-clock-fill"></i> ${esc(session.session_time || '')} ${session.room ? '· <i class="bi bi-door-open-fill"></i> ' + esc(session.room) : ''}`;
     pel('smSupportThread').innerHTML = '<p class="text-xs text-gray-400 italic">⏳ Đang tải...</p>';
     pel('smSupportThreadPicker').classList.add('hidden');
     pel('smSupportForm').classList.remove('hidden');
@@ -1431,7 +1434,7 @@
       message
     };
     const { error } = await sbClient.from('class_schedule_support_messages').insert([row]);
-    if (error) return notify('❌ Lỗi gửi: ' + error.message);
+    if (error) return notify('Lỗi gửi: ' + error.message);
     input.value = '';
     await loadSupportThread();
     loadNotifCounts();
@@ -1458,14 +1461,14 @@
     } catch (e) { /* lịch sử là phụ trợ — không chặn luồng chính nếu lỗi (VD chưa chạy SQL) */ }
   }
 
-  const historyActionIcon = { create: '➕', edit: '✏️', delete: '🗑️', status_change: '🔄', request_suspend: '📨', approve_suspend: '✅', reject_suspend: '❌' };
+  const historyActionIcon = { create: '<i class="bi bi-plus-circle-fill"></i>', edit: '<i class="bi bi-pencil-fill"></i>', delete: '<i class="bi bi-trash-fill"></i>', status_change: '<i class="bi bi-arrow-repeat"></i>', request_suspend: '<i class="bi bi-send-fill"></i>', approve_suspend: '<i class="bi bi-check-circle-fill"></i>', reject_suspend: '<i class="bi bi-x-circle-fill"></i>' };
   const historyActionLabel = { create: 'Tạo buổi học', edit: 'Sửa chi tiết buổi học', delete: 'Xóa buổi học', status_change: 'Đổi trạng thái', request_suspend: 'Yêu cầu tạm ngưng', approve_suspend: 'Duyệt tạm ngưng', reject_suspend: 'Từ chối yêu cầu tạm ngưng' };
 
   async function openHistoryModal(sessionId) {
     const session = await findSessionAnywhere(sessionId);
     const cls = session ? classInfoOf(session.class_id) : {};
     pel('hmSessionInfo').innerHTML = session
-      ? `<b>${esc(cls.title || cls.class_code || 'Lớp học')}</b> — 📅 ${fmtDate(session.session_date)} · 🕐 ${esc(session.session_time || '')}`
+      ? `<b>${esc(cls.title || cls.class_code || 'Lớp học')}</b> — <i class="bi bi-calendar-event"></i> ${fmtDate(session.session_date)} · <i class="bi bi-clock-fill"></i> ${esc(session.session_time || '')}`
       : '';
     pel('hmList').innerHTML = '<p class="text-xs text-gray-400 italic">Đang tải...</p>';
     pel('historyModal').classList.remove('hidden'); pel('historyModal').classList.add('flex');
@@ -1477,7 +1480,7 @@
     pel('hmList').innerHTML = rows.map(h => `
       <div class="bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl p-3 text-xs space-y-1">
         <div class="flex items-center justify-between gap-2">
-          <p class="font-bold text-gray-900 dark:text-white">${historyActionIcon[h.action] || '📌'} ${esc(historyActionLabel[h.action] || h.action)}</p>
+          <p class="font-bold text-gray-900 dark:text-white">${historyActionIcon[h.action] || '<i class="bi bi-pin-angle-fill"></i>'} ${esc(historyActionLabel[h.action] || h.action)}</p>
           <span class="text-[10px] text-gray-400 whitespace-nowrap">${new Date(h.created_at).toLocaleString('vi-VN')}</span>
         </div>
         <p class="text-gray-500">Người thực hiện: ${esc(h.profiles?.full_name || 'Không rõ')}</p>
@@ -1513,12 +1516,12 @@
     const clsName = esc(cls.title || cls.class_code || 'Lớp học');
     if (payload.eventType === 'UPDATE' && payload.old && payload.new && Object.keys(payload.old).length > 1) {
       if (payload.old.status !== payload.new.status) {
-        notify(`🔄 ${clsName} — buổi ${fmtDate(row.session_date)} đổi trạng thái: ${statusLabel[payload.new.status] || payload.new.status}`);
+        notify(`${clsName} — buổi ${fmtDate(row.session_date)} đổi trạng thái: ${statusLabel[payload.new.status] || payload.new.status}`);
       } else if ((payload.old.room || '') !== (payload.new.room || '')) {
-        notify(`🔄 ${clsName} — buổi ${fmtDate(row.session_date)} đổi phòng học: ${esc(payload.new.room || '(chưa rõ)')}`);
+        notify(`${clsName} — buổi ${fmtDate(row.session_date)} đổi phòng học: ${esc(payload.new.room || '(chưa rõ)')}`);
       }
     } else if (payload.eventType === 'DELETE') {
-      notify(`🗑️ Một buổi học của lớp ${clsName} vừa bị xóa.`);
+      notify(`Một buổi học của lớp ${clsName} vừa bị xóa.`);
     }
   }
 
@@ -1533,7 +1536,7 @@
 
     if (payload.eventType === 'INSERT' && row.sender_id !== currentUser.id) {
       const cls = classInfoOf(row.class_id);
-      notify(`💬 Tin nhắn hỗ trợ mới — ${esc(cls.title || cls.class_code || 'Lớp học')}`);
+      notify(`Tin nhắn hỗ trợ mới — ${esc(cls.title || cls.class_code || 'Lớp học')}`);
     }
   }
 
@@ -1588,7 +1591,7 @@
   async function loadAssignmentsForClass() {
     currentClassForAssignments = pel('assignClassFilter').value;
     pel('btnNewAssignment').disabled = !currentClassForAssignments;
-    if (!currentClassForAssignments) { pel('assignmentList').innerHTML = '<p class="text-gray-400 text-sm col-span-full">👆 Hãy chọn một lớp ở trên để xem bài tập.</p>'; return; }
+    if (!currentClassForAssignments) { pel('assignmentList').innerHTML = '<p class="text-gray-400 text-sm col-span-full"><i class="bi bi-hand-index-thumb-fill"></i> Hãy chọn một lớp ở trên để xem bài tập.</p>'; return; }
     pel('assignmentList').innerHTML = '<p class="text-gray-400 text-sm col-span-full">⏳ Đang tải bài tập...</p>';
     const { data, error } = await sbClient.from('assignments').select('*').eq('class_id', currentClassForAssignments).order('created_at', { ascending: false });
     if (error) { pel('assignmentList').innerHTML = `<p class="text-red-500 text-sm col-span-full">${esc(error.message)}</p>`; return; }
@@ -1601,7 +1604,7 @@
         </div>
         <h4 class="font-bold text-sm text-gray-900 dark:text-white">${esc(a.title)}</h4>
         <p class="text-[11px] text-gray-400 truncate flex items-center gap-1">token: ${esc(a.token)}
-          <button onclick="copyTokenOf('${esc(a.token)}')" title="Sao chép token" class="text-blue-400 hover:text-blue-600">📋</button>
+          <button onclick="copyTokenOf('${esc(a.token)}')" title="Sao chép token" class="text-blue-400 hover:text-blue-600"><i class="bi bi-clipboard-fill"></i></button>
         </p>
         <div class="flex flex-wrap gap-3 pt-1">
           <button onclick="editAssignment('${a.id}')" class="text-xs font-bold text-blue-500 hover:underline">Sửa</button>
@@ -1614,14 +1617,14 @@
   }
 
   function copyTokenOf(token) {
-    navigator.clipboard?.writeText('assignment.html?token=' + token).then(() => notify('📋 Đã sao chép đường dẫn!')).catch(() => {});
+    navigator.clipboard?.writeText('assignment.html?token=' + token).then(() => notify('Đã sao chép đường dẫn!')).catch(() => {});
   }
 
   // ---- Sao chép bài tập sang lớp khác ----
   function openCopyToClassPrompt(assignmentId) {
     const a = currentAssignments.find(x => x.id === assignmentId); if (!a) return;
     const others = myClasses.filter(c => c.id !== a.class_id);
-    if (!others.length) return notify('⚠️ Bạn chưa có lớp nào khác để sao chép sang.');
+    if (!others.length) return notify('Bạn chưa có lớp nào khác để sao chép sang.');
     const optionsText = others.map((c, i) => `${i + 1}. ${c.class_code} — ${c.title}`).join('\n');
     const pick = prompt(`Sao chép bài "${a.title}" sang lớp nào? Nhập số thứ tự:\n${optionsText}`);
     const idx = parseInt(pick) - 1;
@@ -1638,16 +1641,16 @@
       questions: a.questions, total_points: a.total_points, is_published: a.is_published
     };
     const { error } = await sbClient.from('assignments').insert([row]);
-    if (error) return notify('❌ Lỗi sao chép: ' + error.message);
-    notify(`🎉 Đã sao chép "${a.title}" sang lớp ${targetClass.class_code}!`);
+    if (error) return notify('Lỗi sao chép: ' + error.message);
+    notify(`Đã sao chép "${a.title}" sang lớp ${targetClass.class_code}!`);
     if (currentClassForAssignments === targetClass.id) loadAssignmentsForClass();
   }
 
   async function deleteAssignment(id) {
     if (!confirm('Xóa bài tập này? Kết quả làm bài liên quan cũng sẽ bị xóa.')) return;
     const { error } = await sbClient.from('assignments').delete().eq('id', id);
-    if (error) return notify('❌ Lỗi: ' + error.message);
-    notify('✅ Đã xóa bài tập.'); loadAssignmentsForClass();
+    if (error) return notify('Lỗi: ' + error.message);
+    notify('Đã xóa bài tập.'); loadAssignmentsForClass();
   }
 
   // =====================================================================
@@ -1665,7 +1668,7 @@
     if (lastFocusedEditable.contains(range.commonAncestorContainer)) savedRange = range.cloneRange();
   });
   function qcmd(cmd, value) {
-    if (!lastFocusedEditable) return notify('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước.');
+    if (!lastFocusedEditable) return notify('Hãy bấm vào ô câu hỏi/giải thích trước.');
     lastFocusedEditable.focus();
     if (savedRange) { const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedRange); }
     document.execCommand(cmd, false, value === undefined ? null : value);
@@ -1677,7 +1680,7 @@
     reader.readAsDataURL(file);
   }
   function qInsertTable() {
-    if (!lastFocusedEditable) return notify('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước.');
+    if (!lastFocusedEditable) return notify('Hãy bấm vào ô câu hỏi/giải thích trước.');
     const rows = parseInt(prompt('Bảng bao nhiêu HÀNG?', '2')) || 2;
     const cols = parseInt(prompt('Bảng bao nhiêu CỘT?', '2')) || 2;
     let html = '<table><tbody>';
@@ -1692,8 +1695,8 @@
   }
   function qInsertAudio(input) {
     const file = input.files[0]; input.value = '';
-    if (!file || !lastFocusedEditable) return notify('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước, sau đó chọn file âm thanh.');
-    if (file.size > 8 * 1024 * 1024) return notify('⚠️ File âm thanh quá 8MB, hãy nén nhỏ hơn rồi thử lại.');
+    if (!file || !lastFocusedEditable) return notify('Hãy bấm vào ô câu hỏi/giải thích trước, sau đó chọn file âm thanh.');
+    if (file.size > 8 * 1024 * 1024) return notify('File âm thanh quá 8MB, hãy nén nhỏ hơn rồi thử lại.');
     const reader = new FileReader();
     reader.onload = () => { lastFocusedEditable.focus(); document.execCommand('insertHTML', false, `<audio controls src="${reader.result}"></audio><p><br></p>`); };
     reader.readAsDataURL(file);
@@ -1702,24 +1705,24 @@
   // =====================================================================
   // NHẬP CÂU HỎI TỪ FILE WORD (.docx) — theo quy ước thẻ [MCQ] [MULTI] [TF] [FILL] [ESSAY]
   // Xem file mẫu "Mau_Cau_Hoi_Word.docx" đi kèm để biết cách trình bày chính xác cho từng dạng.
-  // Lưu ý: dạng "Bài đọc" (Reading) KHÔNG nhập được từ Word — hãy tạo trực tiếp trong khối 📖 Bài đọc.
+  // Lưu ý: dạng "Bài đọc" (Reading) KHÔNG nhập được từ Word — hãy tạo trực tiếp trong khối <i class="bi bi-book-half"></i> Bài đọc.
   // =====================================================================
   async function importFromWord(input) {
     const file = input.files[0]; input.value = '';
     if (!file) return;
-    if (!window.mammoth) return notify('❌ Không tải được thư viện đọc file Word, hãy tải lại trang và thử lại.');
+    if (!window.mammoth) return notify('Không tải được thư viện đọc file Word, hãy tải lại trang và thử lại.');
     notify('⏳ Đang đọc file Word...');
     try {
       const arrayBuffer = await file.arrayBuffer();
       const result = await mammoth.extractRawText({ arrayBuffer });
       const newBlocks = parseWordText(result.value);
-      if (!newBlocks.length) return notify('⚠️ Không nhận diện được câu hỏi nào. Mỗi câu phải bắt đầu bằng thẻ [MCQ] [MULTI] [TF] [FILL] hoặc [ESSAY] — tải file mẫu "Mau_Cau_Hoi_Word.docx" để xem cách trình bày.');
+      if (!newBlocks.length) return notify('Không nhận diện được câu hỏi nào. Mỗi câu phải bắt đầu bằng thẻ [MCQ] [MULTI] [TF] [FILL] hoặc [ESSAY] — tải file mẫu "Mau_Cau_Hoi_Word.docx" để xem cách trình bày.');
       blocks.push(...newBlocks);
       renderBlocks();
       const skipped = newBlocks.filter(b => b._needsCheck).length;
-      notify(`🎉 Đã nhập ${newBlocks.length} câu từ Word!${skipped ? ` (${skipped} câu chưa rõ đáp án đúng — đã tạm đánh dấu đáp án A, hãy kiểm tra lại)` : ''}`);
+      notify(`Đã nhập ${newBlocks.length} câu từ Word!${skipped ? ` (${skipped} câu chưa rõ đáp án đúng — đã tạm đánh dấu đáp án A, hãy kiểm tra lại)` : ''}`);
     } catch (err) {
-      notify('❌ Lỗi đọc file Word: ' + (err.message || 'không xác định'));
+      notify('Lỗi đọc file Word: ' + (err.message || 'không xác định'));
     }
   }
 
@@ -1832,7 +1835,7 @@
 
   function copyAsToken() {
     const text = pel('asTokenPreview').innerText;
-    navigator.clipboard?.writeText(text).then(() => notify('📋 Đã sao chép đường dẫn!')).catch(() => notify('⚠️ Không sao chép được, hãy bôi đen và copy thủ công.'));
+    navigator.clipboard?.writeText(text).then(() => notify('Đã sao chép đường dẫn!')).catch(() => notify('Không sao chép được, hãy bôi đen và copy thủ công.'));
   }
 
   function previewAsToken() {
@@ -1884,11 +1887,11 @@
     [arr[i], arr[j]] = [arr[j], arr[i]]; renderBlocks();
   }
 
-  const typeLabel = { mcq: '☑️ Trắc nghiệm 1 đáp án', multi: '☑️☑️ Trắc nghiệm nhiều đáp án', tf: '✅❌ Đúng/Sai', fill: '✏️ Điền khuyết', essay: '📄 Tự luận', text: '📌 Văn bản / hướng dẫn', reading: '📖 Bài đọc (Reading)' };
+  const typeLabel = { mcq: '<i class="bi bi-check2-square"></i> Trắc nghiệm 1 đáp án', multi: '<i class="bi bi-check2-all"></i> Trắc nghiệm nhiều đáp án', tf: '<i class="bi bi-toggle2-on"></i> Đúng/Sai', fill: '<i class="bi bi-pencil-fill"></i> Điền khuyết', essay: '<i class="bi bi-file-earmark-text-fill"></i> Tự luận', text: '<i class="bi bi-pin-angle-fill"></i> Văn bản / hướng dẫn', reading: '<i class="bi bi-book-half"></i> Bài đọc (Reading)' };
   // Các dạng câu hỏi con được phép thêm bên trong 1 khối Reading (không cho lồng Reading trong Reading)
   const subBlockTypes = [
-    ['mcq', '☑️ 1 đáp án'], ['multi', '☑️☑️ Nhiều đáp án'], ['tf', '✅❌ Đúng/Sai'],
-    ['fill', '✏️ Điền khuyết'], ['essay', '📄 Tự luận'], ['text', '📌 Hướng dẫn']
+    ['mcq', '<i class="bi bi-check2-square"></i> 1 đáp án'], ['multi', '<i class="bi bi-check2-all"></i> Nhiều đáp án'], ['tf', '<i class="bi bi-toggle2-on"></i> Đúng/Sai'],
+    ['fill', '<i class="bi bi-pencil-fill"></i> Điền khuyết'], ['essay', '<i class="bi bi-file-earmark-text-fill"></i> Tự luận'], ['text', '<i class="bi bi-pin-angle-fill"></i> Hướng dẫn']
   ];
 
   // Tìm 1 khối theo id, tìm cả trong danh sách chính lẫn bên trong các khối Reading (sub_blocks)
@@ -1910,9 +1913,9 @@
           <span class="text-xs font-extrabold text-[#cf1717]">Câu ${b.type === 'text' ? '' : (blocks.slice(0, idx + 1).filter(x => x.type !== 'text').length)} — ${typeLabel[b.type]}</span>
           <div class="flex items-center gap-2 text-xs">
             ${b.type !== 'text' ? `<label class="flex items-center gap-1">Điểm: <input type="number" min="0" step="0.5" value="${b.points}" oninput="updateField('${b.id}','points',this.value,true)" class="w-14 p-1 rounded border dark:bg-zinc-800 dark:border-zinc-700"></label>` : ''}
-            <button type="button" onclick="moveBlock('${b.id}',-1)" title="Lên">⬆️</button>
-            <button type="button" onclick="moveBlock('${b.id}',1)" title="Xuống">⬇️</button>
-            <button type="button" onclick="removeBlock('${b.id}')" class="text-red-500 font-bold" title="Xóa">🗑️</button>
+            <button type="button" onclick="moveBlock('${b.id}',-1)" title="Lên">⬆</button>
+            <button type="button" onclick="moveBlock('${b.id}',1)" title="Xuống">⬇</button>
+            <button type="button" onclick="removeBlock('${b.id}')" class="text-red-500 font-bold" title="Xóa"><i class="bi bi-trash-fill"></i></button>
           </div>
         </div>
 
@@ -1920,21 +1923,21 @@
         <div>
           <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">${b.type === 'text' ? 'Nội dung' : 'Nội dung câu hỏi'}</label>
           ${b.type === 'text' ? `<label class="flex items-center gap-2 text-[11px] font-bold text-gray-600 dark:text-gray-300 mb-1">
-            <input type="checkbox" ${b.two_col ? 'checked' : ''} onchange="updateField('${b.id}','two_col',this.checked); renderBlocks()"> 📰 Hiển thị bài đọc chia 2 cột (cho bài dài, dễ đọc hơn với học sinh)
+            <input type="checkbox" ${b.two_col ? 'checked' : ''} onchange="updateField('${b.id}','two_col',this.checked); renderBlocks()"> <i class="bi bi-newspaper"></i> Hiển thị bài đọc chia 2 cột (cho bài dài, dễ đọc hơn với học sinh)
           </label>` : ''}
           <div id="qc-${b.id}" class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700 ${b.type === 'text' && b.two_col ? 'qeditor-2col' : ''}" contenteditable="true" oninput="updateField('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
         </div>` : renderReadingBlockBody(b)}
 
         ${(b.type === 'mcq' || b.type === 'multi' || b.type === 'tf') ? `
           <div class="space-y-2">
-            <label class="block text-[10px] font-bold uppercase text-gray-500">Các lựa chọn (tick ✓ vào đáp án đúng)</label>
+            <label class="block text-[10px] font-bold uppercase text-gray-500">Các lựa chọn (tick <i class="bi bi-check-lg"></i> vào đáp án đúng)</label>
             ${b.options.map(o => `
               <div class="flex items-center gap-2">
                 <input type="${b.type === 'multi' ? 'checkbox' : 'radio'}" name="correct-${b.id}" ${o.correct ? 'checked' : ''}
                   onchange="setCorrect('${b.id}','${o.id}', ${b.type === 'multi'} ? this.checked : true, ${b.type !== 'multi'})">
                 <input type="text" value="${esc(o.text)}" placeholder="Nội dung lựa chọn..." ${b.type === 'tf' ? 'readonly' : ''}
                   oninput="setOptionText('${b.id}','${o.id}',this.value)" class="flex-1 p-2 rounded border dark:bg-zinc-800 dark:border-zinc-700 text-xs">
-                ${b.type !== 'tf' && b.options.length > 2 ? `<button type="button" onclick="removeOption('${b.id}','${o.id}')" class="text-red-400 text-xs">✕</button>` : ''}
+                ${b.type !== 'tf' && b.options.length > 2 ? `<button type="button" onclick="removeOption('${b.id}','${o.id}')" class="text-red-400 text-xs"><i class="bi bi-x-lg"></i></button>` : ''}
               </div>`).join('')}
             ${b.type !== 'tf' ? `<button type="button" onclick="addOption('${b.id}')" class="text-xs font-bold text-[#cf1717] hover:underline">+ Thêm lựa chọn</button>` : ''}
           </div>` : ''}
@@ -1943,7 +1946,7 @@
 
         ${(b.type !== 'text' && b.type !== 'reading') ? `
           <div>
-            <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">💡 Đáp án & giải thích (hiện ra sau khi học sinh nộp bài)</label>
+            <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1"><i class="bi bi-lightbulb-fill"></i> Đáp án & giải thích (hiện ra sau khi học sinh nộp bài)</label>
             <div class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700" contenteditable="true" oninput="updateField('${b.id}','explanation',this.innerHTML)">${b.explanation || ''}</div>
           </div>` : ''}
       </div>`).join('') || '<p class="text-xs text-gray-400 italic text-center py-6">Chưa có câu hỏi nào — bấm nút bên dưới để thêm.</p>';
@@ -1956,14 +1959,14 @@
     return `
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 border-t dark:border-zinc-700 pt-3">
         <div>
-          <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">📖 Bài văn (Reading passage)</label>
+          <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1"><i class="bi bi-book-half"></i> Bài văn (Reading passage)</label>
           <label class="flex items-center gap-2 text-[11px] font-bold text-gray-600 dark:text-gray-300 mb-1">
-            <input type="checkbox" ${b.two_col ? 'checked' : ''} onchange="updateField('${b.id}','two_col',this.checked); renderBlocks()"> 📰 Hiển thị bài đọc chia 2 cột chữ (cho bài dài)
+            <input type="checkbox" ${b.two_col ? 'checked' : ''} onchange="updateField('${b.id}','two_col',this.checked); renderBlocks()"> <i class="bi bi-newspaper"></i> Hiển thị bài đọc chia 2 cột chữ (cho bài dài)
           </label>
           <div id="qc-${b.id}" class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700 ${b.two_col ? 'qeditor-2col' : ''}" style="min-height:220px;max-height:420px;overflow-y:auto" contenteditable="true" oninput="updateField('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
         </div>
         <div class="bg-gray-50 dark:bg-zinc-800/40 rounded-lg border dark:border-zinc-700 p-2 flex flex-col" style="max-height:420px">
-          <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">❓ Câu hỏi thuộc bài đọc này (${subCount})</label>
+          <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1"><i class="bi bi-question-circle-fill"></i> Câu hỏi thuộc bài đọc này (${subCount})</label>
           <div class="space-y-2 overflow-y-auto flex-1 pr-1" id="subList-${b.id}">
             ${renderSubBlocksHtml(b)}
           </div>
@@ -1983,9 +1986,9 @@
           <span class="font-extrabold text-[#cf1717]">Câu con ${b.type === 'text' ? '' : (arr.slice(0, idx + 1).filter(x => x.type !== 'text').length)} · ${typeLabel[b.type]}</span>
           <div class="flex items-center gap-1.5">
             ${b.type !== 'text' ? `<label class="flex items-center gap-1">Đ: <input type="number" min="0" step="0.5" value="${b.points}" oninput="updateField('${b.id}','points',this.value,true)" class="w-10 p-0.5 rounded border dark:bg-zinc-800 dark:border-zinc-700"></label>` : ''}
-            <button type="button" onclick="moveSubBlock('${rb.id}','${b.id}',-1)" title="Lên">⬆️</button>
-            <button type="button" onclick="moveSubBlock('${rb.id}','${b.id}',1)" title="Xuống">⬇️</button>
-            <button type="button" onclick="removeSubBlock('${rb.id}','${b.id}')" class="text-red-500 font-bold">🗑️</button>
+            <button type="button" onclick="moveSubBlock('${rb.id}','${b.id}',-1)" title="Lên">⬆</button>
+            <button type="button" onclick="moveSubBlock('${rb.id}','${b.id}',1)" title="Xuống">⬇</button>
+            <button type="button" onclick="removeSubBlock('${rb.id}','${b.id}')" class="text-red-500 font-bold"><i class="bi bi-trash-fill"></i></button>
           </div>
         </div>
         <div id="qc-${b.id}" class="qeditor p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700 text-xs" style="min-height:50px" contenteditable="true" oninput="updateField('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
@@ -1997,12 +2000,12 @@
                   onchange="setCorrect('${b.id}','${o.id}', ${b.type === 'multi'} ? this.checked : true, ${b.type !== 'multi'})">
                 <input type="text" value="${esc(o.text)}" placeholder="Lựa chọn..." ${b.type === 'tf' ? 'readonly' : ''}
                   oninput="setOptionText('${b.id}','${o.id}',this.value)" class="flex-1 p-1 rounded border dark:bg-zinc-800 dark:border-zinc-700">
-                ${b.type !== 'tf' && b.options.length > 2 ? `<button type="button" onclick="removeOption('${b.id}','${o.id}')" class="text-red-400">✕</button>` : ''}
+                ${b.type !== 'tf' && b.options.length > 2 ? `<button type="button" onclick="removeOption('${b.id}','${o.id}')" class="text-red-400"><i class="bi bi-x-lg"></i></button>` : ''}
               </div>`).join('')}
             ${b.type !== 'tf' ? `<button type="button" onclick="addOption('${b.id}')" class="text-[11px] font-bold text-[#cf1717] hover:underline">+ Thêm lựa chọn</button>` : ''}
           </div>` : ''}
         ${b.type === 'fill' ? renderFillGapsUI(b) : ''}
-        ${b.type !== 'text' ? `<div><label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">💡 Giải thích</label>
+        ${b.type !== 'text' ? `<div><label class="block text-[10px] font-bold uppercase text-gray-500 mb-1"><i class="bi bi-lightbulb-fill"></i> Giải thích</label>
           <div class="qeditor p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700 text-xs" contenteditable="true" oninput="updateField('${b.id}','explanation',this.innerHTML)">${b.explanation || ''}</div></div>` : ''}
       </div>`).join('');
   }
@@ -2042,7 +2045,7 @@
           <label class="block text-[10px] font-bold uppercase text-gray-500">Chỗ trống điền khuyết</label>
           <button type="button" onclick="insertGapAtCursor('${b.id}')" class="text-xs font-bold text-[#cf1717] hover:underline">+ Chèn chỗ trống vào nội dung</button>
         </div>
-        <p class="text-[11px] text-amber-500 italic">⚠️ Đặt con trỏ vào vị trí muốn tạo chỗ trống trong "Nội dung câu hỏi" ở trên, rồi bấm nút này (bấm nhiều lần nếu câu có nhiều chỗ trống).</p>
+        <p class="text-[11px] text-amber-500 italic"><i class="bi bi-exclamation-triangle-fill"></i> Đặt con trỏ vào vị trí muốn tạo chỗ trống trong "Nội dung câu hỏi" ở trên, rồi bấm nút này (bấm nhiều lần nếu câu có nhiều chỗ trống).</p>
       </div>`;
     }
     return `<div class="space-y-2">
@@ -2077,10 +2080,10 @@
   }
 
   async function saveAssignment() {
-    if (!currentClassForAssignments) return notify('⚠️ Vui lòng chọn lớp trước.');
+    if (!currentClassForAssignments) return notify('Vui lòng chọn lớp trước.');
     const title = pel('asTitle').value.trim();
-    if (!title) return notify('⚠️ Vui lòng nhập tiêu đề bài tập.');
-    if (!blocks.length) return notify('⚠️ Vui lòng thêm ít nhất 1 câu hỏi.');
+    if (!title) return notify('Vui lòng nhập tiêu đề bài tập.');
+    if (!blocks.length) return notify('Vui lòng thêm ít nhất 1 câu hỏi.');
 
     // Kiểm tra mỗi câu điền khuyết (kể cả bên trong Reading) phải có ít nhất 1 chỗ trống đã chèn
     const allFillLeaves = [];
@@ -2090,11 +2093,11 @@
     });
     for (const fb of allFillLeaves) {
       if (extractGapNumbers(fb.content).length === 0) {
-        return notify(`⚠️ Câu điền khuyết chưa có chỗ trống nào — hãy bấm "+ Chèn chỗ trống" trong câu đó trước khi lưu.`);
+        return notify(`Câu điền khuyết chưa có chỗ trống nào — hãy bấm "+ Chèn chỗ trống" trong câu đó trước khi lưu.`);
       }
     }
     if (blocks.some(b => b.type === 'reading' && (!b.sub_blocks || !b.sub_blocks.length))) {
-      return notify('⚠️ Có khối "Bài đọc" chưa có câu hỏi con nào — hãy thêm ít nhất 1 câu hỏi cho bài đọc đó.');
+      return notify('Có khối "Bài đọc" chưa có câu hỏi con nào — hãy thêm ít nhất 1 câu hỏi cho bài đọc đó.');
     }
 
     // Chuẩn hoá dữ liệu fill-blank: chuyển blanks (map theo số chỗ trống) -> mảng {gap, accepted_answers} theo thứ tự
@@ -2137,8 +2140,8 @@
       updated_at: new Date().toISOString()
     };
     const { error } = editingId ? await sbClient.from('assignments').update(row).eq('id', editingId) : await sbClient.from('assignments').insert([row]);
-    if (error) return notify('❌ Lỗi lưu bài tập: ' + error.message);
-    notify('🎉 Đã lưu bài tập! Đường dẫn: assignment.html?token=' + token);
+    if (error) return notify('Lỗi lưu bài tập: ' + error.message);
+    notify('Đã lưu bài tập! Đường dẫn: assignment.html?token=' + token);
     closeBuilder(); loadAssignmentsForClass();
   }
 
@@ -2180,7 +2183,7 @@
     box.classList.remove('hidden');
     box.innerHTML = `
       <div class="bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl p-3 mb-1">
-        <p class="text-[10px] font-bold uppercase text-gray-500 mb-2">📊 Phổ điểm (${currentAttemptsList.length} bài nộp)</p>
+        <p class="text-[10px] font-bold uppercase text-gray-500 mb-2"><i class="bi bi-bar-chart-fill"></i> Phổ điểm (${currentAttemptsList.length} bài nộp)</p>
         <div class="flex items-end gap-2 h-20">
           ${buckets.map((c, i) => `
             <div class="flex-1 flex flex-col items-center justify-end gap-1">
@@ -2213,7 +2216,7 @@
           <p class="text-[10px] text-gray-400">${new Date(r.submitted_at).toLocaleString('vi-VN')} ${r.has_essay ? '· có câu tự luận cần chấm tay' : ''}</p>
         </div>
         <div class="flex items-center gap-3">
-          <button onclick="openGradeAttempt('${r.id}')" class="text-[11px] font-bold text-blue-500 hover:underline">${r.has_essay ? '✏️ Chấm tự luận' : '👁️ Xem bài làm'}</button>
+          <button onclick="openGradeAttempt('${r.id}')" class="text-[11px] font-bold text-blue-500 hover:underline">${r.has_essay ? '<i class="bi bi-pencil-fill"></i> Chấm tự luận' : '<i class="bi bi-eye-fill"></i> Xem bài làm'}</button>
           <span class="font-extrabold text-[#cf1717]">${finalScore}/${r.total_points}</span>
         </div>
       </div>`;
@@ -2232,7 +2235,7 @@
     const questions = [];
     rawQuestions.forEach(q => {
       if (q.type === 'reading') {
-        questions.push({ type: 'text', content: `<b>📖 Bài đọc:</b><div class="mt-1">${q.content || ''}</div>`, two_col: q.two_col });
+        questions.push({ type: 'text', content: `<b><i class="bi bi-book-half"></i> Bài đọc:</b><div class="mt-1">${q.content || ''}</div>`, two_col: q.two_col });
         (q.sub_blocks || []).forEach(sb => questions.push(sb));
       } else questions.push(q);
     });
@@ -2244,7 +2247,7 @@
       let bodyHtml = '';
       if (q.type === 'mcq' || q.type === 'tf' || q.type === 'multi') {
         const givenArr = Array.isArray(given) ? given : (given ? [given] : []);
-        bodyHtml = (q.options || []).map(o => `<div class="text-xs px-2 py-1 rounded ${o.correct ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400' : (givenArr.includes(o.id) ? 'bg-red-50 dark:bg-red-950/40 text-red-600' : '')}">${givenArr.includes(o.id) ? '👉 ' : ''}${esc(o.text)}${o.correct ? ' ✓' : ''}</div>`).join('');
+        bodyHtml = (q.options || []).map(o => `<div class="text-xs px-2 py-1 rounded ${o.correct ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400' : (givenArr.includes(o.id) ? 'bg-red-50 dark:bg-red-950/40 text-red-600' : '')}">${givenArr.includes(o.id) ? '<i class="bi bi-arrow-right-circle-fill"></i> ' : ''}${esc(o.text)}${o.correct ? ' <i class="bi bi-check-lg"></i>' : ''}</div>`).join('');
       } else if (q.type === 'fill') {
         if (q.blanks && q.blanks.length) {
           const givenObj = (given && typeof given === 'object') ? given : {};
@@ -2262,7 +2265,7 @@
             <input type="number" min="0" max="${q.points}" step="0.25" value="${currentVal}" data-essay-score="${q.id}" oninput="updateGmTotal()" class="w-20 p-1.5 rounded border dark:bg-zinc-800 dark:border-zinc-700 text-xs">
           </div>
           <div class="mt-2">
-            <label class="text-xs font-bold text-gray-600 dark:text-gray-300 block mb-1">📝 Nhận xét của giáo viên (học sinh sẽ thấy sau khi chấm)</label>
+            <label class="text-xs font-bold text-gray-600 dark:text-gray-300 block mb-1"><i class="bi bi-pencil-square"></i> Nhận xét của giáo viên (học sinh sẽ thấy sau khi chấm)</label>
             <textarea rows="2" data-essay-comment="${q.id}" placeholder="VD: Bài viết tốt nhưng cần chú ý thì hiện tại..." class="w-full p-2 rounded border dark:bg-zinc-800 dark:border-zinc-700 text-xs">${esc(currentComment)}</textarea>
           </div>`;
       }
@@ -2296,18 +2299,18 @@
       manual_comments[qid] = ta.value.trim();
     });
     const { error } = await sbClient.from('assignment_attempts').update({ manual_scores, manual_comments }).eq('id', currentGradingAttempt.id);
-    if (error) return notify('❌ Lỗi lưu điểm: ' + error.message);
+    if (error) return notify('Lỗi lưu điểm: ' + error.message);
     currentGradingAttempt.manual_scores = manual_scores;
     currentGradingAttempt.manual_comments = manual_comments;
     const idx = currentAttemptsList.findIndex(x => x.id === currentGradingAttempt.id);
     if (idx >= 0) { currentAttemptsList[idx].manual_scores = manual_scores; currentAttemptsList[idx].manual_comments = manual_comments; }
-    notify('🎉 Đã lưu điểm & nhận xét!');
+    notify('Đã lưu điểm & nhận xét!');
     renderResultsList();
     closeGradeModal();
   }
   function closeGradeModal() { pel('gradeModal').classList.add('hidden'); pel('gradeModal').classList.remove('flex'); currentGradingAttempt = null; }
 
-  window.onload = checkTeacher;
+  window.onload = () => { checkTeacher(); updateThemeIcon(); };
 </script>
 </body>
 </html>
