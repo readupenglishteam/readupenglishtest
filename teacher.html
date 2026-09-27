@@ -351,6 +351,22 @@
   </div>
 </div>
 
+<!-- ================= MODAL: LỊCH SỬ THAY ĐỔI BUỔI HỌC ================= -->
+<div id="historyModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-start justify-center p-4 z-[9999] overflow-y-auto">
+  <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-5 sm:p-6 w-full max-w-lg my-8 shadow-2xl space-y-4">
+    <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
+      <h3 class="font-extrabold text-lg text-[#cf1717] dark:text-red-400 flex items-center gap-2">
+        <span>🕘</span> Lịch Sử Thay Đổi
+      </h3>
+      <button onclick="closeHistoryModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
+    </div>
+    <div id="hmSessionInfo" class="text-xs text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-zinc-800/60 rounded-xl p-3"></div>
+    <div id="hmList" class="space-y-2 max-h-96 overflow-y-auto pr-1">
+      <p class="text-xs text-gray-400 italic">Đang tải...</p>
+    </div>
+  </div>
+</div>
+
 <!-- ================= MODAL: TRÌNH TẠO BÀI TẬP (QUESTION BUILDER KIỂU WORD) ================= -->
 <div id="builderModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-start justify-center p-2 sm:p-4 z-[9999] overflow-y-auto">
   <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 w-full max-w-4xl my-4 sm:my-8 shadow-2xl space-y-5">
@@ -569,7 +585,8 @@
     applyRoleUI();
     await loadClasses();
     loadNotifCounts();
-    setInterval(loadNotifCounts, 45000); // tự làm mới thông báo mỗi 45 giây
+    setupRealtime();
+    setInterval(loadNotifCounts, 45000); // dự phòng: tự làm mới thông báo mỗi 45 giây nếu realtime bị gián đoạn
   }
 
   // Giáo viên phụ trách (assistant): không được tạo/sửa lớp, không quản lý học sinh, không sửa lịch học
@@ -899,6 +916,7 @@
             <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-indigo-500 text-white text-[10px] font-black not-italic">i</span> Hỗ trợ
             ${unreadSupportSessionIds.has(r.id) ? '<span class="absolute -top-1 -right-1 w-2 h-2 bg-[#cf1717] rounded-full animate-pulse"></span>' : ''}
           </button>
+          <button onclick="openHistoryModal('${r.id}')" class="font-bold text-gray-500 hover:underline">🕘 Lịch sử</button>
         </div>
       </div>`;
     }).join('') || '<p class="text-xs text-gray-400 italic">Lớp này chưa có lịch học. ' + (owner ? 'Hãy tải file Excel lên hoặc thêm thủ công ở trên.' : '') + '</p>';
@@ -924,6 +942,7 @@
   function startEditRow(id) { scheduleEditingId = id; renderSchedule(); }
   function cancelEditRow() { scheduleEditingId = null; renderSchedule(); }
   async function saveEditRow(id) {
+    const oldRow = currentScheduleRows.find(r => r.id === id);
     const patch = {
       subject_name: pel('er-subject-' + id).value.trim() || null,
       session_date: pel('er-date-' + id).value || null,
@@ -935,13 +954,22 @@
     if (!patch.session_date) return notify('⚠️ Cần chọn ngày học.');
     const { error } = await sbClient.from('class_schedule_sessions').update(patch).eq('id', id);
     if (error) return notify('❌ Lỗi lưu: ' + error.message);
+    if (oldRow) {
+      const fieldLabel = { subject_name: 'Tên buổi', session_date: 'Ngày học', session_time: 'Ca học', room: 'Phòng', lecturer: 'Giảng viên', note: 'Ghi chú' };
+      const changes = Object.keys(patch)
+        .filter(k => (oldRow[k] || '') !== (patch[k] || ''))
+        .map(k => `${fieldLabel[k]}: "${oldRow[k] || ''}" → "${patch[k] || ''}"`);
+      if (changes.length) logHistory(oldRow, 'edit', changes.join('; '));
+    }
     notify('✅ Đã lưu thay đổi.'); scheduleEditingId = null; loadSchedule();
   }
   async function quickSetStatus(id, status) {
+    const row = currentScheduleRows.find(r => r.id === id);
     const patch = { status };
     if (status !== 'pending_suspend') { patch.requested_by = null; patch.request_note = null; }
     const { error } = await sbClient.from('class_schedule_sessions').update(patch).eq('id', id);
     if (error) { notify('❌ Lỗi: ' + error.message); loadSchedule(); return; }
+    if (row) logHistory(row, 'status_change', `${statusLabel[row.status] || row.status} → ${statusLabel[status] || status}`);
     notify('✅ Đã cập nhật trạng thái.'); loadSchedule();
   }
   function toggleManualAddForm() { pel('manualAddForm').classList.toggle('hidden'); }
@@ -957,8 +985,9 @@
       lecturer: pel('maLecturer').value.trim() || null,
       note: pel('maNote').value.trim() || null,
     };
-    const { error } = await sbClient.from('class_schedule_sessions').insert([row]);
+    const { data, error } = await sbClient.from('class_schedule_sessions').insert([row]).select().single();
     if (error) return notify('❌ Lỗi thêm buổi học: ' + error.message);
+    if (data) logHistory(data, 'create', `Đã thêm buổi học ${fmtDate(data.session_date)}${data.session_time ? ' · ' + data.session_time : ''}`);
     notify('🎉 Đã thêm buổi học!');
     ['maSubject', 'maDate', 'maTime', 'maRoom', 'maLecturer', 'maNote'].forEach(id => pel(id).value = '');
     loadSchedule();
@@ -972,25 +1001,33 @@
 
   async function deleteScheduleRow(id) {
     if (!confirm('Xóa buổi học này khỏi lịch?')) return;
+    const row = currentScheduleRows.find(r => r.id === id);
     const { error } = await sbClient.from('class_schedule_sessions').delete().eq('id', id);
     if (error) return notify('❌ Lỗi: ' + error.message);
+    if (row) logHistory(row, 'delete', `Đã xóa buổi học ${fmtDate(row.session_date)}${row.session_time ? ' · ' + row.session_time : ''}`);
     notify('✅ Đã xóa buổi học.'); loadSchedule();
   }
   async function approveSuspend(id) {
+    const row = currentScheduleRows.find(r => r.id === id);
     const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'suspended' }).eq('id', id);
     if (error) return notify('❌ Lỗi: ' + error.message);
+    if (row) logHistory(row, 'approve_suspend', `Đã duyệt tạm ngưng buổi ${fmtDate(row.session_date)}${row.session_time ? ' · ' + row.session_time : ''}`);
     notify('✅ Đã duyệt tạm ngưng buổi học.'); loadSchedule(); loadNotifCounts();
   }
   async function rejectSuspend(id) {
+    const row = currentScheduleRows.find(r => r.id === id);
     const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'active', requested_by: null, request_note: null }).eq('id', id);
     if (error) return notify('❌ Lỗi: ' + error.message);
+    if (row) logHistory(row, 'reject_suspend', `Đã từ chối yêu cầu tạm ngưng buổi ${fmtDate(row.session_date)}`);
     notify('✅ Đã từ chối yêu cầu — buổi học trở lại bình thường.'); loadSchedule(); loadNotifCounts();
   }
   async function requestSuspend(id) {
     const reason = prompt('Lý do đề nghị tạm ngưng buổi học này (giáo viên chủ nhiệm sẽ thấy lý do này để duyệt):');
     if (reason === null) return;
+    const row = currentScheduleRows.find(r => r.id === id);
     const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'pending_suspend', requested_by: currentUser.id, request_note: reason.trim() || null }).eq('id', id);
     if (error) return notify('❌ Lỗi: ' + error.message + ' (kiểm tra đã tạo policy "assistant requests suspend" trong SQL chưa)');
+    if (row) logHistory(row, 'request_suspend', reason.trim() || null);
     notify('📨 Đã gửi yêu cầu — chờ giáo viên chủ nhiệm duyệt.'); loadSchedule();
     if (isAssistantRole()) loadAssistantScheduleCalendar();
     loadNotifCounts();
@@ -1189,6 +1226,7 @@
             <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-indigo-500 text-white text-[10px] font-black not-italic">i</span> Hỗ trợ
             ${unreadSupportSessionIds.has(s.id) ? '<span class="absolute -top-1 -right-1 w-2 h-2 bg-[#cf1717] rounded-full animate-pulse"></span>' : ''}
           </button>
+          <button onclick="openHistoryModal('${s.id}')" class="text-xs font-bold text-gray-500 hover:underline">🕘 Lịch sử</button>
         </div>
       </div>`;
     }).join('');
@@ -1197,8 +1235,10 @@
   async function requestSuspendFromCalendar(id) {
     const reason = prompt('Lý do đề nghị tạm ngưng buổi học này (giáo viên chủ nhiệm sẽ thấy lý do này để duyệt):');
     if (reason === null) return;
+    const row = allAssistantSessions.find(r => r.id === id);
     const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'pending_suspend', requested_by: currentUser.id, request_note: reason.trim() || null }).eq('id', id);
     if (error) return notify('❌ Lỗi: ' + error.message);
+    if (row) logHistory(row, 'request_suspend', reason.trim() || null);
     notify('📨 Đã gửi yêu cầu — chờ giáo viên chủ nhiệm duyệt.');
     loadAssistantScheduleCalendar();
     loadNotifCounts();
@@ -1290,12 +1330,17 @@
   let currentSupportAssistantId = null;
   let currentSupportMessages = [];
 
-  function findSessionAnywhere(id) {
-    return currentScheduleRows.find(r => r.id === id) || (typeof allAssistantSessions !== 'undefined' ? allAssistantSessions.find(r => r.id === id) : null) || null;
+  async function findSessionAnywhere(id) {
+    let s = currentScheduleRows.find(r => r.id === id) || (typeof allAssistantSessions !== 'undefined' ? allAssistantSessions.find(r => r.id === id) : null);
+    if (s) return s;
+    // Không có sẵn trong bộ nhớ cục bộ (VD: bấm thẳng từ thông báo mà chưa mở lịch lớp đó) -> tải trực tiếp từ DB
+    const { data, error } = await sbClient.from('class_schedule_sessions').select('*').eq('id', id).single();
+    if (error || !data) return null;
+    return data;
   }
 
   async function openSupportModal(sessionId) {
-    const session = findSessionAnywhere(sessionId);
+    const session = await findSessionAnywhere(sessionId);
     if (!session) return notify('❌ Không tìm thấy buổi học này.');
     currentSupportSession = session;
     currentSupportAssistantId = null;
@@ -1395,6 +1440,101 @@
   function closeSupportModal() {
     pel('supportModal').classList.add('hidden'); pel('supportModal').classList.remove('flex');
     currentSupportSession = null; currentSupportAssistantId = null; currentSupportMessages = [];
+  }
+
+  // =====================================================================
+  // LỊCH SỬ THAY ĐỔI BUỔI HỌC (class_schedule_history)
+  // Ghi lại mọi thay đổi: tạo/sửa/xóa buổi học, yêu cầu-duyệt-từ chối tạm ngưng...
+  // =====================================================================
+  async function logHistory(sessionOrIds, action, detail) {
+    if (!sessionOrIds || !currentUser) return;
+    const session_id = sessionOrIds.id || sessionOrIds.session_id;
+    const class_id = sessionOrIds.class_id;
+    if (!session_id || !class_id) return;
+    try {
+      await sbClient.from('class_schedule_history').insert([{
+        session_id, class_id, actor_id: currentUser.id, action, detail: detail || null
+      }]);
+    } catch (e) { /* lịch sử là phụ trợ — không chặn luồng chính nếu lỗi (VD chưa chạy SQL) */ }
+  }
+
+  const historyActionIcon = { create: '➕', edit: '✏️', delete: '🗑️', status_change: '🔄', request_suspend: '📨', approve_suspend: '✅', reject_suspend: '❌' };
+  const historyActionLabel = { create: 'Tạo buổi học', edit: 'Sửa chi tiết buổi học', delete: 'Xóa buổi học', status_change: 'Đổi trạng thái', request_suspend: 'Yêu cầu tạm ngưng', approve_suspend: 'Duyệt tạm ngưng', reject_suspend: 'Từ chối yêu cầu tạm ngưng' };
+
+  async function openHistoryModal(sessionId) {
+    const session = await findSessionAnywhere(sessionId);
+    const cls = session ? classInfoOf(session.class_id) : {};
+    pel('hmSessionInfo').innerHTML = session
+      ? `<b>${esc(cls.title || cls.class_code || 'Lớp học')}</b> — 📅 ${fmtDate(session.session_date)} · 🕐 ${esc(session.session_time || '')}`
+      : '';
+    pel('hmList').innerHTML = '<p class="text-xs text-gray-400 italic">Đang tải...</p>';
+    pel('historyModal').classList.remove('hidden'); pel('historyModal').classList.add('flex');
+
+    const { data, error } = await sbClient.from('class_schedule_history')
+      .select('*, profiles(full_name)').eq('session_id', sessionId).order('created_at', { ascending: false });
+    if (error) { pel('hmList').innerHTML = `<p class="text-red-500 text-xs">Lỗi: ${esc(error.message)} (đã chạy SQL tạo bảng class_schedule_history chưa?)</p>`; return; }
+    const rows = data || [];
+    pel('hmList').innerHTML = rows.map(h => `
+      <div class="bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl p-3 text-xs space-y-1">
+        <div class="flex items-center justify-between gap-2">
+          <p class="font-bold text-gray-900 dark:text-white">${historyActionIcon[h.action] || '📌'} ${esc(historyActionLabel[h.action] || h.action)}</p>
+          <span class="text-[10px] text-gray-400 whitespace-nowrap">${new Date(h.created_at).toLocaleString('vi-VN')}</span>
+        </div>
+        <p class="text-gray-500">Người thực hiện: ${esc(h.profiles?.full_name || 'Không rõ')}</p>
+        ${h.detail ? `<p class="text-gray-500 dark:text-gray-400">${esc(h.detail)}</p>` : ''}
+      </div>`).join('') || '<p class="text-xs text-gray-400 italic">Chưa có lịch sử thay đổi nào cho buổi học này.</p>';
+  }
+  function closeHistoryModal() { pel('historyModal').classList.add('hidden'); pel('historyModal').classList.remove('flex'); }
+
+  // =====================================================================
+  // REALTIME — mọi thay đổi lịch học / tin nhắn hỗ trợ tự cập nhật ngay,
+  // không cần tải lại trang (Supabase Realtime, bảng cần bật ở file SQL đi kèm)
+  // =====================================================================
+  let realtimeChannel = null;
+  function isMyClassId(classId) { return myClasses.some(c => c.id === classId); }
+
+  function setupRealtime() {
+    if (realtimeChannel || !currentUser) return;
+    realtimeChannel = sbClient.channel('readup-teacher-rt-' + currentUser.id)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'class_schedule_sessions' }, handleSessionRealtimeChange)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'class_schedule_support_messages' }, handleSupportRealtimeChange)
+      .subscribe();
+  }
+
+  function handleSessionRealtimeChange(payload) {
+    const row = (payload.new && Object.keys(payload.new).length) ? payload.new : payload.old;
+    if (!row || !row.class_id || !isMyClassId(row.class_id)) return;
+
+    if (currentClassForSchedule && currentClassForSchedule.id === row.class_id) loadSchedule();
+    if (isAssistantRole()) loadAssistantScheduleCalendar();
+    loadNotifCounts();
+
+    const cls = classInfoOf(row.class_id);
+    const clsName = esc(cls.title || cls.class_code || 'Lớp học');
+    if (payload.eventType === 'UPDATE' && payload.old && payload.new && Object.keys(payload.old).length > 1) {
+      if (payload.old.status !== payload.new.status) {
+        notify(`🔄 ${clsName} — buổi ${fmtDate(row.session_date)} đổi trạng thái: ${statusLabel[payload.new.status] || payload.new.status}`);
+      } else if ((payload.old.room || '') !== (payload.new.room || '')) {
+        notify(`🔄 ${clsName} — buổi ${fmtDate(row.session_date)} đổi phòng học: ${esc(payload.new.room || '(chưa rõ)')}`);
+      }
+    } else if (payload.eventType === 'DELETE') {
+      notify(`🗑️ Một buổi học của lớp ${clsName} vừa bị xóa.`);
+    }
+  }
+
+  function handleSupportRealtimeChange(payload) {
+    const row = (payload.new && Object.keys(payload.new).length) ? payload.new : payload.old;
+    if (!row || !row.class_id || !isMyClassId(row.class_id)) return;
+
+    if (currentSupportSession && currentSupportSession.id === row.session_id && currentSupportAssistantId === row.assistant_id) {
+      loadSupportThread();
+    }
+    loadNotifCounts();
+
+    if (payload.eventType === 'INSERT' && row.sender_id !== currentUser.id) {
+      const cls = classInfoOf(row.class_id);
+      notify(`💬 Tin nhắn hỗ trợ mới — ${esc(cls.title || cls.class_code || 'Lớp học')}`);
+    }
   }
 
   // ---- Tìm kiếm trong lịch tổng hợp ----
