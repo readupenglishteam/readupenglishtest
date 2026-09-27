@@ -228,13 +228,26 @@
       <button onclick="closeScheduleModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
     </div>
 
-    <!-- Chỉ owner thấy khu vực tải file Excel -->
+    <!-- Chỉ owner thấy khu vực tải file Excel + thêm buổi học thủ công -->
     <div id="smUploadBox" class="hidden bg-gray-50 dark:bg-zinc-800/60 p-4 rounded-xl border dark:border-zinc-700 space-y-2">
-      <label class="flex items-center gap-2 text-xs font-bold cursor-pointer w-fit px-3 py-2 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg hover:border-[#cf1717] hover:text-[#cf1717] transition">
-        📥 Tải lịch học từ file Excel
-        <input type="file" accept=".xlsx,.xls" class="hidden" onchange="uploadScheduleExcel(this)">
-      </label>
+      <div class="flex flex-wrap gap-2">
+        <label class="flex items-center gap-2 text-xs font-bold cursor-pointer w-fit px-3 py-2 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg hover:border-[#cf1717] hover:text-[#cf1717] transition">
+          📥 Tải lịch học từ file Excel
+          <input type="file" accept=".xlsx,.xls" class="hidden" onchange="uploadScheduleExcel(this)">
+        </label>
+        <button type="button" onclick="toggleManualAddForm()" class="text-xs font-bold px-3 py-2 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg hover:border-indigo-500 hover:text-indigo-500 transition">➕ Thêm 1 buổi học thủ công</button>
+      </div>
       <p class="text-[11px] text-gray-400">File Excel cần có dòng tiêu đề với các cột: <code>tiedelophoc</code>, <code>NgayHoc</code>, <code>CaHoc</code>, <code>PhongHoc</code>, <code>GiangVien</code>, <code>GhiChu</code> (không phân biệt hoa/thường). Tải lên sẽ <b>thay thế toàn bộ</b> lịch học hiện tại của lớp này.</p>
+
+      <form id="manualAddForm" onsubmit="addManualSession(event)" class="hidden grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 border-t dark:border-zinc-700">
+        <input id="maSubject" placeholder="Tên buổi/lớp học phần" class="col-span-2 sm:col-span-1 p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-xs">
+        <input id="maDate" type="date" required class="p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-xs">
+        <input id="maTime" placeholder="Ca học (VD: Ca 1)" class="p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-xs">
+        <input id="maRoom" placeholder="Phòng (VD: A101 / ONLINE)" class="p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-xs">
+        <input id="maLecturer" placeholder="Giảng viên" class="p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-xs">
+        <input id="maNote" placeholder="Ghi chú" class="col-span-2 sm:col-span-3 p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-xs">
+        <button type="submit" class="col-span-2 sm:col-span-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">Thêm buổi học</button>
+      </form>
     </div>
 
     <!-- Các yêu cầu tạm ngưng đang chờ owner duyệt -->
@@ -731,8 +744,10 @@
   function openScheduleModal(classId) {
     const c = myClasses.find(x => x.id === classId); if (!c) return;
     currentClassForSchedule = c;
+    scheduleEditingId = null;
     pel('smClassTitle').innerText = c.title;
     pel('smUploadBox').classList.toggle('hidden', !isOwnerRole());
+    pel('manualAddForm').classList.add('hidden');
     pel('scheduleModal').classList.remove('hidden'); pel('scheduleModal').classList.add('flex');
     loadSchedule();
   }
@@ -750,6 +765,7 @@
     renderSchedule();
   }
 
+  let scheduleEditingId = null;
   function renderSchedule() {
     const owner = isOwnerRole();
     const pending = currentScheduleRows.filter(r => r.status === 'pending_suspend');
@@ -766,19 +782,91 @@
         </div>`).join('');
     }
 
-    pel('smList').innerHTML = currentScheduleRows.map(r => `
+    pel('smList').innerHTML = currentScheduleRows.map(r => {
+      if (owner && scheduleEditingId === r.id) return renderScheduleEditRow(r);
+      return `
       <div class="bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl p-3 text-xs space-y-1.5" data-row="${r.id}">
         <div class="flex items-start justify-between gap-2">
           <p class="font-bold text-gray-900 dark:text-white flex-1">${esc(r.subject_name || '(chưa rõ tên lớp học phần)')}</p>
-          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${r.status === 'active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400' : r.status === 'pending_suspend' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400' : 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400'}">${statusLabel[r.status] || r.status}</span>
+          ${owner ? `
+            <select onchange="quickSetStatus('${r.id}', this.value)" class="text-[10px] font-bold rounded-full border-0 px-2 py-0.5 ${r.status === 'active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400' : r.status === 'pending_suspend' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400' : 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400'}">
+              <option value="active" ${r.status === 'active' ? 'selected' : ''}>🟢 Đang học</option>
+              <option value="suspended" ${r.status === 'suspended' ? 'selected' : ''}>🔴 Đã tạm ngưng</option>
+              <option value="pending_suspend" ${r.status === 'pending_suspend' ? 'selected' : ''}>🟡 Chờ duyệt tạm ngưng</option>
+            </select>
+          ` : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${r.status === 'active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400' : r.status === 'pending_suspend' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400' : 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400'}">${statusLabel[r.status] || r.status}</span>`}
         </div>
         <p class="text-gray-500">📅 ${fmtDate(r.session_date)} · 🕐 ${esc(r.session_time || '')} ${r.room ? '· 🚪 ' + esc(r.room) : ''} ${r.lecturer ? '· 👤 ' + esc(r.lecturer) : ''}</p>
         ${r.note ? `<p class="text-gray-400">Ghi chú: ${esc(r.note)}</p>` : ''}
         <div class="flex gap-3 pt-1">
-          ${owner ? `<button onclick="deleteScheduleRow('${r.id}')" class="font-bold text-red-500 hover:underline">🗑️ Xóa buổi học</button>` : ''}
+          ${owner ? `
+            <button onclick="startEditRow('${r.id}')" class="font-bold text-blue-500 hover:underline">✏️ Sửa chi tiết</button>
+            <button onclick="deleteScheduleRow('${r.id}')" class="font-bold text-red-500 hover:underline">🗑️ Xóa buổi học</button>
+          ` : ''}
           ${!owner && r.status === 'active' ? `<button onclick="requestSuspend('${r.id}')" class="font-bold text-amber-600 hover:underline">🚫 Yêu cầu tạm ngưng</button>` : ''}
         </div>
-      </div>`).join('') || '<p class="text-xs text-gray-400 italic">Lớp này chưa có lịch học. ' + (owner ? 'Hãy tải file Excel lên ở trên.' : '') + '</p>';
+      </div>`;
+    }).join('') || '<p class="text-xs text-gray-400 italic">Lớp này chưa có lịch học. ' + (owner ? 'Hãy tải file Excel lên hoặc thêm thủ công ở trên.' : '') + '</p>';
+  }
+
+  function renderScheduleEditRow(r) {
+    return `
+    <div class="bg-blue-50 dark:bg-blue-950/30 border border-blue-300 dark:border-blue-800 rounded-xl p-3 text-xs space-y-2" data-row="${r.id}">
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <input id="er-subject-${r.id}" value="${esc(r.subject_name || '')}" placeholder="Tên buổi/lớp học phần" class="col-span-2 sm:col-span-1 p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
+        <input id="er-date-${r.id}" type="date" value="${r.session_date || ''}" class="p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
+        <input id="er-time-${r.id}" value="${esc(r.session_time || '')}" placeholder="Ca học" class="p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
+        <input id="er-room-${r.id}" value="${esc(r.room || '')}" placeholder="Phòng (VD: A101 / ONLINE)" class="p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
+        <input id="er-lecturer-${r.id}" value="${esc(r.lecturer || '')}" placeholder="Giảng viên" class="p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
+        <input id="er-note-${r.id}" value="${esc(r.note || '')}" placeholder="Ghi chú" class="col-span-2 sm:col-span-3 p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
+      </div>
+      <div class="flex gap-3">
+        <button onclick="saveEditRow('${r.id}')" class="font-bold text-emerald-600 hover:underline">💾 Lưu</button>
+        <button onclick="cancelEditRow()" class="font-bold text-gray-500 hover:underline">Hủy</button>
+      </div>
+    </div>`;
+  }
+  function startEditRow(id) { scheduleEditingId = id; renderSchedule(); }
+  function cancelEditRow() { scheduleEditingId = null; renderSchedule(); }
+  async function saveEditRow(id) {
+    const patch = {
+      subject_name: pel('er-subject-' + id).value.trim() || null,
+      session_date: pel('er-date-' + id).value || null,
+      session_time: pel('er-time-' + id).value.trim() || null,
+      room: pel('er-room-' + id).value.trim() || null,
+      lecturer: pel('er-lecturer-' + id).value.trim() || null,
+      note: pel('er-note-' + id).value.trim() || null,
+    };
+    if (!patch.session_date) return notify('⚠️ Cần chọn ngày học.');
+    const { error } = await sbClient.from('class_schedule_sessions').update(patch).eq('id', id);
+    if (error) return notify('❌ Lỗi lưu: ' + error.message);
+    notify('✅ Đã lưu thay đổi.'); scheduleEditingId = null; loadSchedule();
+  }
+  async function quickSetStatus(id, status) {
+    const patch = { status };
+    if (status !== 'pending_suspend') { patch.requested_by = null; patch.request_note = null; }
+    const { error } = await sbClient.from('class_schedule_sessions').update(patch).eq('id', id);
+    if (error) { notify('❌ Lỗi: ' + error.message); loadSchedule(); return; }
+    notify('✅ Đã cập nhật trạng thái.'); loadSchedule();
+  }
+  function toggleManualAddForm() { pel('manualAddForm').classList.toggle('hidden'); }
+  async function addManualSession(e) {
+    e.preventDefault();
+    if (!currentClassForSchedule) return;
+    const row = {
+      class_id: currentClassForSchedule.id,
+      subject_name: pel('maSubject').value.trim() || null,
+      session_date: pel('maDate').value,
+      session_time: pel('maTime').value.trim() || null,
+      room: pel('maRoom').value.trim() || null,
+      lecturer: pel('maLecturer').value.trim() || null,
+      note: pel('maNote').value.trim() || null,
+    };
+    const { error } = await sbClient.from('class_schedule_sessions').insert([row]);
+    if (error) return notify('❌ Lỗi thêm buổi học: ' + error.message);
+    notify('🎉 Đã thêm buổi học!');
+    ['maSubject', 'maDate', 'maTime', 'maRoom', 'maLecturer', 'maNote'].forEach(id => pel(id).value = '');
+    loadSchedule();
   }
 
   function fmtDate(d) {
