@@ -67,15 +67,15 @@
   .rd-resizer{width:6px;cursor:col-resize;background:#f3f4f6;flex-shrink:0;position:relative}
   .dark .rd-resizer{background:#27272a}
   .rd-resizer::after{content:'';position:absolute;top:50%;left:50%;width:3px;height:32px;background:#cf1717;border-radius:3px;transform:translate(-50%,-50%);opacity:.5}
+  .rd-tabs{display:none}
+  .rd-tab-btn{flex:1;padding:.6rem;font-size:.75rem;font-weight:800;text-align:center;color:#9ca3af;border-bottom:3px solid transparent}
   @media (max-width:768px){
     .rd-split{flex-direction:column}
     .rd-resizer{display:none}
     .rd-pane{max-height:none!important}
-    .rd-tabs{display:flex;border-bottom:1px solid #e5e7eb}
+    .rd-tabs{display:flex!important;border-bottom:1px solid #e5e7eb}
     .dark .rd-tabs{border-color:#3f3f46}
   }
-  .rd-tabs{display:none}
-  .rd-tab-btn{flex:1;padding:.6rem;font-size:.75rem;font-weight:800;text-align:center;color:#9ca3af;border-bottom:3px solid transparent}
   .rd-tab-btn.active{color:#cf1717;border-color:#cf1717}
   .rd-hl-btn{position:fixed;z-index:9999;background:#18181b;color:#fde68a;font-size:11px;font-weight:700;padding:6px 10px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.3);cursor:pointer;display:none;white-space:nowrap}
   .fillbox{display:inline-block;vertical-align:middle;resize:none;overflow:hidden;line-height:1.4}
@@ -151,10 +151,30 @@
     <a href="profile.html" class="flex-shrink-0 px-3 py-1.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow transition">Đổi mật khẩu ngay</a>
   </div>
 
-  <!-- ============ CHẾ ĐỘ 1: DANH SÁCH BÀI TẬP ============ -->
-  <div id="listView" class="space-y-5">
+  <!-- ============ CHẾ ĐỘ 0: CHỌN LỚP ============ -->
+  <div id="classPickView" class="hidden space-y-5">
     <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
-      <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">📝 Bài Tập Của Tôi</h2>
+      <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">🏫 Chọn Lớp Học</h2>
+      <span id="vipBadge0" class="hidden text-xs font-bold px-2.5 py-1 bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-full">⭐ VIP</span>
+    </div>
+    <div id="vipLockBox0" class="hidden bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-8 text-center space-y-3 shadow-sm">
+      <div class="text-4xl">🔒</div>
+      <h3 class="font-extrabold text-gray-900 dark:text-white">Tính năng dành cho tài khoản VIP</h3>
+      <p class="text-sm text-gray-500 max-w-md mx-auto">Bạn cần nâng cấp lên tài khoản VIP để làm bài tập được giáo viên giao. Vui lòng liên hệ ReadUp English hoặc giáo viên của bạn để được hỗ trợ nâng cấp.</p>
+      <button onclick="openSupportHint()" class="mt-2 px-5 py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow transition">Liên hệ nâng cấp VIP</button>
+    </div>
+    <div id="classPickGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    <p id="classPickEmpty" class="hidden text-center text-gray-400 text-sm py-10">Bạn chưa tham gia lớp học nào. Hãy liên hệ giáo viên để được thêm vào lớp nhé!</p>
+    <p id="classPickLoading" class="text-center text-gray-400 text-sm py-10">⏳ Đang tải danh sách lớp...</p>
+  </div>
+
+  <!-- ============ CHẾ ĐỘ 1: DANH SÁCH BÀI TẬP (của 1 lớp đã chọn) ============ -->
+  <div id="listView" class="hidden space-y-5">
+    <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
+      <div>
+        <a href="assignment.html" class="text-[11px] font-bold text-gray-400 hover:text-[#cf1717]">← Chọn lớp khác</a>
+        <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">📝 Bài Tập — <span id="listClassTitle" class="text-[#cf1717]"></span></h2>
+      </div>
       <span id="vipBadge" class="hidden text-xs font-bold px-2.5 py-1 bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-full">⭐ VIP</span>
     </div>
 
@@ -171,7 +191,7 @@
       <div id="pager" class="flex items-center justify-center gap-2 pt-2"></div>
     </div>
 
-    <p id="emptyMsg" class="hidden text-center text-gray-400 text-sm py-10">Bạn chưa được giao bài tập nào. Hãy tham gia một lớp học trước nhé!</p>
+    <p id="emptyMsg" class="hidden text-center text-gray-400 text-sm py-10">Lớp này chưa có bài tập nào được giao.</p>
     <p id="loadingMsg" class="text-center text-gray-400 text-sm py-10">⏳ Đang tải bài tập...</p>
   </div>
 
@@ -185,7 +205,7 @@
         </div>
         <div id="atTimer" class="hidden flex-shrink-0 text-sm font-extrabold text-[#cf1717] bg-red-50 dark:bg-red-950/40 px-3 py-1.5 rounded-xl">⏱ --:--</div>
       </div>
-      <a href="assignment.html" class="inline-block text-xs font-bold text-gray-400 hover:text-[#cf1717]">← Quay lại danh sách bài tập</a>
+      <a href="assignment.html" id="backToListLink1" class="inline-block text-xs font-bold text-gray-400 hover:text-[#cf1717]">← Quay lại danh sách bài tập</a>
     </div>
 
     <div id="questionArea" class="space-y-4"></div>
@@ -202,7 +222,7 @@
       <h2 class="text-xl font-extrabold text-gray-900 dark:text-white">Đã nộp bài thành công!</h2>
       <p class="text-sm text-gray-500">Điểm tự động: <b id="rsScore" class="text-[#cf1717]"></b></p>
       <p id="rsEssayNote" class="hidden text-xs text-amber-500">Bài có câu tự luận — giáo viên sẽ chấm và cập nhật điểm sau.</p>
-      <a href="assignment.html" class="inline-block mt-2 text-xs font-bold text-[#cf1717] hover:underline">← Quay lại danh sách bài tập</a>
+      <a href="assignment.html" id="backToListLink2" class="inline-block mt-2 text-xs font-bold text-[#cf1717] hover:underline">← Quay lại danh sách bài tập</a>
     </div>
     <div id="reviewArea" class="space-y-4"></div>
   </div>
@@ -313,14 +333,41 @@
 
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
+    const classId = params.get('class');
     if (token) loadAttempt(token);
-    else loadList();
+    else if (classId) loadList(classId);
+    else loadClassPicker();
   }
 
   // =====================================================================
-  // CHẾ ĐỘ DANH SÁCH
+  // CHẾ ĐỘ 0: CHỌN LỚP — học sinh chọn lớp trước, sau đó mới thấy danh sách bài tập của lớp đó
   // =====================================================================
-  async function loadList() {
+  async function loadClassPicker() {
+    pel('classPickView').classList.remove('hidden');
+    if (myProfile.role !== 'vip') {
+      pel('classPickLoading').classList.add('hidden');
+      pel('vipLockBox0').classList.remove('hidden');
+      return;
+    }
+    pel('vipBadge0').classList.remove('hidden');
+    const { data, error } = await sbClient.from('class_students').select('class_id, classes(id, title, class_code, info)').eq('student_id', currentUser.id);
+    pel('classPickLoading').classList.add('hidden');
+    if (error) { notify('❌ Lỗi tải danh sách lớp: ' + error.message); return; }
+    const myClassRows = (data || []).filter(r => r.classes);
+    if (!myClassRows.length) { pel('classPickEmpty').classList.remove('hidden'); return; }
+    pel('classPickGrid').innerHTML = myClassRows.map(r => `
+      <a href="assignment.html?class=${r.classes.id}" class="block bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 space-y-2 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition">
+        <span class="text-[10px] font-bold px-2 py-0.5 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">${esc(r.classes.class_code)}</span>
+        <h4 class="font-bold text-sm text-gray-900 dark:text-white">${esc(r.classes.title)}</h4>
+        ${r.classes.info ? `<p class="text-xs text-gray-400 line-clamp-2">${esc(r.classes.info)}</p>` : ''}
+        <p class="text-[11px] font-bold text-[#cf1717]">Xem bài tập →</p>
+      </a>`).join('');
+  }
+
+  // =====================================================================
+  // CHẾ ĐỘ 1: DANH SÁCH BÀI TẬP của 1 lớp đã chọn
+  // =====================================================================
+  async function loadList(classId) {
     pel('listView').classList.remove('hidden');
     if (myProfile.role !== 'vip') {
       pel('loadingMsg').classList.add('hidden');
@@ -329,14 +376,19 @@
     }
     pel('vipBadge').classList.remove('hidden');
 
-    // Lấy danh sách lớp mà học sinh tham gia, sau đó lấy bài tập đã xuất bản của các lớp đó
-    const { data: classRows } = await sbClient.from('class_students').select('class_id').eq('student_id', currentUser.id);
-    const classIds = (classRows || []).map(r => r.class_id);
-    pel('loadingMsg').classList.add('hidden');
-    if (!classIds.length) { pel('emptyMsg').classList.remove('hidden'); return; }
+    // Xác nhận học sinh có thuộc lớp này không, đồng thời lấy tên lớp để hiển thị tiêu đề
+    const { data: membership } = await sbClient.from('class_students').select('id, classes(title, class_code)').eq('class_id', classId).eq('student_id', currentUser.id).maybeSingle();
+    if (!membership || !membership.classes) {
+      notify('❌ Bạn không thuộc lớp này.');
+      pel('listView').classList.add('hidden');
+      loadClassPicker();
+      return;
+    }
+    pel('listClassTitle').innerText = `${membership.classes.class_code} — ${membership.classes.title}`;
 
     const { data, error } = await sbClient.from('assignments').select('id, token, title, description, total_points, created_at, classes(title, class_code)')
-      .in('class_id', classIds).eq('is_published', true).order('created_at', { ascending: false });
+      .eq('class_id', classId).eq('is_published', true).order('created_at', { ascending: false });
+    pel('loadingMsg').classList.add('hidden');
     if (error) { notify('❌ Lỗi tải bài tập: ' + error.message); return; }
     allAssignments = data || [];
     if (!allAssignments.length) { pel('emptyMsg').classList.remove('hidden'); return; }
@@ -410,6 +462,7 @@
     currentAssignment = a;
     pel('atTitle').innerText = a.title;
     pel('atDesc').innerText = a.description || '';
+    pel('backToListLink1').href = 'assignment.html?class=' + a.class_id;
     pel('attemptView').classList.remove('hidden');
 
     const counter = { n: 0 };
@@ -732,9 +785,11 @@
   function sumManualScores(obj) { return Object.values(obj || {}).reduce((s, v) => s + (parseFloat(v) || 0), 0); }
 
   function showResult(a, attempt) {
+    pel('classPickView').classList.add('hidden');
     pel('listView').classList.add('hidden');
     pel('attemptView').classList.add('hidden');
     pel('resultView').classList.remove('hidden');
+    if (a.class_id) pel('backToListLink2').href = 'assignment.html?class=' + a.class_id;
     const manualSum = sumManualScores(attempt.manual_scores);
     const finalScore = Math.round(((attempt.auto_score || 0) + manualSum) * 100) / 100;
     pel('rsScore').innerText = `${finalScore} / ${attempt.total_points}`;
