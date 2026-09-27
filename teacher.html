@@ -117,6 +117,56 @@
     </div>
   </section>
 
+  <!-- ============ 1B. LỊCH HỌC CỦA TÔI (CHỈ HIỆN CHO GIÁO VIÊN PHỤ TRÁCH) ============ -->
+  <section id="assistantCalendarSection" class="hidden bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border dark:border-zinc-800 shadow-sm space-y-4">
+    <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
+      <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white">📅 Lịch Học Của Tôi</h2>
+      <button onclick="loadAssistantScheduleCalendar()" class="text-xs font-bold text-indigo-500 hover:underline">🔄 Làm mới</button>
+    </div>
+    <p class="text-xs text-gray-400">Tổng hợp lịch học của tất cả các lớp bạn phụ trách. Bấm vào 1 ngày để xem chi tiết, hoặc gửi yêu cầu tạm ngưng buổi học đó.</p>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- Cột trái: tìm kiếm + lịch tháng -->
+      <div class="lg:col-span-5 space-y-3">
+        <div class="relative">
+          <input type="text" id="acalSearchInput" oninput="searchAssistantSchedule(this.value)"
+                 placeholder="🔍 Tìm theo tên lớp, ca học, ghi chú..."
+                 class="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
+          <div id="acalSearchResults" class="hidden absolute z-20 mt-1 w-full bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl shadow-lg max-h-60 overflow-y-auto"></div>
+        </div>
+
+        <div class="flex justify-between items-center bg-gray-50 dark:bg-zinc-800/80 p-3 rounded-2xl border border-gray-100 dark:border-zinc-700/60">
+          <button onclick="prevAssistantCalMonth()" class="w-8 h-8 rounded-xl bg-white dark:bg-zinc-700 text-gray-700 dark:text-white flex items-center justify-center font-bold hover:bg-[#cf1717] hover:text-white transition shadow-sm">‹</button>
+          <span id="acalMonthYear" class="font-black text-sm sm:text-base text-gray-900 dark:text-white">Tháng --, ----</span>
+          <button onclick="nextAssistantCalMonth()" class="w-8 h-8 rounded-xl bg-white dark:bg-zinc-700 text-gray-700 dark:text-white flex items-center justify-center font-bold hover:bg-[#cf1717] hover:text-white transition shadow-sm">›</button>
+        </div>
+
+        <div class="grid grid-cols-7 text-center text-xs font-bold text-gray-400">
+          <div>T2</div><div>T3</div><div>T4</div><div>T5</div><div>T6</div><div>T7</div><div>CN</div>
+        </div>
+        <div id="acalDaysGrid" class="grid grid-cols-7 gap-1 text-center text-xs sm:text-sm"></div>
+
+        <div class="flex items-center gap-3 text-[10px] text-gray-400 pt-1">
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#cf1717] inline-block"></span> Có buổi học</span>
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span> Có yêu cầu chờ duyệt</span>
+        </div>
+      </div>
+
+      <!-- Cột phải: chi tiết ngày chọn -->
+      <div class="lg:col-span-7 border-t lg:border-t-0 lg:border-l border-gray-100 dark:border-zinc-800 pt-4 lg:pt-0 lg:pl-6 space-y-3">
+        <div class="flex items-center justify-between border-b border-gray-100 dark:border-zinc-800 pb-2">
+          <h3 id="acalSelectedTitle" class="font-extrabold text-sm sm:text-base text-[#cf1717] flex items-center gap-2">
+            <span>📌</span> Chi tiết ngày: --/--/----
+          </h3>
+          <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-red-50 dark:bg-red-950 text-[#cf1717]">Lịch ReadUp</span>
+        </div>
+        <div id="acalSelectedContent" class="space-y-3 max-h-[380px] overflow-y-auto pr-1">
+          <p class="text-xs text-gray-400 italic">⏳ Đang tải lịch học...</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ 2. QUẢN LÝ BÀI TẬP ============ -->
   <section class="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border dark:border-zinc-800 shadow-sm space-y-4">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-l-4 border-[#cf1717] pl-3">
@@ -491,6 +541,7 @@
       pel('createClassForm').classList.add('hidden');
       pel('assistantHint').classList.remove('hidden');
       pel('classSectionTitle').innerText = '🏫 Lớp Tôi Phụ Trách';
+      pel('assistantCalendarSection').classList.remove('hidden');
     }
   }
 
@@ -565,6 +616,8 @@
           `}
         </div>
       </div>`).join('') || `<p class="text-gray-400 text-sm col-span-full">${isAssistantRole() ? 'Bạn chưa được phân công phụ trách lớp nào.' : 'Chưa có lớp nào. Hãy tạo lớp đầu tiên ở trên!'}</p>`;
+
+    if (isAssistantRole()) loadAssistantScheduleCalendar();
   }
 
   async function deleteClass(id, title) {
@@ -897,6 +950,7 @@
     const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'pending_suspend', requested_by: currentUser.id, request_note: reason.trim() || null }).eq('id', id);
     if (error) return notify('❌ Lỗi: ' + error.message + ' (kiểm tra đã tạo policy "assistant requests suspend" trong SQL chưa)');
     notify('📨 Đã gửi yêu cầu — chờ giáo viên chủ nhiệm duyệt.'); loadSchedule();
+    if (isAssistantRole()) loadAssistantScheduleCalendar();
   }
 
   // ---- Tải file Excel lên & bóc tách thành các buổi học ----
@@ -967,6 +1021,178 @@
     } catch (err) {
       notify('❌ Lỗi đọc file Excel: ' + (err.message || 'không xác định'));
     }
+  }
+
+  // =====================================================================
+  // LỊCH HỌC TỔNG HỢP CHO GIÁO VIÊN PHỤ TRÁCH (gộp lịch mọi lớp được gán)
+  // =====================================================================
+  let allAssistantSessions = [];
+  let acalCurrentDate = new Date();
+  let acalSelectedDateStr = new Date().toISOString().split('T')[0];
+
+  async function loadAssistantScheduleCalendar() {
+    if (!isAssistantRole()) return;
+    const box = pel('acalSelectedContent');
+    if (!myClasses.length) {
+      allAssistantSessions = [];
+      if (box) box.innerHTML = '<p class="text-xs text-gray-400 italic">Bạn chưa được phân công phụ trách lớp nào nên chưa có lịch học.</p>';
+      renderAssistantCalendar();
+      return;
+    }
+    const classIds = myClasses.map(c => c.id);
+    const { data, error } = await sbClient.from('class_schedule_sessions').select('*').in('class_id', classIds).order('session_date', { ascending: true });
+    if (error) { if (box) box.innerHTML = `<p class="text-red-500 text-xs">Lỗi tải lịch học: ${esc(error.message)}</p>`; return; }
+    allAssistantSessions = data || [];
+    initAssistantCalendar();
+  }
+
+  function classInfoOf(classId) { return myClasses.find(c => c.id === classId) || {}; }
+
+  function initAssistantCalendar() {
+    renderAssistantCalendar();
+    updateAssistantSelectedDateDetails();
+  }
+
+  function renderAssistantCalendar() {
+    const year = acalCurrentDate.getFullYear();
+    const month = acalCurrentDate.getMonth();
+    const monthNames = ["Tháng 1","Tháng 2","Tháng 3","Tháng 4","Tháng 5","Tháng 6","Tháng 7","Tháng 8","Tháng 9","Tháng 10","Tháng 11","Tháng 12"];
+    const monthYearElem = pel('acalMonthYear');
+    if (monthYearElem) monthYearElem.innerText = `${monthNames[month]}, ${year}`;
+
+    const grid = pel('acalDaysGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const startingDay = (firstDay === 0) ? 6 : firstDay - 1;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    const dateStatusMap = {}; // dateStr -> 'pending' | 'has'
+    allAssistantSessions.forEach(s => {
+      if (!s.session_date) return;
+      if (s.status === 'pending_suspend') dateStatusMap[s.session_date] = 'pending';
+      else if (!dateStatusMap[s.session_date]) dateStatusMap[s.session_date] = 'has';
+    });
+
+    for (let i = 0; i < startingDay; i++) grid.innerHTML += `<div class="p-2"></div>`;
+
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const dotStatus = dateStatusMap[dateStr];
+      const isSelected = dateStr === acalSelectedDateStr;
+      const isToday = dateStr === todayStr;
+
+      let bgClass = "hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-700 dark:text-gray-300";
+      if (isSelected) bgClass = "bg-[#cf1717] text-white font-black shadow-md";
+      else if (isToday) bgClass = "border-2 border-[#cf1717] font-bold text-[#cf1717] dark:text-red-400";
+
+      let dot = '<span class="w-2 h-2 mt-1"></span>';
+      if (dotStatus === 'pending') dot = `<span class="w-2 h-2 ${isSelected ? 'bg-white' : 'bg-amber-500'} rounded-full mt-1 shadow-sm"></span>`;
+      else if (dotStatus === 'has') dot = `<span class="w-2 h-2 ${isSelected ? 'bg-white' : 'bg-[#cf1717]'} rounded-full mt-1 shadow-sm"></span>`;
+
+      grid.innerHTML += `
+        <div onclick="selectAssistantCalDate('${dateStr}')" class="p-2 sm:p-2.5 rounded-xl cursor-pointer transition flex flex-col items-center justify-center relative min-h-[42px] ${bgClass}">
+          <span class="text-xs sm:text-sm font-bold">${d}</span>
+          ${dot}
+        </div>`;
+    }
+  }
+
+  function prevAssistantCalMonth() { acalCurrentDate.setMonth(acalCurrentDate.getMonth() - 1); renderAssistantCalendar(); }
+  function nextAssistantCalMonth() { acalCurrentDate.setMonth(acalCurrentDate.getMonth() + 1); renderAssistantCalendar(); }
+  function selectAssistantCalDate(dateStr) { acalSelectedDateStr = dateStr; renderAssistantCalendar(); updateAssistantSelectedDateDetails(); }
+
+  function updateAssistantSelectedDateDetails() {
+    const titleElem = pel('acalSelectedTitle');
+    const contentElem = pel('acalSelectedContent');
+    if (!titleElem || !contentElem) return;
+    const [y, m, d] = acalSelectedDateStr.split('-');
+    titleElem.innerHTML = `<span>📌</span> Chi tiết ngày: ${d}/${m}/${y}`;
+
+    const daySessions = allAssistantSessions.filter(s => s.session_date === acalSelectedDateStr);
+
+    if (!daySessions.length) {
+      contentElem.innerHTML = `
+        <div class="p-8 text-center bg-gray-50 dark:bg-zinc-800/40 rounded-2xl border border-dashed border-gray-200 dark:border-zinc-800">
+          <span class="text-2xl block mb-1">☕</span>
+          <p class="text-xs text-gray-400 font-medium">Không có buổi học nào trong ngày này.</p>
+        </div>`;
+      return;
+    }
+
+    contentElem.innerHTML = daySessions.map(s => {
+      const cls = classInfoOf(s.class_id);
+      const badge = s.status === 'active'
+        ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">🟢 Đang học</span>`
+        : s.status === 'pending_suspend'
+          ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400">🟡 Chờ duyệt tạm ngưng</span>`
+          : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400">🔴 Đã tạm ngưng</span>`;
+      return `
+      <div class="p-4 bg-gray-50 dark:bg-zinc-800/90 rounded-2xl border border-gray-200/80 dark:border-zinc-700/80 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-black text-[#cf1717] bg-red-100/80 dark:bg-red-950 px-2.5 py-1 rounded-lg">${esc(cls.class_code || '')}</span>
+          ${badge}
+        </div>
+        <h4 class="font-extrabold text-sm sm:text-base text-gray-900 dark:text-white leading-snug">${esc(cls.title || 'Lớp học')}</h4>
+        <p class="text-xs text-gray-500 dark:text-gray-400">${esc(s.subject_name || '(chưa rõ tên buổi)')} · 🕐 ${esc(s.session_time || '')} ${s.room ? '· 🚪 ' + esc(s.room) : ''} ${s.lecturer ? '· 👤 ' + esc(s.lecturer) : ''}</p>
+        ${s.note ? `<p class="text-xs text-gray-400 italic border-t border-gray-200/60 dark:border-zinc-700/60 pt-2">📝 ${esc(s.note)}</p>` : ''}
+        ${s.status === 'pending_suspend' && s.request_note ? `<p class="text-xs text-amber-600 dark:text-amber-400">Lý do đã gửi: ${esc(s.request_note)}</p>` : ''}
+        ${s.status === 'active' ? `<button onclick="requestSuspendFromCalendar('${s.id}')" class="text-xs font-bold text-amber-600 hover:underline">🚫 Yêu cầu tạm ngưng buổi này</button>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  async function requestSuspendFromCalendar(id) {
+    const reason = prompt('Lý do đề nghị tạm ngưng buổi học này (giáo viên chủ nhiệm sẽ thấy lý do này để duyệt):');
+    if (reason === null) return;
+    const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'pending_suspend', requested_by: currentUser.id, request_note: reason.trim() || null }).eq('id', id);
+    if (error) return notify('❌ Lỗi: ' + error.message);
+    notify('📨 Đã gửi yêu cầu — chờ giáo viên chủ nhiệm duyệt.');
+    loadAssistantScheduleCalendar();
+  }
+
+  // ---- Tìm kiếm trong lịch tổng hợp ----
+  function searchAssistantSchedule(keyword) {
+    const resultsBox = pel('acalSearchResults');
+    if (!resultsBox) return;
+    const kw = (keyword || '').trim().toLowerCase();
+    if (!kw) { resultsBox.classList.add('hidden'); resultsBox.innerHTML = ''; return; }
+
+    const matches = allAssistantSessions.filter(s => {
+      const cls = classInfoOf(s.class_id);
+      const text = `${cls.title || ''} ${cls.class_code || ''} ${s.subject_name || ''} ${s.note || ''} ${s.room || ''} ${s.lecturer || ''}`.toLowerCase();
+      return text.includes(kw);
+    }).sort((a, b) => (a.session_date || '').localeCompare(b.session_date || ''));
+
+    resultsBox.innerHTML = matches.length === 0
+      ? `<div class="p-3 text-xs text-gray-400 text-center">Không tìm thấy kết quả.</div>`
+      : matches.slice(0, 20).map(s => {
+          const cls = classInfoOf(s.class_id);
+          const [y, m, d] = (s.session_date || '--').split('-');
+          return `
+            <div onclick="jumpToAssistantSearchResult('${s.session_date}')" class="p-2.5 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800 border-b border-gray-100 dark:border-zinc-800 last:border-0">
+              <div class="overflow-hidden">
+                <p class="text-xs font-bold text-gray-800 dark:text-gray-200 truncate">${esc(cls.class_code || '')} · ${esc(s.subject_name || cls.title || '')}</p>
+                <p class="text-[10px] text-gray-400 truncate">${esc(s.note || s.room || '')}</p>
+              </div>
+              <span class="text-[10px] font-bold text-[#cf1717] shrink-0 ml-2">${d}/${m}/${y}</span>
+            </div>`;
+        }).join('');
+    resultsBox.classList.remove('hidden');
+  }
+
+  function jumpToAssistantSearchResult(dateStr) {
+    const [y, m] = dateStr.split('-').map(Number);
+    acalCurrentDate = new Date(y, m - 1, 1);
+    renderAssistantCalendar();
+    selectAssistantCalDate(dateStr);
+    const input = pel('acalSearchInput');
+    const resultsBox = pel('acalSearchResults');
+    if (input) input.value = '';
+    if (resultsBox) { resultsBox.classList.add('hidden'); resultsBox.innerHTML = ''; }
   }
 
   // =====================================================================
