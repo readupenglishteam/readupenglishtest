@@ -72,6 +72,15 @@
       <a href="assignment.html" target="_blank" class="bg-white/80 dark:bg-zinc-800/80 text-[#cf1717] font-bold px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm border border-[#cf1717]/40 hover:bg-red-50 transition flex items-center gap-1">
         <span>🎓</span><span class="hidden sm:inline">Xem trang Học Sinh</span>
       </a>
+      <div class="relative">
+        <button onclick="toggleNotifDropdown()" id="notifBellBtn" class="relative p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50">
+          🔔
+          <span id="notifBadge" class="hidden absolute -top-1.5 -right-1.5 bg-[#cf1717] text-white text-[9px] font-black rounded-full min-w-[17px] h-[17px] px-1 flex items-center justify-center shadow-sm animate-pulse">0</span>
+        </button>
+        <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 max-w-[90vw] max-h-96 overflow-y-auto bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-xl shadow-2xl z-[100001] p-2 space-y-1">
+          <p class="text-xs text-gray-400 italic p-2">Không có thông báo nào.</p>
+        </div>
+      </div>
       <button onclick="handleLogout()" class="px-3 py-2 text-xs font-bold bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-red-100 dark:hover:bg-red-950/50 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] dark:hover:text-red-400 rounded-xl transition border border-gray-200/50 dark:border-zinc-700/50">
         Đăng xuất
       </button>
@@ -83,6 +92,12 @@
 </header>
 
 <main class="max-w-7xl mx-auto px-4 py-6 space-y-8 w-full">
+
+  <!-- ============ 0. BANNER THÔNG BÁO (hiện ngay ngoài màn hình, không ẩn trong modal) ============ -->
+  <div id="notifBanner" class="hidden bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold flex items-center justify-between gap-3 shadow-sm">
+    <span id="notifBannerText" class="flex items-center gap-2"><span class="text-lg leading-none">🔔</span> <span>Bạn có yêu cầu cần xử lý.</span></span>
+    <button onclick="toggleNotifDropdown()" class="underline whitespace-nowrap hover:text-amber-900 dark:hover:text-amber-200 transition">Xem ngay</button>
+  </div>
 
   <!-- ============ 1. TẠO LỚP HỌC ============ -->
   <section class="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border dark:border-zinc-800 shadow-sm space-y-4">
@@ -315,6 +330,27 @@
   </div>
 </div>
 
+<!-- ================= MODAL: HỖ TRỢ BUỔI HỌC (assistant gửi yêu cầu/hỏi, teacher đọc & phản hồi) ================= -->
+<div id="supportModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-start justify-center p-4 z-[9999] overflow-y-auto">
+  <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-5 sm:p-6 w-full max-w-lg my-8 shadow-2xl space-y-4">
+    <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
+      <h3 class="font-extrabold text-lg text-[#cf1717] dark:text-red-400 flex items-center gap-2">
+        <span>💬</span> Hỗ Trợ Buổi Học
+      </h3>
+      <button onclick="closeSupportModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
+    </div>
+    <div id="smSupportSessionInfo" class="text-xs text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-zinc-800/60 rounded-xl p-3"></div>
+    <div id="smSupportThreadPicker" class="hidden space-y-1"></div>
+    <div id="smSupportThread" class="space-y-2 max-h-72 overflow-y-auto pr-1 min-h-[80px]">
+      <p class="text-xs text-gray-400 italic">Đang tải...</p>
+    </div>
+    <form id="smSupportForm" onsubmit="sendSupportMessage(event)" class="flex gap-2 pt-2 border-t dark:border-zinc-800">
+      <input id="smSupportInput" placeholder="VD: Buổi này chuyển sang học online được không?" class="flex-1 p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-xs" required>
+      <button type="submit" class="bg-[#cf1717] hover:bg-red-700 text-white font-bold px-4 py-2 rounded-lg text-xs shadow transition flex-shrink-0">Gửi</button>
+    </form>
+  </div>
+</div>
+
 <!-- ================= MODAL: TRÌNH TẠO BÀI TẬP (QUESTION BUILDER KIỂU WORD) ================= -->
 <div id="builderModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-start justify-center p-2 sm:p-4 z-[9999] overflow-y-auto">
   <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 w-full max-w-4xl my-4 sm:my-8 shadow-2xl space-y-5">
@@ -531,7 +567,9 @@
     currentUser = user;
     myRole = profile.role;
     applyRoleUI();
-    loadClasses();
+    await loadClasses();
+    loadNotifCounts();
+    setInterval(loadNotifCounts, 45000); // tự làm mới thông báo mỗi 45 giây
   }
 
   // Giáo viên phụ trách (assistant): không được tạo/sửa lớp, không quản lý học sinh, không sửa lịch học
@@ -851,12 +889,16 @@
         </div>
         <p class="text-gray-500">📅 ${fmtDate(r.session_date)} · 🕐 ${esc(r.session_time || '')} ${r.room ? '· 🚪 ' + esc(r.room) : ''} ${r.lecturer ? '· 👤 ' + esc(r.lecturer) : ''}</p>
         ${r.note ? `<p class="text-gray-400">Ghi chú: ${esc(r.note)}</p>` : ''}
-        <div class="flex gap-3 pt-1">
+        <div class="flex flex-wrap items-center gap-3 pt-1">
           ${owner ? `
             <button onclick="startEditRow('${r.id}')" class="font-bold text-blue-500 hover:underline">✏️ Sửa chi tiết</button>
             <button onclick="deleteScheduleRow('${r.id}')" class="font-bold text-red-500 hover:underline">🗑️ Xóa buổi học</button>
           ` : ''}
           ${!owner && r.status === 'active' ? `<button onclick="requestSuspend('${r.id}')" class="font-bold text-amber-600 hover:underline">🚫 Yêu cầu tạm ngưng</button>` : ''}
+          <button onclick="openSupportModal('${r.id}')" class="relative font-bold text-indigo-500 hover:underline flex items-center gap-1" title="Gửi/xem trao đổi hỗ trợ về buổi học này">
+            <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-indigo-500 text-white text-[10px] font-black not-italic">i</span> Hỗ trợ
+            ${unreadSupportSessionIds.has(r.id) ? '<span class="absolute -top-1 -right-1 w-2 h-2 bg-[#cf1717] rounded-full animate-pulse"></span>' : ''}
+          </button>
         </div>
       </div>`;
     }).join('') || '<p class="text-xs text-gray-400 italic">Lớp này chưa có lịch học. ' + (owner ? 'Hãy tải file Excel lên hoặc thêm thủ công ở trên.' : '') + '</p>';
@@ -937,12 +979,12 @@
   async function approveSuspend(id) {
     const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'suspended' }).eq('id', id);
     if (error) return notify('❌ Lỗi: ' + error.message);
-    notify('✅ Đã duyệt tạm ngưng buổi học.'); loadSchedule();
+    notify('✅ Đã duyệt tạm ngưng buổi học.'); loadSchedule(); loadNotifCounts();
   }
   async function rejectSuspend(id) {
     const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'active', requested_by: null, request_note: null }).eq('id', id);
     if (error) return notify('❌ Lỗi: ' + error.message);
-    notify('✅ Đã từ chối yêu cầu — buổi học trở lại bình thường.'); loadSchedule();
+    notify('✅ Đã từ chối yêu cầu — buổi học trở lại bình thường.'); loadSchedule(); loadNotifCounts();
   }
   async function requestSuspend(id) {
     const reason = prompt('Lý do đề nghị tạm ngưng buổi học này (giáo viên chủ nhiệm sẽ thấy lý do này để duyệt):');
@@ -951,6 +993,7 @@
     if (error) return notify('❌ Lỗi: ' + error.message + ' (kiểm tra đã tạo policy "assistant requests suspend" trong SQL chưa)');
     notify('📨 Đã gửi yêu cầu — chờ giáo viên chủ nhiệm duyệt.'); loadSchedule();
     if (isAssistantRole()) loadAssistantScheduleCalendar();
+    loadNotifCounts();
   }
 
   // ---- Tải file Excel lên & bóc tách thành các buổi học ----
@@ -1140,7 +1183,13 @@
         <p class="text-xs text-gray-500 dark:text-gray-400">${esc(s.subject_name || '(chưa rõ tên buổi)')} · 🕐 ${esc(s.session_time || '')} ${s.room ? '· 🚪 ' + esc(s.room) : ''} ${s.lecturer ? '· 👤 ' + esc(s.lecturer) : ''}</p>
         ${s.note ? `<p class="text-xs text-gray-400 italic border-t border-gray-200/60 dark:border-zinc-700/60 pt-2">📝 ${esc(s.note)}</p>` : ''}
         ${s.status === 'pending_suspend' && s.request_note ? `<p class="text-xs text-amber-600 dark:text-amber-400">Lý do đã gửi: ${esc(s.request_note)}</p>` : ''}
-        ${s.status === 'active' ? `<button onclick="requestSuspendFromCalendar('${s.id}')" class="text-xs font-bold text-amber-600 hover:underline">🚫 Yêu cầu tạm ngưng buổi này</button>` : ''}
+        <div class="flex flex-wrap items-center gap-3 pt-1 border-t border-gray-200/60 dark:border-zinc-700/60">
+          ${s.status === 'active' ? `<button onclick="requestSuspendFromCalendar('${s.id}')" class="text-xs font-bold text-amber-600 hover:underline">🚫 Yêu cầu tạm ngưng buổi này</button>` : ''}
+          <button onclick="openSupportModal('${s.id}')" class="relative text-xs font-bold text-indigo-500 hover:underline flex items-center gap-1" title="Gửi/xem trao đổi hỗ trợ về buổi học này">
+            <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-indigo-500 text-white text-[10px] font-black not-italic">i</span> Hỗ trợ
+            ${unreadSupportSessionIds.has(s.id) ? '<span class="absolute -top-1 -right-1 w-2 h-2 bg-[#cf1717] rounded-full animate-pulse"></span>' : ''}
+          </button>
+        </div>
       </div>`;
     }).join('');
   }
@@ -1152,6 +1201,200 @@
     if (error) return notify('❌ Lỗi: ' + error.message);
     notify('📨 Đã gửi yêu cầu — chờ giáo viên chủ nhiệm duyệt.');
     loadAssistantScheduleCalendar();
+    loadNotifCounts();
+  }
+
+  // =====================================================================
+  // HỆ THỐNG THÔNG BÁO NGOÀI MÀN HÌNH (chuông 🔔 + banner đầu trang)
+  // Gom: (a) yêu cầu tạm ngưng đang chờ owner duyệt, (b) tin nhắn hỗ trợ chưa đọc
+  // =====================================================================
+  let notifItems = [];
+  let unreadSupportSessionIds = new Set(); // session_id nào đang có tin nhắn chưa đọc -> chấm đỏ trên nút "i"
+
+  async function loadNotifCounts() {
+    if (!currentUser) return;
+    notifItems = [];
+    unreadSupportSessionIds = new Set();
+    const classIds = myClasses.map(c => c.id);
+
+    if (isOwnerRole()) {
+      if (classIds.length) {
+        const { data: pendingRows } = await sbClient.from('class_schedule_sessions').select('*').in('class_id', classIds).eq('status', 'pending_suspend');
+        (pendingRows || []).forEach(r => {
+          const cls = classInfoOf(r.class_id);
+          notifItems.push({
+            label: `🚫 Yêu cầu tạm ngưng — ${esc(cls.title || cls.class_code || 'Lớp học')} · ${fmtDate(r.session_date)}`,
+            action: () => openScheduleModal(r.class_id)
+          });
+        });
+        const { data: unreadMsgs } = await sbClient.from('class_schedule_support_messages').select('*').in('class_id', classIds).eq('read_by_teacher', false).neq('sender_id', currentUser.id);
+        (unreadMsgs || []).forEach(m => {
+          unreadSupportSessionIds.add(m.session_id);
+          const cls = classInfoOf(m.class_id);
+          notifItems.push({
+            label: `💬 Tin nhắn hỗ trợ mới — ${esc(cls.title || cls.class_code || 'Lớp học')}`,
+            action: () => openSupportModal(m.session_id)
+          });
+        });
+      }
+    } else if (isAssistantRole()) {
+      if (classIds.length) {
+        const { data: unreadMsgs } = await sbClient.from('class_schedule_support_messages').select('*').eq('assistant_id', currentUser.id).eq('read_by_assistant', false).neq('sender_id', currentUser.id);
+        (unreadMsgs || []).forEach(m => {
+          unreadSupportSessionIds.add(m.session_id);
+          const cls = classInfoOf(m.class_id);
+          notifItems.push({
+            label: `💬 Giáo viên chủ nhiệm đã phản hồi — ${esc(cls.title || cls.class_code || 'Lớp học')}`,
+            action: () => openSupportModal(m.session_id)
+          });
+        });
+      }
+    }
+    renderNotifUI();
+    // Nếu đang mở modal lịch/hỗ trợ, vẽ lại để cập nhật chấm đỏ trên nút "i"
+    if (currentClassForSchedule && !pel('scheduleModal').classList.contains('hidden')) renderSchedule();
+    if (isAssistantRole() && pel('assistantCalendarSection') && !pel('assistantCalendarSection').classList.contains('hidden')) updateAssistantSelectedDateDetails();
+  }
+
+  function renderNotifUI() {
+    const badge = pel('notifBadge');
+    const banner = pel('notifBanner');
+    const bannerText = pel('notifBannerText');
+    const dropdown = pel('notifDropdown');
+    const count = notifItems.length;
+    if (count > 0) {
+      badge.classList.remove('hidden'); badge.innerText = count > 9 ? '9+' : String(count);
+      banner.classList.remove('hidden');
+      bannerText.innerHTML = isOwnerRole()
+        ? `<span class="text-lg leading-none">🔔</span> <span>Bạn có ${count} việc cần xử lý: yêu cầu tạm ngưng và/hoặc tin nhắn hỗ trợ từ giáo viên phụ trách.</span>`
+        : `<span class="text-lg leading-none">🔔</span> <span>Bạn có ${count} phản hồi mới từ giáo viên chủ nhiệm.</span>`;
+    } else {
+      badge.classList.add('hidden'); banner.classList.add('hidden');
+    }
+    dropdown.innerHTML = notifItems.map((it, idx) => `
+      <button onclick="handleNotifClick(${idx})" class="w-full text-left text-xs p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition text-gray-700 dark:text-gray-200">${it.label}</button>
+    `).join('') || '<p class="text-xs text-gray-400 italic p-2">Không có thông báo nào.</p>';
+  }
+  function handleNotifClick(idx) { pel('notifDropdown').classList.add('hidden'); notifItems[idx]?.action?.(); }
+  function toggleNotifDropdown() { pel('notifDropdown').classList.toggle('hidden'); }
+  document.addEventListener('click', (e) => {
+    const dd = pel('notifDropdown');
+    if (dd && !dd.classList.contains('hidden') && !e.target.closest('#notifDropdown') && !e.target.closest('#notifBellBtn')) dd.classList.add('hidden');
+  });
+
+  // =====================================================================
+  // MODAL HỖ TRỢ BUỔI HỌC — assistant gửi yêu cầu/câu hỏi cho teacher về 1 buổi học,
+  // teacher đọc và có thể phản hồi hoặc không.
+  // =====================================================================
+  let currentSupportSession = null;
+  let currentSupportAssistantId = null;
+  let currentSupportMessages = [];
+
+  function findSessionAnywhere(id) {
+    return currentScheduleRows.find(r => r.id === id) || (typeof allAssistantSessions !== 'undefined' ? allAssistantSessions.find(r => r.id === id) : null) || null;
+  }
+
+  async function openSupportModal(sessionId) {
+    const session = findSessionAnywhere(sessionId);
+    if (!session) return notify('❌ Không tìm thấy buổi học này.');
+    currentSupportSession = session;
+    currentSupportAssistantId = null;
+    currentSupportMessages = [];
+    const cls = classInfoOf(session.class_id);
+    pel('smSupportSessionInfo').innerHTML = `<b>${esc(cls.title || cls.class_code || 'Lớp học')}</b> — 📅 ${fmtDate(session.session_date)} · 🕐 ${esc(session.session_time || '')} ${session.room ? '· 🚪 ' + esc(session.room) : ''}`;
+    pel('smSupportThread').innerHTML = '<p class="text-xs text-gray-400 italic">⏳ Đang tải...</p>';
+    pel('smSupportThreadPicker').classList.add('hidden');
+    pel('smSupportForm').classList.remove('hidden');
+    pel('supportModal').classList.remove('hidden'); pel('supportModal').classList.add('flex');
+
+    if (isAssistantRole()) {
+      currentSupportAssistantId = currentUser.id;
+      await loadSupportThread();
+      return;
+    }
+
+    // Owner: tìm những giáo viên phụ trách đã từng nhắn về buổi này + toàn bộ giáo viên phụ trách của lớp
+    const { data: msgs } = await sbClient.from('class_schedule_support_messages').select('assistant_id').eq('session_id', sessionId);
+    const threadIds = [...new Set((msgs || []).map(m => m.assistant_id))];
+    const { data: assistants } = await sbClient.from('class_assistants').select('teacher_id, profiles(full_name)').eq('class_id', session.class_id);
+    const nameOf = (id) => (assistants || []).find(a => a.teacher_id === id)?.profiles?.full_name || 'Giáo viên phụ trách';
+    const allIds = [...new Set([...threadIds, ...(assistants || []).map(a => a.teacher_id)])];
+
+    if (!allIds.length) {
+      pel('smSupportThread').innerHTML = '<p class="text-xs text-gray-400 italic">Lớp này chưa có giáo viên phụ trách nào để trao đổi.</p>';
+      pel('smSupportForm').classList.add('hidden');
+      return;
+    }
+    if (allIds.length > 1) {
+      pel('smSupportThreadPicker').classList.remove('hidden');
+      pel('smSupportThreadPicker').innerHTML = `
+        <label class="text-[10px] font-bold uppercase text-gray-400">Trao đổi với</label>
+        <select onchange="switchSupportThread(this.value)" class="w-full p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-xs">
+          ${allIds.map(id => `<option value="${id}">${esc(nameOf(id))}${threadIds.includes(id) ? '' : ' (chưa có tin nhắn)'}</option>`).join('')}
+        </select>`;
+    }
+    currentSupportAssistantId = allIds[0];
+    await loadSupportThread();
+  }
+
+  function switchSupportThread(id) { currentSupportAssistantId = id; loadSupportThread(); }
+
+  async function loadSupportThread() {
+    if (!currentSupportSession || !currentSupportAssistantId) return;
+    const { data, error } = await sbClient.from('class_schedule_support_messages')
+      .select('*').eq('session_id', currentSupportSession.id).eq('assistant_id', currentSupportAssistantId)
+      .order('created_at', { ascending: true });
+    if (error) { pel('smSupportThread').innerHTML = `<p class="text-red-500 text-xs">Lỗi: ${esc(error.message)} (đã chạy SQL tạo bảng class_schedule_support_messages chưa?)</p>`; return; }
+    currentSupportMessages = data || [];
+    renderSupportThread();
+    markSupportRead();
+  }
+
+  function renderSupportThread() {
+    const box = pel('smSupportThread');
+    box.innerHTML = currentSupportMessages.map(m => {
+      const mine = m.sender_id === currentUser.id;
+      return `<div class="flex ${mine ? 'justify-end' : 'justify-start'}">
+        <div class="max-w-[80%] px-3 py-2 rounded-2xl text-xs ${mine ? 'bg-[#cf1717] text-white rounded-br-sm' : 'bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-gray-200 rounded-bl-sm'}">
+          <p class="whitespace-pre-wrap">${esc(m.message)}</p>
+          <p class="text-[9px] opacity-70 mt-1">${new Date(m.created_at).toLocaleString('vi-VN')}</p>
+        </div>
+      </div>`;
+    }).join('') || '<p class="text-xs text-gray-400 italic">Chưa có tin nhắn nào. Hãy gửi yêu cầu hỗ trợ đầu tiên bên dưới.</p>';
+    box.scrollTop = box.scrollHeight;
+  }
+
+  async function markSupportRead() {
+    const field = isOwnerRole() ? 'read_by_teacher' : 'read_by_assistant';
+    const unreadIds = currentSupportMessages.filter(m => m.sender_id !== currentUser.id && !m[field]).map(m => m.id);
+    if (!unreadIds.length) return;
+    await sbClient.from('class_schedule_support_messages').update({ [field]: true }).in('id', unreadIds);
+    loadNotifCounts();
+  }
+
+  async function sendSupportMessage(e) {
+    e.preventDefault();
+    if (!currentSupportSession || !currentSupportAssistantId) return;
+    const input = pel('smSupportInput');
+    const message = input.value.trim();
+    if (!message) return;
+    const row = {
+      session_id: currentSupportSession.id,
+      class_id: currentSupportSession.class_id,
+      assistant_id: currentSupportAssistantId,
+      sender_id: currentUser.id,
+      message
+    };
+    const { error } = await sbClient.from('class_schedule_support_messages').insert([row]);
+    if (error) return notify('❌ Lỗi gửi: ' + error.message);
+    input.value = '';
+    await loadSupportThread();
+    loadNotifCounts();
+  }
+
+  function closeSupportModal() {
+    pel('supportModal').classList.add('hidden'); pel('supportModal').classList.remove('flex');
+    currentSupportSession = null; currentSupportAssistantId = null; currentSupportMessages = [];
   }
 
   // ---- Tìm kiếm trong lịch tổng hợp ----
