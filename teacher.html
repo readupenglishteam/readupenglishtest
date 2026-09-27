@@ -10,6 +10,7 @@
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
     if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       document.documentElement.classList.add('dark');
@@ -86,11 +87,13 @@
   <!-- ============ 1. TẠO LỚP HỌC ============ -->
   <section class="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border dark:border-zinc-800 shadow-sm space-y-4">
     <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
-      <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white">🏫 Lớp Học Của Tôi</h2>
+      <h2 id="classSectionTitle" class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white">🏫 Lớp Học Của Tôi</h2>
       <span id="classCount" class="text-xs font-bold px-2.5 py-1 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">0 lớp</span>
     </div>
 
-    <form onsubmit="createClass(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+    <!-- Giáo viên phụ trách (role=assistant) không được tạo lớp -> ẩn cả form này -->
+    <p id="assistantHint" class="hidden text-xs text-gray-400 bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl p-3">👤 Bạn đang đăng nhập với vai trò <b>Giáo viên phụ trách</b> — chỉ có thể xem lịch học và thêm bài tập cho các lớp được phân công, không tạo/sửa lớp hay quản lý học sinh.</p>
+    <form id="createClassForm" onsubmit="createClass(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
       <div>
         <label class="block font-bold uppercase mb-1">Mã lớp (*)</label>
         <input id="newClassCode" required placeholder="VD: A1K15" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
@@ -182,6 +185,67 @@
     <div class="space-y-2">
       <h4 class="font-bold text-xs uppercase text-gray-500">📋 Danh Sách Học Sinh (<span id="cmStuCount">0</span>)</h4>
       <div id="cmStuList" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+        <p class="text-xs text-gray-400 italic">Đang tải...</p>
+      </div>
+    </div>
+
+    <div class="bg-indigo-50 dark:bg-indigo-950/30 p-4 rounded-xl border border-indigo-200 dark:border-indigo-900 space-y-3">
+      <h4 class="font-bold text-xs uppercase text-indigo-600 dark:text-indigo-400">👩‍🏫 Giáo Viên Phụ Trách Lớp Này</h4>
+      <p class="text-[11px] text-gray-500">Giáo viên phụ trách đăng nhập chung trang này nhưng chỉ xem lịch học & thêm bài tập cho lớp được gán — không tạo/sửa lớp, không quản lý học sinh, không sửa lịch học.</p>
+      <div id="cmAssistList" class="space-y-1.5"><p class="text-xs text-gray-400 italic">Đang tải...</p></div>
+
+      <div class="flex gap-1 text-xs pt-1">
+        <button type="button" onclick="switchAddAsstTab('new')" id="tabAddAsstNew" class="flex-1 py-1.5 rounded-lg font-bold bg-indigo-600 text-white">➕ Tạo tài khoản mới</button>
+        <button type="button" onclick="switchAddAsstTab('existing')" id="tabAddAsstExisting" class="flex-1 py-1.5 rounded-lg font-bold bg-white dark:bg-zinc-800 border dark:border-zinc-700 text-gray-600 dark:text-gray-300">👤 Thêm đã có tài khoản</button>
+      </div>
+      <form id="formAddAsstNew" onsubmit="addAssistant(event)" class="space-y-2">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <input id="asstName" required placeholder="Họ và tên" class="p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
+          <input id="asstEmail" type="email" required placeholder="Email đăng nhập" class="p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
+          <div class="flex gap-1">
+            <input id="asstPassword" required minlength="6" placeholder="Mật khẩu (≥6 ký tự)" class="flex-1 p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
+            <button type="button" onclick="pel('asstPassword').value = genPassword()" class="px-2 rounded-lg border dark:border-zinc-700 text-xs">🎲</button>
+          </div>
+        </div>
+        <button type="submit" id="addAsstBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2 rounded-xl text-xs shadow transition">Tạo tài khoản & gán vào lớp</button>
+      </form>
+      <form id="formAddAsstExisting" onsubmit="addExistingAssistant(event)" class="hidden space-y-2">
+        <input id="existingAsstEmail" type="email" required placeholder="Email giáo viên đã có tài khoản" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
+        <button type="submit" id="addExistingAsstBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2 rounded-xl text-xs shadow transition">Gán vào lớp (không tạo tài khoản mới)</button>
+        <p class="text-[11px] text-gray-400">💡 Cần chạy 2 hàm SQL <code>teacher_provision_assistant</code> / <code>teacher_add_existing_assistant_by_email</code> trong file SQL đi kèm trước khi dùng.</p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL: LỊCH HỌC CỦA LỚP ================= -->
+<div id="scheduleModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-start justify-center p-4 z-[9999] overflow-y-auto">
+  <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 w-full max-w-4xl my-8 shadow-2xl space-y-5">
+    <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
+      <h3 class="font-extrabold text-lg text-[#cf1717] dark:text-red-400 flex items-center gap-2">
+        <span>📅</span> Lịch Học: <span id="smClassTitle">...</span>
+      </h3>
+      <button onclick="closeScheduleModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
+    </div>
+
+    <!-- Chỉ owner thấy khu vực tải file Excel -->
+    <div id="smUploadBox" class="hidden bg-gray-50 dark:bg-zinc-800/60 p-4 rounded-xl border dark:border-zinc-700 space-y-2">
+      <label class="flex items-center gap-2 text-xs font-bold cursor-pointer w-fit px-3 py-2 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg hover:border-[#cf1717] hover:text-[#cf1717] transition">
+        📥 Tải lịch học từ file Excel
+        <input type="file" accept=".xlsx,.xls" class="hidden" onchange="uploadScheduleExcel(this)">
+      </label>
+      <p class="text-[11px] text-gray-400">File Excel cần có dòng tiêu đề với các cột: <code>tiedelophoc</code>, <code>NgayHoc</code>, <code>CaHoc</code>, <code>PhongHoc</code>, <code>GiangVien</code>, <code>GhiChu</code> (không phân biệt hoa/thường). Tải lên sẽ <b>thay thế toàn bộ</b> lịch học hiện tại của lớp này.</p>
+    </div>
+
+    <!-- Các yêu cầu tạm ngưng đang chờ owner duyệt -->
+    <div id="smPendingBox" class="hidden space-y-2">
+      <h4 class="font-bold text-xs uppercase text-amber-600">🔔 Yêu Cầu Chờ Duyệt</h4>
+      <div id="smPendingList" class="space-y-2"></div>
+    </div>
+
+    <div class="space-y-2">
+      <h4 class="font-bold text-xs uppercase text-gray-500">📋 Danh Sách Buổi Học (<span id="smCount">0</span>)</h4>
+      <div id="smList" class="space-y-2 max-h-[28rem] overflow-y-auto pr-1">
         <p class="text-xs text-gray-400 italic">Đang tải...</p>
       </div>
     </div>
@@ -388,17 +452,33 @@
   // =====================================================================
   let currentUser = null;
   let myClasses = [];
+  let myRole = null; // 'teacher' | 'admin' | 'assistant'
   let currentClassForModal = null;
   let currentClassForAssignments = '';
   let currentAssignments = [];
+
+  function isOwnerRole() { return myRole === 'teacher' || myRole === 'admin'; }
+  function isAssistantRole() { return myRole === 'assistant'; }
 
   async function checkTeacher() {
     const { data: { user } } = await sbClient.auth.getUser();
     if (!user) { window.location.href = 'index.html'; return; }
     const { data: profile } = await sbClient.from('profiles').select('role, full_name').eq('id', user.id).single();
-    if (profile?.role !== 'teacher' && profile?.role !== 'admin') { window.location.href = 'dashboard.html'; return; }
+    if (!['teacher', 'admin', 'assistant'].includes(profile?.role)) { window.location.href = 'dashboard.html'; return; }
     currentUser = user;
+    myRole = profile.role;
+    applyRoleUI();
     loadClasses();
+  }
+
+  // Giáo viên phụ trách (assistant): không được tạo/sửa lớp, không quản lý học sinh, không sửa lịch học
+  // — chỉ xem lịch + thêm bài tập cho lớp được phân công.
+  function applyRoleUI() {
+    if (isAssistantRole()) {
+      pel('createClassForm').classList.add('hidden');
+      pel('assistantHint').classList.remove('hidden');
+      pel('classSectionTitle').innerText = '🏫 Lớp Tôi Phụ Trách';
+    }
   }
 
   // =====================================================================
@@ -434,7 +514,16 @@
   }
 
   async function loadClasses() {
-    const { data, error } = await sbClient.from('classes').select('*, class_students(count)').eq('teacher_id', currentUser.id).order('created_at', { ascending: false });
+    let data, error;
+    if (isAssistantRole()) {
+      // Giáo viên phụ trách: chỉ thấy các lớp mà chủ lớp đã gán mình vào (bảng class_assistants)
+      const res = await sbClient.from('class_assistants').select('classes(*, class_students(count))').eq('teacher_id', currentUser.id);
+      data = (res.data || []).map(r => r.classes).filter(Boolean);
+      error = res.error;
+    } else {
+      const res = await sbClient.from('classes').select('*, class_students(count)').eq('teacher_id', currentUser.id).order('created_at', { ascending: false });
+      data = res.data; error = res.error;
+    }
     if (error) { pel('classGrid').innerHTML = `<p class="text-red-500 text-sm col-span-full">Lỗi tải lớp: ${esc(error.message)}</p>`; return; }
     myClasses = data || [];
     pel('classCount').innerText = myClasses.length + ' lớp';
@@ -453,11 +542,16 @@
         </div>
         <h4 class="font-bold text-sm text-gray-900 dark:text-white">${esc(c.title)}</h4>
         ${c.info ? `<p class="text-xs text-gray-500 line-clamp-2">${esc(c.info)}</p>` : ''}
-        <div class="flex gap-3 pt-1">
-          <button onclick="openClassModal('${c.id}')" class="text-xs font-bold text-[#cf1717] hover:underline">👥 Quản lý học sinh</button>
-          <button onclick="deleteClass('${c.id}','${esc(c.title)}')" class="text-xs font-bold text-red-500 hover:underline">Xóa lớp</button>
+        <div class="flex flex-wrap gap-3 pt-1">
+          ${isOwnerRole() ? `
+            <button onclick="openClassModal('${c.id}')" class="text-xs font-bold text-[#cf1717] hover:underline">👥 Quản lý học sinh</button>
+            <button onclick="openScheduleModal('${c.id}')" class="text-xs font-bold text-indigo-500 hover:underline">📅 Lịch học</button>
+            <button onclick="deleteClass('${c.id}','${esc(c.title)}')" class="text-xs font-bold text-red-500 hover:underline">Xóa lớp</button>
+          ` : `
+            <button onclick="openScheduleModal('${c.id}')" class="text-xs font-bold text-indigo-500 hover:underline">📅 Xem lịch học</button>
+          `}
         </div>
-      </div>`).join('') || '<p class="text-gray-400 text-sm col-span-full">Chưa có lớp nào. Hãy tạo lớp đầu tiên ở trên!</p>';
+      </div>`).join('') || `<p class="text-gray-400 text-sm col-span-full">${isAssistantRole() ? 'Bạn chưa được phân công phụ trách lớp nào.' : 'Chưa có lớp nào. Hãy tạo lớp đầu tiên ở trên!'}</p>`;
   }
 
   async function deleteClass(id, title) {
@@ -475,6 +569,7 @@
     pel('cmClassCode').innerText = c.class_code;
     pel('classModal').classList.remove('hidden'); pel('classModal').classList.add('flex');
     loadClassStudents();
+    loadClassAssistants();
   }
   function closeClassModal() { pel('classModal').classList.add('hidden'); pel('classModal').classList.remove('flex'); currentClassForModal = null; }
 
@@ -561,11 +656,229 @@
     } finally { btn.disabled = false; btn.innerText = 'Thêm vào lớp (không tạo tài khoản mới)'; }
   }
 
+  // ---- Giáo viên phụ trách của lớp ----
+  async function loadClassAssistants() {
+    if (!currentClassForModal) return;
+    pel('cmAssistList').innerHTML = '<p class="text-xs text-gray-400 italic">Đang tải...</p>';
+    const { data, error } = await sbClient.from('class_assistants').select('id, teacher_id, profiles(full_name)').eq('class_id', currentClassForModal.id).order('created_at', { ascending: false });
+    if (error) { pel('cmAssistList').innerHTML = `<p class="text-red-500 text-xs">Lỗi: ${esc(error.message)}</p>`; return; }
+    pel('cmAssistList').innerHTML = (data || []).map(row => `
+      <div class="flex items-center justify-between bg-white dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl px-3 py-2">
+        <p class="font-bold text-xs text-gray-900 dark:text-white">👤 ${esc(row.profiles?.full_name || '(chưa có tên)')}</p>
+        <button onclick="removeAssistant('${row.id}')" class="text-[11px] font-bold text-red-500 hover:underline">Gỡ khỏi lớp</button>
+      </div>`).join('') || '<p class="text-xs text-gray-400 italic">Lớp này chưa có giáo viên phụ trách nào.</p>';
+  }
+  function switchAddAsstTab(which) {
+    const isNew = which === 'new';
+    pel('formAddAsstNew').classList.toggle('hidden', !isNew);
+    pel('formAddAsstExisting').classList.toggle('hidden', isNew);
+    pel('tabAddAsstNew').className = 'flex-1 py-1.5 rounded-lg font-bold text-xs ' + (isNew ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-zinc-800 border dark:border-zinc-700 text-gray-600 dark:text-gray-300');
+    pel('tabAddAsstExisting').className = 'flex-1 py-1.5 rounded-lg font-bold text-xs ' + (!isNew ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-zinc-800 border dark:border-zinc-700 text-gray-600 dark:text-gray-300');
+  }
+  async function addAssistant(e) {
+    e.preventDefault();
+    if (!currentClassForModal) return;
+    const name = pel('asstName').value.trim(), email = pel('asstEmail').value.trim(), password = pel('asstPassword').value;
+    const btn = pel('addAsstBtn'); btn.disabled = true; btn.innerText = 'Đang tạo...';
+    try {
+      const { data: signUpData, error: signErr } = await sbClient.auth.signUp({ email, password });
+      if (signErr) throw signErr;
+      const newId = signUpData.user?.id; if (!newId) throw new Error('Không lấy được ID tài khoản mới.');
+      const { error: rpcErr } = await sbClient.rpc('teacher_provision_assistant', { p_teacher_id: newId, p_full_name: name, p_class_id: currentClassForModal.id });
+      if (rpcErr) throw rpcErr;
+      notify(`🎉 Đã tạo tài khoản giáo viên phụ trách "${name}"!`);
+      pel('asstName').value = ''; pel('asstEmail').value = ''; pel('asstPassword').value = '';
+      loadClassAssistants();
+    } catch (err) {
+      notify('❌ Lỗi: ' + (err.message || 'không xác định'));
+    } finally { btn.disabled = false; btn.innerText = 'Tạo tài khoản & gán vào lớp'; }
+  }
+  async function addExistingAssistant(e) {
+    e.preventDefault();
+    if (!currentClassForModal) return;
+    const email = pel('existingAsstEmail').value.trim();
+    const btn = pel('addExistingAsstBtn'); btn.disabled = true; btn.innerText = 'Đang thêm...';
+    try {
+      const { data, error } = await sbClient.rpc('teacher_add_existing_assistant_by_email', { p_email: email, p_class_id: currentClassForModal.id });
+      if (error) throw error;
+      notify(`🎉 Đã gán "${data || email}" làm giáo viên phụ trách lớp này!`);
+      pel('existingAsstEmail').value = '';
+      loadClassAssistants();
+    } catch (err) {
+      notify('❌ Lỗi: ' + (err.message || 'Kiểm tra lại email hoặc đã chạy hàm SQL teacher_add_existing_assistant_by_email chưa.'));
+    } finally { btn.disabled = false; btn.innerText = 'Gán vào lớp (không tạo tài khoản mới)'; }
+  }
+  async function removeAssistant(rowId) {
+    if (!confirm('Gỡ giáo viên này khỏi lớp? Họ sẽ không còn thấy lớp/lịch học/bài tập của lớp này nữa.')) return;
+    const { error } = await sbClient.from('class_assistants').delete().eq('id', rowId);
+    if (error) return notify('❌ Lỗi: ' + error.message);
+    notify('✅ Đã gỡ khỏi lớp.'); loadClassAssistants();
+  }
+
   async function removeStudent(rowId) {
     if (!confirm('Xóa học sinh này khỏi lớp?')) return;
     const { error } = await sbClient.from('class_students').delete().eq('id', rowId);
     if (error) return notify('❌ Lỗi: ' + error.message);
     notify('✅ Đã xóa khỏi lớp.'); loadClassStudents(); loadClasses();
+  }
+
+  // =====================================================================
+  // LỊCH HỌC CỦA LỚP — owner tải Excel lên & chỉnh sửa, assistant chỉ xem + gửi yêu cầu tạm ngưng
+  // =====================================================================
+  let currentClassForSchedule = null;
+  let currentScheduleRows = [];
+
+  function openScheduleModal(classId) {
+    const c = myClasses.find(x => x.id === classId); if (!c) return;
+    currentClassForSchedule = c;
+    pel('smClassTitle').innerText = c.title;
+    pel('smUploadBox').classList.toggle('hidden', !isOwnerRole());
+    pel('scheduleModal').classList.remove('hidden'); pel('scheduleModal').classList.add('flex');
+    loadSchedule();
+  }
+  function closeScheduleModal() { pel('scheduleModal').classList.add('hidden'); pel('scheduleModal').classList.remove('flex'); currentClassForSchedule = null; }
+
+  const statusLabel = { active: '🟢 Đang học', pending_suspend: '🟡 Chờ duyệt tạm ngưng', suspended: '🔴 Đã tạm ngưng' };
+
+  async function loadSchedule() {
+    if (!currentClassForSchedule) return;
+    pel('smList').innerHTML = '<p class="text-xs text-gray-400 italic">Đang tải...</p>';
+    const { data, error } = await sbClient.from('class_schedule_sessions').select('*').eq('class_id', currentClassForSchedule.id).order('session_date', { ascending: true });
+    if (error) { pel('smList').innerHTML = `<p class="text-red-500 text-xs">Lỗi: ${esc(error.message)}</p>`; return; }
+    currentScheduleRows = data || [];
+    pel('smCount').innerText = currentScheduleRows.length;
+    renderSchedule();
+  }
+
+  function renderSchedule() {
+    const owner = isOwnerRole();
+    const pending = currentScheduleRows.filter(r => r.status === 'pending_suspend');
+    pel('smPendingBox').classList.toggle('hidden', !(owner && pending.length));
+    if (owner && pending.length) {
+      pel('smPendingList').innerHTML = pending.map(r => `
+        <div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-xl p-3 text-xs space-y-1">
+          <p class="font-bold text-gray-900 dark:text-white">${esc(r.subject_name || '')} — ${fmtDate(r.session_date)} · ${esc(r.session_time || '')}</p>
+          ${r.request_note ? `<p class="text-gray-500">Lý do: ${esc(r.request_note)}</p>` : ''}
+          <div class="flex gap-3 pt-1">
+            <button onclick="approveSuspend('${r.id}')" class="font-bold text-emerald-600 hover:underline">✅ Duyệt tạm ngưng</button>
+            <button onclick="rejectSuspend('${r.id}')" class="font-bold text-red-500 hover:underline">❌ Từ chối</button>
+          </div>
+        </div>`).join('');
+    }
+
+    pel('smList').innerHTML = currentScheduleRows.map(r => `
+      <div class="bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl p-3 text-xs space-y-1.5" data-row="${r.id}">
+        <div class="flex items-start justify-between gap-2">
+          <p class="font-bold text-gray-900 dark:text-white flex-1">${esc(r.subject_name || '(chưa rõ tên lớp học phần)')}</p>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${r.status === 'active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400' : r.status === 'pending_suspend' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400' : 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400'}">${statusLabel[r.status] || r.status}</span>
+        </div>
+        <p class="text-gray-500">📅 ${fmtDate(r.session_date)} · 🕐 ${esc(r.session_time || '')} ${r.room ? '· 🚪 ' + esc(r.room) : ''} ${r.lecturer ? '· 👤 ' + esc(r.lecturer) : ''}</p>
+        ${r.note ? `<p class="text-gray-400">Ghi chú: ${esc(r.note)}</p>` : ''}
+        <div class="flex gap-3 pt-1">
+          ${owner ? `<button onclick="deleteScheduleRow('${r.id}')" class="font-bold text-red-500 hover:underline">🗑️ Xóa buổi học</button>` : ''}
+          ${!owner && r.status === 'active' ? `<button onclick="requestSuspend('${r.id}')" class="font-bold text-amber-600 hover:underline">🚫 Yêu cầu tạm ngưng</button>` : ''}
+        </div>
+      </div>`).join('') || '<p class="text-xs text-gray-400 italic">Lớp này chưa có lịch học. ' + (owner ? 'Hãy tải file Excel lên ở trên.' : '') + '</p>';
+  }
+
+  function fmtDate(d) {
+    if (!d) return '';
+    const [y, m, day] = String(d).split('-');
+    return day && m && y ? `${day}/${m}/${y}` : d;
+  }
+
+  async function deleteScheduleRow(id) {
+    if (!confirm('Xóa buổi học này khỏi lịch?')) return;
+    const { error } = await sbClient.from('class_schedule_sessions').delete().eq('id', id);
+    if (error) return notify('❌ Lỗi: ' + error.message);
+    notify('✅ Đã xóa buổi học.'); loadSchedule();
+  }
+  async function approveSuspend(id) {
+    const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'suspended' }).eq('id', id);
+    if (error) return notify('❌ Lỗi: ' + error.message);
+    notify('✅ Đã duyệt tạm ngưng buổi học.'); loadSchedule();
+  }
+  async function rejectSuspend(id) {
+    const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'active', requested_by: null, request_note: null }).eq('id', id);
+    if (error) return notify('❌ Lỗi: ' + error.message);
+    notify('✅ Đã từ chối yêu cầu — buổi học trở lại bình thường.'); loadSchedule();
+  }
+  async function requestSuspend(id) {
+    const reason = prompt('Lý do đề nghị tạm ngưng buổi học này (giáo viên chủ nhiệm sẽ thấy lý do này để duyệt):');
+    if (reason === null) return;
+    const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'pending_suspend', requested_by: currentUser.id, request_note: reason.trim() || null }).eq('id', id);
+    if (error) return notify('❌ Lỗi: ' + error.message + ' (kiểm tra đã tạo policy "assistant requests suspend" trong SQL chưa)');
+    notify('📨 Đã gửi yêu cầu — chờ giáo viên chủ nhiệm duyệt.'); loadSchedule();
+  }
+
+  // ---- Tải file Excel lên & bóc tách thành các buổi học ----
+  function normalizeHeader(h) {
+    return String(h || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd').toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+  const HEADER_MAP = {
+    subject_name: ['tiedelophoc', 'tieudelophoc', 'tendehoc', 'tenmonhoc', 'monhoc', 'lophocphan'],
+    session_date: ['ngayhoc', 'ngay', 'date'],
+    session_time: ['cahoc', 'gio', 'thoigian', 'ca'],
+    room: ['phonghoc', 'phong', 'room'],
+    lecturer: ['giangvien', 'gv', 'lecturer'],
+    note: ['ghichu', 'note', 'ghi']
+  };
+  function parseExcelDate(v) {
+    if (v == null || v === '') return null;
+    if (typeof v === 'number') { // Excel serial date
+      const d = new Date(Math.round((v - 25569) * 86400 * 1000));
+      return isNaN(d) ? null : d.toISOString().slice(0, 10);
+    }
+    const s = String(v).trim();
+    let m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/); // dd/mm/yyyy
+    if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+    m = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/); // yyyy-mm-dd
+    if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+    const d = new Date(s);
+    return isNaN(d) ? null : d.toISOString().slice(0, 10);
+  }
+  async function uploadScheduleExcel(input) {
+    const file = input.files[0]; input.value = '';
+    if (!file || !currentClassForSchedule) return;
+    if (!window.XLSX) return notify('❌ Không tải được thư viện đọc Excel, hãy tải lại trang.');
+    try {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: 'array', cellDates: false });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+      if (!rows.length) return notify('⚠️ File Excel không có dữ liệu.');
+
+      // Ánh xạ tên cột trong file với các trường cần dùng
+      const sampleKeys = Object.keys(rows[0]);
+      const colFor = {};
+      Object.keys(HEADER_MAP).forEach(field => {
+        colFor[field] = sampleKeys.find(k => HEADER_MAP[field].includes(normalizeHeader(k)));
+      });
+      if (!colFor.session_date) return notify('⚠️ Không tìm thấy cột ngày học (VD: "NgayHoc") trong file. Cần có dòng tiêu đề đúng như file mẫu.');
+
+      const parsed = rows.map(r => ({
+        class_id: currentClassForSchedule.id,
+        subject_name: colFor.subject_name ? String(r[colFor.subject_name] || '').trim() || null : null,
+        session_date: parseExcelDate(r[colFor.session_date]),
+        session_time: colFor.session_time ? String(r[colFor.session_time] || '').trim() || null : null,
+        room: colFor.room ? String(r[colFor.room] || '').trim() || null : null,
+        lecturer: colFor.lecturer ? String(r[colFor.lecturer] || '').trim() || null : null,
+        note: colFor.note ? String(r[colFor.note] || '').trim() || null : null,
+      })).filter(r => r.session_date);
+
+      if (!parsed.length) return notify('⚠️ Không đọc được buổi học nào hợp lệ (thiếu ngày học đúng định dạng).');
+      if (!confirm(`Tìm thấy ${parsed.length} buổi học trong file. Thao tác này sẽ XÓA TOÀN BỘ lịch học cũ của lớp và thay bằng danh sách mới — tiếp tục?`)) return;
+
+      notify('⏳ Đang cập nhật lịch học...');
+      const { error: delErr } = await sbClient.from('class_schedule_sessions').delete().eq('class_id', currentClassForSchedule.id);
+      if (delErr) return notify('❌ Lỗi xóa lịch cũ: ' + delErr.message);
+      const { error: insErr } = await sbClient.from('class_schedule_sessions').insert(parsed);
+      if (insErr) return notify('❌ Lỗi thêm lịch mới: ' + insErr.message);
+      notify(`🎉 Đã cập nhật ${parsed.length} buổi học!`);
+      loadSchedule();
+    } catch (err) {
+      notify('❌ Lỗi đọc file Excel: ' + (err.message || 'không xác định'));
+    }
   }
 
   // =====================================================================
