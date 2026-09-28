@@ -2600,7 +2600,7 @@
     const rows = attStudents.map((stu, i) => {
       const cells = attSessions.map(s => {
         const v = attMap[attKey(s.id, stu.student_id)] || '';
-        return `<td style="text-align:center"><select class="att-sel att-${v || 'none'}" data-sid="${s.id}" data-stu="${stu.student_id}" ${(s.status === 'suspended' || !attCanEdit(s.id)) ? 'disabled' : ''} onchange="setAttendance(this)">
+        return `<td style="text-align:center"><select class="att-sel att-${v || 'none'}" data-sid="${s.id}" data-stu="${stu.student_id}" ${(s.status === 'suspended' || !attIsEditable(s)) ? 'disabled' : ''} onchange="setAttendance(this)">
           ${['', 'P', 'L', 'E', 'A'].map(o => `<option value="${o}" ${o === v ? 'selected' : ''}>${o || '·'}</option>`).join('')}
         </select></td>`;
       }).join('');
@@ -2636,7 +2636,7 @@
     if (!attClass) return;
     const sid = sel.dataset.sid, stu = sel.dataset.stu, v = sel.value, key = attKey(sid, stu);
     const old = attMap[key] || '';
-    if (!attCanEdit(sid)) { sel.value = old; sel.className = 'att-sel att-' + (old || 'none'); return notify('🔒 Buổi này đã chốt — chỉ giáo viên (teacher) mới sửa được.'); }
+    if (!attEditing || !attCanEditSession(s)) { sel.value = old; sel.className = 'att-sel att-' + (old || 'none'); return notify('🔒 Buổi này đã chốt — chỉ giáo viên (teacher) mới sửa được.'); }
     sel.className = 'att-sel att-' + (v || 'none');
     sel.disabled = true;
     let error;
@@ -2696,7 +2696,7 @@
   async function markAllPresent(sessionId) {
     if (!attClass) return;
     const s = attSessions.find(x => x.id === sessionId); if (!s) return;
-    if (!attCanEdit(sessionId)) return notify('🔒 Buổi này đã chốt — chỉ giáo viên (teacher) mới sửa được.');
+    if (!s || !attCanEditSession(s)) return notify('🔒 Buổi này đã chốt — chỉ giáo viên (teacher) mới sửa được.');
     const rows = attStudents.filter(st => !attMap[attKey(sessionId, st.student_id)]).map(st => ({
       class_id: attClass.id, session_id: sessionId, student_id: st.student_id, status: 'P', marked_by: currentUser.id,
     }));
