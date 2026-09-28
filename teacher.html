@@ -55,6 +55,12 @@
   .qeditor-2col{column-count:2;column-gap:1.8rem}
   @media (max-width:640px){.qeditor-2col{column-count:1}}
   .qeditor-2col img,.qeditor-2col table{break-inside:avoid}
+  /* ===== Thẻ lịch học kiểu timeline (giống trang học sinh) ===== */
+  .sc-card{position:relative;overflow:hidden}
+  .sc-ribbon{position:absolute;top:40px;right:-70px;width:240px;transform:rotate(45deg);background:#e53528;color:#fff;font-weight:800;font-size:12px;text-align:center;padding:6px 0;box-shadow:0 2px 6px rgba(0,0,0,.25);pointer-events:none}
+  .sc-ribbon.pend{background:#f5b301;color:#3b2a00}
+  .sc-alert{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:9px;background:#e53528;color:#fff;font-weight:900;font-size:17px;display:flex;align-items:center;justify-content:center}
+  .sc-alert.pend{background:#f5b301;color:#3b2a00}
 </style>
 
 <!-- ================= HEADER GIÁO VIÊN ================= -->
@@ -134,12 +140,12 @@
   </section>
 
   <!-- ============ 1B. LỊCH HỌC CỦA TÔI (CHỈ HIỆN CHO GIÁO VIÊN PHỤ TRÁCH) ============ -->
-  <section id="assistantCalendarSection" class="hidden bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border dark:border-zinc-800 shadow-sm space-y-4">
+  <section id="assistantCalendarSection" class="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border dark:border-zinc-800 shadow-sm space-y-4">
     <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
       <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white">📅 Lịch Học Của Tôi</h2>
       <button onclick="loadAssistantScheduleCalendar()" class="text-xs font-bold text-indigo-500 hover:underline">🔄 Làm mới</button>
     </div>
-    <p class="text-xs text-gray-400">Tổng hợp lịch học của tất cả các lớp bạn phụ trách. Bấm vào 1 ngày để xem chi tiết, hoặc gửi yêu cầu tạm ngưng buổi học đó.</p>
+    <p id="acalDesc" class="text-xs text-gray-400">Tổng hợp lịch học của tất cả các lớp bạn phụ trách. Bấm vào 1 ngày để xem chi tiết, hoặc gửi yêu cầu tạm ngưng buổi học đó.</p>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
       <!-- Cột trái: tìm kiếm + lịch tháng -->
@@ -162,9 +168,11 @@
         </div>
         <div id="acalDaysGrid" class="grid grid-cols-7 gap-1 text-center text-xs sm:text-sm"></div>
 
-        <div class="flex items-center gap-3 text-[10px] text-gray-400 pt-1">
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-gray-400 pt-1">
           <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#cf1717] inline-block"></span> Có buổi học</span>
           <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span> Có yêu cầu chờ duyệt</span>
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-gray-400 inline-block"></span> Tạm ngưng học</span>
+          <button onclick="acalGoToday()" class="ml-auto font-bold text-[#cf1717] hover:underline">Về hôm nay</button>
         </div>
       </div>
 
@@ -176,7 +184,7 @@
           </h3>
           <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-red-50 dark:bg-red-950 text-[#cf1717]">Lịch ReadUp</span>
         </div>
-        <div id="acalSelectedContent" class="space-y-3 max-h-[380px] overflow-y-auto pr-1">
+        <div id="acalSelectedContent" class="space-y-3 max-h-[560px] overflow-y-auto pr-1">
           <p class="text-xs text-gray-400 italic">⏳ Đang tải lịch học...</p>
         </div>
       </div>
@@ -221,15 +229,7 @@
   .att-sel { appearance: none; -webkit-appearance: none; width: 46px; height: 32px; text-align: center; text-align-last: center;
              font-weight: 800; font-size: 13px; border-radius: 8px; border: 1px solid rgba(0,0,0,.12); cursor: pointer; outline: none; }
   .att-sel:focus { box-shadow: 0 0 0 2px rgba(207,23,23,.35); }
-  .att-sel:disabled { opacity: .85; cursor: default; }
-  .att-sel.att-susp:disabled { opacity: .4; cursor: not-allowed; }
-  .att-sel.att-editable { box-shadow: 0 0 0 2px rgba(107,114,128,.55); }
-  /* Cột của ngày hôm nay: nổi bật màu xám */
-  #attTable thead th.att-today { background: #4b5563 !important; color: #fff; }
-  #attTable td.att-today { background: #d1d5db !important; }
-  .dark #attTable td.att-today { background: #52525b !important; }
-  #attTable thead th.att-locked { background: #7f1d1d; }
-  .att-today-tag { display:inline-block; font-size:9px; font-weight:800; background:#fff; color:#374151; border-radius:999px; padding:0 6px; margin-bottom:2px; }
+  .att-sel:disabled { opacity: .45; cursor: not-allowed; }
   .att-sel option { background: #fff; color: #111827; font-weight: 700; }
   .att-none { background: transparent; color: #9ca3af; }
   .att-P { background: #C8E6C9; color: #1B5E20; }   /* Present  – xanh lá pastel   */
@@ -262,16 +262,7 @@
       </div>
     </div>
 
-    <div class="flex flex-wrap items-center justify-between gap-3 bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl p-3">
-      <p id="attStatusText" class="text-xs font-bold text-gray-600 dark:text-gray-300">...</p>
-      <div class="flex flex-wrap items-center gap-2">
-        <button id="btnAttEdit" onclick="startAttEdit()" class="text-xs font-bold px-4 py-2 rounded-xl bg-gray-700 hover:bg-gray-800 text-white shadow transition disabled:opacity-40 disabled:cursor-not-allowed">✏️ Chỉnh sửa</button>
-        <button id="btnAttSave" onclick="saveAttDraft()" class="hidden text-xs font-bold px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow transition">💾 Lưu tạm</button>
-        <button id="btnAttLock" onclick="lockAttendance()" class="hidden text-xs font-bold px-4 py-2 rounded-xl bg-[#cf1717] hover:bg-red-700 text-white shadow transition">🔒 Chốt điểm danh</button>
-        <button id="btnAttCancel" onclick="cancelAttEdit()" class="hidden text-xs font-bold px-3 py-2 rounded-xl border dark:border-zinc-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition">✖ Hủy</button>
-      </div>
-    </div>
-    <p class="text-[11px] text-gray-400">💡 Chỉ điểm danh được trong <b>ngày hôm nay</b> (cột màu xám). Bấm <b>✏️ Chỉnh sửa</b> → chọn P / L / E / A ở từng ô (bấm <b>✔</b> đầu cột để đánh dấu P cho các bạn chưa chọn) → <b>💾 Lưu tạm</b> để giữ lại và sửa tiếp, hoặc <b>🔒 Chốt điểm danh</b> để hoàn tất. <b>Đã chốt hoặc qua ngày thì không thể sửa lại.</b></p>
+    <p class="text-[11px] text-gray-400">💡 Chọn P / L / E / A ở từng ô — hệ thống lưu ngay. Bấm nút <b>✔</b> trên đầu cột ngày để đánh dấu P cho những bạn chưa điểm danh. Chọn “·” để xóa. Nút <b>🔓</b> để chốt buổi — sau khi chốt học sinh mới thấy trạng thái và chỉ <b>teacher</b> mới sửa/mở chốt được.</p>
 
     <div id="attTableWrap" class="overflow-auto max-h-[68vh] border dark:border-zinc-800 rounded-xl">
       <p class="text-xs text-gray-400 italic p-4">Đang tải...</p>
@@ -396,12 +387,6 @@
 
     <div class="space-y-2">
       <h4 class="font-bold text-xs uppercase text-gray-500">📋 Danh Sách Buổi Học (<span id="smCount">0</span>)</h4>
-      <div class="relative">
-        <input type="text" id="smSearchInput" oninput="filterScheduleList(this.value)" autocomplete="off"
-               placeholder="🔍 Tìm theo tên buổi, ngày (VD: 15/10), ca, phòng, giảng viên, ghi chú..."
-               class="w-full pl-3 pr-9 py-2 text-xs sm:text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
-        <button type="button" id="smSearchClear" onclick="clearScheduleSearch()" class="hidden absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full text-gray-400 hover:text-[#cf1717] hover:bg-gray-100 dark:hover:bg-zinc-700 font-bold" title="Xóa tìm kiếm">✕</button>
-      </div>
       <div id="smList" class="space-y-2 max-h-[28rem] overflow-y-auto pr-1">
         <p class="text-xs text-gray-400 italic">Đang tải...</p>
       </div>
@@ -671,6 +656,7 @@
   // Giáo viên phụ trách (assistant): không được tạo/sửa lớp, không quản lý học sinh, không sửa lịch học
   // — chỉ xem lịch + thêm bài tập cho lớp được phân công.
   function applyRoleUI() {
+    if (isOwnerRole()) pel('acalDesc').textContent = 'Tổng hợp lịch học của tất cả các lớp bạn dạy. Bấm vào 1 ngày để xem chi tiết, duyệt/từ chối yêu cầu tạm ngưng của giáo viên phụ trách hoặc tự tạm ngưng buổi học.';
     if (isAssistantRole()) {
       pel('createClassForm').classList.add('hidden');
       pel('assistantHint').classList.remove('hidden');
@@ -753,7 +739,7 @@
         </div>
       </div>`).join('') || `<p class="text-gray-400 text-sm col-span-full">${isAssistantRole() ? 'Bạn chưa được phân công phụ trách lớp nào.' : 'Chưa có lớp nào. Hãy tạo lớp đầu tiên ở trên!'}</p>`;
 
-    if (isAssistantRole()) loadAssistantScheduleCalendar();
+    loadAssistantScheduleCalendar();
   }
 
   async function deleteClass(id, title) {
@@ -935,9 +921,6 @@
     currentClassForSchedule = c;
     scheduleEditingId = null;
     pel('smClassTitle').innerText = c.title;
-    scheduleSearchKw = '';
-    if (pel('smSearchInput')) pel('smSearchInput').value = '';
-    if (pel('smSearchClear')) pel('smSearchClear').classList.add('hidden');
     pel('smUploadBox').classList.toggle('hidden', !isOwnerRole());
     pel('manualAddForm').classList.add('hidden');
     pel('scheduleModal').classList.remove('hidden'); pel('scheduleModal').classList.add('flex');
@@ -958,35 +941,8 @@
   }
 
   let scheduleEditingId = null;
-  let scheduleSearchKw = '';
-
-  // Bỏ dấu tiếng Việt + về chữ thường để tìm không phân biệt dấu/hoa thường
-  function normSearch(s) {
-    return String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'd').toLowerCase();
-  }
-  function scheduleMatches(r, terms) {
-    const hay = normSearch([
-      r.subject_name, r.session_time, r.room, r.lecturer, r.note,
-      fmtDate(r.session_date), r.session_date, statusLabel[r.status] || r.status,
-    ].join(' '));
-    return terms.every(t => hay.includes(t));   // nhiều từ khóa: phải khớp TẤT CẢ
-  }
-  function filterScheduleList(kw) {
-    scheduleSearchKw = kw || '';
-    pel('smSearchClear').classList.toggle('hidden', !scheduleSearchKw.trim());
-    renderSchedule();
-  }
-  function clearScheduleSearch() {
-    pel('smSearchInput').value = '';
-    filterScheduleList('');
-    pel('smSearchInput').focus();
-  }
-
   function renderSchedule() {
     const owner = isOwnerRole();
-    const terms = normSearch(scheduleSearchKw).split(/\s+/).filter(Boolean);
-    const shownRows = terms.length ? currentScheduleRows.filter(r => scheduleMatches(r, terms)) : currentScheduleRows;
-    pel('smCount').innerText = terms.length ? `${shownRows.length}/${currentScheduleRows.length}` : currentScheduleRows.length;
     const pending = currentScheduleRows.filter(r => r.status === 'pending_suspend');
     pel('smPendingBox').classList.toggle('hidden', !(owner && pending.length));
     if (owner && pending.length) {
@@ -1001,7 +957,7 @@
         </div>`).join('');
     }
 
-    pel('smList').innerHTML = shownRows.map(r => {
+    pel('smList').innerHTML = currentScheduleRows.map(r => {
       if (owner && scheduleEditingId === r.id) return renderScheduleEditRow(r);
       return `
       <div class="bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl p-3 text-xs space-y-1.5" data-row="${r.id}">
@@ -1030,9 +986,7 @@
           <button onclick="openHistoryModal('${r.id}')" class="font-bold text-gray-500 hover:underline">🕘 Lịch sử</button>
         </div>
       </div>`;
-    }).join('') || (terms.length
-      ? `<p class="text-xs text-gray-400 italic">🔍 Không tìm thấy buổi học nào khớp với “${esc(scheduleSearchKw.trim())}”.</p>`
-      : '<p class="text-xs text-gray-400 italic">Lớp này chưa có lịch học. ' + (owner ? 'Hãy tải file Excel lên hoặc thêm thủ công ở trên.' : '') + '</p>');
+    }).join('') || '<p class="text-xs text-gray-400 italic">Lớp này chưa có lịch học. ' + (owner ? 'Hãy tải file Excel lên hoặc thêm thủ công ở trên.' : '') + '</p>';
   }
 
   function renderScheduleEditRow(r) {
@@ -1142,7 +1096,7 @@
     if (error) return notify('❌ Lỗi: ' + error.message + ' (kiểm tra đã tạo policy "assistant requests suspend" trong SQL chưa)');
     if (row) logHistory(row, 'request_suspend', reason.trim() || null);
     notify('📨 Đã gửi yêu cầu — chờ giáo viên chủ nhiệm duyệt.'); loadSchedule();
-    if (isAssistantRole()) loadAssistantScheduleCalendar();
+    loadAssistantScheduleCalendar();
     loadNotifCounts();
   }
 
@@ -1220,15 +1174,16 @@
   // LỊCH HỌC TỔNG HỢP CHO GIÁO VIÊN PHỤ TRÁCH (gộp lịch mọi lớp được gán)
   // =====================================================================
   let allAssistantSessions = [];
-  let acalCurrentDate = new Date();
-  let acalSelectedDateStr = new Date().toISOString().split('T')[0];
+  let acalLocked = new Set(); // session_id đã chốt điểm danh
+  const acalTodayStr = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
+  let acalCurrentDate = (() => { const [y, m] = acalTodayStr().split('-').map(Number); return new Date(y, m - 1, 1); })();
+  let acalSelectedDateStr = acalTodayStr();
 
   async function loadAssistantScheduleCalendar() {
-    if (!isAssistantRole()) return;
     const box = pel('acalSelectedContent');
     if (!myClasses.length) {
-      allAssistantSessions = [];
-      if (box) box.innerHTML = '<p class="text-xs text-gray-400 italic">Bạn chưa được phân công phụ trách lớp nào nên chưa có lịch học.</p>';
+      allAssistantSessions = []; acalLocked = new Set();
+      if (box) box.innerHTML = '<p class="text-xs text-gray-400 italic">Bạn chưa có lớp nào (hoặc chưa được phân công) nên chưa có lịch học.</p>';
       renderAssistantCalendar();
       return;
     }
@@ -1236,6 +1191,11 @@
     const { data, error } = await sbClient.from('class_schedule_sessions').select('*').in('class_id', classIds).order('session_date', { ascending: true });
     if (error) { if (box) box.innerHTML = `<p class="text-red-500 text-xs">Lỗi tải lịch học: ${esc(error.message)}</p>`; return; }
     allAssistantSessions = data || [];
+    acalLocked = new Set();
+    try {
+      const { data: lk } = await sbClient.from('class_attendance_locks').select('session_id').in('class_id', classIds);
+      acalLocked = new Set((lk || []).map(r => r.session_id));
+    } catch (e) { /* chưa có bảng chốt thì coi như chưa chốt */ }
     initAssistantCalendar();
   }
 
@@ -1249,65 +1209,67 @@
   function renderAssistantCalendar() {
     const year = acalCurrentDate.getFullYear();
     const month = acalCurrentDate.getMonth();
-    const monthNames = ["Tháng 1","Tháng 2","Tháng 3","Tháng 4","Tháng 5","Tháng 6","Tháng 7","Tháng 8","Tháng 9","Tháng 10","Tháng 11","Tháng 12"];
     const monthYearElem = pel('acalMonthYear');
-    if (monthYearElem) monthYearElem.innerText = `${monthNames[month]}, ${year}`;
-
+    if (monthYearElem) monthYearElem.innerText = `Tháng ${month + 1}, ${year}`;
     const grid = pel('acalDaysGrid');
     if (!grid) return;
-    grid.innerHTML = '';
-
     const firstDay = new Date(year, month, 1).getDay();
-    const startingDay = (firstDay === 0) ? 6 : firstDay - 1;
+    const lead = firstDay === 0 ? 6 : firstDay - 1;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const todayStr = acalTodayStr();
 
-    const dateStatusMap = {}; // dateStr -> 'pending' | 'has'
+    const info = {}; // date -> { total, suspended, pending }
     allAssistantSessions.forEach(s => {
       if (!s.session_date) return;
-      if (s.status === 'pending_suspend') dateStatusMap[s.session_date] = 'pending';
-      else if (!dateStatusMap[s.session_date]) dateStatusMap[s.session_date] = 'has';
+      const d = String(s.session_date).slice(0, 10);
+      const o = info[d] || (info[d] = { total: 0, suspended: 0, pending: 0 });
+      o.total++;
+      if (s.status === 'suspended') o.suspended++;
+      if (s.status === 'pending_suspend') o.pending++;
     });
 
-    for (let i = 0; i < startingDay; i++) grid.innerHTML += `<div class="p-2"></div>`;
-
-    const todayStr = new Date().toISOString().split('T')[0];
-
+    let html = '<div class="p-2"></div>'.repeat(lead);
     for (let d = 1; d <= daysInMonth; d++) {
-      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-      const dotStatus = dateStatusMap[dateStr];
-      const isSelected = dateStr === acalSelectedDateStr;
-      const isToday = dateStr === todayStr;
-
-      let bgClass = "hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-700 dark:text-gray-300";
-      if (isSelected) bgClass = "bg-[#cf1717] text-white font-black shadow-md";
-      else if (isToday) bgClass = "border-2 border-[#cf1717] font-bold text-[#cf1717] dark:text-red-400";
-
+      const ds = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const sel = ds === acalSelectedDateStr, today = ds === todayStr, o = info[ds];
+      let cls = 'hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-700 dark:text-gray-300';
+      if (sel) cls = 'bg-[#cf1717] text-white font-black shadow-md';
+      else if (today) cls = 'border-2 border-[#cf1717] font-bold text-[#cf1717] dark:text-red-400';
       let dot = '<span class="w-2 h-2 mt-1"></span>';
-      if (dotStatus === 'pending') dot = `<span class="w-2 h-2 ${isSelected ? 'bg-white' : 'bg-amber-500'} rounded-full mt-1 shadow-sm"></span>`;
-      else if (dotStatus === 'has') dot = `<span class="w-2 h-2 ${isSelected ? 'bg-white' : 'bg-[#cf1717]'} rounded-full mt-1 shadow-sm"></span>`;
-
-      grid.innerHTML += `
-        <div onclick="selectAssistantCalDate('${dateStr}')" class="p-2 sm:p-2.5 rounded-xl cursor-pointer transition flex flex-col items-center justify-center relative min-h-[42px] ${bgClass}">
-          <span class="text-xs sm:text-sm font-bold">${d}</span>
-          ${dot}
-        </div>`;
+      if (o) {
+        const color = o.pending ? 'bg-amber-500' : (o.suspended === o.total ? 'bg-gray-400' : 'bg-[#cf1717]');
+        dot = `<span class="w-2 h-2 mt-1 rounded-full shadow-sm ${sel ? 'bg-white' : color}"></span>`;
+      }
+      html += `<div onclick="selectAssistantCalDate('${ds}')" class="p-2 sm:p-2.5 rounded-xl cursor-pointer transition flex flex-col items-center justify-center min-h-[42px] ${cls}">
+        <span class="text-xs sm:text-sm font-bold">${d}</span>${dot}</div>`;
     }
+    grid.innerHTML = html;
+  }
+
+  function acalGoToday() {
+    const t = acalTodayStr(); const [y, m] = t.split('-').map(Number);
+    acalCurrentDate = new Date(y, m - 1, 1);
+    selectAssistantCalDate(t);
   }
 
   function prevAssistantCalMonth() { acalCurrentDate.setMonth(acalCurrentDate.getMonth() - 1); renderAssistantCalendar(); }
   function nextAssistantCalMonth() { acalCurrentDate.setMonth(acalCurrentDate.getMonth() + 1); renderAssistantCalendar(); }
   function selectAssistantCalDate(dateStr) { acalSelectedDateStr = dateStr; renderAssistantCalendar(); updateAssistantSelectedDateDetails(); }
 
+  const ACAL_WEEKDAY = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+
   function updateAssistantSelectedDateDetails() {
     const titleElem = pel('acalSelectedTitle');
     const contentElem = pel('acalSelectedContent');
     if (!titleElem || !contentElem) return;
-    const [y, m, d] = acalSelectedDateStr.split('-');
-    titleElem.innerHTML = `<span>📌</span> Chi tiết ngày: ${d}/${m}/${y}`;
+    const [y, m, d] = acalSelectedDateStr.split('-').map(Number);
+    const wd = ACAL_WEEKDAY[new Date(y, m - 1, d).getDay()];
+    const list = allAssistantSessions
+      .filter(s => String(s.session_date || '').slice(0, 10) === acalSelectedDateStr)
+      .sort((a, b) => String(a.session_time || '').localeCompare(String(b.session_time || ''), 'vi', { numeric: true }));
+    titleElem.innerHTML = `<span>📌</span> ${wd}, ${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}${list.length ? ` (${list.length} lịch học)` : ''}`;
 
-    const daySessions = allAssistantSessions.filter(s => s.session_date === acalSelectedDateStr);
-
-    if (!daySessions.length) {
+    if (!list.length) {
       contentElem.innerHTML = `
         <div class="p-8 text-center bg-gray-50 dark:bg-zinc-800/40 rounded-2xl border border-dashed border-gray-200 dark:border-zinc-800">
           <span class="text-2xl block mb-1">☕</span>
@@ -1315,34 +1277,91 @@
         </div>`;
       return;
     }
+    contentElem.innerHTML = list.map(acalCardHtml).join('');
+  }
 
-    contentElem.innerHTML = daySessions.map(s => {
-      const cls = classInfoOf(s.class_id);
-      const badge = s.status === 'active'
-        ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">🟢 Đang học</span>`
-        : s.status === 'pending_suspend'
-          ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400">🟡 Chờ duyệt tạm ngưng</span>`
-          : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400">🔴 Đã tạm ngưng</span>`;
-      return `
-      <div class="p-4 bg-gray-50 dark:bg-zinc-800/90 rounded-2xl border border-gray-200/80 dark:border-zinc-700/80 space-y-2.5">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-black text-[#cf1717] bg-red-100/80 dark:bg-red-950 px-2.5 py-1 rounded-lg">${esc(cls.class_code || '')}</span>
-          ${badge}
-        </div>
-        <h4 class="font-extrabold text-sm sm:text-base text-gray-900 dark:text-white leading-snug">${esc(cls.title || 'Lớp học')}</h4>
-        <p class="text-xs text-gray-500 dark:text-gray-400">${esc(s.subject_name || '(chưa rõ tên buổi)')} · 🕐 ${esc(s.session_time || '')} ${s.room ? '· 🚪 ' + esc(s.room) : ''} ${s.lecturer ? '· 👤 ' + esc(s.lecturer) : ''}</p>
-        ${s.note ? `<p class="text-xs text-gray-400 italic border-t border-gray-200/60 dark:border-zinc-700/60 pt-2">📝 ${esc(s.note)}</p>` : ''}
-        ${s.status === 'pending_suspend' && s.request_note ? `<p class="text-xs text-amber-600 dark:text-amber-400">Lý do đã gửi: ${esc(s.request_note)}</p>` : ''}
-        <div class="flex flex-wrap items-center gap-3 pt-1 border-t border-gray-200/60 dark:border-zinc-700/60">
-          ${s.status === 'active' ? `<button onclick="requestSuspendFromCalendar('${s.id}')" class="text-xs font-bold text-amber-600 hover:underline">🚫 Yêu cầu tạm ngưng buổi này</button>` : ''}
-          <button onclick="openSupportModal('${s.id}')" class="relative text-xs font-bold text-indigo-500 hover:underline flex items-center gap-1" title="Gửi/xem trao đổi hỗ trợ về buổi học này">
-            <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-indigo-500 text-white text-[10px] font-black not-italic">i</span> Hỗ trợ
-            ${unreadSupportSessionIds.has(s.id) ? '<span class="absolute -top-1 -right-1 w-2 h-2 bg-[#cf1717] rounded-full animate-pulse"></span>' : ''}
-          </button>
-          <button onclick="openHistoryModal('${s.id}')" class="text-xs font-bold text-gray-500 hover:underline">🕘 Lịch sử</button>
-        </div>
-      </div>`;
-    }).join('');
+  function acalCardHtml(s) {
+    const cls = classInfoOf(s.class_id);
+    const owner = isOwnerRole();
+    const susp = s.status === 'suspended', pend = s.status === 'pending_suspend';
+    const locked = acalLocked.has(s.id);
+    const sid = esc(s.id);
+    const ribbon = susp
+      ? '<div class="sc-alert">!</div><div class="sc-ribbon">Tạm ngưng học</div>'
+      : pend ? '<div class="sc-alert pend">!</div><div class="sc-ribbon pend">Chờ tạm ngưng</div>' : '';
+    const tone = susp
+      ? 'bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 pr-12 min-h-[190px]'
+      : pend
+        ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 pr-12 min-h-[190px]'
+        : 'bg-gray-50 dark:bg-zinc-800/80 border border-gray-200/80 dark:border-zinc-700/80';
+    const unread = unreadSupportSessionIds.has(s.id) ? '<span class="absolute -top-1 -right-1 w-2 h-2 bg-[#cf1717] rounded-full animate-pulse"></span>' : '';
+
+    let actions = '';
+    if (!owner && s.status === 'active') actions += `<button onclick="requestSuspendFromCalendar('${sid}')" class="text-xs font-bold text-amber-600 hover:underline">🚫 Yêu cầu tạm ngưng</button>`;
+    if (owner && pend) actions += `<button onclick="calApprove('${sid}')" class="text-xs font-bold text-emerald-600 hover:underline">✅ Duyệt tạm ngưng</button>
+                                   <button onclick="calReject('${sid}')" class="text-xs font-bold text-red-500 hover:underline">❌ Từ chối</button>`;
+    if (owner && s.status === 'active') actions += `<button onclick="calSuspendDirect('${sid}')" class="text-xs font-bold text-amber-600 hover:underline">🚫 Tạm ngưng buổi này</button>`;
+    if (owner && susp) actions += `<button onclick="calReopen('${sid}')" class="text-xs font-bold text-emerald-600 hover:underline">↩️ Mở lại buổi học</button>`;
+    if (!susp) actions += `<button onclick="openAttendanceModal('${esc(s.class_id)}')" class="text-xs font-bold text-emerald-600 hover:underline">✅ Điểm danh</button>`;
+    actions += `<button onclick="openSupportModal('${sid}')" class="relative text-xs font-bold text-indigo-500 hover:underline flex items-center gap-1" title="Gửi/xem trao đổi hỗ trợ về buổi học này">
+        <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-indigo-500 text-white text-[10px] font-black not-italic">i</span> Hỗ trợ ${unread}
+      </button>
+      <button onclick="openHistoryModal('${sid}')" class="text-xs font-bold text-gray-500 hover:underline">🕘 Lịch sử</button>`;
+
+    return `
+    <div class="flex gap-3">
+      <div class="flex flex-col items-center pt-1">
+        <span class="w-4 h-4 rounded-full bg-white dark:bg-zinc-900 border-[5px] border-[#0f4c4c] flex-shrink-0"></span>
+        <span class="flex-1 w-1 mt-1 rounded bg-[#4b9a95]"></span>
+      </div>
+      <div class="sc-card flex-1 rounded-2xl p-4 pb-4 text-sm space-y-1.5 ${tone} text-gray-900 dark:text-gray-100">
+        ${ribbon}
+        <p class="text-[11px]"><span class="font-black text-[#cf1717] bg-red-100/80 dark:bg-red-950 px-2 py-0.5 rounded-md">${esc(cls.class_code || '')}</span>
+          <span class="text-gray-500 dark:text-gray-400 ml-1">${esc(cls.title || 'Lớp học')}</span></p>
+        <p class="font-extrabold text-base leading-snug">${esc(s.subject_name || '(chưa rõ tên buổi)')}</p>
+        <p><b>Phòng</b>: ${esc(s.room || '—')}</p>
+        <p><b>Thời gian</b>: ${esc(s.session_time || '—')}</p>
+        ${s.lecturer ? `<p><b>Giảng viên</b>: ${esc(s.lecturer)}</p>` : ''}
+        <p><b>Ghi chú</b>${s.note ? ': ' + esc(s.note) : ''}</p>
+        ${(pend || susp) && s.request_note ? `<p class="text-amber-700 dark:text-amber-400"><b>${pend ? 'Lý do đề nghị' : 'Lý do tạm ngưng'}</b>: ${esc(s.request_note)}</p>` : ''}
+        ${susp ? '' : `<p><b>Điểm danh</b>: ${locked ? '🔒 Đã chốt' : '<span class="text-gray-400 italic font-normal">Chưa chốt</span>'}</p>`}
+        <div class="relative z-10 flex flex-wrap items-center gap-x-3 gap-y-1.5 pt-2 mt-1 border-t border-gray-200/70 dark:border-zinc-700/70">${actions}</div>
+      </div>
+    </div>`;
+  }
+
+  // ---- Hành động của giáo viên chủ nhiệm ngay trên thẻ lịch ----
+  function acalRow(id) { return allAssistantSessions.find(r => r.id === id); }
+  async function calApprove(id) {
+    const row = acalRow(id); if (!row) return;
+    const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'suspended' }).eq('id', id);
+    if (error) return notify('❌ Lỗi: ' + error.message);
+    logHistory(row, 'approve_suspend', `Đã duyệt tạm ngưng buổi ${fmtDate(row.session_date)}${row.session_time ? ' · ' + row.session_time : ''}`);
+    notify('✅ Đã duyệt tạm ngưng buổi học.'); loadAssistantScheduleCalendar(); loadNotifCounts();
+  }
+  async function calReject(id) {
+    const row = acalRow(id); if (!row) return;
+    const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'active', requested_by: null, request_note: null }).eq('id', id);
+    if (error) return notify('❌ Lỗi: ' + error.message);
+    logHistory(row, 'reject_suspend', `Đã từ chối yêu cầu tạm ngưng buổi ${fmtDate(row.session_date)}`);
+    notify('✅ Đã từ chối yêu cầu — buổi học trở lại bình thường.'); loadAssistantScheduleCalendar(); loadNotifCounts();
+  }
+  async function calSuspendDirect(id) {
+    const row = acalRow(id); if (!row) return;
+    const reason = prompt('Lý do tạm ngưng buổi học này (không bắt buộc):');
+    if (reason === null) return;
+    const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'suspended', request_note: reason.trim() || null }).eq('id', id);
+    if (error) return notify('❌ Lỗi: ' + error.message);
+    logHistory(row, 'status_change', `${statusLabel[row.status] || row.status} → ${statusLabel.suspended}${reason.trim() ? ' — Lý do: ' + reason.trim() : ''}`);
+    notify('✅ Đã tạm ngưng buổi học.'); loadAssistantScheduleCalendar();
+  }
+  async function calReopen(id) {
+    const row = acalRow(id); if (!row) return;
+    if (!confirm('Mở lại buổi học này?')) return;
+    const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'active', requested_by: null, request_note: null }).eq('id', id);
+    if (error) return notify('❌ Lỗi: ' + error.message);
+    logHistory(row, 'status_change', `${statusLabel[row.status] || row.status} → ${statusLabel.active}`);
+    notify('✅ Đã mở lại buổi học.'); loadAssistantScheduleCalendar();
   }
 
   async function requestSuspendFromCalendar(id) {
@@ -1406,7 +1425,7 @@
     renderNotifUI();
     // Nếu đang mở modal lịch/hỗ trợ, vẽ lại để cập nhật chấm đỏ trên nút "i"
     if (currentClassForSchedule && !pel('scheduleModal').classList.contains('hidden')) renderSchedule();
-    if (isAssistantRole() && pel('assistantCalendarSection') && !pel('assistantCalendarSection').classList.contains('hidden')) updateAssistantSelectedDateDetails();
+    if (pel('assistantCalendarSection')) updateAssistantSelectedDateDetails();
   }
 
   function renderNotifUI() {
@@ -1627,7 +1646,7 @@
     if (!row || !row.class_id || !isMyClassId(row.class_id)) return;
 
     if (currentClassForSchedule && currentClassForSchedule.id === row.class_id) loadSchedule();
-    if (isAssistantRole()) loadAssistantScheduleCalendar();
+    loadAssistantScheduleCalendar();
     loadNotifCounts();
 
     const cls = classInfoOf(row.class_id);
@@ -2442,24 +2461,10 @@
   let attClass = null;
   let attStudents = [];   // [{ student_id, full_name, email }]
   let attSessions = [];   // [{ id, session_date, session_time, subject_name, status }]
-  let attMap = {};        // { 'sessionId|studentId': 'P' | 'L' | 'E' | 'A' }  (đã lưu trên server)
-  let attLocks = new Set();  // id các buổi học đã CHỐT điểm danh
-  let attEditing = false;    // đang ở chế độ chỉnh sửa?
-  let attDraft = {};         // { 'sessionId|studentId': 'P'|'L'|'E'|'A'|'' } — thay đổi chưa lưu ('' = xóa)
+  let attLocked = new Set(); // session_id đã chốt: sau khi chốt chỉ teacher/admin được sửa
+  let attMap = {};        // { 'sessionId|studentId': 'P' | 'L' | 'E' | 'A' }
 
-  // Ngày hôm nay theo giờ Việt Nam (yyyy-mm-dd)
-  function attTodayStr() { return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }); }
-  function attIsToday(s) { return String(s.session_date || '').slice(0, 10) === attTodayStr(); }
-  function attIsLocked(s) { return attLocks.has(s.id); }
-  // Buổi được phép điểm danh: hôm nay + chưa chốt + không bị tạm ngưng
-  function attCanEditSession(s) { return attIsToday(s) && !attIsLocked(s) && s.status !== 'suspended'; }
-  function attIsEditable(s) { return attEditing && attCanEditSession(s); }
-  function attGet(sessionId, studentId) {
-    const k = sessionId + '|' + studentId;
-    return (k in attDraft) ? attDraft[k] : (attMap[k] || '');
-  }
-  function attDirtyCount() { return Object.keys(attDraft).length; }
-
+  function attCanEdit(sessionId) { return !attLocked.has(sessionId) || isOwnerRole(); }
   function attKey(sessionId, studentId) { return sessionId + '|' + studentId; }
   function attDateShort(d) { const p = String(d || '').slice(0, 10).split('-'); return p.length === 3 ? `${p[2]}/${p[1]}` : '--'; }
   function attDateFull(d)  { const p = String(d || '').slice(0, 10).split('-'); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : ''; }
@@ -2485,16 +2490,12 @@
     loadAttendance();
   }
   function closeAttendanceModal() {
-    if (attDirtyCount() && !confirm('Bạn có thay đổi điểm danh CHƯA LƯU. Đóng cửa sổ sẽ mất các thay đổi này. Vẫn đóng?')) return;
     pel('attendanceModal').classList.add('hidden'); pel('attendanceModal').classList.remove('flex');
-    attClass = null; attStudents = []; attSessions = []; attMap = {};
-    attLocks = new Set(); attEditing = false; attDraft = {};
+    attClass = null; attStudents = []; attSessions = []; attMap = {}; attLocked = new Set();
   }
 
   async function loadAttendance() {
     if (!attClass) return;
-    if (attDirtyCount() && !confirm('Tải lại sẽ bỏ các thay đổi chưa lưu. Tiếp tục?')) return;
-    attEditing = false; attDraft = {};
     const myId = attClass.id;
     pel('attTableWrap').innerHTML = '<p class="text-xs text-gray-400 italic p-4">Đang tải...</p>';
     try {
@@ -2506,7 +2507,6 @@
         sbClient.from('class_attendance_locks').select('session_id').eq('class_id', myId),
       ]);
       if (stuRes.error) throw stuRes.error;
-      if (lockRes.error) throw lockRes.error;
       if (sesRes.error) throw sesRes.error;
       if (!attClass || attClass.id !== myId) return; // đã đóng / đổi lớp trong lúc tải
 
@@ -2518,46 +2518,49 @@
       attSessions = sesRes.data || [];
       attMap = {};
       attRows.forEach(r => { attMap[attKey(r.session_id, r.student_id)] = r.status; });
-      attLocks = new Set((lockRes.data || []).map(r => r.session_id));
+      if (lockRes && lockRes.error) console.warn('Không tải được trạng thái chốt:', lockRes.error);
+      attLocked = new Set(((lockRes && !lockRes.error && lockRes.data) || []).map(r => r.session_id));
       renderAttendance();
-      // Tự cuộn tới cột hôm nay cho giảng viên dễ thấy
-      const todayTh = pel('attTableWrap').querySelector('th.att-today');
-      if (todayTh) pel('attTableWrap').scrollLeft = Math.max(0, todayTh.offsetLeft - 44 - 170 - 40);
     } catch (err) {
       pel('attTableWrap').innerHTML = `<p class="text-red-500 text-xs p-4">Lỗi tải điểm danh: ${esc(err.message || err)}<br>
-        <span class="text-gray-400">Bạn đã chạy file <b>1_attendance.sql</b> và <b>2_attendance_lock.sql</b> trong Supabase chưa?</span></p>`;
+        <span class="text-gray-400">Bạn đã chạy file <b>1_attendance.sql</b> trong Supabase chưa?</span></p>`;
     }
   }
 
   function attCounts(studentId) {
     const c = { P: 0, L: 0, E: 0, A: 0 };
-    attSessions.forEach(s => { const v = attGet(s.id, studentId); if (v && c[v] !== undefined) c[v]++; });
+    attSessions.forEach(s => { const v = attMap[attKey(s.id, studentId)]; if (v && c[v] !== undefined) c[v]++; });
     return c;
   }
 
   function renderAttendance() {
     const wrap = pel('attTableWrap');
-    attUpdateBar();
     if (!attStudents.length) { wrap.innerHTML = '<p class="text-xs text-gray-400 italic p-4">Lớp chưa có học sinh nào.</p>'; return; }
     if (!attSessions.length) { wrap.innerHTML = '<p class="text-xs text-gray-400 italic p-4">Lớp chưa có buổi học nào. Hãy thêm lịch học trước (nút 📅 Lịch học) rồi quay lại điểm danh.</p>'; return; }
 
     const sl = wrap.scrollLeft, st = wrap.scrollTop;
     const head = attSessions.map(s => {
       const susp = s.status === 'suspended';
-      const today = attIsToday(s), locked = attIsLocked(s);
-      return `<th class="${today ? 'att-today' : ''} ${locked ? 'att-locked' : ''}" title="${esc(s.subject_name || '')}${susp ? ' (Đã tạm ngưng)' : ''}${locked ? ' (Đã chốt)' : ''}" style="min-width:64px">
-        ${today ? '<div class="att-today-tag">HÔM NAY</div>' : ''}
-        <div>${attDateShort(s.session_date)}${locked ? ' 🔒' : ''}</div>
+      const locked = attLocked.has(s.id);
+      const bs = 'font-size:11px;background:rgba(255,255,255,.2);border-radius:6px;padding:0 6px;margin-top:2px';
+      let tools = '';
+      if (!susp) {
+        if (attCanEdit(s.id)) tools += `<button type="button" onclick="markAllPresent('${s.id}')" title="Đánh dấu P cho các bạn chưa điểm danh" style="${bs}">✔</button>`;
+        if (!locked) tools += ` <button type="button" onclick="toggleAttendanceLock('${s.id}')" title="Chốt điểm danh buổi này — học sinh sẽ thấy trạng thái, sau đó chỉ teacher mới sửa được" style="${bs}">🔓</button>`;
+        else if (isOwnerRole()) tools += ` <button type="button" onclick="toggleAttendanceLock('${s.id}')" title="Đã chốt — bấm để mở chốt (chỉ teacher)" style="${bs}">🔒</button>`;
+        else tools += ` <span title="Đã chốt — chỉ giáo viên (teacher) mới sửa được" style="${bs};display:inline-block">🔒</span>`;
+      }
+      return `<th title="${esc(s.subject_name || '')}${susp ? ' (Đã tạm ngưng)' : ''}${locked ? ' (Đã chốt)' : ''}" style="min-width:78px">
+        <div>${attDateShort(s.session_date)}</div>
         <div style="font-size:10px;font-weight:600;opacity:.85">${esc(s.session_time || '')}${susp ? ' 🔴' : ''}</div>
-        ${attIsEditable(s) ? `<button type="button" onclick="markAllPresent('${s.id}')" title="Đánh dấu P cho các bạn chưa điểm danh" style="font-size:11px;background:rgba(255,255,255,.2);border-radius:6px;padding:0 6px;margin-top:2px">✔</button>` : ''}
+        ${tools}
       </th>`;
     }).join('');
 
     const rows = attStudents.map((stu, i) => {
       const cells = attSessions.map(s => {
-        const v = attGet(s.id, stu.student_id);
-        const editable = attIsEditable(s);
-        return `<td class="${attIsToday(s) ? 'att-today' : ''}" style="text-align:center"><select class="att-sel att-${v || 'none'} ${s.status === 'suspended' ? 'att-susp' : ''} ${editable ? 'att-editable' : ''}" data-sid="${s.id}" data-stu="${stu.student_id}" ${editable ? '' : 'disabled'} onchange="setAttendance(this)">
+        const v = attMap[attKey(s.id, stu.student_id)] || '';
+        return `<td style="text-align:center"><select class="att-sel att-${v || 'none'}" data-sid="${s.id}" data-stu="${stu.student_id}" ${(s.status === 'suspended' || !attCanEdit(s.id)) ? 'disabled' : ''} onchange="setAttendance(this)">
           ${['', 'P', 'L', 'E', 'A'].map(o => `<option value="${o}" ${o === v ? 'selected' : ''}>${o || '·'}</option>`).join('')}
         </select></td>`;
       }).join('');
@@ -2588,131 +2591,73 @@
     ['P', 'L', 'E', 'A'].forEach(k => { const el = pel(`attsum-${studentId}-${k}`); if (el) el.textContent = c[k]; });
   }
 
-  // Chọn 1 ô điểm danh -> chỉ ghi vào BẢN NHÁP (chưa lưu lên server). Chọn '·' = xóa.
-  function setAttendance(sel) {
+  // Lưu 1 ô điểm danh (chọn '·' = xóa)
+  async function setAttendance(sel) {
     if (!attClass) return;
     const sid = sel.dataset.sid, stu = sel.dataset.stu, v = sel.value, key = attKey(sid, stu);
-    const s = attSessions.find(x => x.id === sid);
-    if (!attEditing || !s || !attCanEditSession(s)) {
-      sel.value = attGet(sid, stu);
-      return notify('⛔ Buổi này không thể chỉnh sửa (đã chốt hoặc không phải hôm nay).');
-    }
-    sel.className = 'att-sel att-editable att-' + (v || 'none');
-    if ((attMap[key] || '') === v) delete attDraft[key]; else attDraft[key] = v;
-    attUpdateSummary(stu);
-    attUpdateBar();
-  }
-
-  // Các buổi hôm nay (chưa chốt, không tạm ngưng) — phạm vi của nút Chỉnh sửa / Lưu tạm / Chốt
-  function attEditableSessions() { return attSessions.filter(attCanEditSession); }
-
-  // Cập nhật dòng trạng thái + các nút phía trên bảng
-  function attUpdateBar() {
-    const txt = pel('attStatusText'); if (!txt) return;
-    const today = attTodayStr();
-    const todays = attSessions.filter(attIsToday);
-    const editable = attEditableSessions();
-    let msg;
-    if (attEditing) {
-      const n = attDirtyCount();
-      msg = `✏️ Đang chỉnh sửa ngày ${attDateFull(today)} — ${n ? `<span class="text-amber-600">${n} thay đổi chưa lưu</span>` : 'chưa có thay đổi'}`;
-    } else if (!todays.length) {
-      msg = `📅 Hôm nay (${attDateFull(today)}) không có buổi học — chỉ xem, không thể điểm danh.`;
-    } else if (!editable.length) {
-      msg = todays.some(attIsLocked) ? `🔒 Điểm danh ngày ${attDateFull(today)} đã chốt — không thể chỉnh sửa lại.` : `🔴 Buổi học hôm nay đã tạm ngưng — không cần điểm danh.`;
+    const old = attMap[key] || '';
+    if (!attCanEdit(sid)) { sel.value = old; sel.className = 'att-sel att-' + (old || 'none'); return notify('🔒 Buổi này đã chốt — chỉ giáo viên (teacher) mới sửa được.'); }
+    sel.className = 'att-sel att-' + (v || 'none');
+    sel.disabled = true;
+    let error;
+    if (!v) {
+      ({ error } = await sbClient.from('class_attendance').delete().eq('session_id', sid).eq('student_id', stu));
     } else {
-      msg = `📅 Hôm nay ${attDateFull(today)} có ${editable.length} buổi chưa chốt — bấm “Chỉnh sửa” để điểm danh.`;
+      ({ error } = await sbClient.from('class_attendance').upsert({
+        class_id: attClass.id, session_id: sid, student_id: stu, status: v,
+        marked_by: currentUser.id, updated_at: new Date().toISOString(),
+      }, { onConflict: 'session_id,student_id' }));
     }
-    txt.innerHTML = msg;
-    const editBtn = pel('btnAttEdit');
-    editBtn.classList.toggle('hidden', attEditing);
-    editBtn.disabled = !editable.length || !attStudents.length;
-    ['btnAttSave', 'btnAttLock', 'btnAttCancel'].forEach(id => pel(id).classList.toggle('hidden', !attEditing));
+    sel.disabled = false;
+    if (error) { sel.value = old; sel.className = 'att-sel att-' + (old || 'none'); return notify('❌ Lỗi lưu điểm danh: ' + error.message); }
+    if (v) attMap[key] = v; else delete attMap[key];
+    attUpdateSummary(stu);
   }
 
-  function startAttEdit() {
+  // Chốt / mở chốt điểm danh 1 buổi. Chốt: cả teacher lẫn assistant làm được; mở chốt: chỉ teacher.
+  async function toggleAttendanceLock(sessionId) {
     if (!attClass) return;
-    if (!attEditableSessions().length) return notify('ℹ️ Hôm nay không có buổi nào có thể điểm danh.');
-    attEditing = true; attDraft = {};
-    renderAttendance();
-  }
+    const s = attSessions.find(x => x.id === sessionId); if (!s) return;
+    const wasLocked = attLocked.has(sessionId);
+    if (wasLocked && !isOwnerRole()) return notify('⚠️ Chỉ giáo viên (teacher) mới mở chốt được.');
+    if (!wasLocked) {
+      const missing = attStudents.filter(st => !attMap[attKey(sessionId, st.student_id)]).length;
+      const msg = `Chốt điểm danh ngày ${attDateFull(s.session_date)}?` + (missing ? `\n⚠️ Còn ${missing} học sinh chưa được điểm danh.` : '') +
+        '\nSau khi chốt, học sinh sẽ thấy trạng thái điểm danh và chỉ giáo viên (teacher) mới sửa được.';
+      if (!confirm(msg)) return;
+    } else if (!confirm(`Mở chốt điểm danh ngày ${attDateFull(s.session_date)}? Học sinh sẽ không thấy trạng thái cho tới khi chốt lại.`)) return;
 
-  function cancelAttEdit() {
-    if (attDirtyCount() && !confirm('Bỏ các thay đổi chưa lưu và thoát chế độ chỉnh sửa?')) return;
-    attEditing = false; attDraft = {};
-    renderAttendance();
-  }
-
-  // Ghi bản nháp lên server. Ném lỗi nếu thất bại.
-  async function attPersistDraft() {
-    const entries = Object.entries(attDraft);
-    if (!entries.length) return;
-    // Kiểm tra lại lần cuối: buổi phải còn là hôm nay & chưa chốt (phòng trường hợp để tab qua đêm)
-    for (const [k] of entries) {
-      const s = attSessions.find(x => x.id === k.split('|')[0]);
-      if (!s || !attCanEditSession(s)) throw new Error('Có buổi đã qua ngày hoặc đã chốt — không thể lưu. Hãy bấm “Tải lại”.');
+    let error;
+    if (wasLocked) {
+      const res = await sbClient.from('class_attendance_locks').delete().eq('session_id', sessionId).select('session_id');
+      error = res.error;
+      if (!error && !(res.data || []).length) error = { message: 'không xóa được dòng chốt (thiếu quyền RLS hoặc đã được mở trước đó).' };
+    } else {
+      ({ error } = await sbClient.from('class_attendance_locks').insert([{ class_id: attClass.id, session_id: sessionId }]));
+      if (error && error.code === '23505') error = null; // đã chốt từ trước
     }
-    const upserts = [], deletes = {};
-    entries.forEach(([k, v]) => {
-      const [sid, stu] = k.split('|');
-      if (v) upserts.push({ class_id: attClass.id, session_id: sid, student_id: stu, status: v, marked_by: currentUser.id, updated_at: new Date().toISOString() });
-      else (deletes[sid] = deletes[sid] || []).push(stu);
-    });
-    if (upserts.length) {
-      const { error } = await sbClient.from('class_attendance').upsert(upserts, { onConflict: 'session_id,student_id' });
-      if (error) throw error;
-    }
-    for (const sid of Object.keys(deletes)) {
-      const { error } = await sbClient.from('class_attendance').delete().eq('session_id', sid).in('student_id', deletes[sid]);
-      if (error) throw error;
-    }
-    entries.forEach(([k, v]) => { if (v) attMap[k] = v; else delete attMap[k]; });
-    attDraft = {};
-  }
-
-  // 💾 Lưu tạm: lưu lên server nhưng vẫn cho sửa tiếp
-  async function saveAttDraft() {
-    if (!attClass || !attEditing) return;
-    if (!attDirtyCount()) return notify('ℹ️ Chưa có thay đổi nào để lưu.');
-    const btn = pel('btnAttSave'); btn.disabled = true;
-    try { await attPersistDraft(); notify('💾 Đã lưu tạm điểm danh. Bạn vẫn có thể chỉnh sửa tiếp.'); renderAttendance(); }
-    catch (err) { notify('❌ Lỗi lưu điểm danh: ' + (err.message || err)); }
-    finally { btn.disabled = false; }
-  }
-
-  // 🔒 Chốt điểm danh: lưu + khóa vĩnh viễn các buổi hôm nay
-  async function lockAttendance() {
-    if (!attClass || !attEditing) return;
-    const sessions = attEditableSessions();
-    if (!sessions.length) return notify('ℹ️ Không có buổi nào để chốt.');
-    let blank = 0;
-    sessions.forEach(s => attStudents.forEach(st => { if (!attGet(s.id, st.student_id)) blank++; }));
-    const warn = blank ? `\n\n⚠️ Còn ${blank} ô chưa điểm danh — sau khi chốt sẽ để trống.` : '';
-    if (!confirm(`Chốt điểm danh ngày ${attDateFull(attTodayStr())}?\n\nSau khi chốt, bạn KHÔNG THỂ chỉnh sửa lại.${warn}`)) return;
-    const btn = pel('btnAttLock'); btn.disabled = true;
-    try {
-      await attPersistDraft();
-      const rows = sessions.map(s => ({ class_id: attClass.id, session_id: s.id, locked_by: currentUser.id }));
-      const { error } = await sbClient.from('class_attendance_locks').upsert(rows, { onConflict: 'session_id', ignoreDuplicates: true });
-      if (error) throw error;
-      sessions.forEach(s => attLocks.add(s.id));
-      attEditing = false;
-      renderAttendance();
-      notify('🔒 Đã chốt điểm danh. Không thể chỉnh sửa lại.');
-    } catch (err) { notify('❌ Lỗi chốt điểm danh: ' + (err.message || err)); }
-    finally { btn.disabled = false; }
-  }
-
-  // Đánh dấu P (vào bản nháp) cho tất cả học sinh CHƯA điểm danh trong 1 buổi
-  function markAllPresent(sessionId) {
-    if (!attClass || !attEditing) return;
-    const s = attSessions.find(x => x.id === sessionId);
-    if (!s || !attCanEditSession(s)) return notify('⛔ Buổi này không thể chỉnh sửa.');
-    const todo = attStudents.filter(st => !attGet(sessionId, st.student_id));
-    if (!todo.length) return notify('ℹ️ Buổi ' + attDateShort(s.session_date) + ' đã điểm danh đủ.');
-    todo.forEach(st => { attDraft[attKey(sessionId, st.student_id)] = 'P'; });
+    if (error) return notify('❌ Lỗi chốt điểm danh: ' + error.message);
+    if (wasLocked) attLocked.delete(sessionId); else attLocked.add(sessionId);
     renderAttendance();
-    notify('✅ Đã đánh dấu P cho ' + todo.length + ' học sinh (nhớ bấm Lưu tạm hoặc Chốt).');
+    loadAssistantScheduleCalendar();
+    notify(wasLocked ? '🔓 Đã mở chốt điểm danh.' : '🔒 Đã chốt điểm danh — học sinh sẽ thấy trạng thái.');
+  }
+
+  // Đánh dấu P cho tất cả học sinh CHƯA điểm danh trong 1 buổi
+  async function markAllPresent(sessionId) {
+    if (!attClass) return;
+    const s = attSessions.find(x => x.id === sessionId); if (!s) return;
+    if (!attCanEdit(sessionId)) return notify('🔒 Buổi này đã chốt — chỉ giáo viên (teacher) mới sửa được.');
+    const rows = attStudents.filter(st => !attMap[attKey(sessionId, st.student_id)]).map(st => ({
+      class_id: attClass.id, session_id: sessionId, student_id: st.student_id, status: 'P', marked_by: currentUser.id,
+    }));
+    if (!rows.length) return notify('ℹ️ Buổi ' + attDateShort(s.session_date) + ' đã điểm danh đủ.');
+    if (!confirm(`Đánh dấu P (có mặt) cho ${rows.length} học sinh chưa điểm danh ngày ${attDateFull(s.session_date)}?`)) return;
+    const { error } = await sbClient.from('class_attendance').upsert(rows, { onConflict: 'session_id,student_id' });
+    if (error) return notify('❌ Lỗi lưu điểm danh: ' + error.message);
+    rows.forEach(r => { attMap[attKey(r.session_id, r.student_id)] = 'P'; });
+    renderAttendance();
+    notify('✅ Đã đánh dấu P cho ' + rows.length + ' học sinh.');
   }
 
   // Xuất Excel có màu pastel cho từng ô (dùng ExcelJS — SheetJS bản free không tô màu được)
