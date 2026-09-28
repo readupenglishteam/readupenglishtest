@@ -2503,6 +2503,126 @@
   function attDateShort(d) { const p = String(d || '').slice(0, 10).split('-'); return p.length === 3 ? `${p[2]}/${p[1]}` : '--'; }
   function attDateFull(d)  { const p = String(d || '').slice(0, 10).split('-'); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : ''; }
 
+    function attEditableSessions() {
+    return attSessions.filter(attCanEditSession);
+  }
+
+  function attUpdateBar() {
+    const txt = pel('attStatusText');
+    if (!txt) return;
+    const today = attTodayStr();
+    const todays = attSessions.filter(attIsToday);
+    const editable = attEditableSessions();
+    let msg;
+    if (attEditing) {
+      const n = attDirtyCount();
+      msg = `✏️ Đang chỉnh sửa ngày ${attDateFull(today)} — ${n ? `<span class="text-amber-600">${n} thay đổi chưa lưu</span>` : 'chưa có thay đổi'}`;
+    } else if (!todays.length) {
+      msg = `📅 Hôm nay (${attDateFull(today)}) không có buổi học — chỉ xem, không thể điểm danh.`;
+    } else if (!editable.length) {
+      msg = todays.some(s => attIsLocked(s))
+        ? `🔒 Điểm danh ngày ${attDateFull(today)} đã chốt — không thể chỉnh sửa lại.`
+        : `🔴 Buổi học hôm nay đã tạm ngưng — không cần điểm danh.`;
+    } else {
+      msg = `📅 Hôm nay ${attDateFull(today)} có ${editable.length} buổi chưa chốt — bấm “Chỉnh sửa” để điểm danh.`;
+    }
+    txt.innerHTML = msg;
+    const editBtn = pel('btnAttEdit');
+    if (editBtn) {
+      editBtn.classList.toggle('hidden', attEditing);
+      editBtn.disabled = !editable.length || !attStudents.length;
+    }
+    ['btnAttSave', 'btnAttLock', 'btnAttCancel'].forEach(id => {
+      const el = pel(id);
+      if (el) el.classList.toggle('hidden', !attEditing);
+    });
+  }
+
+  function startAttEdit() {
+    if (!attClass) return;
+    if (!attEditableSessions().length) return notify('ℹ️ Hôm nay không có buổi nào có thể điểm danh.');
+    attEditing = true;
+    attDraft = {};
+    renderAttendance();
+  }
+
+  function cancelAttEdit() {
+    if (attDirtyCount() && !confirm('Bỏ các thay đổi chưa lưu và thoát chế độ chỉnh sửa?')) return;
+    attEditing = false;
+    attDraft = {};
+    renderAttendance();
+  }
+
+  async function attPersistDraft() {
+    const entries = Object.entries(attDraft);
+    if (!entries.length) return;
+    for (const [k] of entries) {
+      const s = attSessions.find(x => x.id === k.split('|')[0]);
+      if (!s || !attCanEditSession(s)) throw new Error('Có buổi đã qua ngày hoặc đã chốt — không thể lưu. Hãy bấm “Tải lại”.');
+    }
+    const upserts = [], deletes = {};
+    entries.forEach(([k, v]) => {
+      const [sid, stu] = k.split('|');
+      if (v) upserts.push({
+        class_id: attClass.id, session_id: sid, student_id: stu, status: v,
+        marked_by: currentUser.id, updated_at: new Date().toISOString()
+      });
+      else (deletes[sid] = deletes[sid] || []).push(stu);
+    });
+    if (upserts.length) {
+      const { error } = await sbClient.from('class_attendance').upsert(upserts, { onConflict: 'session_id,student_id' });
+      if (error) throw error;
+    }
+    for (const sid of Object.keys(deletes)) {
+      const { error } = await sbClient.from('class_attendance').delete().eq('session_id', sid).in('student_id', deletes[sid]);
+      if (error) throw error;
+    }
+    entries.forEach(([k, v]) => { if (v) attMap[k] = v; else delete attMap[k]; });
+    attDraft = {};
+  }
+
+  async function saveAttDraft() {
+    if (!attClass || !attEditing) return;
+    if (!attDirtyCount()) return notify('ℹ️ Chưa có thay đổi nào để lưu.');
+    const btn = pel('btnAttSave');
+    if (btn) btn.disabled = true;
+    try {
+      await attPersistDraft();
+      notify('💾 Đã lưu tạm điểm danh. Bạn vẫn có thể chỉnh sửa tiếp.');
+      renderAttendance();
+    } catch (err) {
+      notify('❌ Lỗi lưu điểm danh: ' + (err.message || err));
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  async function lockAttendance() {
+    if (!attClass || !attEditing) return;
+    const sessions = attEditableSessions();
+    if (!sessions.length) return notify('ℹ️ Không có buổi nào để chốt.');
+    let blank = 0;
+    sessions.forEach(s => attStudents.forEach(st => { if (!attGet(s.id, st.student_id)) blank++; }));
+    const warn = blank ? `\n\n⚠️ Còn ${blank} ô chưa điểm danh — sau khi chốt sẽ để trống.` : '';
+    if (!confirm(`Chốt điểm danh ngày ${attDateFull(attTodayStr())}?\n\nSau khi chốt, học sinh thấy trạng thái; chỉ teacher mới mở chốt được.${warn}`)) return;
+    const btn = pel('btnAttLock');
+    if (btn) btn.disabled = true;
+    try {
+      await attPersistDraft();
+      const rows = sessions.map(s => ({ class_id: attClass.id, session_id: s.id, locked_by: currentUser.id }));
+      const { error } = await sbClient.from('class_attendance_locks').upsert(rows, { onConflict: 'session_id', ignoreDuplicates: true });
+      if (error) throw error;
+      sessions.forEach(s => attLocks.add(s.id));
+      attEditing = false;
+      renderAttendance();
+      notify('🔒 Đã chốt điểm danh.');
+    } catch (err) {
+      notify('❌ Lỗi chốt điểm danh: ' + (err.message || err));
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
   // Supabase mặc định trả tối đa 1000 dòng/lần → lấy theo từng trang cho đủ
   async function attFetchAll(buildQuery) {
     const size = 1000; let from = 0, all = [];
