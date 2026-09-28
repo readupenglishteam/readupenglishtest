@@ -61,6 +61,18 @@
   .sc-ribbon.pend{background:#f5b301;color:#3b2a00}
   .sc-alert{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:9px;background:#e53528;color:#fff;font-weight:900;font-size:17px;display:flex;align-items:center;justify-content:center}
   .sc-alert.pend{background:#f5b301;color:#3b2a00}
+    .att-sel { appearance: none; -webkit-appearance: none; width: 46px; height: 32px; text-align: center; text-align-last: center;
+             font-weight: 800; font-size: 13px; border-radius: 8px; border: 1px solid rgba(0,0,0,.12); cursor: pointer; outline: none; }
+  .att-sel:focus { box-shadow: 0 0 0 2px rgba(207,23,23,.35); }
+  .att-sel:disabled { opacity: .85; cursor: default; }
+  .att-sel.att-susp:disabled { opacity: .4; cursor: not-allowed; }
+  .att-sel.att-editable { box-shadow: 0 0 0 2px rgba(107,114,128,.55); }
+  /* Cột hôm nay nổi bật xám */
+  #attTable thead th.att-today { background: #4b5563 !important; color: #fff; }
+  #attTable td.att-today { background: #d1d5db !important; }
+  .dark #attTable td.att-today { background: #52525b !important; }
+  #attTable thead th.att-locked { background: #7f1d1d; }
+  .att-today-tag { display:inline-block; font-size:9px; font-weight:800; background:#fff; color:#374151; border-radius:999px; padding:0 6px; margin-bottom:2px; }
 </style>
 
 <!-- ================= HEADER GIÁO VIÊN ================= -->
@@ -263,6 +275,16 @@
     </div>
 
     <p class="text-[11px] text-gray-400">💡 Chọn P / L / E / A ở từng ô — hệ thống lưu ngay. Bấm nút <b>✔</b> trên đầu cột ngày để đánh dấu P cho những bạn chưa điểm danh. Chọn “·” để xóa. Nút <b>🔓</b> để chốt buổi — sau khi chốt học sinh mới thấy trạng thái và chỉ <b>teacher</b> mới sửa/mở chốt được.</p>
+    <div class="flex flex-wrap items-center justify-between gap-3 bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl p-3">
+    <p id="attStatusText" class="text-xs font-bold text-gray-600 dark:text-gray-300">...</p>
+    <div class="flex flex-wrap items-center gap-2">
+        <button id="btnAttEdit" onclick="startAttEdit()" class="text-xs font-bold px-4 py-2 rounded-xl bg-gray-700 hover:bg-gray-800 text-white shadow transition disabled:opacity-40 disabled:cursor-not-allowed">✏️ Chỉnh sửa</button>
+        <button id="btnAttSave" onclick="saveAttDraft()" class="hidden text-xs font-bold px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow transition">💾 Lưu tạm</button>
+        <button id="btnAttLock" onclick="lockAttendance()" class="hidden text-xs font-bold px-4 py-2 rounded-xl bg-[#cf1717] hover:bg-red-700 text-white shadow transition">🔒 Chốt điểm danh</button>
+        <button id="btnAttCancel" onclick="cancelAttEdit()" class="hidden text-xs font-bold px-3 py-2 rounded-xl border dark:border-zinc-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition">✖ Hủy</button>
+      </div>
+    </div>
+    <p class="text-[11px] text-gray-400">💡 Chỉ điểm danh được trong <b>ngày hôm nay</b> (cột màu xám). Bấm <b>✏️ Chỉnh sửa</b> → chọn P/L/E/A (hoặc ✔ đầu cột) → <b>💾 Lưu tạm</b> hoặc <b>🔒 Chốt</b>. Sau khi chốt, học sinh thấy trạng thái; <b>chỉ teacher mới mở chốt</b> để sửa lại.</p>
 
     <div id="attTableWrap" class="overflow-auto max-h-[68vh] border dark:border-zinc-800 rounded-xl">
       <p class="text-xs text-gray-400 italic p-4">Đang tải...</p>
@@ -2452,19 +2474,31 @@
   // Cần: bảng class_attendance + hàm get_class_student_emails (file 1_attendance.sql)
   //      thư viện ExcelJS (thẻ <script> ở <head>)
   // =====================================================================
-  const ATT_STATUS = {
+    const ATT_STATUS = {
     P: { name: 'Present — Có mặt',          argb: 'FFC8E6C9', font: 'FF1B5E20' },
     L: { name: 'Late — Muộn',               argb: 'FFFFF3B0', font: 'FF7A5B00' },
     E: { name: 'Excused — Nghỉ có phép',    argb: 'FFBBDEFB', font: 'FF0D47A1' },
     A: { name: 'Absent — Nghỉ không phép',  argb: 'FFFFCDD2', font: 'FFB71C1C' },
   };
   let attClass = null;
-  let attStudents = [];   // [{ student_id, full_name, email }]
-  let attSessions = [];   // [{ id, session_date, session_time, subject_name, status }]
-  let attLocked = new Set(); // session_id đã chốt: sau khi chốt chỉ teacher/admin được sửa
-  let attMap = {};        // { 'sessionId|studentId': 'P' | 'L' | 'E' | 'A' }
+  let attStudents = [];
+  let attSessions = [];
+  let attMap = {};          // đã lưu trên server
+  let attLocks = new Set(); // session đã chốt
+  let attEditing = false;
+  let attDraft = {};        // thay đổi chưa lưu ('' = xóa)
 
-  function attCanEdit(sessionId) { return !attLocked.has(sessionId) || isOwnerRole(); }
+  function attTodayStr() { return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }); }
+  function attIsToday(s) { return String(s.session_date || '').slice(0, 10) === attTodayStr(); }
+  function attIsLocked(s) { return attLocks.has(s.id); }
+  // Chỉ hôm nay + chưa chốt + không tạm ngưng mới được sửa khi đang edit
+  function attCanEditSession(s) { return attIsToday(s) && !attIsLocked(s) && s.status !== 'suspended'; }
+  function attIsEditable(s) { return attEditing && attCanEditSession(s); }
+  function attGet(sessionId, studentId) {
+    const k = sessionId + '|' + studentId;
+    return (k in attDraft) ? attDraft[k] : (attMap[k] || '');
+  }
+  function attDirtyCount() { return Object.keys(attDraft).length; }
   function attKey(sessionId, studentId) { return sessionId + '|' + studentId; }
   function attDateShort(d) { const p = String(d || '').slice(0, 10).split('-'); return p.length === 3 ? `${p[2]}/${p[1]}` : '--'; }
   function attDateFull(d)  { const p = String(d || '').slice(0, 10).split('-'); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : ''; }
@@ -2540,21 +2574,27 @@
 
     const sl = wrap.scrollLeft, st = wrap.scrollTop;
     const head = attSessions.map(s => {
-      const susp = s.status === 'suspended';
-      const locked = attLocked.has(s.id);
-      const bs = 'font-size:11px;background:rgba(255,255,255,.2);border-radius:6px;padding:0 6px;margin-top:2px';
-      let tools = '';
-      if (!susp) {
-        if (attCanEdit(s.id)) tools += `<button type="button" onclick="markAllPresent('${s.id}')" title="Đánh dấu P cho các bạn chưa điểm danh" style="${bs}">✔</button>`;
-        if (!locked) tools += ` <button type="button" onclick="toggleAttendanceLock('${s.id}')" title="Chốt điểm danh buổi này — học sinh sẽ thấy trạng thái, sau đó chỉ teacher mới sửa được" style="${bs}">🔓</button>`;
-        else if (isOwnerRole()) tools += ` <button type="button" onclick="toggleAttendanceLock('${s.id}')" title="Đã chốt — bấm để mở chốt (chỉ teacher)" style="${bs}">🔒</button>`;
-        else tools += ` <span title="Đã chốt — chỉ giáo viên (teacher) mới sửa được" style="${bs};display:inline-block">🔒</span>`;
+    const susp = s.status === 'suspended';
+    const today = attIsToday(s), locked = attIsLocked(s);
+    const bs = 'font-size:11px;background:rgba(255,255,255,.2);border-radius:6px;padding:0 6px;margin-top:2px';
+    let tools = '';
+    if (!susp) {
+      if (attIsEditable(s)) tools += `<button type="button" onclick="markAllPresent('${s.id}')" title="Đánh dấu P cho các bạn chưa điểm danh" style="${bs}">✔</button>`;
+      // Nút chốt/mở chốt từng buổi (v2): chốt được khi đang edit HOẶC đã có dữ liệu; mở chốt chỉ teacher
+      if (today && !locked && attEditing) {
+        tools += ` <button type="button" onclick="toggleAttendanceLock('${s.id}')" title="Chốt buổi này" style="${bs}">🔓</button>`;
+      } else if (locked && isOwnerRole()) {
+        tools += ` <button type="button" onclick="toggleAttendanceLock('${s.id}')" title="Mở chốt (chỉ teacher)" style="${bs}">🔒</button>`;
+      } else if (locked) {
+        tools += ` <span title="Đã chốt" style="${bs};display:inline-block">🔒</span>`;
       }
-      return `<th title="${esc(s.subject_name || '')}${susp ? ' (Đã tạm ngưng)' : ''}${locked ? ' (Đã chốt)' : ''}" style="min-width:78px">
-        <div>${attDateShort(s.session_date)}</div>
-        <div style="font-size:10px;font-weight:600;opacity:.85">${esc(s.session_time || '')}${susp ? ' 🔴' : ''}</div>
-        ${tools}
-      </th>`;
+    }
+    return `<th class="${today ? 'att-today' : ''} ${locked ? 'att-locked' : ''}" title="${esc(s.subject_name || '')}${susp ? ' (Tạm ngưng)' : ''}${locked ? ' (Đã chốt)' : ''}" style="min-width:78px">
+      ${today ? '<div class="att-today-tag">HÔM NAY</div>' : ''}
+      <div>${attDateShort(s.session_date)}${locked ? ' 🔒' : ''}</div>
+      <div style="font-size:10px;font-weight:600;opacity:.85">${esc(s.session_time || '')}${susp ? ' 🔴' : ''}</div>
+      ${tools}
+    </th>`;
     }).join('');
 
     const rows = attStudents.map((stu, i) => {
@@ -2615,32 +2655,41 @@
   }
 
   // Chốt / mở chốt điểm danh 1 buổi. Chốt: cả teacher lẫn assistant làm được; mở chốt: chỉ teacher.
-  async function toggleAttendanceLock(sessionId) {
+    async function toggleAttendanceLock(sessionId) {
     if (!attClass) return;
     const s = attSessions.find(x => x.id === sessionId); if (!s) return;
-    const wasLocked = attLocked.has(sessionId);
-    if (wasLocked && !isOwnerRole()) return notify('⚠️ Chỉ giáo viên (teacher) mới mở chốt được.');
-    if (!wasLocked) {
-      const missing = attStudents.filter(st => !attMap[attKey(sessionId, st.student_id)]).length;
-      const msg = `Chốt điểm danh ngày ${attDateFull(s.session_date)}?` + (missing ? `\n⚠️ Còn ${missing} học sinh chưa được điểm danh.` : '') +
-        '\nSau khi chốt, học sinh sẽ thấy trạng thái điểm danh và chỉ giáo viên (teacher) mới sửa được.';
-      if (!confirm(msg)) return;
-    } else if (!confirm(`Mở chốt điểm danh ngày ${attDateFull(s.session_date)}? Học sinh sẽ không thấy trạng thái cho tới khi chốt lại.`)) return;
+    const wasLocked = attLocks.has(sessionId);
 
-    let error;
     if (wasLocked) {
+      if (!isOwnerRole()) return notify('⚠️ Chỉ giáo viên (teacher) mới mở chốt được.');
+      if (attDirtyCount() && !confirm('Còn thay đổi chưa lưu. Mở chốt vẫn tiếp tục (draft giữ nguyên)?')) return;
+      if (!confirm(`Mở chốt điểm danh ngày ${attDateFull(s.session_date)}?\nHọc sinh sẽ không thấy trạng thái cho tới khi chốt lại.`)) return;
       const res = await sbClient.from('class_attendance_locks').delete().eq('session_id', sessionId).select('session_id');
-      error = res.error;
-      if (!error && !(res.data || []).length) error = { message: 'không xóa được dòng chốt (thiếu quyền RLS hoặc đã được mở trước đó).' };
-    } else {
-      ({ error } = await sbClient.from('class_attendance_locks').insert([{ class_id: attClass.id, session_id: sessionId }]));
-      if (error && error.code === '23505') error = null; // đã chốt từ trước
+      if (res.error) return notify('❌ Lỗi mở chốt: ' + res.error.message);
+      if (!(res.data || []).length) return notify('❌ Không xóa được dòng chốt (RLS / đã mở trước đó).');
+      attLocks.delete(sessionId);
+      renderAttendance();
+      if (typeof loadAssistantScheduleCalendar === 'function') loadAssistantScheduleCalendar();
+      return notify('🔓 Đã mở chốt điểm danh.');
     }
-    if (error) return notify('❌ Lỗi chốt điểm danh: ' + error.message);
-    if (wasLocked) attLocked.delete(sessionId); else attLocked.add(sessionId);
+
+    // Chốt 1 buổi: nên lưu draft trước
+    if (!attIsToday(s) || s.status === 'suspended') return notify('⛔ Chỉ chốt được buổi hôm nay (không tạm ngưng).');
+    if (attDirtyCount()) {
+      try { await attPersistDraft(); } catch (e) { return notify('❌ Lưu tạm thất bại: ' + (e.message || e)); }
+    }
+    const missing = attStudents.filter(st => !attGet(sessionId, st.student_id)).length;
+    const msg = `Chốt điểm danh ngày ${attDateFull(s.session_date)}?` +
+      (missing ? `\n⚠️ Còn ${missing} học sinh chưa điểm danh.` : '') +
+      '\nSau khi chốt, học sinh thấy trạng thái; chỉ teacher mới mở chốt được.';
+    if (!confirm(msg)) return;
+    const { error } = await sbClient.from('class_attendance_locks').insert([{ class_id: attClass.id, session_id: sessionId, locked_by: currentUser.id }]);
+    if (error && error.code !== '23505') return notify('❌ Lỗi chốt: ' + error.message);
+    attLocks.add(sessionId);
+    attEditing = false; // thoát edit sau khi chốt 1 buổi (tuỳ bạn: có thể giữ edit nếu còn buổi hôm nay khác)
     renderAttendance();
-    loadAssistantScheduleCalendar();
-    notify(wasLocked ? '🔓 Đã mở chốt điểm danh.' : '🔒 Đã chốt điểm danh — học sinh sẽ thấy trạng thái.');
+    if (typeof loadAssistantScheduleCalendar === 'function') loadAssistantScheduleCalendar();
+    notify('🔒 Đã chốt điểm danh — học sinh sẽ thấy trạng thái.');
   }
 
   // Đánh dấu P cho tất cả học sinh CHƯA điểm danh trong 1 buổi
