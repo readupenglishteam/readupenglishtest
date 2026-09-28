@@ -221,7 +221,15 @@
   .att-sel { appearance: none; -webkit-appearance: none; width: 46px; height: 32px; text-align: center; text-align-last: center;
              font-weight: 800; font-size: 13px; border-radius: 8px; border: 1px solid rgba(0,0,0,.12); cursor: pointer; outline: none; }
   .att-sel:focus { box-shadow: 0 0 0 2px rgba(207,23,23,.35); }
-  .att-sel:disabled { opacity: .45; cursor: not-allowed; }
+  .att-sel:disabled { opacity: .85; cursor: default; }
+  .att-sel.att-susp:disabled { opacity: .4; cursor: not-allowed; }
+  .att-sel.att-editable { box-shadow: 0 0 0 2px rgba(107,114,128,.55); }
+  /* Cột của ngày hôm nay: nổi bật màu xám */
+  #attTable thead th.att-today { background: #4b5563 !important; color: #fff; }
+  #attTable td.att-today { background: #d1d5db !important; }
+  .dark #attTable td.att-today { background: #52525b !important; }
+  #attTable thead th.att-locked { background: #7f1d1d; }
+  .att-today-tag { display:inline-block; font-size:9px; font-weight:800; background:#fff; color:#374151; border-radius:999px; padding:0 6px; margin-bottom:2px; }
   .att-sel option { background: #fff; color: #111827; font-weight: 700; }
   .att-none { background: transparent; color: #9ca3af; }
   .att-P { background: #C8E6C9; color: #1B5E20; }   /* Present  – xanh lá pastel   */
@@ -254,7 +262,16 @@
       </div>
     </div>
 
-    <p class="text-[11px] text-gray-400">💡 Chọn P / L / E / A ở từng ô — hệ thống lưu ngay. Bấm nút <b>✔</b> trên đầu cột ngày để đánh dấu P cho những bạn chưa điểm danh. Chọn “·” để xóa.</p>
+    <div class="flex flex-wrap items-center justify-between gap-3 bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl p-3">
+      <p id="attStatusText" class="text-xs font-bold text-gray-600 dark:text-gray-300">...</p>
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="btnAttEdit" onclick="startAttEdit()" class="text-xs font-bold px-4 py-2 rounded-xl bg-gray-700 hover:bg-gray-800 text-white shadow transition disabled:opacity-40 disabled:cursor-not-allowed">✏️ Chỉnh sửa</button>
+        <button id="btnAttSave" onclick="saveAttDraft()" class="hidden text-xs font-bold px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow transition">💾 Lưu tạm</button>
+        <button id="btnAttLock" onclick="lockAttendance()" class="hidden text-xs font-bold px-4 py-2 rounded-xl bg-[#cf1717] hover:bg-red-700 text-white shadow transition">🔒 Chốt điểm danh</button>
+        <button id="btnAttCancel" onclick="cancelAttEdit()" class="hidden text-xs font-bold px-3 py-2 rounded-xl border dark:border-zinc-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition">✖ Hủy</button>
+      </div>
+    </div>
+    <p class="text-[11px] text-gray-400">💡 Chỉ điểm danh được trong <b>ngày hôm nay</b> (cột màu xám). Bấm <b>✏️ Chỉnh sửa</b> → chọn P / L / E / A ở từng ô (bấm <b>✔</b> đầu cột để đánh dấu P cho các bạn chưa chọn) → <b>💾 Lưu tạm</b> để giữ lại và sửa tiếp, hoặc <b>🔒 Chốt điểm danh</b> để hoàn tất. <b>Đã chốt hoặc qua ngày thì không thể sửa lại.</b></p>
 
     <div id="attTableWrap" class="overflow-auto max-h-[68vh] border dark:border-zinc-800 rounded-xl">
       <p class="text-xs text-gray-400 italic p-4">Đang tải...</p>
@@ -379,6 +396,12 @@
 
     <div class="space-y-2">
       <h4 class="font-bold text-xs uppercase text-gray-500">📋 Danh Sách Buổi Học (<span id="smCount">0</span>)</h4>
+      <div class="relative">
+        <input type="text" id="smSearchInput" oninput="filterScheduleList(this.value)" autocomplete="off"
+               placeholder="🔍 Tìm theo tên buổi, ngày (VD: 15/10), ca, phòng, giảng viên, ghi chú..."
+               class="w-full pl-3 pr-9 py-2 text-xs sm:text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
+        <button type="button" id="smSearchClear" onclick="clearScheduleSearch()" class="hidden absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full text-gray-400 hover:text-[#cf1717] hover:bg-gray-100 dark:hover:bg-zinc-700 font-bold" title="Xóa tìm kiếm">✕</button>
+      </div>
       <div id="smList" class="space-y-2 max-h-[28rem] overflow-y-auto pr-1">
         <p class="text-xs text-gray-400 italic">Đang tải...</p>
       </div>
@@ -912,6 +935,9 @@
     currentClassForSchedule = c;
     scheduleEditingId = null;
     pel('smClassTitle').innerText = c.title;
+    scheduleSearchKw = '';
+    if (pel('smSearchInput')) pel('smSearchInput').value = '';
+    if (pel('smSearchClear')) pel('smSearchClear').classList.add('hidden');
     pel('smUploadBox').classList.toggle('hidden', !isOwnerRole());
     pel('manualAddForm').classList.add('hidden');
     pel('scheduleModal').classList.remove('hidden'); pel('scheduleModal').classList.add('flex');
@@ -932,8 +958,35 @@
   }
 
   let scheduleEditingId = null;
+  let scheduleSearchKw = '';
+
+  // Bỏ dấu tiếng Việt + về chữ thường để tìm không phân biệt dấu/hoa thường
+  function normSearch(s) {
+    return String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'd').toLowerCase();
+  }
+  function scheduleMatches(r, terms) {
+    const hay = normSearch([
+      r.subject_name, r.session_time, r.room, r.lecturer, r.note,
+      fmtDate(r.session_date), r.session_date, statusLabel[r.status] || r.status,
+    ].join(' '));
+    return terms.every(t => hay.includes(t));   // nhiều từ khóa: phải khớp TẤT CẢ
+  }
+  function filterScheduleList(kw) {
+    scheduleSearchKw = kw || '';
+    pel('smSearchClear').classList.toggle('hidden', !scheduleSearchKw.trim());
+    renderSchedule();
+  }
+  function clearScheduleSearch() {
+    pel('smSearchInput').value = '';
+    filterScheduleList('');
+    pel('smSearchInput').focus();
+  }
+
   function renderSchedule() {
     const owner = isOwnerRole();
+    const terms = normSearch(scheduleSearchKw).split(/\s+/).filter(Boolean);
+    const shownRows = terms.length ? currentScheduleRows.filter(r => scheduleMatches(r, terms)) : currentScheduleRows;
+    pel('smCount').innerText = terms.length ? `${shownRows.length}/${currentScheduleRows.length}` : currentScheduleRows.length;
     const pending = currentScheduleRows.filter(r => r.status === 'pending_suspend');
     pel('smPendingBox').classList.toggle('hidden', !(owner && pending.length));
     if (owner && pending.length) {
@@ -948,7 +1001,7 @@
         </div>`).join('');
     }
 
-    pel('smList').innerHTML = currentScheduleRows.map(r => {
+    pel('smList').innerHTML = shownRows.map(r => {
       if (owner && scheduleEditingId === r.id) return renderScheduleEditRow(r);
       return `
       <div class="bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl p-3 text-xs space-y-1.5" data-row="${r.id}">
@@ -977,7 +1030,9 @@
           <button onclick="openHistoryModal('${r.id}')" class="font-bold text-gray-500 hover:underline">🕘 Lịch sử</button>
         </div>
       </div>`;
-    }).join('') || '<p class="text-xs text-gray-400 italic">Lớp này chưa có lịch học. ' + (owner ? 'Hãy tải file Excel lên hoặc thêm thủ công ở trên.' : '') + '</p>';
+    }).join('') || (terms.length
+      ? `<p class="text-xs text-gray-400 italic">🔍 Không tìm thấy buổi học nào khớp với “${esc(scheduleSearchKw.trim())}”.</p>`
+      : '<p class="text-xs text-gray-400 italic">Lớp này chưa có lịch học. ' + (owner ? 'Hãy tải file Excel lên hoặc thêm thủ công ở trên.' : '') + '</p>');
   }
 
   function renderScheduleEditRow(r) {
@@ -2387,7 +2442,23 @@
   let attClass = null;
   let attStudents = [];   // [{ student_id, full_name, email }]
   let attSessions = [];   // [{ id, session_date, session_time, subject_name, status }]
-  let attMap = {};        // { 'sessionId|studentId': 'P' | 'L' | 'E' | 'A' }
+  let attMap = {};        // { 'sessionId|studentId': 'P' | 'L' | 'E' | 'A' }  (đã lưu trên server)
+  let attLocks = new Set();  // id các buổi học đã CHỐT điểm danh
+  let attEditing = false;    // đang ở chế độ chỉnh sửa?
+  let attDraft = {};         // { 'sessionId|studentId': 'P'|'L'|'E'|'A'|'' } — thay đổi chưa lưu ('' = xóa)
+
+  // Ngày hôm nay theo giờ Việt Nam (yyyy-mm-dd)
+  function attTodayStr() { return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }); }
+  function attIsToday(s) { return String(s.session_date || '').slice(0, 10) === attTodayStr(); }
+  function attIsLocked(s) { return attLocks.has(s.id); }
+  // Buổi được phép điểm danh: hôm nay + chưa chốt + không bị tạm ngưng
+  function attCanEditSession(s) { return attIsToday(s) && !attIsLocked(s) && s.status !== 'suspended'; }
+  function attIsEditable(s) { return attEditing && attCanEditSession(s); }
+  function attGet(sessionId, studentId) {
+    const k = sessionId + '|' + studentId;
+    return (k in attDraft) ? attDraft[k] : (attMap[k] || '');
+  }
+  function attDirtyCount() { return Object.keys(attDraft).length; }
 
   function attKey(sessionId, studentId) { return sessionId + '|' + studentId; }
   function attDateShort(d) { const p = String(d || '').slice(0, 10).split('-'); return p.length === 3 ? `${p[2]}/${p[1]}` : '--'; }
@@ -2414,22 +2485,28 @@
     loadAttendance();
   }
   function closeAttendanceModal() {
+    if (attDirtyCount() && !confirm('Bạn có thay đổi điểm danh CHƯA LƯU. Đóng cửa sổ sẽ mất các thay đổi này. Vẫn đóng?')) return;
     pel('attendanceModal').classList.add('hidden'); pel('attendanceModal').classList.remove('flex');
     attClass = null; attStudents = []; attSessions = []; attMap = {};
+    attLocks = new Set(); attEditing = false; attDraft = {};
   }
 
   async function loadAttendance() {
     if (!attClass) return;
+    if (attDirtyCount() && !confirm('Tải lại sẽ bỏ các thay đổi chưa lưu. Tiếp tục?')) return;
+    attEditing = false; attDraft = {};
     const myId = attClass.id;
     pel('attTableWrap').innerHTML = '<p class="text-xs text-gray-400 italic p-4">Đang tải...</p>';
     try {
-      const [stuRes, sesRes, attRows] = await Promise.all([
+      const [stuRes, sesRes, attRows, lockRes] = await Promise.all([
         sbClient.rpc('get_class_student_emails', { p_class_id: myId }),
         sbClient.from('class_schedule_sessions').select('id, session_date, session_time, subject_name, status')
           .eq('class_id', myId).order('session_date', { ascending: true }).order('session_time', { ascending: true }),
         attFetchAll(() => sbClient.from('class_attendance').select('session_id, student_id, status').eq('class_id', myId).order('id')),
+        sbClient.from('class_attendance_locks').select('session_id').eq('class_id', myId),
       ]);
       if (stuRes.error) throw stuRes.error;
+      if (lockRes.error) throw lockRes.error;
       if (sesRes.error) throw sesRes.error;
       if (!attClass || attClass.id !== myId) return; // đã đóng / đổi lớp trong lúc tải
 
@@ -2441,38 +2518,46 @@
       attSessions = sesRes.data || [];
       attMap = {};
       attRows.forEach(r => { attMap[attKey(r.session_id, r.student_id)] = r.status; });
+      attLocks = new Set((lockRes.data || []).map(r => r.session_id));
       renderAttendance();
+      // Tự cuộn tới cột hôm nay cho giảng viên dễ thấy
+      const todayTh = pel('attTableWrap').querySelector('th.att-today');
+      if (todayTh) pel('attTableWrap').scrollLeft = Math.max(0, todayTh.offsetLeft - 44 - 170 - 40);
     } catch (err) {
       pel('attTableWrap').innerHTML = `<p class="text-red-500 text-xs p-4">Lỗi tải điểm danh: ${esc(err.message || err)}<br>
-        <span class="text-gray-400">Bạn đã chạy file <b>1_attendance.sql</b> trong Supabase chưa?</span></p>`;
+        <span class="text-gray-400">Bạn đã chạy file <b>1_attendance.sql</b> và <b>2_attendance_lock.sql</b> trong Supabase chưa?</span></p>`;
     }
   }
 
   function attCounts(studentId) {
     const c = { P: 0, L: 0, E: 0, A: 0 };
-    attSessions.forEach(s => { const v = attMap[attKey(s.id, studentId)]; if (v && c[v] !== undefined) c[v]++; });
+    attSessions.forEach(s => { const v = attGet(s.id, studentId); if (v && c[v] !== undefined) c[v]++; });
     return c;
   }
 
   function renderAttendance() {
     const wrap = pel('attTableWrap');
+    attUpdateBar();
     if (!attStudents.length) { wrap.innerHTML = '<p class="text-xs text-gray-400 italic p-4">Lớp chưa có học sinh nào.</p>'; return; }
     if (!attSessions.length) { wrap.innerHTML = '<p class="text-xs text-gray-400 italic p-4">Lớp chưa có buổi học nào. Hãy thêm lịch học trước (nút 📅 Lịch học) rồi quay lại điểm danh.</p>'; return; }
 
     const sl = wrap.scrollLeft, st = wrap.scrollTop;
     const head = attSessions.map(s => {
       const susp = s.status === 'suspended';
-      return `<th title="${esc(s.subject_name || '')}${susp ? ' (Đã tạm ngưng)' : ''}" style="min-width:64px">
-        <div>${attDateShort(s.session_date)}</div>
+      const today = attIsToday(s), locked = attIsLocked(s);
+      return `<th class="${today ? 'att-today' : ''} ${locked ? 'att-locked' : ''}" title="${esc(s.subject_name || '')}${susp ? ' (Đã tạm ngưng)' : ''}${locked ? ' (Đã chốt)' : ''}" style="min-width:64px">
+        ${today ? '<div class="att-today-tag">HÔM NAY</div>' : ''}
+        <div>${attDateShort(s.session_date)}${locked ? ' 🔒' : ''}</div>
         <div style="font-size:10px;font-weight:600;opacity:.85">${esc(s.session_time || '')}${susp ? ' 🔴' : ''}</div>
-        ${susp ? '' : `<button type="button" onclick="markAllPresent('${s.id}')" title="Đánh dấu P cho các bạn chưa điểm danh" style="font-size:11px;background:rgba(255,255,255,.2);border-radius:6px;padding:0 6px;margin-top:2px">✔</button>`}
+        ${attIsEditable(s) ? `<button type="button" onclick="markAllPresent('${s.id}')" title="Đánh dấu P cho các bạn chưa điểm danh" style="font-size:11px;background:rgba(255,255,255,.2);border-radius:6px;padding:0 6px;margin-top:2px">✔</button>` : ''}
       </th>`;
     }).join('');
 
     const rows = attStudents.map((stu, i) => {
       const cells = attSessions.map(s => {
-        const v = attMap[attKey(s.id, stu.student_id)] || '';
-        return `<td style="text-align:center"><select class="att-sel att-${v || 'none'}" data-sid="${s.id}" data-stu="${stu.student_id}" ${s.status === 'suspended' ? 'disabled' : ''} onchange="setAttendance(this)">
+        const v = attGet(s.id, stu.student_id);
+        const editable = attIsEditable(s);
+        return `<td class="${attIsToday(s) ? 'att-today' : ''}" style="text-align:center"><select class="att-sel att-${v || 'none'} ${s.status === 'suspended' ? 'att-susp' : ''} ${editable ? 'att-editable' : ''}" data-sid="${s.id}" data-stu="${stu.student_id}" ${editable ? '' : 'disabled'} onchange="setAttendance(this)">
           ${['', 'P', 'L', 'E', 'A'].map(o => `<option value="${o}" ${o === v ? 'selected' : ''}>${o || '·'}</option>`).join('')}
         </select></td>`;
       }).join('');
@@ -2503,42 +2588,131 @@
     ['P', 'L', 'E', 'A'].forEach(k => { const el = pel(`attsum-${studentId}-${k}`); if (el) el.textContent = c[k]; });
   }
 
-  // Lưu 1 ô điểm danh (chọn '·' = xóa)
-  async function setAttendance(sel) {
+  // Chọn 1 ô điểm danh -> chỉ ghi vào BẢN NHÁP (chưa lưu lên server). Chọn '·' = xóa.
+  function setAttendance(sel) {
     if (!attClass) return;
     const sid = sel.dataset.sid, stu = sel.dataset.stu, v = sel.value, key = attKey(sid, stu);
-    const old = attMap[key] || '';
-    sel.className = 'att-sel att-' + (v || 'none');
-    sel.disabled = true;
-    let error;
-    if (!v) {
-      ({ error } = await sbClient.from('class_attendance').delete().eq('session_id', sid).eq('student_id', stu));
-    } else {
-      ({ error } = await sbClient.from('class_attendance').upsert({
-        class_id: attClass.id, session_id: sid, student_id: stu, status: v,
-        marked_by: currentUser.id, updated_at: new Date().toISOString(),
-      }, { onConflict: 'session_id,student_id' }));
+    const s = attSessions.find(x => x.id === sid);
+    if (!attEditing || !s || !attCanEditSession(s)) {
+      sel.value = attGet(sid, stu);
+      return notify('⛔ Buổi này không thể chỉnh sửa (đã chốt hoặc không phải hôm nay).');
     }
-    sel.disabled = false;
-    if (error) { sel.value = old; sel.className = 'att-sel att-' + (old || 'none'); return notify('❌ Lỗi lưu điểm danh: ' + error.message); }
-    if (v) attMap[key] = v; else delete attMap[key];
+    sel.className = 'att-sel att-editable att-' + (v || 'none');
+    if ((attMap[key] || '') === v) delete attDraft[key]; else attDraft[key] = v;
     attUpdateSummary(stu);
+    attUpdateBar();
   }
 
-  // Đánh dấu P cho tất cả học sinh CHƯA điểm danh trong 1 buổi
-  async function markAllPresent(sessionId) {
+  // Các buổi hôm nay (chưa chốt, không tạm ngưng) — phạm vi của nút Chỉnh sửa / Lưu tạm / Chốt
+  function attEditableSessions() { return attSessions.filter(attCanEditSession); }
+
+  // Cập nhật dòng trạng thái + các nút phía trên bảng
+  function attUpdateBar() {
+    const txt = pel('attStatusText'); if (!txt) return;
+    const today = attTodayStr();
+    const todays = attSessions.filter(attIsToday);
+    const editable = attEditableSessions();
+    let msg;
+    if (attEditing) {
+      const n = attDirtyCount();
+      msg = `✏️ Đang chỉnh sửa ngày ${attDateFull(today)} — ${n ? `<span class="text-amber-600">${n} thay đổi chưa lưu</span>` : 'chưa có thay đổi'}`;
+    } else if (!todays.length) {
+      msg = `📅 Hôm nay (${attDateFull(today)}) không có buổi học — chỉ xem, không thể điểm danh.`;
+    } else if (!editable.length) {
+      msg = todays.some(attIsLocked) ? `🔒 Điểm danh ngày ${attDateFull(today)} đã chốt — không thể chỉnh sửa lại.` : `🔴 Buổi học hôm nay đã tạm ngưng — không cần điểm danh.`;
+    } else {
+      msg = `📅 Hôm nay ${attDateFull(today)} có ${editable.length} buổi chưa chốt — bấm “Chỉnh sửa” để điểm danh.`;
+    }
+    txt.innerHTML = msg;
+    const editBtn = pel('btnAttEdit');
+    editBtn.classList.toggle('hidden', attEditing);
+    editBtn.disabled = !editable.length || !attStudents.length;
+    ['btnAttSave', 'btnAttLock', 'btnAttCancel'].forEach(id => pel(id).classList.toggle('hidden', !attEditing));
+  }
+
+  function startAttEdit() {
     if (!attClass) return;
-    const s = attSessions.find(x => x.id === sessionId); if (!s) return;
-    const rows = attStudents.filter(st => !attMap[attKey(sessionId, st.student_id)]).map(st => ({
-      class_id: attClass.id, session_id: sessionId, student_id: st.student_id, status: 'P', marked_by: currentUser.id,
-    }));
-    if (!rows.length) return notify('ℹ️ Buổi ' + attDateShort(s.session_date) + ' đã điểm danh đủ.');
-    if (!confirm(`Đánh dấu P (có mặt) cho ${rows.length} học sinh chưa điểm danh ngày ${attDateFull(s.session_date)}?`)) return;
-    const { error } = await sbClient.from('class_attendance').upsert(rows, { onConflict: 'session_id,student_id' });
-    if (error) return notify('❌ Lỗi lưu điểm danh: ' + error.message);
-    rows.forEach(r => { attMap[attKey(r.session_id, r.student_id)] = 'P'; });
+    if (!attEditableSessions().length) return notify('ℹ️ Hôm nay không có buổi nào có thể điểm danh.');
+    attEditing = true; attDraft = {};
     renderAttendance();
-    notify('✅ Đã đánh dấu P cho ' + rows.length + ' học sinh.');
+  }
+
+  function cancelAttEdit() {
+    if (attDirtyCount() && !confirm('Bỏ các thay đổi chưa lưu và thoát chế độ chỉnh sửa?')) return;
+    attEditing = false; attDraft = {};
+    renderAttendance();
+  }
+
+  // Ghi bản nháp lên server. Ném lỗi nếu thất bại.
+  async function attPersistDraft() {
+    const entries = Object.entries(attDraft);
+    if (!entries.length) return;
+    // Kiểm tra lại lần cuối: buổi phải còn là hôm nay & chưa chốt (phòng trường hợp để tab qua đêm)
+    for (const [k] of entries) {
+      const s = attSessions.find(x => x.id === k.split('|')[0]);
+      if (!s || !attCanEditSession(s)) throw new Error('Có buổi đã qua ngày hoặc đã chốt — không thể lưu. Hãy bấm “Tải lại”.');
+    }
+    const upserts = [], deletes = {};
+    entries.forEach(([k, v]) => {
+      const [sid, stu] = k.split('|');
+      if (v) upserts.push({ class_id: attClass.id, session_id: sid, student_id: stu, status: v, marked_by: currentUser.id, updated_at: new Date().toISOString() });
+      else (deletes[sid] = deletes[sid] || []).push(stu);
+    });
+    if (upserts.length) {
+      const { error } = await sbClient.from('class_attendance').upsert(upserts, { onConflict: 'session_id,student_id' });
+      if (error) throw error;
+    }
+    for (const sid of Object.keys(deletes)) {
+      const { error } = await sbClient.from('class_attendance').delete().eq('session_id', sid).in('student_id', deletes[sid]);
+      if (error) throw error;
+    }
+    entries.forEach(([k, v]) => { if (v) attMap[k] = v; else delete attMap[k]; });
+    attDraft = {};
+  }
+
+  // 💾 Lưu tạm: lưu lên server nhưng vẫn cho sửa tiếp
+  async function saveAttDraft() {
+    if (!attClass || !attEditing) return;
+    if (!attDirtyCount()) return notify('ℹ️ Chưa có thay đổi nào để lưu.');
+    const btn = pel('btnAttSave'); btn.disabled = true;
+    try { await attPersistDraft(); notify('💾 Đã lưu tạm điểm danh. Bạn vẫn có thể chỉnh sửa tiếp.'); renderAttendance(); }
+    catch (err) { notify('❌ Lỗi lưu điểm danh: ' + (err.message || err)); }
+    finally { btn.disabled = false; }
+  }
+
+  // 🔒 Chốt điểm danh: lưu + khóa vĩnh viễn các buổi hôm nay
+  async function lockAttendance() {
+    if (!attClass || !attEditing) return;
+    const sessions = attEditableSessions();
+    if (!sessions.length) return notify('ℹ️ Không có buổi nào để chốt.');
+    let blank = 0;
+    sessions.forEach(s => attStudents.forEach(st => { if (!attGet(s.id, st.student_id)) blank++; }));
+    const warn = blank ? `\n\n⚠️ Còn ${blank} ô chưa điểm danh — sau khi chốt sẽ để trống.` : '';
+    if (!confirm(`Chốt điểm danh ngày ${attDateFull(attTodayStr())}?\n\nSau khi chốt, bạn KHÔNG THỂ chỉnh sửa lại.${warn}`)) return;
+    const btn = pel('btnAttLock'); btn.disabled = true;
+    try {
+      await attPersistDraft();
+      const rows = sessions.map(s => ({ class_id: attClass.id, session_id: s.id, locked_by: currentUser.id }));
+      const { error } = await sbClient.from('class_attendance_locks').upsert(rows, { onConflict: 'session_id', ignoreDuplicates: true });
+      if (error) throw error;
+      sessions.forEach(s => attLocks.add(s.id));
+      attEditing = false;
+      renderAttendance();
+      notify('🔒 Đã chốt điểm danh. Không thể chỉnh sửa lại.');
+    } catch (err) { notify('❌ Lỗi chốt điểm danh: ' + (err.message || err)); }
+    finally { btn.disabled = false; }
+  }
+
+  // Đánh dấu P (vào bản nháp) cho tất cả học sinh CHƯA điểm danh trong 1 buổi
+  function markAllPresent(sessionId) {
+    if (!attClass || !attEditing) return;
+    const s = attSessions.find(x => x.id === sessionId);
+    if (!s || !attCanEditSession(s)) return notify('⛔ Buổi này không thể chỉnh sửa.');
+    const todo = attStudents.filter(st => !attGet(sessionId, st.student_id));
+    if (!todo.length) return notify('ℹ️ Buổi ' + attDateShort(s.session_date) + ' đã điểm danh đủ.');
+    todo.forEach(st => { attDraft[attKey(sessionId, st.student_id)] = 'P'; });
+    renderAttendance();
+    notify('✅ Đã đánh dấu P cho ' + todo.length + ' học sinh (nhớ bấm Lưu tạm hoặc Chốt).');
   }
 
   // Xuất Excel có màu pastel cho từng ô (dùng ExcelJS — SheetJS bản free không tô màu được)
