@@ -79,6 +79,13 @@
   .rd-tab-btn.active{color:#cf1717;border-color:#cf1717}
   .rd-hl-btn{position:fixed;z-index:9999;background:#18181b;color:#fde68a;font-size:11px;font-weight:700;padding:6px 10px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.3);cursor:pointer;display:none;white-space:nowrap}
   .fillbox{display:inline-block;vertical-align:middle;resize:none;overflow:hidden;line-height:1.4}
+  /* ===== Lịch học của học sinh ===== */
+  .sc-card { position: relative; overflow: hidden; }
+  .sc-ribbon { position: absolute; top: 40px; right: -70px; width: 240px; transform: rotate(45deg); background: #e53528; color: #fff;
+               font-weight: 800; font-size: 12px; text-align: center; padding: 6px 0; box-shadow: 0 2px 6px rgba(0,0,0,.25); pointer-events: none; }
+  .sc-alert { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border-radius: 9px; background: #e53528; color: #fff;
+              font-weight: 900; font-size: 17px; display: flex; align-items: center; justify-content: center; }
+  .sc-att { display: inline-block; padding: 1px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; }
 </style>
 
 <!-- ================= HEADER HỌC SINH ================= -->
@@ -153,6 +160,41 @@
 
   <!-- ============ CHẾ ĐỘ 0: CHỌN LỚP ============ -->
   <div id="classPickView" class="hidden space-y-5">
+
+    <!-- ===== LỊCH HỌC CỦA TÔI (gộp mọi lớp, hiện ngay ngoài màn hình) ===== -->
+    <section id="studentCalendarSection" class="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border dark:border-zinc-800 shadow-sm space-y-4">
+      <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
+        <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white">📅 Lịch Học Của Tôi</h2>
+        <button onclick="loadStudentCalendar()" class="text-xs font-bold text-indigo-500 hover:underline">🔄 Làm mới</button>
+      </div>
+      <p class="text-xs text-gray-400">Tổng hợp lịch học của tất cả các lớp bạn tham gia. Bấm vào một ngày để xem chi tiết.</p>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-5 space-y-3">
+          <div class="flex justify-between items-center bg-gray-50 dark:bg-zinc-800/80 p-3 rounded-2xl border border-gray-100 dark:border-zinc-700/60">
+            <button onclick="scalShiftMonth(-1)" class="w-8 h-8 rounded-xl bg-white dark:bg-zinc-700 text-gray-700 dark:text-white flex items-center justify-center font-bold hover:bg-[#cf1717] hover:text-white transition shadow-sm">‹</button>
+            <span id="scalMonthYear" class="font-black text-sm sm:text-base text-gray-900 dark:text-white">Tháng --, ----</span>
+            <button onclick="scalShiftMonth(1)" class="w-8 h-8 rounded-xl bg-white dark:bg-zinc-700 text-gray-700 dark:text-white flex items-center justify-center font-bold hover:bg-[#cf1717] hover:text-white transition shadow-sm">›</button>
+          </div>
+          <div class="grid grid-cols-7 text-center text-xs font-bold text-gray-400">
+            <div>T2</div><div>T3</div><div>T4</div><div>T5</div><div>T6</div><div>T7</div><div>CN</div>
+          </div>
+          <div id="scalDaysGrid" class="grid grid-cols-7 gap-1 text-center text-xs sm:text-sm"></div>
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-gray-400 pt-1">
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#cf1717] inline-block"></span> Có buổi học</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-gray-400 inline-block"></span> Tạm ngưng học</span>
+            <button onclick="scalGoToday()" class="ml-auto font-bold text-[#cf1717] hover:underline">Về hôm nay</button>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7 border-t lg:border-t-0 lg:border-l border-gray-100 dark:border-zinc-800 pt-4 lg:pt-0 lg:pl-6 space-y-3">
+          <h3 id="scalSelectedTitle" class="font-extrabold text-sm sm:text-base text-gray-900 dark:text-white border-b border-gray-100 dark:border-zinc-800 pb-2">--</h3>
+          <div id="scalSelectedContent" class="space-y-3 max-h-[440px] overflow-y-auto pr-1">
+            <p class="text-xs text-gray-400 italic">⏳ Đang tải lịch học...</p>
+          </div>
+        </div>
+      </div>
+    </section>
     <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
       <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">🏫 Chọn Lớp Học</h2>
       <span id="vipBadge0" class="hidden text-xs font-bold px-2.5 py-1 bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-full">⭐ VIP</span>
@@ -340,10 +382,169 @@
   }
 
   // =====================================================================
+  // LỊCH HỌC CỦA HỌC SINH — gộp lịch mọi lớp đã tham gia, hiện ngay màn hình chính
+  // Cần: file 3_student_calendar.sql (cho học sinh quyền xem lịch + điểm danh của mình sau khi chốt)
+  // =====================================================================
+  const scalTodayStr = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
+  let scalSessions = [];        // toàn bộ buổi học của mọi lớp
+  let scalClassMap = {};        // class_id -> { id, title, class_code }
+  let scalLocked = new Set();   // session_id đã được GV chốt điểm danh
+  let scalAtt = {};             // session_id -> 'P' | 'L' | 'E' | 'A' (chỉ của buổi đã chốt)
+  let scalSelected = scalTodayStr();
+  let scalMonth = (() => { const [y, m] = scalTodayStr().split('-').map(Number); return new Date(y, m - 1, 1); })();
+
+  const SCAL_ATT = {
+    P: { t: 'Có mặt',           bg: '#C8E6C9', fg: '#1B5E20' },
+    L: { t: 'Đi muộn',          bg: '#FFF3B0', fg: '#7A5B00' },
+    E: { t: 'Nghỉ có phép',     bg: '#BBDEFB', fg: '#0D47A1' },
+    A: { t: 'Nghỉ không phép',  bg: '#FFCDD2', fg: '#B71C1C' },
+  };
+  const SCAL_WEEKDAY = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+
+  async function scalFetchAll(buildQuery) {
+    const size = 1000; let from = 0, all = [];
+    while (true) {
+      const { data, error } = await buildQuery().range(from, from + size - 1);
+      if (error) throw error;
+      all = all.concat(data || []);
+      if (!data || data.length < size) break;
+      from += size;
+    }
+    return all;
+  }
+
+  async function loadStudentCalendar() {
+    const box = pel('scalSelectedContent');
+    try {
+      const { data: cls, error: cErr } = await sbClient.from('class_students').select('class_id, classes(id, title, class_code)').eq('student_id', currentUser.id);
+      if (cErr) throw cErr;
+      scalClassMap = {};
+      (cls || []).forEach(r => { if (r.classes) scalClassMap[r.classes.id] = r.classes; });
+      const classIds = Object.keys(scalClassMap);
+      if (!classIds.length) {
+        scalSessions = []; scalLocked = new Set(); scalAtt = {};
+        scalRender();
+        box.innerHTML = '<p class="text-xs text-gray-400 italic">Bạn chưa tham gia lớp nào nên chưa có lịch học.</p>';
+        return;
+      }
+      scalSessions = await scalFetchAll(() => sbClient.from('class_schedule_sessions').select('*').in('class_id', classIds).order('session_date', { ascending: true }).order('id'));
+
+      // Trạng thái điểm danh: chỉ lấy của các buổi GV ĐÃ CHỐT (nếu chưa chạy SQL chốt thì coi như chưa chốt)
+      scalLocked = new Set(); scalAtt = {};
+      try {
+        const locks = await scalFetchAll(() => sbClient.from('class_attendance_locks').select('session_id').in('class_id', classIds).order('session_id'));
+        scalLocked = new Set(locks.map(r => r.session_id));
+        if (scalLocked.size) {
+          const rows = await scalFetchAll(() => sbClient.from('class_attendance').select('session_id, status').eq('student_id', currentUser.id).in('class_id', classIds).order('id'));
+          rows.forEach(r => { if (scalLocked.has(r.session_id)) scalAtt[r.session_id] = r.status; });
+        }
+      } catch (e) { console.warn('Không tải được trạng thái điểm danh:', e); }
+
+      scalRender();
+    } catch (err) {
+      box.innerHTML = `<p class="text-red-500 text-xs">Lỗi tải lịch học: ${esc(err.message || err)}<br><span class="text-gray-400">Đã chạy file <b>3_student_calendar.sql</b> trong Supabase chưa?</span></p>`;
+    }
+  }
+
+  function scalShiftMonth(n) { scalMonth = new Date(scalMonth.getFullYear(), scalMonth.getMonth() + n, 1); scalRenderGrid(); }
+  function scalSelect(dateStr) { scalSelected = dateStr; scalRenderGrid(); scalRenderDetail(); }
+  function scalGoToday() {
+    const t = scalTodayStr(); const [y, m] = t.split('-').map(Number);
+    scalMonth = new Date(y, m - 1, 1); scalSelect(t);
+  }
+  function scalRender() { scalRenderGrid(); scalRenderDetail(); }
+
+  function scalRenderGrid() {
+    const year = scalMonth.getFullYear(), month = scalMonth.getMonth();
+    pel('scalMonthYear').innerText = `Tháng ${month + 1}, ${year}`;
+    const firstDay = new Date(year, month, 1).getDay();
+    const lead = firstDay === 0 ? 6 : firstDay - 1;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const todayStr = scalTodayStr();
+
+    const info = {};  // date -> { total, suspended }
+    scalSessions.forEach(s => {
+      if (!s.session_date) return;
+      const d = String(s.session_date).slice(0, 10);
+      const o = info[d] || (info[d] = { total: 0, suspended: 0 });
+      o.total++; if (s.status === 'suspended') o.suspended++;
+    });
+
+    let html = '<div class="p-2"></div>'.repeat(lead);
+    for (let d = 1; d <= daysInMonth; d++) {
+      const ds = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const sel = ds === scalSelected, today = ds === todayStr, o = info[ds];
+      let cls = 'hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-700 dark:text-gray-300';
+      if (sel) cls = 'bg-[#cf1717] text-white font-black shadow-md';
+      else if (today) cls = 'border-2 border-[#cf1717] font-bold text-[#cf1717] dark:text-red-400';
+      let dot = '<span class="w-2 h-2 mt-1"></span>';
+      if (o) {
+        const allSusp = o.suspended === o.total;
+        dot = `<span class="w-2 h-2 mt-1 rounded-full shadow-sm ${sel ? 'bg-white' : (allSusp ? 'bg-gray-400' : 'bg-[#cf1717]')}"></span>`;
+      }
+      html += `<div onclick="scalSelect('${ds}')" class="p-2 sm:p-2.5 rounded-xl cursor-pointer transition flex flex-col items-center justify-center min-h-[42px] ${cls}">
+        <span class="text-xs sm:text-sm font-bold">${d}</span>${dot}</div>`;
+    }
+    pel('scalDaysGrid').innerHTML = html;
+  }
+
+  function scalRenderDetail() {
+    const [y, m, d] = scalSelected.split('-').map(Number);
+    const wd = SCAL_WEEKDAY[new Date(y, m - 1, d).getDay()];
+    const list = scalSessions
+      .filter(s => String(s.session_date || '').slice(0, 10) === scalSelected)
+      .sort((a, b) => String(a.session_time || '').localeCompare(String(b.session_time || ''), 'vi', { numeric: true }));
+    const dd = String(d).padStart(2, '0'), mm = String(m).padStart(2, '0');
+    pel('scalSelectedTitle').innerText = `${wd}, ${dd}/${mm}/${y}${list.length ? ` (${list.length} lịch học)` : ''}`;
+
+    const box = pel('scalSelectedContent');
+    if (!list.length) {
+      box.innerHTML = `<div class="p-8 text-center bg-gray-50 dark:bg-zinc-800/40 rounded-2xl border border-dashed border-gray-200 dark:border-zinc-800">
+        <span class="text-2xl block mb-1">☕</span><p class="text-xs text-gray-400 font-medium">Không có buổi học nào trong ngày này.</p></div>`;
+      return;
+    }
+
+    box.innerHTML = list.map(s => {
+      const cls = scalClassMap[s.class_id] || {};
+      const susp = s.status === 'suspended';
+      let attLine = '';
+      if (!susp) {
+        let val;
+        if (scalLocked.has(s.id)) {
+          const a = SCAL_ATT[scalAtt[s.id]];
+          val = a ? `<span class="sc-att" style="background:${a.bg};color:${a.fg}">${a.t}</span>` : '<span class="text-gray-400">Chưa ghi nhận</span>';
+        } else {
+          val = '<span class="text-gray-400 italic font-normal">Chờ giáo viên chốt</span>';
+        }
+        attLine = `<p><b>Trạng thái điểm danh</b>: ${val}</p>`;
+      }
+      return `
+      <div class="flex gap-3">
+        <div class="flex flex-col items-center pt-1">
+          <span class="w-4 h-4 rounded-full bg-white dark:bg-zinc-900 border-[5px] border-[#0f4c4c] flex-shrink-0"></span>
+          <span class="flex-1 w-1 mt-1 rounded bg-[#4b9a95]"></span>
+        </div>
+        <div class="sc-card flex-1 rounded-2xl p-4 pb-5 text-sm space-y-1.5 ${susp ? 'bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 pr-12 min-h-[150px]' : 'bg-gray-50 dark:bg-zinc-800/80 border border-gray-200/80 dark:border-zinc-700/80'} text-gray-900 dark:text-gray-100">
+          ${susp ? '<div class="sc-alert">!</div><div class="sc-ribbon">Tạm ngưng học</div>' : ''}
+          <p class="text-[11px]"><span class="font-black text-[#cf1717] bg-red-100/80 dark:bg-red-950 px-2 py-0.5 rounded-md">${esc(cls.class_code || '')}</span>
+            <span class="text-gray-500 dark:text-gray-400 ml-1">${esc(cls.title || 'Lớp học')}</span></p>
+          <p class="font-extrabold text-base leading-snug">${esc(s.subject_name || '(chưa rõ tên buổi)')}</p>
+          <p><b>Phòng</b>: ${esc(s.room || '—')}</p>
+          <p><b>Thời gian</b>: ${esc(s.session_time || '—')}</p>
+          ${s.lecturer ? `<p><b>Giảng viên</b>: ${esc(s.lecturer)}</p>` : ''}
+          <p><b>Ghi chú</b>${s.note ? ': ' + esc(s.note) : ''}</p>
+          ${attLine}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // =====================================================================
   // CHẾ ĐỘ 0: CHỌN LỚP — học sinh chọn lớp trước, sau đó mới thấy danh sách bài tập của lớp đó
   // =====================================================================
   async function loadClassPicker() {
     pel('classPickView').classList.remove('hidden');
+    loadStudentCalendar();   // lịch học hiện cho mọi học sinh (không cần VIP, không cần chọn lớp)
     if (myProfile.role !== 'vip') {
       pel('classPickLoading').classList.add('hidden');
       pel('vipLockBox0').classList.remove('hidden');
