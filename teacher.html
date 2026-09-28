@@ -2756,6 +2756,7 @@
     if (!attClass) return;
     const sid = sel.dataset.sid, stu = sel.dataset.stu, v = sel.value, key = attKey(sid, stu);
     const old = attMap[key] || '';
+    const s = attSessions.find(x => x.id === sid);
     if (!attEditing || !attCanEditSession(s)) { sel.value = old; sel.className = 'att-sel att-' + (old || 'none'); return notify('🔒 Buổi này đã chốt — chỉ giáo viên (teacher) mới sửa được.'); }
     sel.className = 'att-sel att-' + (v || 'none');
     sel.disabled = true;
