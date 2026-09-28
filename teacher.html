@@ -11,6 +11,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
   <script>
     if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       document.documentElement.classList.add('dark');
@@ -205,6 +206,61 @@
     © 2026 ReadUp English. All rights reserved. — Khu vực dành cho Giáo Viên
   </div>
 </footer>
+
+<!-- ================= MODAL: ĐIỂM DANH LỚP ================= -->
+<style>
+  #attTable { border-collapse: separate; border-spacing: 0; font-size: 12px; }
+  #attTable th, #attTable td { border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; padding: 4px 6px; background: #fff; white-space: nowrap; }
+  .dark #attTable th, .dark #attTable td { background: #18181b; border-color: #3f3f46; }
+  #attTable thead th { position: sticky; top: 0; z-index: 3; background: #cf1717; color: #fff; font-weight: 800; text-align: center; }
+  .dark #attTable thead th { background: #cf1717; }
+  #attTable .att-sticky1 { position: sticky; left: 0; z-index: 2; min-width: 44px; max-width: 44px; text-align: center; }
+  #attTable .att-sticky2 { position: sticky; left: 44px; z-index: 2; min-width: 170px; font-weight: 700; }
+  #attTable thead .att-sticky1, #attTable thead .att-sticky2 { z-index: 4; }
+
+  .att-sel { appearance: none; -webkit-appearance: none; width: 46px; height: 32px; text-align: center; text-align-last: center;
+             font-weight: 800; font-size: 13px; border-radius: 8px; border: 1px solid rgba(0,0,0,.12); cursor: pointer; outline: none; }
+  .att-sel:focus { box-shadow: 0 0 0 2px rgba(207,23,23,.35); }
+  .att-sel:disabled { opacity: .45; cursor: not-allowed; }
+  .att-sel option { background: #fff; color: #111827; font-weight: 700; }
+  .att-none { background: transparent; color: #9ca3af; }
+  .att-P { background: #C8E6C9; color: #1B5E20; }   /* Present  – xanh lá pastel   */
+  .att-L { background: #FFF3B0; color: #7A5B00; }   /* Late     – vàng pastel      */
+  .att-E { background: #BBDEFB; color: #0D47A1; }   /* Excused  – xanh dương pastel */
+  .att-A { background: #FFCDD2; color: #B71C1C; }   /* Absent   – đỏ pastel        */
+  .att-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; }
+</style>
+
+<div id="attendanceModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-start justify-center p-4 z-[9999] overflow-y-auto">
+  <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 w-full max-w-6xl my-6 shadow-2xl space-y-4">
+
+    <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3 gap-3">
+      <h3 class="font-extrabold text-lg text-[#cf1717] dark:text-red-400 flex items-center gap-2 min-w-0">
+        <span>✅</span> <span class="truncate">Điểm Danh: <span id="attClassTitle">...</span></span>
+      </h3>
+      <button onclick="closeAttendanceModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
+    </div>
+
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="att-chip att-P">P · Present — Có mặt</span>
+        <span class="att-chip att-L">L · Late — Muộn</span>
+        <span class="att-chip att-E">E · Excused — Nghỉ có phép</span>
+        <span class="att-chip att-A">A · Absent — Nghỉ không phép</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="loadAttendance()" class="text-xs font-bold px-3 py-2 rounded-xl border dark:border-zinc-700 hover:border-indigo-500 hover:text-indigo-500 transition">🔄 Tải lại</button>
+        <button onclick="exportAttendanceExcel()" class="text-xs font-bold px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow transition">📥 Xuất Excel</button>
+      </div>
+    </div>
+
+    <p class="text-[11px] text-gray-400">💡 Chọn P / L / E / A ở từng ô — hệ thống lưu ngay. Bấm nút <b>✔</b> trên đầu cột ngày để đánh dấu P cho những bạn chưa điểm danh. Chọn “·” để xóa.</p>
+
+    <div id="attTableWrap" class="overflow-auto max-h-[68vh] border dark:border-zinc-800 rounded-xl">
+      <p class="text-xs text-gray-400 italic p-4">Đang tải...</p>
+    </div>
+  </div>
+</div>
 
 <!-- ================= MODAL: QUẢN LÝ HỌC SINH TRONG LỚP ================= -->
 <div id="classModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-start justify-center p-4 z-[9999] overflow-y-auto">
@@ -665,9 +721,11 @@
           ${isOwnerRole() ? `
             <button onclick="openClassModal('${c.id}')" class="text-xs font-bold text-[#cf1717] hover:underline">👥 Quản lý học sinh</button>
             <button onclick="openScheduleModal('${c.id}')" class="text-xs font-bold text-indigo-500 hover:underline">📅 Lịch học</button>
+            <button onclick="openAttendanceModal('${c.id}')" class="text-xs font-bold text-emerald-600 hover:underline">✅ Điểm danh</button>
             <button onclick="deleteClass('${c.id}','${esc(c.title)}')" class="text-xs font-bold text-red-500 hover:underline">Xóa lớp</button>
           ` : `
             <button onclick="openScheduleModal('${c.id}')" class="text-xs font-bold text-indigo-500 hover:underline">📅 Xem lịch học</button>
+            <button onclick="openAttendanceModal('${c.id}')" class="text-xs font-bold text-emerald-600 hover:underline">✅ Điểm danh</button>
           `}
         </div>
       </div>`).join('') || `<p class="text-gray-400 text-sm col-span-full">${isAssistantRole() ? 'Bạn chưa được phân công phụ trách lớp nào.' : 'Chưa có lớp nào. Hãy tạo lớp đầu tiên ở trên!'}</p>`;
@@ -2314,6 +2372,283 @@
     closeGradeModal();
   }
   function closeGradeModal() { pel('gradeModal').classList.add('hidden'); pel('gradeModal').classList.remove('flex'); currentGradingAttempt = null; }
+
+  // =====================================================================
+  // ĐIỂM DANH LỚP HỌC (P / L / E / A) + XUẤT EXCEL
+  // Cần: bảng class_attendance + hàm get_class_student_emails (file 1_attendance.sql)
+  //      thư viện ExcelJS (thẻ <script> ở <head>)
+  // =====================================================================
+  const ATT_STATUS = {
+    P: { name: 'Present — Có mặt',          argb: 'FFC8E6C9', font: 'FF1B5E20' },
+    L: { name: 'Late — Muộn',               argb: 'FFFFF3B0', font: 'FF7A5B00' },
+    E: { name: 'Excused — Nghỉ có phép',    argb: 'FFBBDEFB', font: 'FF0D47A1' },
+    A: { name: 'Absent — Nghỉ không phép',  argb: 'FFFFCDD2', font: 'FFB71C1C' },
+  };
+  let attClass = null;
+  let attStudents = [];   // [{ student_id, full_name, email }]
+  let attSessions = [];   // [{ id, session_date, session_time, subject_name, status }]
+  let attMap = {};        // { 'sessionId|studentId': 'P' | 'L' | 'E' | 'A' }
+
+  function attKey(sessionId, studentId) { return sessionId + '|' + studentId; }
+  function attDateShort(d) { const p = String(d || '').slice(0, 10).split('-'); return p.length === 3 ? `${p[2]}/${p[1]}` : '--'; }
+  function attDateFull(d)  { const p = String(d || '').slice(0, 10).split('-'); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : ''; }
+
+  // Supabase mặc định trả tối đa 1000 dòng/lần → lấy theo từng trang cho đủ
+  async function attFetchAll(buildQuery) {
+    const size = 1000; let from = 0, all = [];
+    while (true) {
+      const { data, error } = await buildQuery().range(from, from + size - 1);
+      if (error) throw error;
+      all = all.concat(data || []);
+      if (!data || data.length < size) break;
+      from += size;
+    }
+    return all;
+  }
+
+  function openAttendanceModal(classId) {
+    const c = myClasses.find(x => x.id === classId); if (!c) return;
+    attClass = c;
+    pel('attClassTitle').innerText = c.class_code + ' — ' + c.title;
+    pel('attendanceModal').classList.remove('hidden'); pel('attendanceModal').classList.add('flex');
+    loadAttendance();
+  }
+  function closeAttendanceModal() {
+    pel('attendanceModal').classList.add('hidden'); pel('attendanceModal').classList.remove('flex');
+    attClass = null; attStudents = []; attSessions = []; attMap = {};
+  }
+
+  async function loadAttendance() {
+    if (!attClass) return;
+    const myId = attClass.id;
+    pel('attTableWrap').innerHTML = '<p class="text-xs text-gray-400 italic p-4">Đang tải...</p>';
+    try {
+      const [stuRes, sesRes, attRows] = await Promise.all([
+        sbClient.rpc('get_class_student_emails', { p_class_id: myId }),
+        sbClient.from('class_schedule_sessions').select('id, session_date, session_time, subject_name, status')
+          .eq('class_id', myId).order('session_date', { ascending: true }).order('session_time', { ascending: true }),
+        attFetchAll(() => sbClient.from('class_attendance').select('session_id, student_id, status').eq('class_id', myId).order('id')),
+      ]);
+      if (stuRes.error) throw stuRes.error;
+      if (sesRes.error) throw sesRes.error;
+      if (!attClass || attClass.id !== myId) return; // đã đóng / đổi lớp trong lúc tải
+
+      // Sắp xếp học sinh theo TÊN (từ cuối của họ tên) rồi tới họ tên đầy đủ — thứ tự chuẩn tiếng Việt
+      const lastWord = s => (String(s || '').trim().split(/\s+/).pop() || '');
+      attStudents = (stuRes.data || []).slice().sort((a, b) =>
+        lastWord(a.full_name).localeCompare(lastWord(b.full_name), 'vi') ||
+        (a.full_name || '').localeCompare(b.full_name || '', 'vi'));
+      attSessions = sesRes.data || [];
+      attMap = {};
+      attRows.forEach(r => { attMap[attKey(r.session_id, r.student_id)] = r.status; });
+      renderAttendance();
+    } catch (err) {
+      pel('attTableWrap').innerHTML = `<p class="text-red-500 text-xs p-4">Lỗi tải điểm danh: ${esc(err.message || err)}<br>
+        <span class="text-gray-400">Bạn đã chạy file <b>1_attendance.sql</b> trong Supabase chưa?</span></p>`;
+    }
+  }
+
+  function attCounts(studentId) {
+    const c = { P: 0, L: 0, E: 0, A: 0 };
+    attSessions.forEach(s => { const v = attMap[attKey(s.id, studentId)]; if (v && c[v] !== undefined) c[v]++; });
+    return c;
+  }
+
+  function renderAttendance() {
+    const wrap = pel('attTableWrap');
+    if (!attStudents.length) { wrap.innerHTML = '<p class="text-xs text-gray-400 italic p-4">Lớp chưa có học sinh nào.</p>'; return; }
+    if (!attSessions.length) { wrap.innerHTML = '<p class="text-xs text-gray-400 italic p-4">Lớp chưa có buổi học nào. Hãy thêm lịch học trước (nút 📅 Lịch học) rồi quay lại điểm danh.</p>'; return; }
+
+    const sl = wrap.scrollLeft, st = wrap.scrollTop;
+    const head = attSessions.map(s => {
+      const susp = s.status === 'suspended';
+      return `<th title="${esc(s.subject_name || '')}${susp ? ' (Đã tạm ngưng)' : ''}" style="min-width:64px">
+        <div>${attDateShort(s.session_date)}</div>
+        <div style="font-size:10px;font-weight:600;opacity:.85">${esc(s.session_time || '')}${susp ? ' 🔴' : ''}</div>
+        ${susp ? '' : `<button type="button" onclick="markAllPresent('${s.id}')" title="Đánh dấu P cho các bạn chưa điểm danh" style="font-size:11px;background:rgba(255,255,255,.2);border-radius:6px;padding:0 6px;margin-top:2px">✔</button>`}
+      </th>`;
+    }).join('');
+
+    const rows = attStudents.map((stu, i) => {
+      const cells = attSessions.map(s => {
+        const v = attMap[attKey(s.id, stu.student_id)] || '';
+        return `<td style="text-align:center"><select class="att-sel att-${v || 'none'}" data-sid="${s.id}" data-stu="${stu.student_id}" ${s.status === 'suspended' ? 'disabled' : ''} onchange="setAttendance(this)">
+          ${['', 'P', 'L', 'E', 'A'].map(o => `<option value="${o}" ${o === v ? 'selected' : ''}>${o || '·'}</option>`).join('')}
+        </select></td>`;
+      }).join('');
+      const c = attCounts(stu.student_id);
+      const sum = ['P', 'L', 'E', 'A'].map(k =>
+        `<td id="attsum-${stu.student_id}-${k}" class="att-${k}" style="text-align:center;font-weight:800">${c[k]}</td>`).join('');
+      return `<tr>
+        <td class="att-sticky1">${i + 1}</td>
+        <td class="att-sticky2">${esc(stu.full_name || '(chưa có tên)')}</td>
+        <td>${esc(stu.email || '—')}</td>
+        ${cells}${sum}
+      </tr>`;
+    }).join('');
+
+    wrap.innerHTML = `<table id="attTable">
+      <thead><tr>
+        <th class="att-sticky1">STT</th><th class="att-sticky2">Họ và tên</th><th style="min-width:200px">Email</th>
+        ${head}
+        <th class="att-P" style="color:#1B5E20">P</th><th class="att-L" style="color:#7A5B00">L</th>
+        <th class="att-E" style="color:#0D47A1">E</th><th class="att-A" style="color:#B71C1C">A</th>
+      </tr></thead>
+      <tbody>${rows}</tbody></table>`;
+    wrap.scrollLeft = sl; wrap.scrollTop = st;
+  }
+
+  function attUpdateSummary(studentId) {
+    const c = attCounts(studentId);
+    ['P', 'L', 'E', 'A'].forEach(k => { const el = pel(`attsum-${studentId}-${k}`); if (el) el.textContent = c[k]; });
+  }
+
+  // Lưu 1 ô điểm danh (chọn '·' = xóa)
+  async function setAttendance(sel) {
+    if (!attClass) return;
+    const sid = sel.dataset.sid, stu = sel.dataset.stu, v = sel.value, key = attKey(sid, stu);
+    const old = attMap[key] || '';
+    sel.className = 'att-sel att-' + (v || 'none');
+    sel.disabled = true;
+    let error;
+    if (!v) {
+      ({ error } = await sbClient.from('class_attendance').delete().eq('session_id', sid).eq('student_id', stu));
+    } else {
+      ({ error } = await sbClient.from('class_attendance').upsert({
+        class_id: attClass.id, session_id: sid, student_id: stu, status: v,
+        marked_by: currentUser.id, updated_at: new Date().toISOString(),
+      }, { onConflict: 'session_id,student_id' }));
+    }
+    sel.disabled = false;
+    if (error) { sel.value = old; sel.className = 'att-sel att-' + (old || 'none'); return notify('❌ Lỗi lưu điểm danh: ' + error.message); }
+    if (v) attMap[key] = v; else delete attMap[key];
+    attUpdateSummary(stu);
+  }
+
+  // Đánh dấu P cho tất cả học sinh CHƯA điểm danh trong 1 buổi
+  async function markAllPresent(sessionId) {
+    if (!attClass) return;
+    const s = attSessions.find(x => x.id === sessionId); if (!s) return;
+    const rows = attStudents.filter(st => !attMap[attKey(sessionId, st.student_id)]).map(st => ({
+      class_id: attClass.id, session_id: sessionId, student_id: st.student_id, status: 'P', marked_by: currentUser.id,
+    }));
+    if (!rows.length) return notify('ℹ️ Buổi ' + attDateShort(s.session_date) + ' đã điểm danh đủ.');
+    if (!confirm(`Đánh dấu P (có mặt) cho ${rows.length} học sinh chưa điểm danh ngày ${attDateFull(s.session_date)}?`)) return;
+    const { error } = await sbClient.from('class_attendance').upsert(rows, { onConflict: 'session_id,student_id' });
+    if (error) return notify('❌ Lỗi lưu điểm danh: ' + error.message);
+    rows.forEach(r => { attMap[attKey(r.session_id, r.student_id)] = 'P'; });
+    renderAttendance();
+    notify('✅ Đã đánh dấu P cho ' + rows.length + ' học sinh.');
+  }
+
+  // Xuất Excel có màu pastel cho từng ô (dùng ExcelJS — SheetJS bản free không tô màu được)
+  async function exportAttendanceExcel() {
+    if (!attClass) return;
+    if (typeof ExcelJS === 'undefined') return notify('❌ Chưa tải được thư viện ExcelJS — kiểm tra mạng rồi tải lại trang.');
+    if (!attStudents.length) return notify('⚠️ Lớp chưa có học sinh.');
+    if (!attSessions.length) return notify('⚠️ Lớp chưa có buổi học nào.');
+
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Điểm danh', { views: [{ state: 'frozen', xSplit: 3, ySplit: 4 }] });
+    const fixedCols = 3, totalCols = fixedCols + attSessions.length + 4;
+    const thin = { style: 'thin', color: { argb: 'FFBDBDBD' } };
+    const border = { top: thin, left: thin, bottom: thin, right: thin };
+    const fill = argb => ({ type: 'pattern', pattern: 'solid', fgColor: { argb } });
+    const today = new Date();
+    const todayStr = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+
+    // Dòng 1–2: tiêu đề
+    ws.mergeCells(1, 1, 1, totalCols);
+    Object.assign(ws.getCell(1, 1), { value: `BẢNG ĐIỂM DANH LỚP ${attClass.class_code} — ${attClass.title}` });
+    ws.getCell(1, 1).font = { bold: true, size: 16, color: { argb: 'FFCF1717' } };
+    ws.getCell(1, 1).alignment = { horizontal: 'center', vertical: 'middle' };
+    ws.getRow(1).height = 28;
+    ws.mergeCells(2, 1, 2, totalCols);
+    ws.getCell(2, 1).value = `ReadUp English · Sĩ số: ${attStudents.length} học sinh · Xuất ngày ${todayStr}`;
+    ws.getCell(2, 1).font = { italic: true, size: 10, color: { argb: 'FF757575' } };
+    ws.getCell(2, 1).alignment = { horizontal: 'center' };
+
+    // Dòng 4: tiêu đề cột
+    const headers = ['STT', 'Họ và tên', 'Email',
+      ...attSessions.map(s => `${attDateFull(s.session_date)}\n${s.session_time || ''}${s.status === 'suspended' ? '\n(Tạm ngưng)' : ''}`),
+      'P', 'L', 'E', 'A'];
+    const hr = ws.getRow(4);
+    headers.forEach((h, i) => {
+      const cell = hr.getCell(i + 1);
+      cell.value = h;
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = fill('FFCF1717');
+      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      cell.border = border;
+    });
+    hr.height = 46;
+
+    // Dữ liệu
+    attStudents.forEach((stu, idx) => {
+      const r = ws.getRow(5 + idx);
+      r.getCell(1).value = idx + 1;
+      r.getCell(2).value = stu.full_name || '';
+      r.getCell(3).value = stu.email || '';
+      attSessions.forEach((s, j) => {
+        const cell = r.getCell(fixedCols + 1 + j);
+        const v = attMap[attKey(s.id, stu.student_id)];
+        if (v && ATT_STATUS[v]) {
+          cell.value = v;
+          cell.fill = fill(ATT_STATUS[v].argb);
+          cell.font = { bold: true, color: { argb: ATT_STATUS[v].font } };
+        } else if (s.status === 'suspended') {
+          cell.fill = fill('FFEEEEEE');
+        }
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      });
+      const c = attCounts(stu.student_id);
+      ['P', 'L', 'E', 'A'].forEach((k, j) => {
+        const cell = r.getCell(fixedCols + attSessions.length + 1 + j);
+        cell.value = c[k];
+        cell.fill = fill(ATT_STATUS[k].argb);
+        cell.font = { bold: true, color: { argb: ATT_STATUS[k].font } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      });
+      for (let col = 1; col <= totalCols; col++) r.getCell(col).border = border;
+      r.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
+      r.getCell(2).alignment = { vertical: 'middle' };
+      r.getCell(3).alignment = { vertical: 'middle' };
+      r.height = 22;
+    });
+
+    // Chú thích màu ở cuối bảng
+    const legendStart = 5 + attStudents.length + 1;
+    ws.getCell(legendStart, 2).value = 'Chú thích';
+    ws.getCell(legendStart, 2).font = { bold: true };
+    ['P', 'L', 'E', 'A'].forEach((k, i) => {
+      const a = ws.getCell(legendStart + 1 + i, 1);
+      a.value = k; a.fill = fill(ATT_STATUS[k].argb);
+      a.font = { bold: true, color: { argb: ATT_STATUS[k].font } };
+      a.alignment = { horizontal: 'center' }; a.border = border;
+      ws.getCell(legendStart + 1 + i, 2).value = ATT_STATUS[k].name;
+    });
+
+    // Độ rộng cột
+    ws.getColumn(1).width = 6;
+    ws.getColumn(2).width = 28;
+    ws.getColumn(3).width = 34;
+    attSessions.forEach((_, j) => { ws.getColumn(fixedCols + 1 + j).width = 12; });
+    for (let j = 0; j < 4; j++) ws.getColumn(fixedCols + attSessions.length + 1 + j).width = 6;
+
+    try {
+      const buf = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const ymd = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
+      a.href = url; a.download = `DiemDanh_${slugify(attClass.class_code)}_${ymd}.xlsx`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+      notify('📥 Đã xuất file Excel điểm danh!');
+    } catch (err) {
+      notify('❌ Lỗi xuất Excel: ' + (err.message || err));
+    }
+  }
 
   window.onload = checkTeacher;
 </script>
