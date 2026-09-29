@@ -23,6 +23,8 @@
     </script>
     <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   </head>
   <body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen transition-colors duration-300">
     <!-- ================= NỀN ĐỘNG CHUYỂN ĐỘNG DÙNG CHUNG ================= -->
@@ -109,41 +111,39 @@
         <!-- 2. KHU VỰC THÔNG TIN & MENU TRANG CÁ NHÂN -->
         <div class="flex items-center gap-3 relative">
           <!-- Tên Sinh Viên -->
-          <span id="welcomeUser" class="text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-200 hidden sm:inline-block">👋 Chào mừng sinh viên</span>
+          <span id="welcomeUser" class="text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-200 hidden sm:inline-block"><i class="bi bi-emoji-smile"></i> Chào mừng sinh viên</span>
 
           <!-- Nút Menu 3 Gạch: Điều Hướng Nhanh Tới Section -->
           <div class="relative">
             <button onclick="toggleSectionNavMenu(event)" class="w-9 h-9 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-zinc-700 hover:scale-105 transition shadow-md flex items-center justify-center" title="Chuyển nhanh tới mục">
-              <svg class="w-5 h-5 fill-current" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
-              </svg>
+              <i class="bi bi-list text-2xl leading-none"></i>
             </button>
 
             <!-- Menu Dropdown Điều Hướng Section -->
             <div id="sectionNavMenu" class="hidden absolute right-0 mt-2 w-64 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl py-2 z-50 transition-all max-h-[70vh] overflow-y-auto">
               <p class="px-4 pt-1 pb-2 text-[10px] font-extrabold text-gray-400 uppercase tracking-wide">Chuyển nhanh tới mục</p>
-              <a href="post.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-[#cf1717] hover:bg-red-50 dark:hover:bg-red-950/40 transition"><span>📖</span><span>Bài Học (Post)</span></a>
-              <a href="assignment.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition"><span>⭐</span><span>Assignment (VIP)</span></a>
+              <a href="post.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-[#cf1717] hover:bg-red-50 dark:hover:bg-red-950/40 transition"><span><i class="bi bi-book"></i></span><span>Bài Học (Post)</span></a>
+              <a href="assignment.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition"><span><i class="bi bi-star-fill"></i></span><span>Assignment (VIP)</span></a>
               <a href="#section-lich-hoc" onclick="scrollToSection(event, 'section-lich-hoc')" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
-                <span>📅</span><span>Lịch Học & Bài Thi Reading</span>
+                <span><i class="bi bi-calendar-event"></i></span><span>Lịch Học & Bài Thi Reading</span>
               </a>
               <a href="#section-tin-tuc" onclick="scrollToSection(event, 'section-tin-tuc')" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
-                <span>📰</span><span>Tin Tức & Thông Báo Mới</span>
+                <span><i class="bi bi-newspaper"></i></span><span>Tin Tức & Thông Báo Mới</span>
               </a>
               <a href="#section-bai-thi" onclick="scrollToSection(event, 'section-bai-thi')" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
-                <span>📚</span><span>Danh Sách Bài Thi Reading</span>
+                <span><i class="bi bi-journals"></i></span><span>Danh Sách Bài Thi Reading</span>
               </a>
               <a href="#section-lich-su" onclick="scrollToSection(event, 'section-lich-su')" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
-                <span>📜</span><span>Lịch Sử & Kết Quả Bài Làm</span>
+                <span><i class="bi bi-clock-history"></i></span><span>Lịch Sử & Kết Quả Bài Làm</span>
               </a>
               <a href="#section-speaking" onclick="scrollToSection(event, 'section-speaking')" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
-                <span>🎙️</span><span>AI Speaking Assistant</span>
+                <span><i class="bi bi-mic-fill"></i></span><span>AI Speaking Assistant</span>
               </a>
               <a href="#section-luyen-am" onclick="scrollToSection(event, 'section-luyen-am')" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
-                <span>🎙️</span><span>Luyện Phát Âm & Tiến Bộ</span>
+                <span><i class="bi bi-mic-fill"></i></span><span>Luyện Phát Âm & Tiến Bộ</span>
               </a>
               <a href="#section-nhom" onclick="scrollToSection(event, 'section-nhom')" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
-                <span>👥</span><span>Luyện Tập Cùng Bạn Bè</span>
+                <span><i class="bi bi-people-fill"></i></span><span>Luyện Tập Cùng Bạn Bè</span>
               </a>
             </div>
           </div>
@@ -154,10 +154,7 @@
               <!-- Div bọc Avatar riêng để xử lý ẩn phần thừa của ảnh (thay vì dùng overflow-hidden trên button) -->
               <div class="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
                 <!-- Icon bi-person-circle (mặc định khi chưa có ảnh đại diện) -->
-                <svg id="headerAvatarIcon" class="w-7 h-7 fill-current" viewBox="0 0 16 16">
-                  <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
-                  <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
-                </svg>
+                <i id="headerAvatarIcon" class="bi bi-person-circle text-3xl leading-none"></i>
                 <!-- Ảnh đại diện người dùng -->
                 <img id="headerAvatarImg" class="hidden w-full h-full object-cover rounded-full" src="" alt="Avatar">
               </div>
@@ -169,14 +166,14 @@
             <!-- Menu Dropdown Xổ Xuống -->
             <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-52 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl py-2 z-50 transition-all">
               <a href="profile.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
-                <span>👤</span><span id="dropdownUserName">Trang cá nhân</span>
+                <span><i class="bi bi-person-fill"></i></span><span id="dropdownUserName">Trang cá nhân</span>
               </a>
               <button onclick="toggleDarkMode()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
-                <span id="themeIcon">🌙</span> Sáng/Tối
+                <span id="themeIcon"><i class="bi bi-moon-stars-fill"></i></span> Sáng/Tối
               </button>
               <div class="border-t border-gray-100 dark:border-zinc-800 my-1"></div>
               <button onclick="handleLogout()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition">
-                <span>🚪</span> Đăng xuất
+                <span><i class="bi bi-box-arrow-right"></i></span> Đăng xuất
               </button>
             </div>
           </div>
@@ -222,12 +219,12 @@
       <div class="flex flex-col items-center -mb-2">
         <a id="btnLearnNow" href="assignment.html"
            class="learn-bounce learn-shine relative overflow-hidden group flex items-center gap-4 w-full max-w-md px-6 py-4 rounded-3xl bg-gradient-to-r from-[#cf1717] via-red-500 to-orange-500 text-white shadow-2xl shadow-red-500/40 ring-4 ring-white/40 dark:ring-white/10 transition-transform active:scale-95">
-          <span class="learn-icon text-4xl sm:text-5xl drop-shadow-lg select-none">🚀</span>
+          <span class="learn-icon text-4xl sm:text-5xl drop-shadow-lg select-none"><i class="bi bi-rocket-takeoff-fill"></i></span>
           <span class="flex-1 text-left">
             <span class="block text-xl sm:text-2xl font-black tracking-tight leading-tight">Vào Học Ngay</span>
-            <span class="block text-xs sm:text-sm text-red-50/90 font-semibold">Làm bài tập & luyện tập mỗi ngày →</span>
+            <span class="block text-xs sm:text-sm text-red-50/90 font-semibold">Làm bài tập & luyện tập mỗi ngày <i class="bi bi-arrow-right"></i></span>
           </span>
-          <span class="text-2xl font-black opacity-90 group-hover:translate-x-1 transition-transform">➜</span>
+          <span class="text-2xl font-black opacity-90 group-hover:translate-x-1 transition-transform"><i class="bi bi-arrow-right"></i></span>
         </a>
         <div class="learn-shadow h-2 w-56 rounded-full bg-black/40 blur-md mt-2"></div>
       </div>
@@ -377,7 +374,7 @@
       <div class="max-w-2xl mx-auto my-6 px-4">
         <div class="relative flex items-center bg-white/65 dark:bg-zinc-900/65 backdrop-blur-xl border border-white/50 dark:border-zinc-700/50 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 p-1.5 pl-4 focus-within:ring-2 focus-within:ring-[#cf1717]/50">
 
-          <span class="text-gray-400 text-base mr-2">🔍</span>
+          <span class="text-gray-400 text-base mr-2"><i class="bi bi-search"></i></span>
 
           <input id="aiSearchInput" type="text" placeholder="Tra từ và cụm Anh-Việt"
           onkeydown="if(event.key==='Enter') handleAISearch()"
@@ -385,20 +382,17 @@
 
           <!-- Nút Thu Âm -->
           <button id="btnRecordSpeech" onclick="checkAndRequestMic()" class="p-2 text-gray-400 hover:text-[#cf1717] dark:hover:text-red-400 transition rounded-full hover:bg-white/40 dark:hover:bg-zinc-800/50 mr-1" title="Chấm phát âm">
-            <svg class="w-4 h-4 sm:w-5 sm:h-5 fill-current" viewBox="0 0 24 24">
-              <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-              <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-            </svg>
+            <i class="bi bi-mic-fill text-base sm:text-lg leading-none"></i>
           </button>
 
           <!-- Nút Mở Sổ Tay -->
           <button onclick="openNotebookModal()" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-200 font-bold text-xs rounded-full transition mr-1.5 flex items-center gap-1" title="Mở Sổ tay từ vựng">
-            <span>📚</span> <span class="hidden sm:inline">Sổ tay</span>
+            <span><i class="bi bi-journals"></i></span> <span class="hidden sm:inline">Sổ tay</span>
           </button>
 
           <!-- Nút Tra Cứu AI Mode -->
           <button onclick="handleAISearch()" class="px-3.5 py-2 bg-gradient-to-r from-[#cf1717] to-[#e63946] hover:from-[#b01313] hover:to-[#cf1717] text-white font-bold text-xs sm:text-sm rounded-full shadow-md transition active:scale-95 flex items-center gap-1 whitespace-nowrap">
-            <span>✨ AI Mode</span>
+            <span><i class="bi bi-stars"></i> AI Mode</span>
           </button>
         </div>
 
@@ -413,10 +407,10 @@
           <!-- Header Pop-up -->
           <div class="flex items-center justify-between border-b border-gray-200/60 dark:border-zinc-800 pb-3">
             <h3 class="font-black text-base sm:text-lg text-gray-900 dark:text-white flex items-center gap-2">
-              <span class="text-[#cf1717]">📚</span> Sổ Tay Từ Vựng
+              <span class="text-[#cf1717]"><i class="bi bi-journals"></i></span> Sổ Tay Từ Vựng
             </h3>
             <button onclick="closeNotebookModal()" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-500 hover:text-black dark:hover:text-white font-bold text-sm flex items-center justify-center transition">
-              ✕
+              <i class="bi bi-x-lg"></i>
             </button>
           </div>
 
@@ -430,7 +424,7 @@
       <!-- ================= PHẦN LỊCH HỌC & BÀI THI READING ================= -->
       <section id="section-lich-hoc" class="space-y-4 reveal reveal-left">
         <div class="flex items-center border-l-4 border-[#cf1717] pl-3">
-          <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">📅 Lịch Học & Bài Thi Reading</h2>
+          <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white"><i class="bi bi-calendar-event"></i> Lịch Học & Bài Thi Reading</h2>
         </div>
 
         <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-sm grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -458,7 +452,7 @@
           <div class="lg:col-span-7 border-t lg:border-t-0 lg:border-l border-gray-100 dark:border-zinc-800 pt-4 lg:pt-0 lg:pl-6 space-y-4">
             <div class="flex items-center justify-between border-b border-gray-100 dark:border-zinc-800 pb-2">
               <h3 id="selectedDateTitle" class="font-extrabold text-sm sm:text-base text-[#cf1717] flex items-center gap-2">
-                <span>📌</span> Chi tiết ngày: --/--/----
+                <span><i class="bi bi-pin-angle-fill"></i></span> Chi tiết ngày: --/--/----
               </h3>
               <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-red-50 dark:bg-red-950 text-[#cf1717]">Lịch ReadUp</span>
             </div>
@@ -474,11 +468,11 @@
       <!-- PHẦN 1: TIN TỨC & THÔNG BÁO -->
       <section id="section-tin-tuc" class="space-y-3 sm:space-y-4 reveal reveal-right">
         <div class="flex items-center gap-2 border-l-4 border-[#cf1717] pl-3">
-          <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">📰 Tin Tức & Thông Báo Mới</h2>
+          <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white"><i class="bi bi-newspaper"></i> Tin Tức & Thông Báo Mới</h2>
           <button type="button" onclick="openStudentGuide('huong_dan_su_dung', 'Hướng Dẫn Sử Dụng')" class="w-5 h-5 rounded-full bg-[#cf1717] text-white flex items-center justify-center text-xs font-bold hover:bg-red-700 transition shadow" title="Xem hướng dẫn sử dụng">?</button>
         </div>
         <div id="newsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <p class="text-gray-500 text-xs sm:text-sm col-span-full">⏳ Đang tải thông báo...</p>
+          <p class="text-gray-500 text-xs sm:text-sm col-span-full"><i class="bi bi-hourglass-split"></i> Đang tải thông báo...</p>
         </div>
         <!-- Khung phân trang 3 bài/trang -->
         <div id="newsPagination" class="flex justify-center items-center gap-1.5 pt-2"></div>
@@ -487,11 +481,11 @@
       <!-- PHẦN 2: DANH SÁCH BÀI THI READING -->
       <section id="section-bai-thi" class="space-y-3 sm:space-y-4 reveal reveal-zoom">
         <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
-          <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">📚 Danh Sách Bài Thi Reading</h2>
+          <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white"><i class="bi bi-journals"></i> Danh Sách Bài Thi Reading</h2>
           <span id="examCount" class="text-xs font-bold px-2.5 py-1 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">0 bài làm</span>
         </div>
         <div id="examsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <p class="text-gray-500 text-xs sm:text-sm col-span-full">⏳ Đang tải bài thi...</p>
+          <p class="text-gray-500 text-xs sm:text-sm col-span-full"><i class="bi bi-hourglass-split"></i> Đang tải bài thi...</p>
         </div>
         <!-- Khung phân trang 6 bài/trang -->
         <div id="examsPagination" class="flex justify-center items-center gap-1.5 pt-2"></div>
@@ -500,7 +494,7 @@
       <!-- PHẦN 3: LỊCH SỬ VÀ KẾT QUẢ BÀI LÀM CỦA HỌC SINH -->
       <section id="section-lich-su" class="space-y-3 sm:space-y-4 reveal reveal-down">
         <div class="flex items-center border-l-4 border-[#cf1717] pl-3">
-          <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">📜 Lịch Sử & Kết Quả Bài Làm</h2>
+          <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white"><i class="bi bi-clock-history"></i> Lịch Sử & Kết Quả Bài Làm</h2>
         </div>
         <!-- Đã fix class dark mode đồng bộ cho khung ngoài -->
         <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm overflow-x-auto">
@@ -513,7 +507,7 @@
       
         <!-- LỊCH SỬ PHÒNG ĐẤU / HỌC NHÓM (phòng đã lưu) -->
         <div class="flex items-center border-l-4 border-[#cf1717] pl-3 mt-4">
-          <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">👥 Lịch Sử Phòng Đấu</h2>
+          <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white"><i class="bi bi-people-fill"></i> Lịch Sử Phòng Đấu</h2>
         </div>
         <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm">
           <div id="historyListContainer">
@@ -529,7 +523,7 @@
         <div class="space-y-4 max-w-2xl mx-auto">
           <div class="p-5 sm:p-6 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm space-y-4">
             <div class="flex items-center gap-2 border-l-4 border-[#cf1717] pl-3">
-              <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">🎙️ AI Speaking Assistant</h2>
+              <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white"><i class="bi bi-mic-fill"></i> AI Speaking Assistant</h2>
             </div>
 
             <!-- Chọn Part & Target Band -->
@@ -570,7 +564,7 @@
 
             <!-- Nút kích hoạt -->
             <button onclick="generateSpeakingHint()" class="w-full py-3 bg-gradient-to-r from-[#cf1717] to-[#e63946] hover:from-[#b01313] hover:to-[#cf1717] text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition active:scale-95 flex items-center justify-center gap-2">
-              <span>✨ Tạo gợi ý trả lời</span>
+              <span><i class="bi bi-stars"></i> Tạo gợi ý trả lời</span>
             </button>
           </div>
 
@@ -581,7 +575,7 @@
       <section id="section-luyen-am" class="space-y-3 sm:space-y-4 reveal reveal-right">
         <!-- Header Tiêu Đề Đồng Bộ -->
         <div class="flex items-center gap-2 border-l-4 border-[#cf1717] pl-3">
-          <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">🎙️ Luyện Phát Âm & Biểu Đồ Tiến Bộ</h2>
+          <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white"><i class="bi bi-mic-fill"></i> Luyện Phát Âm & Biểu Đồ Tiến Bộ</h2>
           <button
           type="button"
           onclick="openStudentGuide('luyen_phat_am', 'Hướng Dẫn Luyện Phát Âm')"
@@ -599,7 +593,7 @@
         <div class="p-4 sm:p-5 bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 shadow-sm space-y-4">
           <div class="flex justify-between items-center border-b dark:border-zinc-700/60 pb-3">
             <span class="font-bold text-sm text-gray-800 dark:text-gray-100 flex items-center gap-1.5">
-              🎯 Bài Luyện Tập
+              <i class="bi bi-bullseye"></i> Bài Luyện Tập
             </span>
             <span class="text-xs bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400 font-extrabold px-2.5 py-0.5 rounded-full">AI Speech Check</span>
           </div>
@@ -608,7 +602,7 @@
           <div>
             <label class="text-xs font-bold text-gray-500 dark:text-gray-400 mb-1 block">Chọn câu luyện tập:</label>
             <select id="selectPronunPhrase" onchange="updateTargetSpeechText()" class="w-full p-2.5 bg-gray-50 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-xl text-xs sm:text-sm font-semibold text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
-              <option value="">-- ⏳ Đang tải câu mẫu... --</option>
+              <option value="">-- Đang tải câu mẫu... --</option>
             </select>
           </div>
 
@@ -620,14 +614,14 @@
           <!-- NÚT BẤM MỞ GỢI Ý -->
           <div class="flex justify-between items-center pt-1">
             <button type="button" onclick="togglePronunHint()" class="inline-flex items-center gap-1.5 text-xs font-bold text-[#cf1717] dark:text-red-400 hover:underline">
-              💡 <span>Gợi ý IPA / Nghĩa của từ</span>
+              <i class="bi bi-lightbulb-fill"></i> <span>Gợi ý IPA / Nghĩa của từ</span>
             </button>
           </div>
 
           <!-- KHUNG GỢI Ý IPA & NGHĨA (Chuẩn Tone Đỏ Nhạt Có Ghim 📌) -->
           <div id="pronunHintCard" class="hidden p-4 bg-red-50/90 dark:bg-red-950/40 border border-red-100 dark:border-red-900/50 rounded-2xl space-y-2 transition-all">
             <div class="flex items-start gap-2.5">
-              <span class="text-base shrink-0">📌</span>
+              <span class="text-base shrink-0"><i class="bi bi-pin-angle-fill"></i></span>
               <div class="space-y-1.5 text-xs sm:text-sm">
                 <!-- 1. Câu Tiếng Anh -->
                 <p id="hintTextPhrase" class="font-extrabold text-gray-900 dark:text-white leading-snug"></p>
@@ -650,7 +644,7 @@
           onclick="startPronunciationCheck()"
           class="w-full py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-sm rounded-xl transition shadow flex items-center justify-center gap-2"
           >
-          <span>🎤</span> <span id="btnRecordText">Bấm để nói</span>
+          <span><i class="bi bi-mic-fill"></i></span> <span id="btnRecordText">Bấm để nói</span>
         </button>
 
         <!-- Khung Hiển Thị Kết Quả -->
@@ -668,7 +662,7 @@
       <div class="p-4 sm:p-5 bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 shadow-sm flex flex-col justify-between space-y-3">
         <div class="flex justify-between items-center border-b dark:border-zinc-700/60 pb-3">
           <span class="font-bold text-sm text-gray-800 dark:text-gray-100 flex items-center gap-1.5">
-            📊 Lịch Sử & Tiến Bộ
+            <i class="bi bi-bar-chart-line-fill"></i> Lịch Sử & Tiến Bộ
           </span>
           <span class="text-xs text-gray-400 font-medium">10 lần gần nhất</span>
         </div>
@@ -690,23 +684,23 @@
     <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
       <div>
         <span class="text-xs font-bold uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full">Tính năng nhóm</span>
-        <h2 class="text-xl sm:text-2xl font-black mt-1">👥 Luyện Tập Cùng Bạn Bè</h2>
+        <h2 class="text-xl sm:text-2xl font-black mt-1"><i class="bi bi-people-fill"></i> Luyện Tập Cùng Bạn Bè</h2>
         <p class="text-xs text-red-100">Tạo phòng thi đấu tốc độ hoặc cày bài nhóm chung Token real-time</p>
       </div>
 
       <div class="flex items-center gap-3">
         <!-- Nút Tạo Phòng (Host) -->
         <button onclick="openCreateRoomModal()" class="px-4 py-2.5 bg-white text-[#cf1717] hover:bg-red-50 font-extrabold text-xs sm:text-sm rounded-xl shadow transition active:scale-95 flex items-center gap-2">
-          <span>➕</span> Tạo Phòng Thi Đấu
+          <span><i class="bi bi-plus-lg"></i></span> Tạo Phòng Thi Đấu
         </button>
 
         <!-- Nút Nhập Mã Phòng (Participant) -->
         <button onclick="openJoinRoomModal()" class="px-4 py-2.5 bg-zinc-900/60 hover:bg-zinc-900 text-white font-extrabold text-xs sm:text-sm rounded-xl border border-white/30 transition active:scale-95 flex items-center gap-2">
-          <span>🔑</span> Nhập Mã Phòng
+          <span><i class="bi bi-key-fill"></i></span> Nhập Mã Phòng
         </button>
         <!-- 1. Thêm Nút Khôi Phục Nổi (Góc dưới bên phải màn hình - Mặc định ẩn) -->
         <button id="btnRestoreFrame" onclick="toggleMainFrame(true)" class="hidden fixed bottom-5 right-5 z-50 px-4 py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-extrabold text-xs rounded-full shadow-2xl flex items-center gap-2 transition animate-bounce">
-          <span>👁️</span> Hiển thị lại khung làm bài
+          <span><i class="bi bi-eye-fill"></i></span> Hiển thị lại khung làm bài
         </button>
       </div>
     </div>
@@ -733,16 +727,16 @@
         <!-- Cụm nút bấm dành cho CHỦ PHÒNG -->
         <div id="sectionHostControls" class="hidden flex items-center gap-2">
           <button onclick="handleHostSaveRoom()" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow transition active:scale-95" title="Lưu lại kết quả bài làm">
-            💾 Lưu Phòng
+            <i class="bi bi-floppy-fill"></i> Lưu Phòng
           </button>
           <button onclick="handleHostDeleteRoom()" class="px-3 py-1.5 bg-black/40 hover:bg-black/60 text-red-200 font-bold text-xs rounded-xl border border-red-400/40 shadow transition active:scale-95" title="Xóa toàn bộ dữ liệu phòng">
-            🗑️ Xóa Phòng
+            <i class="bi bi-trash3-fill"></i> Xóa Phòng
           </button>
         </div>
 
         <!-- Nút Ẩn Khung cho Thành viên -->
         <button id="btnToggleWidget" onclick="leaveActiveRoomWidget()" class="text-xs text-red-100 hover:text-white font-bold px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-xl transition">
-          Ẩn Khung ✕
+          Ẩn Khung <i class="bi bi-x-lg"></i>
         </button>
       </div>
 
@@ -754,7 +748,7 @@
         <div class="bg-black/20 backdrop-blur-md p-3.5 rounded-2xl border border-white/10 flex flex-col justify-between">
           <div>
             <h4 class="text-xs font-black uppercase tracking-wider text-red-100 mb-2 flex justify-between items-center">
-              <span>📊 Tiến Độ / Xếp Hạng</span>
+              <span><i class="bi bi-bar-chart-line-fill"></i> Tiến Độ / Xếp Hạng</span>
               <span id="sectionParticipantCount" class="text-amber-300 font-bold">0/10</span>
             </h4>
             <div id="sectionParticipantsList" class="space-y-2 max-h-52 overflow-y-auto pr-1">
@@ -766,7 +760,7 @@
         <!-- CỘT 2: Khung Chat Messenger Trực Tiếp -->
         <div class="bg-black/20 backdrop-blur-md p-3.5 rounded-2xl border border-white/10 flex flex-col h-64">
           <h4 class="text-xs font-black uppercase tracking-wider text-red-100 mb-2 flex items-center gap-1.5">
-            <span>💬 Trò Chuyện Trong Phòng</span>
+            <span><i class="bi bi-chat-dots-fill"></i> Trò Chuyện Trong Phòng</span>
           </h4>
 
           <!-- Hộp hiển thị tin nhắn -->
@@ -794,7 +788,7 @@
     <!-- CARD 1: STREAK NGỌN LỬA -->
     <div class="p-4 rounded-2xl border border-red-200/80 dark:border-red-900/50 streak-card-bg flex items-center justify-between shadow-sm">
       <div class="flex items-center gap-3">
-        <div class="text-3xl sm:text-4xl animate-flame select-none">🔥</div>
+        <div class="text-3xl sm:text-4xl text-orange-500 animate-flame select-none"><i class="bi bi-fire"></i></div>
         <div>
           <span class="text-[11px] font-black tracking-wider text-gray-500 uppercase dark:text-gray-400 block">Chuỗi Ngày Học</span>
           <div class="flex items-baseline gap-1">
@@ -806,11 +800,11 @@
 
       <!-- CỘT BÊN PHẢI: TRẠNG THÁI & NÚT KHÔI PHỤC -->
       <div class="flex flex-col items-end gap-1.5">
-        <span id="streakStatusBadge" class="text-xs px-2.5 py-1 rounded-full bg-red-100 dark:bg-red-950 text-[#cf1717] dark:text-red-300 font-bold">Giữ lửa 🎯</span>
+        <span id="streakStatusBadge" class="text-xs px-2.5 py-1 rounded-full bg-red-100 dark:bg-red-950 text-[#cf1717] dark:text-red-300 font-bold">Giữ lửa <i class="bi bi-bullseye"></i></span>
 
         <!-- NÚT KHÔI PHỤC CHUỖI (Mặc định ẩn 'hidden', chỉ hiện khi bị đứt chuỗi) -->
         <button id="streakRecoveryBtn" onclick="startStreakRecovery()" class="hidden text-[11px] bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-extrabold px-2.5 py-1 rounded-lg shadow-sm transition flex items-center gap-1">
-          🛡️ Cứu chuỗi (2 câu IPA)
+          <i class="bi bi-shield-fill-check"></i> Cứu chuỗi (2 câu IPA)
         </button>
       </div>
     </div>
@@ -818,7 +812,7 @@
     <!-- CARD 2: ĐIỂM XP tích lũy -->
     <div class="p-4 rounded-2xl border border-amber-200/80 dark:border-amber-900/50 bg-amber-50/50 dark:bg-amber-950/20 flex items-center justify-between shadow-sm">
       <div class="flex items-center gap-3">
-        <div class="text-3xl sm:text-4xl text-amber-500 select-none drop-shadow">⚡</div>
+        <div class="text-3xl sm:text-4xl text-amber-500 select-none drop-shadow"><i class="bi bi-lightning-charge-fill"></i></div>
         <div>
           <span class="text-[11px] font-black tracking-wider text-gray-500 uppercase dark:text-gray-400 block">Tổng Tích Lũy</span>
           <div class="flex items-baseline gap-1">
@@ -827,19 +821,19 @@
           </div>
         </div>
       </div>
-      <span id="userBadgeTitle" class="text-xs px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 font-bold">🌱 Tân Thủ</span>
+      <span id="userBadgeTitle" class="text-xs px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 font-bold"><i class="bi bi-flower1"></i> Tân Thủ</span>
     </div>
 
     <!-- CARD 3: NÚT MỞ BẢNG XẾP HẠNG -->
     <button type="button" onclick="openLeaderboardModal()" class="p-4 rounded-2xl bg-gradient-to-r from-[#cf1717] to-red-600 hover:to-red-700 text-white flex items-center justify-between shadow-md transition transform hover:-translate-y-0.5">
       <div class="flex items-center gap-3">
-        <div class="text-3xl select-none">🏆</div>
+        <div class="text-3xl text-amber-400 select-none"><i class="bi bi-trophy-fill"></i></div>
         <div class="text-left">
           <span class="text-xs font-bold text-red-100 block">Đua TOP Độc Quyền</span>
           <span class="text-base font-black">Bảng Xếp Hạng</span>
         </div>
       </div>
-      <span class="text-xs bg-white/20 px-3 py-1.5 rounded-xl font-extrabold backdrop-blur-sm">Xem TOP →</span>
+      <span class="text-xs bg-white/20 px-3 py-1.5 rounded-xl font-extrabold backdrop-blur-sm">Xem TOP <i class="bi bi-arrow-right"></i></span>
     </button>
 
   </section>
@@ -851,18 +845,18 @@
       <!-- Modal Header -->
       <div class="p-5 bg-gradient-to-r from-[#cf1717] to-red-700 text-white flex justify-between items-center shrink-0">
         <div class="flex items-center gap-2">
-          <span class="text-2xl">🏆</span>
+          <span class="text-2xl"><i class="bi bi-trophy-fill"></i></span>
           <div>
             <h3 class="font-extrabold text-lg leading-tight">Bảng Xếp Hạng Cao Thủ</h3>
             <p class="text-xs text-red-100">Top học sinh có điểm XP cao nhất tuần này</p>
           </div>
         </div>
-        <button onclick="closeLeaderboardModal()" class="w-8 h-8 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center font-bold text-sm">✕</button>
+        <button onclick="closeLeaderboardModal()" class="w-8 h-8 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center font-bold text-sm"><i class="bi bi-x-lg"></i></button>
       </div>
 
       <!-- Leaderboard List -->
       <div id="leaderboardList" class="p-4 space-y-2.5 overflow-y-auto flex-1">
-        <p class="text-center text-xs text-gray-400 italic py-4">⏳ Đang tải xếp hạng...</p>
+        <p class="text-center text-xs text-gray-400 italic py-4"><i class="bi bi-hourglass-split"></i> Đang tải xếp hạng...</p>
       </div>
 
     </div>
@@ -904,7 +898,7 @@
 
               // 1. Cập nhật dòng chào "👋 Chào, Tên"
               const welcomeElem = document.getElementById('welcomeUser');
-              if (welcomeElem) welcomeElem.innerText = `👋 Chào, ${displayName}`;
+              if (welcomeElem) welcomeElem.innerHTML = `<i class="bi bi-emoji-smile"></i> Chào, ${String(displayName).replace(/[&<>"']/g, ch => '&#' + ch.charCodeAt(0) + ';')}`;
 
               // 2. Cập nhật tên ở Dropdown Menu
               const dropdownNameElem = document.getElementById('dropdownUserName');
@@ -997,9 +991,7 @@
         <button onclick="openNewsModal('${item.id}')" class="inline-flex items-center gap-1.5 text-xs font-bold text-[#cf1717] hover:text-red-700 dark:text-red-400 group transition-colors">
           <span>Đọc tiếp</span>
           <div class="w-6 h-6 rounded-full bg-red-50 dark:bg-red-950/60 flex items-center justify-center group-hover:bg-[#cf1717] group-hover:text-white transition-all">
-            <svg class="w-3.5 h-3.5 transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-            </svg>
+            <i class="bi bi-arrow-right text-xs inline-block transform group-hover:translate-x-0.5 transition-transform"></i>
           </div>
         </button>
       </div>
@@ -1057,8 +1049,8 @@
       <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4 flex flex-col justify-between">
         <div class="space-y-2">
           <div class="flex justify-between items-center">
-            <span class="text-xs font-bold text-[#cf1717] bg-red-50 dark:bg-red-950/80 px-2.5 py-1 rounded-full">📌 ${exam.topic || 'General'}</span>
-            <span class="text-xs text-gray-400">⏱️ ${exam.time_limit || 60} phút</span>
+            <span class="text-xs font-bold text-[#cf1717] bg-red-50 dark:bg-red-950/80 px-2.5 py-1 rounded-full"><i class="bi bi-pin-angle-fill"></i> ${exam.topic || 'General'}</span>
+            <span class="text-xs text-gray-400"><i class="bi bi-stopwatch"></i> ${exam.time_limit || 60} phút</span>
           </div>
           <h3 class="font-bold text-base sm:text-lg text-gray-900 dark:text-white">${exam.title}</h3>
           <p class="text-xs text-gray-500 line-clamp-2">${exam.notes || 'Không có ghi chú'}</p>
@@ -1066,7 +1058,7 @@
 
         <div class="pt-3 border-t border-gray-100 dark:border-zinc-800 flex justify-between items-center gap-2">
           <div class="flex items-center gap-2 flex-wrap">
-            <span class="text-[11px] text-gray-400">📅 ${new Date(exam.created_at).toLocaleDateString('vi-VN')}</span>
+            <span class="text-[11px] text-gray-400"><i class="bi bi-calendar-event"></i> ${new Date(exam.created_at).toLocaleDateString('vi-VN')}</span>
             ${hasVocab ? `
         <button onclick="openVocabModal('${exam.id}')" class="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 dark:bg-red-950/60 text-[#cf1717] dark:text-red-400 hover:bg-[#cf1717] hover:text-white rounded-lg text-xs font-bold transition-all shadow-sm">
         <span>Vocabulary</span>
@@ -1075,7 +1067,7 @@
           </div>
 
           <button onclick="window.location.href='exam.html?token=${exam.token}'" class="px-3 sm:px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs rounded-lg shadow transition whitespace-nowrap">
-            Vào làm bài ➔
+            Vào làm bài <i class="bi bi-arrow-right"></i>
           </button>
         </div>
       </div>
@@ -1148,7 +1140,7 @@
       <div class="p-4 bg-gray-50 dark:bg-zinc-800/70 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl border border-gray-200 dark:border-zinc-700/60 mb-3 flex justify-between items-center transition-all">
         <div>
           <h4 class="font-bold text-gray-800 dark:text-gray-100 text-base">${examTitle}</h4>
-          <p class="text-xs text-gray-400 dark:text-gray-400 mt-1">🕒 Nộp lúc: ${date}</p>
+          <p class="text-xs text-gray-400 dark:text-gray-400 mt-1"><i class="bi bi-clock"></i> Nộp lúc: ${date}</p>
         </div>
         <div class="text-right">
           <span class="text-lg font-extrabold text-[#cf1717] dark:text-red-400">${item.score} / 10 điểm</span>
@@ -1244,21 +1236,15 @@
   // 2. Bật/Tắt hiển thị ký tự (Icon con mắt)
   function togglePasswordVisibility(inputId, btn) {
     const input = document.getElementById(inputId);
-    const icon = btn.querySelector('svg');
-    if (!input) return;
+    const icon = btn.querySelector('i');
+    if (!input || !icon) return;
 
     if (input.type === 'password') {
       input.type = 'text';
-      icon.innerHTML = `
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.04 10.04 0 013.122-.563c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18" />
-    `;
+      icon.className = 'bi bi-eye-slash text-lg leading-none';
     } else {
       input.type = 'password';
-      icon.innerHTML = `
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-    `;
+      icon.className = 'bi bi-eye text-lg leading-none';
     }
   }
 
@@ -1277,9 +1263,9 @@
     });
 
     if (error) {
-      notify("❌ Đổi mật khẩu thất bại: " + error.message);
+      notify("[error] Đổi mật khẩu thất bại: " + error.message);
     } else {
-      notify("🎉 Đổi mật khẩu thành công!");
+      notify("[celebrate] Đổi mật khẩu thành công!");
       togglePasswordModal(false);
     }
   }
@@ -1346,7 +1332,7 @@
           html += `</ul>`;
         }
         if (jsonObj.link) { html += ` <div class="my-4"> <a href="${jsonObj.link}" target="_blank" rel="noopener noreferrer"  class="inline-flex items-center gap-1.5 font-semibold text-[#cf1717] dark:text-red-400 underline underline-offset-4 hover:text-red-700 dark:hover:text-red-300 active:text-red-900 dark:active:text-red-500 transition-colors">
-        ${jsonObj.linkText || '🔗 Mở liên kết'} → </a> </div> `;}
+        ${jsonObj.linkText || '<i class="bi bi-link-45deg"></i> Mở liên kết'} <i class="bi bi-arrow-right"></i> </a> </div> `;}
         if (jsonObj.note) html += `<p class="mt-3 p-3 bg-red-50 dark:bg-red-950/40 border-l-4 border-[#cf1717] rounded-r-lg text-xs italic text-[#cf1717] dark:text-red-300">${jsonObj.note}</p>`;
         return html;
       }
@@ -1400,7 +1386,7 @@
       <!-- Useful Collocation (Nếu có mới hiện) -->
       ${v.collocation ? `
       <div class="text-xs text-red-700 dark:text-red-300 font-medium bg-red-50/60 dark:bg-red-950/40 p-2 rounded-lg border border-red-100 dark:border-red-900/40 flex items-start gap-1.5">
-      <span>📌</span>
+      <span><i class="bi bi-pin-angle-fill"></i></span>
       <div>
       <strong class="font-bold">Collocation:</strong> ${v.collocation}
       </div>
@@ -1437,7 +1423,7 @@
         <!-- HIỂN THỊ BADGE HOST -->
         ${isHost
           ? `<span class="px-2.5 py-0.5 text-[10px] font-black bg-amber-500 text-white rounded-full shadow-sm flex items-center gap-1">
-        👑 Chủ phòng (Host)
+        <i class="bi bi-award-fill"></i> Chủ phòng (Host)
         </span>`
           : `<span class="px-2 py-0.5 text-[10px] font-bold text-gray-400 bg-gray-200 dark:bg-zinc-700 rounded-full">
         Thành viên
@@ -1455,9 +1441,7 @@
 
     <!-- Nút đóng Modal -->
     <button onclick="closeNewsModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-      </svg>
+      <i class="bi bi-x-lg text-xl leading-none"></i>
     </button>
 
     <!-- Vùng chứa nội dung sẽ được đổ bằng JavaScript -->
@@ -1474,10 +1458,10 @@
     <!-- Tiêu đề Modal -->
     <div class="flex justify-between items-center pb-3 border-b border-gray-100 dark:border-zinc-800 mb-4">
       <div class="flex items-center gap-2">
-        <span class="p-2 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-lg">📚</span>
+        <span class="p-2 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-lg"><i class="bi bi-journals"></i></span>
         <h3 class="font-extrabold text-lg text-gray-900 dark:text-white">Danh Sách Từ Vựng Bài Đọc</h3>
       </div>
-      <button onclick="closeVocabModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 rounded-lg">✕</button>
+      <button onclick="closeVocabModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 rounded-lg"><i class="bi bi-x-lg"></i></button>
     </div>
 
     <!-- Vùng hiển thị danh sách từ vựng chia 2 cột -->
@@ -1502,40 +1486,38 @@
       </div>
       <p class="text-gray-400 leading-relaxed">Nền tảng luyện thi IELTS Reading thông minh, tối ưu hóa vốn từ vựng theo ngữ cảnh.</p>
       <div class="space-y-1">
-        <p>📧 Email: <a href="mailto:readupenglish.team@gmail.com" class="text-white hover:underline">readupenglish.team@gmail.com</a></p>
+        <p><i class="bi bi-envelope-fill"></i> Email: <a href="mailto:readupenglish.team@gmail.com" class="text-white hover:underline">readupenglish.team@gmail.com</a></p>
       </div>
       <!-- Mạng xã hội -->
       <div class="flex items-center gap-3 pt-2">
         <a href="https://www.tiktok.com/@readupenglish" target="_blank" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-gray-300 hover:bg-[#cf1717] hover:text-white transition">
-          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.98-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.82.56-1.32 1.56-1.28 2.55.02.82.42 1.61 1.08 2.1 1.03.82 2.53.87 3.6.13.71-.48 1.18-1.28 1.25-2.13.06-3.81.02-7.63.03-11.44z"/></svg>
+          <i class="bi bi-tiktok"></i>
         </a>
         <!-- Mạng xã hội youtube -->
         <a href="https://www.youtube.com/@readupenglishteam"
         target="_blank"
         class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-gray-300 hover:bg-[#cf1717] hover:text-white transition">
-        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.376.505A3.016 3.016 0 0 0 .502 6.186C0 8.063 0 12 0 12s0 3.937.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.376-.505a3.016 3.016 0 0 0 2.122-2.136C24 15.937 24 12 24 12s0-3.937-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-        </svg>
+        <i class="bi bi-youtube"></i>
       </a>
     </div>
   </div>
 
   <!-- 2. HỖ TRỢ TRỰC TUYẾN -->
   <div class="space-y-3">
-    <h4 class="font-bold text-white text-sm">Hỗ Trợ Trực Tuyến 🎧</h4>
+    <h4 class="font-bold text-white text-sm">Hỗ Trợ Trực Tuyến <i class="bi bi-headset"></i></h4>
     <p class="text-gray-400">Gặp sự cố khi làm bài hoặc cần giải đáp thắc mắc? Đội ngũ ReadUp luôn sẵn sàng hỗ trợ bạn.</p>
     <button onclick="openSupportModal()" class="w-full py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl transition shadow-lg flex items-center justify-center gap-2">
-      <span>🎧</span>
+      <span><i class="bi bi-headset"></i></span>
       <span>Gửi Yêu Cầu Hỗ Trợ</span>
     </button>
   </div>
 
   <!-- 3. KHẢO SÁT DỊCH VỤ -->
   <div class="space-y-3">
-    <h4 class="font-bold text-white text-sm">Khảo Sát & Góp Ý 📝</h4>
+    <h4 class="font-bold text-white text-sm">Khảo Sát & Góp Ý <i class="bi bi-pencil-square"></i></h4>
     <p class="text-gray-400">Đánh giá của bạn giúp ReadUp English cải thiện chất lượng bộ đề và giao diện ngày một tốt hơn.</p>
     <button onclick="openFeedbackModal()" class="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition border border-zinc-700 flex items-center justify-center gap-2">
-      <span>⭐</span>
+      <span><i class="bi bi-star-fill"></i></span>
       <span>Đánh Giá Trải Nghiệm Website</span>
     </button>
   </div>
@@ -1550,16 +1532,16 @@
 <!-- ================= MODAL HỖ TRỢ TRỰC TUYẾN ================= -->
 <div id="supportModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
   <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-lg w-full p-6 relative shadow-2xl border dark:border-zinc-800 max-h-[90vh] overflow-y-auto">
-    <button onclick="closeSupportModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white font-bold text-base">✕</button>
+    <button onclick="closeSupportModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white font-bold text-base"><i class="bi bi-x-lg"></i></button>
 
     <div id="supportChoiceView" class="space-y-4">
-      <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">🎧 Hỗ trợ Trực tuyến</h3>
+      <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2"><i class="bi bi-headset"></i> Hỗ trợ Trực tuyến</h3>
       <div class="space-y-2.5">
         <button onclick="showCreateTicketForm()" class="w-full p-3.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-2xl text-xs transition flex items-center justify-center gap-2">
-          <span>➕</span><span>Tạo yêu cầu hỗ trợ mới</span>
+          <span><i class="bi bi-plus-lg"></i></span><span>Tạo yêu cầu hỗ trợ mới</span>
         </button>
         <button onclick="showTicketHistoryView()" class="w-full p-3.5 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 text-gray-800 dark:text-white font-bold rounded-2xl text-xs transition flex items-center justify-center gap-2 border dark:border-zinc-700">
-          <span>📋</span><span>Kiểm tra tình trạng yêu cầu</span>
+          <span><i class="bi bi-clipboard-check-fill"></i></span><span>Kiểm tra tình trạng yêu cầu</span>
         </button>
       </div>
     </div>
@@ -1568,7 +1550,7 @@
     <form id="createTicketForm" onsubmit="handleCreateTicket(event)" class="space-y-3 hidden">
       <div class="flex justify-between items-center">
         <h4 class="font-bold text-sm text-gray-900 dark:text-white">Tạo Yêu Cầu Hỗ Trợ Mới</h4>
-        <button type="button" onclick="showSupportChoice()" class="text-xs text-red-500 hover:underline">← Quay lại</button>
+        <button type="button" onclick="showSupportChoice()" class="text-xs text-red-500 hover:underline"><i class="bi bi-arrow-left"></i> Quay lại</button>
       </div>
       <div>
         <label class="block text-[11px] font-bold text-gray-500 mb-1">Họ và tên</label>
@@ -1593,7 +1575,7 @@
     <div id="ticketHistoryView" class="space-y-3 hidden">
       <div class="flex justify-between items-center">
         <h4 class="font-bold text-sm text-gray-900 dark:text-white">Lịch Sử Yêu Cầu Hỗ Trợ</h4>
-        <button onclick="showSupportChoice()" class="text-xs text-red-500 hover:underline">← Quay lại</button>
+        <button onclick="showSupportChoice()" class="text-xs text-red-500 hover:underline"><i class="bi bi-arrow-left"></i> Quay lại</button>
       </div>
       <div id="ticketListContainer" class="space-y-3 max-h-80 overflow-y-auto pr-1">
         <!-- Render danh sách ticket bằng JS -->
@@ -1605,42 +1587,42 @@
 <!-- ================= MODAL KHẢO SÁT WEBSITE ================= -->
 <div id="feedbackModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
   <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-md w-full p-6 relative shadow-2xl border dark:border-zinc-800">
-    <button onclick="closeFeedbackModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white font-bold text-base">✕</button>
+    <button onclick="closeFeedbackModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white font-bold text-base"><i class="bi bi-x-lg"></i></button>
 
-    <h3 class="text-base font-bold text-gray-900 dark:text-white mb-1 flex items-center gap-2">⭐ Khảo Sát Trải Nghiệm</h3>
+    <h3 class="text-base font-bold text-gray-900 dark:text-white mb-1 flex items-center gap-2"><i class="bi bi-star-fill"></i> Khảo Sát Trải Nghiệm</h3>
     <p class="text-[11px] text-gray-400 mb-4">Đánh giá ẩn danh (không yêu cầu tài khoản).</p>
 
     <form onsubmit="handleSendFeedback(event)" class="space-y-4">
       <div>
         <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">1. Giao diện website dễ nhìn, dễ thao tác?</label>
         <div class="flex gap-2 text-xl cursor-pointer" id="starQ1">
-          <span onclick="setRating(1, 1)" class="star1 text-gray-300">★</span>
-          <span onclick="setRating(1, 2)" class="star1 text-gray-300">★</span>
-          <span onclick="setRating(1, 3)" class="star1 text-gray-300">★</span>
-          <span onclick="setRating(1, 4)" class="star1 text-gray-300">★</span>
-          <span onclick="setRating(1, 5)" class="star1 text-gray-300">★</span>
+          <span onclick="setRating(1, 1)" class="star1 text-gray-300"><i class="bi bi-star-fill"></i></span>
+          <span onclick="setRating(1, 2)" class="star1 text-gray-300"><i class="bi bi-star-fill"></i></span>
+          <span onclick="setRating(1, 3)" class="star1 text-gray-300"><i class="bi bi-star-fill"></i></span>
+          <span onclick="setRating(1, 4)" class="star1 text-gray-300"><i class="bi bi-star-fill"></i></span>
+          <span onclick="setRating(1, 5)" class="star1 text-gray-300"><i class="bi bi-star-fill"></i></span>
         </div>
       </div>
 
       <div>
         <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">2. Nội dung đề thi & giải thích chi tiết?</label>
         <div class="flex gap-2 text-xl cursor-pointer" id="starQ2">
-          <span onclick="setRating(2, 1)" class="star2 text-gray-300">★</span>
-          <span onclick="setRating(2, 2)" class="star2 text-gray-300">★</span>
-          <span onclick="setRating(2, 3)" class="star2 text-gray-300">★</span>
-          <span onclick="setRating(2, 4)" class="star2 text-gray-300">★</span>
-          <span onclick="setRating(2, 5)" class="star2 text-gray-300">★</span>
+          <span onclick="setRating(2, 1)" class="star2 text-gray-300"><i class="bi bi-star-fill"></i></span>
+          <span onclick="setRating(2, 2)" class="star2 text-gray-300"><i class="bi bi-star-fill"></i></span>
+          <span onclick="setRating(2, 3)" class="star2 text-gray-300"><i class="bi bi-star-fill"></i></span>
+          <span onclick="setRating(2, 4)" class="star2 text-gray-300"><i class="bi bi-star-fill"></i></span>
+          <span onclick="setRating(2, 5)" class="star2 text-gray-300"><i class="bi bi-star-fill"></i></span>
         </div>
       </div>
 
       <div>
         <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">3. Tốc độ tải bài & độ ổn định?</label>
         <div class="flex gap-2 text-xl cursor-pointer" id="starQ3">
-          <span onclick="setRating(3, 1)" class="star3 text-gray-300">★</span>
-          <span onclick="setRating(3, 2)" class="star3 text-gray-300">★</span>
-          <span onclick="setRating(3, 3)" class="star3 text-gray-300">★</span>
-          <span onclick="setRating(3, 4)" class="star3 text-gray-300">★</span>
-          <span onclick="setRating(3, 5)" class="star3 text-gray-300">★</span>
+          <span onclick="setRating(3, 1)" class="star3 text-gray-300"><i class="bi bi-star-fill"></i></span>
+          <span onclick="setRating(3, 2)" class="star3 text-gray-300"><i class="bi bi-star-fill"></i></span>
+          <span onclick="setRating(3, 3)" class="star3 text-gray-300"><i class="bi bi-star-fill"></i></span>
+          <span onclick="setRating(3, 4)" class="star3 text-gray-300"><i class="bi bi-star-fill"></i></span>
+          <span onclick="setRating(3, 5)" class="star3 text-gray-300"><i class="bi bi-star-fill"></i></span>
         </div>
       </div>
 
@@ -1691,9 +1673,9 @@
     };
 
     const { error } = await sbClient.from('support_tickets').insert([payload]);
-    if (error) { notify("❌ Lỗi gửi yêu cầu: " + error.message); return; }
+    if (error) { notify("[error] Lỗi gửi yêu cầu: " + error.message); return; }
 
-    notify(`✅ Gửi yêu cầu thành công! Mã hỗ trợ của bạn là: ${ticketCode}`);
+    notify(`[success] Gửi yêu cầu thành công! Mã hỗ trợ của bạn là: ${ticketCode}`);
     document.getElementById('spTitle').value = '';
     document.getElementById('spContent').value = '';
     showTicketHistoryView();
@@ -1736,11 +1718,11 @@
         </div>
         ${t.admin_reply ? `
       <div class="p-3 bg-red-50/60 dark:bg-red-950/30 rounded-xl border border-red-100 dark:border-red-900/40 text-xs space-y-1">
-      <span class="font-bold text-[#cf1717] block">💬 Trả lời từ hỗ trợ:</span>
+      <span class="font-bold text-[#cf1717] block"><i class="bi bi-chat-dots-fill"></i> Trả lời từ hỗ trợ:</span>
       <p class="text-gray-800 dark:text-gray-200">${t.admin_reply}</p>
       </div>
       ` : `
-      <p class="text-[11px] text-yellow-600 italic">⏳ Đang chờ Quản trị viên phản hồi...</p>
+      <p class="text-[11px] text-yellow-600 italic"><i class="bi bi-hourglass-split"></i> Đang chờ Quản trị viên phản hồi...</p>
       `}
       </div>
     `).join('');
@@ -1768,16 +1750,16 @@
     };
 
     const { error } = await sbClient.from('feedbacks').insert([payload]);
-    if (error) { notify("❌ Lỗi gửi đánh giá: " + error.message); return; }
+    if (error) { notify("[error] Lỗi gửi đánh giá: " + error.message); return; }
 
-    notify("❤️ Cảm ơn bạn đã đóng góp ý kiến cho ReadUp English!");
+    notify("[heart] Cảm ơn bạn đã đóng góp ý kiến cho ReadUp English!");
     document.getElementById('fbComment').value = '';
     closeFeedbackModal();
   }
 
   // Hàm mở Modal hướng dẫn dành cho Student khi bấm nút '?'
   async function openStudentGuide(sectionKey, sectionTitle) {
-    document.getElementById('studentGuideTitle').innerText = `💡 Hướng Dẫn: ${sectionTitle}`;
+    document.getElementById('studentGuideTitle').innerHTML = `<i class="bi bi-lightbulb-fill"></i> Hướng Dẫn: ${escapeHtml(sectionTitle)}`;
     document.getElementById('studentGuideModal').classList.remove('hidden');
 
     const container = document.getElementById('studentGuideContainer');
@@ -1863,7 +1845,7 @@
       closeMicModal();
       startPronunciationCheck();
     } catch (err) {
-      notify("⚠️ Trình duyệt đã bị từ chối quyền Micro. Vui lòng cho phép quyền Micro trên thanh địa chỉ trình duyệt!");
+      notify("[warning] Trình duyệt đã bị từ chối quyền Micro. Vui lòng cho phép quyền Micro trên thanh địa chỉ trình duyệt!");
       closeMicModal();
     }
   }
@@ -1877,7 +1859,7 @@
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      notify("❌ Trình duyệt không hỗ trợ Web Speech API. Hãy dùng Google Chrome hoặc Microsoft Edge!");
+      notify("[error] Trình duyệt không hỗ trợ Web Speech API. Hãy dùng Google Chrome hoặc Microsoft Edge!");
       return;
     }
 
@@ -1935,7 +1917,7 @@
         if (typeof processPronunResult === 'function') {
           await processPronunResult(targetText, spokenText);
         } else {
-          notify("🎤 Âm thanh thu nhận: " + spokenText);
+          notify("[mic] Âm thanh thu nhận: " + spokenText);
         }
       }
     };
@@ -1947,7 +1929,7 @@
       if (event.error === 'service-not-allowed' || event.error === 'not-allowed') {
         document.getElementById('micPermissionModal')?.classList.remove('hidden');
       } else if (event.error !== 'no-speech') {
-        notify("❌ Lỗi ghi âm: " + event.error);
+        notify("[error] Lỗi ghi âm: " + event.error);
       }
 
       resetRecordBtn();
@@ -1960,7 +1942,7 @@
     const btnText = document.getElementById('btnRecordText');
 
     if (btnText) {
-      btnText.innerText = isRecording ? "🎙️ Đang nghe... (Bấm khi nói xong)" : "Bấm để nói lại";
+      btnText.innerHTML = isRecording ? "<i class='bi bi-mic-fill'></i> Đang nghe... (Bấm khi nói xong)" : "Bấm để nói lại";
     }
 
     if (btn) {
@@ -1988,9 +1970,9 @@
   targetWords.forEach(word => {
     if (spokenWords.includes(word)) {
       correctCount++;
-      htmlResult += `<span class="text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-950/60 px-1.5 py-0.5 rounded mr-1 inline-block my-0.5">✓ ${word}</span>`;
+      htmlResult += `<span class="text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-950/60 px-1.5 py-0.5 rounded mr-1 inline-block my-0.5"><i class="bi bi-check-lg"></i> ${word}</span>`;
     } else {
-      htmlResult += `<span class="text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-950/60 px-1.5 py-0.5 rounded mr-1 inline-block my-0.5 line-through">✗ ${word}</span>`;
+      htmlResult += `<span class="text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-950/60 px-1.5 py-0.5 rounded mr-1 inline-block my-0.5 line-through"><i class="bi bi-x-lg"></i> ${word}</span>`;
     }
   });
 
@@ -2012,7 +1994,7 @@
   const studentId = user ? user.id : window.currentUserId;
 
   if (!studentId) {
-    notify("⚠️ Bạn chưa đăng nhập nên không thể lưu kết quả bài làm!");
+    notify("[warning] Bạn chưa đăng nhập nên không thể lưu kết quả bài làm!");
     return;
   }
 
@@ -2169,7 +2151,7 @@ async function loadUserStats() {
 
     // Cập nhật danh hiệu dựa trên XP
     const badgeTitle = getBadgeTitle(data.total_xp || 0);
-    document.getElementById('userBadgeTitle').innerText = badgeTitle;
+    document.getElementById('userBadgeTitle').innerHTML = badgeTitle;
   }
 }
 
@@ -2213,17 +2195,17 @@ async function rewardXPAndStreak(addedXp = 20) {
 
 // 3. Quy đổi Danh Hiệu Huy Hiệu
 function getBadgeTitle(xp) {
-  if (xp >= 1000) return "👑 Đại Cao Thủ";
-  if (xp >= 500) return "🔥 Chuyên Gia Reading";
-  if (xp >= 200) return "⚡ Cần Cù Bứt Phá";
-  return "🌱 Tân Thủ";
+  if (xp >= 1000) return "<i class='bi bi-gem'></i> Đại Cao Thủ";
+  if (xp >= 500) return "<i class='bi bi-fire'></i> Chuyên Gia Reading";
+  if (xp >= 200) return "<i class='bi bi-lightning-charge-fill'></i> Cần Cù Bứt Phá";
+  return "<i class='bi bi-flower1'></i> Tân Thủ";
 }
 
 // Mở Modal & Render Bảng Xếp Hạng (Đã nâng cấp nhận diện "Bạn (Tôi)")
 async function openLeaderboardModal() {
   document.getElementById('modalLeaderboard').classList.remove('hidden');
   const container = document.getElementById('leaderboardList');
-  container.innerHTML = '<p class="text-center text-xs text-gray-400 italic py-4">⏳ Đang tải xếp hạng...</p>';
+  container.innerHTML = '<p class="text-center text-xs text-gray-400 italic py-4"><i class="bi bi-hourglass-split"></i> Đang tải xếp hạng...</p>';
 
   // Lấy tài khoản đang đăng nhập hiện tại
   const { data: { user: currentUser } } = await sbClient.auth.getUser();
@@ -2240,7 +2222,7 @@ async function openLeaderboardModal() {
     return;
   }
 
-  const medals = ['🥇', '🥈', '🥉'];
+  const medals = ['<i class="bi bi-award-fill text-lg text-amber-400"></i>', '<i class="bi bi-award-fill text-lg text-slate-400"></i>', '<i class="bi bi-award-fill text-lg text-orange-600"></i>'];
 
   container.innerHTML = data.map((item, index) => {
     const rankIcon = medals[index] || `#${index + 1}`;
@@ -2260,9 +2242,9 @@ async function openLeaderboardModal() {
       <span class="w-7 text-center font-black text-sm sm:text-base">${rankIcon}</span>
       <div>
       <p class="font-extrabold text-xs sm:text-sm ${isMe ? 'text-[#cf1717] dark:text-red-400' : 'text-gray-900 dark:text-white'}">
-      ${displayName} ${isMe ? '⭐' : ''}
+      ${displayName} ${isMe ? '<i class="bi bi-star-fill"></i>' : ''}
       </p>
-      <span class="text-[10px] font-bold text-gray-500 dark:text-gray-400">${badge} • 🔥 ${item.streak_count || 0} ngày</span>
+      <span class="text-[10px] font-bold text-gray-500 dark:text-gray-400">${badge} • <i class="bi bi-fire"></i> ${item.streak_count || 0} ngày</span>
       </div>
       </div>
       <div class="text-right">
@@ -2291,7 +2273,7 @@ async function startStreakRecovery() {
     recovery_progress: 0
   }).eq('user_id', user.id);
 
-  notify("🎯 Nhiệm vụ khôi phục: Bạn cần luyện tập phát âm 2 câu chuẩn xác để lấy lại chuỗi ngọn lửa!");
+  notify("[goal] Nhiệm vụ khôi phục: Bạn cần luyện tập phát âm 2 câu chuẩn xác để lấy lại chuỗi ngọn lửa!");
   document.getElementById('streakRecoveryBox').classList.add('hidden');
 }
 
@@ -2315,14 +2297,14 @@ async function checkStreakRecoveryProgress() {
       last_study_date: new Date().toISOString().split('T')[0]
     }).eq('user_id', user.id);
 
-    notify("🎉 CHÚC MỪNG! Bạn đã hoàn thành 2 bài phát âm và KHÔI PHỤC CHUỖI 🔥 thành công!");
+    notify("[celebrate] CHÚC MỪNG! Bạn đã hoàn thành 2 bài phát âm và KHÔI PHỤC CHUỖI <i class='bi bi-fire'></i> thành công!");
   } else {
     // Mới đọc được 1 bài
     await sbClient.from('user_stats').update({
       recovery_progress: currentProgress
     }).eq('user_id', user.id);
 
-    notify(`💪 Tuyệt vời! Bạn đã hoàn thành ${currentProgress}/2 bài phát âm. Hãy đọc thêm 1 câu nữa để cứu chuỗi!`);
+    notify(`[cheer] Tuyệt vời! Bạn đã hoàn thành ${currentProgress}/2 bài phát âm. Hãy đọc thêm 1 câu nữa để cứu chuỗi!`);
   }
 }
 
@@ -2351,8 +2333,8 @@ async function checkStreakNotifications() {
 
     if (localStorage.getItem('seen_streak_recovery_' + todayStr) !== 'true') {
       showAutoModal({
-        icon: '🛡️',
-        title: `Cảnh Báo: Chuỗi 🔥 ${stat.streak_count} Ngày Sắp Mất!`,
+        icon: 'bi-shield-fill-check',
+        title: `Cảnh Báo: Chuỗi <i class="bi bi-fire"></i> ${stat.streak_count} Ngày Sắp Mất!`,
         note: `Bạn đã bỏ lỡ ${diffDays - 1} ngày học. Hãy bấm khôi phục và hoàn thành 2 bài phát âm để cứu ngay ngọn lửa!`,
         btnText: 'Khôi phục ngay',
         onConfirm: () => {
@@ -2384,8 +2366,8 @@ async function checkStreakNotifications() {
 
     if (localStorage.getItem('seen_streak_lost_' + todayStr) !== 'true') {
       showAutoModal({
-        icon: '💔',
-        title: 'Chuỗi 🔥 Đã Bị Dập Tắt!',
+        icon: 'bi-heartbreak-fill',
+        title: 'Chuỗi <i class="bi bi-fire"></i> Đã Bị Dập Tắt!',
         note: 'Do bạn đã không vào học hơn 7 ngày nên chuỗi ngày học đã bị tự động reset về 0. Hãy học ngay bài hôm nay để thắp lại ngọn lửa nhé!',
         btnText: 'Thắp lại lửa ngay',
         onConfirm: () => {
@@ -2405,8 +2387,8 @@ async function checkStreakNotifications() {
 
 // HÀM HIỂN THỊ VÀ TẮT POPUP
 function showAutoModal({ icon, title, note, btnText, onConfirm, onCancel }) {
-  document.getElementById('autoModalIcon').innerText = icon;
-  document.getElementById('autoModalTitle').innerText = title;
+  document.getElementById('autoModalIcon').innerHTML = `<i class="bi ${icon}"></i>`;
+  document.getElementById('autoModalTitle').innerHTML = title;
   document.getElementById('autoModalNote').innerText = note;
 
   const actionBtn = document.getElementById('autoModalActionBtn');
@@ -2529,7 +2511,7 @@ async function handleAISearch() {
           renderAIResult(resData);
         } catch (err) {
           console.error("Lỗi chi tiết:", err);
-          container.innerHTML = `<div class="p-3 bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400 rounded-xl text-xs font-semibold">❌ Đã xảy ra lỗi: ${err.message}</div>`;
+          container.innerHTML = `<div class="p-3 bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400 rounded-xl text-xs font-semibold"><i class="bi bi-x-circle-fill"></i> Đã xảy ra lỗi: ${err.message}</div>`;
         }
       }
 
@@ -2551,7 +2533,7 @@ async function handleAISearch() {
       <div class="p-4 bg-gray-50 dark:bg-zinc-800/60 rounded-xl border border-gray-100 dark:border-zinc-700 space-y-2 text-xs">
         <div class="font-bold text-[#cf1717] text-sm">Bản dịch AI:</div>
         <p class="text-gray-900 dark:text-white font-medium text-sm leading-relaxed">${data.translated}</p>
-        ${data.keyGrammar ? `<div class="pt-2 border-t dark:border-zinc-700 text-gray-500 italic">💡 Ghi chú: ${data.keyGrammar}</div>` : ''}
+        ${data.keyGrammar ? `<div class="pt-2 border-t dark:border-zinc-700 text-gray-500 italic"><i class="bi bi-lightbulb-fill"></i> Ghi chú: ${data.keyGrammar}</div>` : ''}
       </div>
     `;
           return;
@@ -2577,9 +2559,9 @@ async function handleAISearch() {
             <strong class="text-gray-900 dark:text-white text-sm">${wordForm}</strong>
             ${formIpaHTML}
           </div>
-          <button onclick="playAudioWord('${wordForm}')" class="p-1 text-gray-400 hover:text-[#cf1717] transition text-xs" title="Phát âm biến thể này">🔊</button>
+          <button onclick="playAudioWord('${wordForm}')" class="p-1 text-gray-400 hover:text-[#cf1717] transition text-xs" title="Phát âm biến thể này"><i class="bi bi-volume-up-fill"></i></button>
         </div>
-        <p class="text-gray-700 dark:text-gray-300 font-semibold text-xs sm:text-sm">👉 ${f.meaning}</p>
+        <p class="text-gray-700 dark:text-gray-300 font-semibold text-xs sm:text-sm"><i class="bi bi-arrow-right-short"></i> ${f.meaning}</p>
         ${f.example ? `<p class="text-gray-500 dark:text-gray-400 italic text-xs bg-gray-50/50 dark:bg-zinc-900/50 p-2 rounded-lg">Ex: ${f.example}</p>` : ''}
       </div>
     `;
@@ -2592,10 +2574,10 @@ async function handleAISearch() {
         <div class="flex items-baseline gap-2">
           <h4 class="text-xl font-black text-[#cf1717]">${data.word}</h4>
           <span class="font-mono text-gray-400">${data.ipa || ''}</span>
-          <button onclick="playAudioWord('${data.word}')" class="p-1 text-gray-400 hover:text-[#cf1717] transition text-sm" title="Phát âm từ gốc">🔊</button>
+          <button onclick="playAudioWord('${data.word}')" class="p-1 text-gray-400 hover:text-[#cf1717] transition text-sm" title="Phát âm từ gốc"><i class="bi bi-volume-up-fill"></i></button>
         </div>
         <button onclick="saveToNotebook('${data.word}', '${data.ipa || ''}', '${data.forms?.[0]?.meaning || ''}')" class="px-2.5 py-1 bg-red-50 dark:bg-red-950 text-[#cf1717] dark:text-red-400 border border-red-200 dark:border-red-900 rounded-lg text-[11px] font-bold hover:bg-red-100 transition">
-        🔖 Lưu từ
+        <i class="bi bi-bookmark-fill"></i> Lưu từ
         </button>
       </div>
 
@@ -2620,7 +2602,7 @@ async function handleAISearch() {
       <!-- Ngữ cảnh MXH -->
       ${data.socialContext ? `
         <div class="p-3 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-xl text-gray-700 dark:text-gray-300">
-        <span class="font-bold text-amber-600 dark:text-amber-400 block mb-0.5">🌐 Xu hướng & MXH:</span>
+        <span class="font-bold text-amber-600 dark:text-amber-400 block mb-0.5"><i class="bi bi-globe2"></i> Xu hướng & MXH:</span>
         ${data.socialContext}
         </div>
         ` : ''}
@@ -2641,7 +2623,7 @@ async function handleAISearch() {
 
         notebook.unshift({ word, ipa: ipa || '', meaning: meaning || '', time: new Date().toLocaleDateString('vi-VN') });
         localStorage.setItem('readup_notebook', JSON.stringify(notebook));
-        notify(`✅ Đã lưu từ "${word}" vào Sổ tay!`);
+        notify(`[success] Đã lưu từ "${word}" vào Sổ tay!`);
       }
 
       // 2. Mở Bảng Pop-up Sổ Tay
@@ -2655,9 +2637,9 @@ async function handleAISearch() {
         if (notebook.length === 0) {
           container.innerHTML = `
       <div class="text-center py-8 text-gray-400 dark:text-gray-500 text-xs space-y-1">
-        <p class="text-2xl">📭</p>
+        <p class="text-2xl"><i class="bi bi-inbox"></i></p>
         <p>Sổ tay đang trống.</p>
-        <p class="text-[11px]">Hãy bấm "🔖 Lưu từ" khi tra cứu để tích lũy từ mới nhé!</p>
+        <p class="text-[11px]">Hãy bấm "<i class='bi bi-bookmark-fill'></i> Lưu từ" khi tra cứu để tích lũy từ mới nhé!</p>
       </div>
     `;
         } else {
@@ -2667,12 +2649,12 @@ async function handleAISearch() {
           <div class="flex items-center gap-2">
             <strong class="text-sm font-bold text-gray-900 dark:text-white capitalize">${item.word}</strong>
             <span class="text-xs font-mono text-gray-400">${item.ipa}</span>
-            <button onclick="playAudioWord('${item.word}')" class="text-xs text-gray-400 hover:text-[#cf1717]">🔊</button>
+            <button onclick="playAudioWord('${item.word}')" class="text-xs text-gray-400 hover:text-[#cf1717]"><i class="bi bi-volume-up-fill"></i></button>
           </div>
           <p class="text-xs text-gray-600 dark:text-gray-300 font-medium">${item.meaning}</p>
         </div>
         <button onclick="deleteFromNotebook(${index})" class="text-gray-400 hover:text-red-500 p-1.5 transition text-xs" title="Xóa từ này">
-          🗑️
+          <i class="bi bi-trash3-fill"></i>
         </button>
       </div>
     `).join('');
@@ -2727,7 +2709,7 @@ async function handleAISearch() {
         container.innerHTML = `
     <div class="p-6 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl text-center space-y-2">
       <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#cf1717] border-t-transparent"></div>
-      <p class="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-300">🤖 AI đang phân tích dữ liệu cho ${part} (Mục tiêu ${band})...</p>
+      <p class="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-300"><i class="bi bi-robot"></i> AI đang phân tích dữ liệu cho ${part} (Mục tiêu ${band})...</p>
     </div>
   `;
 
@@ -2746,7 +2728,7 @@ async function handleAISearch() {
           console.error('Speaking API Error:', error);
           container.innerHTML = `
       <div class="p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 rounded-2xl text-xs sm:text-sm font-medium text-center">
-        ❌ Có lỗi xảy ra trong quá trình kết nối AI. Vui lòng thử lại sau!
+        <i class="bi bi-x-circle-fill"></i> Có lỗi xảy ra trong quá trình kết nối AI. Vui lòng thử lại sau!
       </div>
     `;
         }
@@ -2764,7 +2746,7 @@ async function handleAISearch() {
         container.innerHTML = `
     <div class="p-5 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm space-y-3">
       <h3 class="font-extrabold text-amber-600 dark:text-amber-400 text-xs sm:text-sm flex items-center gap-1.5">
-        <span>💡</span> Ý TƯỞNG & CẤU TRÚC PHÂN TÍCH
+        <span><i class="bi bi-lightbulb-fill"></i></span> Ý TƯỞNG & CẤU TRÚC PHÂN TÍCH
       </h3>
 
       <div class="space-y-1.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
@@ -2781,7 +2763,7 @@ async function handleAISearch() {
 
     <div class="p-5 bg-red-50/60 dark:bg-red-950/30 border border-red-200/60 dark:border-red-900/40 rounded-2xl space-y-2">
       <h3 class="font-extrabold text-[#cf1717] dark:text-red-400 text-xs sm:text-sm flex items-center gap-1.5">
-        <span>⭐</span> BÀI MẪU THAM KHẢO
+        <span><i class="bi bi-star-fill"></i></span> BÀI MẪU THAM KHẢO
       </h3>
       <p class="text-xs sm:text-sm leading-relaxed text-gray-800 dark:text-gray-200 font-medium">
         ${data.sample_answer || ''}
@@ -2881,7 +2863,7 @@ async function handleAISearch() {
         if (!titleElem || !contentElem) return;
 
         const [y, m, d] = calSelectedDateStr.split('-');
-        titleElem.innerText = `📌 Chi tiết ngày: ${d}/${m}/${y}`;
+        titleElem.innerHTML = `<i class="bi bi-pin-angle-fill"></i> Chi tiết ngày: ${d}/${m}/${y}`;
 
         // Lọc bài Reading trong ngày chọn
         const dayExams = (globalTestsList || []).filter(exam => {
@@ -2905,10 +2887,10 @@ async function handleAISearch() {
         <div onclick="openNewsModal('${news.id}')"
              class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/50 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-amber-100/80 dark:hover:bg-amber-900/50 transition shadow-sm group">
           <div class="flex items-center gap-2 overflow-hidden">
-            <span class="text-sm">📢</span>
+            <span class="text-sm"><i class="bi bi-megaphone-fill"></i></span>
             <span class="text-xs font-bold text-amber-900 dark:text-amber-200 truncate">${news.title}</span>
           </div>
-          <span class="text-[10px] font-extrabold text-amber-600 dark:text-amber-400 shrink-0 group-hover:translate-x-0.5 transition-transform">Xem tin ➔</span>
+          <span class="text-[10px] font-extrabold text-amber-600 dark:text-amber-400 shrink-0 group-hover:translate-x-0.5 transition-transform">Xem tin <i class="bi bi-arrow-right"></i></span>
         </div>
       `;
           });
@@ -2946,7 +2928,7 @@ async function handleAISearch() {
               ${exam.topic || 'General'}
             </span>
             <span class="text-xs font-bold text-[#cf1717] dark:text-red-400 group-hover:translate-x-1 transition-transform">
-              Vào làm bài ➔
+              Vào làm bài <i class="bi bi-arrow-right"></i>
             </span>
           </div>
 
@@ -2957,14 +2939,14 @@ async function handleAISearch() {
 
           <!-- Hàng 2: Các Chỉ Số (Số câu + Phút + Số từ vựng) -->
           <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-gray-600 dark:text-gray-300">
-            <span class="bg-white dark:bg-zinc-900 px-2.5 py-1 rounded-lg border border-gray-200 dark:border-zinc-700 shadow-2xs">❓ ${qCount} câu hỏi</span>
-            <span class="bg-white dark:bg-zinc-900 px-2.5 py-1 rounded-lg border border-gray-200 dark:border-zinc-700 shadow-2xs">⏱️ ${exam.time_limit || 60} phút</span>
-            <span class="bg-white dark:bg-zinc-900 px-2.5 py-1 rounded-lg border border-gray-200 dark:border-zinc-700 shadow-2xs">📚 ${vocabCount} từ vựng</span>
+            <span class="bg-white dark:bg-zinc-900 px-2.5 py-1 rounded-lg border border-gray-200 dark:border-zinc-700 shadow-2xs"><i class="bi bi-question-circle-fill"></i> ${qCount} câu hỏi</span>
+            <span class="bg-white dark:bg-zinc-900 px-2.5 py-1 rounded-lg border border-gray-200 dark:border-zinc-700 shadow-2xs"><i class="bi bi-stopwatch"></i> ${exam.time_limit || 60} phút</span>
+            <span class="bg-white dark:bg-zinc-900 px-2.5 py-1 rounded-lg border border-gray-200 dark:border-zinc-700 shadow-2xs"><i class="bi bi-journals"></i> ${vocabCount} từ vựng</span>
           </div>
 
           <!-- Hàng 3: Ghi chú -->
           <p class="text-xs text-gray-500 dark:text-gray-400 italic line-clamp-1 border-t border-gray-200/60 dark:border-zinc-700/60 pt-2 mt-1">
-            📝 ${exam.notes || 'Không có ghi chú'}
+            <i class="bi bi-pencil-square"></i> ${exam.notes || 'Không có ghi chú'}
           </p>
         </div>
       `;
@@ -2975,7 +2957,7 @@ async function handleAISearch() {
         if (dayNews.length === 0 && dayExams.length === 0) {
           html = `
       <div class="p-8 text-center bg-gray-50 dark:bg-zinc-800/40 rounded-2xl border border-dashed border-gray-200 dark:border-zinc-800">
-        <span class="text-2xl block mb-1">☕</span>
+        <span class="text-2xl block mb-1"><i class="bi bi-cup-hot-fill"></i></span>
         <p class="text-xs text-gray-400 font-medium">Không có bài làm hay thông báo nào trong ngày này.</p>
       </div>
     `;
@@ -2992,25 +2974,32 @@ async function handleAISearch() {
       // (Dùng để KHÔNG còn hiện popup giữa màn hình nữa, thay bằng toast có thanh đỏ chạy)
       function notify(rawMessage) {
         const msg = String(rawMessage ?? '');
-        // Tách icon emoji ở đầu chuỗi (nếu có) để hiển thị làm icon toast
-        const emojiMatch = msg.match(/^(?:\p{Extended_Pictographic}|\uFE0F|\u200D)+\s*/u);
-        let icon = '🔔';
-        let text = msg;
-        if (emojiMatch && emojiMatch[0].trim()) {
-          icon = emojiMatch[0].trim();
-          text = msg.slice(emojiMatch[0].length).trim() || msg;
-        }
-        // Suy luận tiêu đề toast dựa theo nội dung/emoji của thông báo gốc
-        let title = 'Thông báo';
-        if (/❌/.test(msg) || /lỗi|thất bại|không thể/i.test(msg)) title = 'Lỗi';
-        else if (/⚠️/.test(msg)) title = 'Cảnh báo';
-        else if (/🎉|✅|❤️|💪|💾|📋/.test(msg)) title = 'Thành công';
-        else if (/ℹ️/.test(msg)) title = 'Thông tin';
-        showToastNotification({ title, message: text, icon });
+        // Loại thông báo đặt ở đầu chuỗi dạng "[error] ..." -> chọn Bootstrap Icon + tiêu đề tương ứng
+        const NOTIFY_TYPES = {
+          error:     { icon: 'bi-x-circle-fill',             title: 'Lỗi' },
+          warning:   { icon: 'bi-exclamation-triangle-fill', title: 'Cảnh báo' },
+          success:   { icon: 'bi-check-circle-fill',         title: 'Thành công' },
+          celebrate: { icon: 'bi-patch-check-fill',          title: 'Thành công' },
+          heart:     { icon: 'bi-heart-fill',                title: 'Thành công' },
+          cheer:     { icon: 'bi-hand-thumbs-up-fill',       title: 'Thành công' },
+          saved:     { icon: 'bi-floppy-fill',               title: 'Thành công' },
+          copied:    { icon: 'bi-clipboard-check-fill',      title: 'Thành công' },
+          info:      { icon: 'bi-info-circle-fill',          title: 'Thông tin' },
+          bell:      { icon: 'bi-bell-fill',                 title: 'Thông báo' },
+          goal:      { icon: 'bi-bullseye',                  title: 'Thông báo' },
+          mic:       { icon: 'bi-mic-fill',                  title: 'Thông báo' }
+        };
+        const tagMatch = msg.match(/^\[(\w+)\]\s*/);
+        const tagged = tagMatch && NOTIFY_TYPES[tagMatch[1]] ? tagMatch[1] : null;
+        const type = tagged ? NOTIFY_TYPES[tagged] : { icon: 'bi-bell-fill', title: 'Thông báo' };
+        const text = tagged ? (msg.slice(tagMatch[0].length).trim() || msg) : msg;
+        let title = type.title;
+        if (tagged === 'error' || /lỗi|thất bại|không thể/i.test(msg)) title = 'Lỗi';
+        showToastNotification({ title, message: text, icon: type.icon });
       }
 
       // 1. Hàm hiển thị Toast Popup góc phải
-      function showToastNotification({ title, message, icon = '🔔', linkUrl = null, onClick = null }) {
+      function showToastNotification({ title, message, icon = 'bi-bell-fill', linkUrl = null, onClick = null }) {
         const container = document.getElementById('toastContainer');
         if (!container) return;
 
@@ -3020,7 +3009,7 @@ async function handleAISearch() {
       <div class="p-3.5 sm:p-4 flex items-start gap-3">
         <!-- Icon tròn màu đỏ chủ đạo -->
         <div class="w-9 h-9 rounded-full bg-red-50 dark:bg-red-950/80 flex-shrink-0 flex items-center justify-center text-[#cf1717] dark:text-red-400 font-bold text-base shadow-sm">
-          ${icon}
+          <i class="bi ${icon}"></i>
         </div>
 
         <!-- Nội dung -->
@@ -3031,18 +3020,18 @@ async function handleAISearch() {
           <!-- Ưu tiên gọi hàm onClick nếu có, nếu không thì dùng linkUrl -->
           ${onClick ? `
         <button type="button" onclick="${onClick}; closeToast('${toastId}')" class="inline-block mt-1.5 text-xs font-bold text-[#cf1717] hover:underline cursor-pointer">
-        Xem ngay ➔
+        Xem ngay <i class="bi bi-arrow-right"></i>
         </button>
         ` : (linkUrl ? `
         <a href="${linkUrl}" class="inline-block mt-1.5 text-xs font-bold text-[#cf1717] hover:underline">
-        Xem ngay ➔
+        Xem ngay <i class="bi bi-arrow-right"></i>
         </a>
         ` : '')}
         </div>
 
         <!-- Nút đóng -->
         <button onclick="closeToast('${toastId}')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white text-base leading-none p-1">
-          ✕
+          <i class="bi bi-x-lg"></i>
         </button>
       </div>
 
@@ -3093,9 +3082,9 @@ async function handleAISearch() {
 
           if (newExams && newExams.length > 0) {
             showToastNotification({
-                title: '📚 Bài Reading Mới!',
+                title: 'Bài Reading Mới!',
                 message: `Đã có bài thi mới: "${newExams[0].title}"`,
-                icon: '📖',
+                icon: 'bi-book',
                 linkUrl: `exam.html?token=${newExams[0].token}`
             });
           }
@@ -3111,9 +3100,9 @@ async function handleAISearch() {
           if (newNews && newNews.length > 0) {
             setTimeout(() => {
                 showToastNotification({
-                    title: '📢 Thông Báo Mới!',
+                    title: 'Thông Báo Mới!',
                     message: newNews[0].title,
-                    icon: '🔔',
+                    icon: 'bi-bell-fill',
                     // Gọi trực tiếp hàm mở Modal bài tin dựa theo ID
                     onClick: `openNewsModal('${newNews[0].id}')`
                 });
@@ -3131,9 +3120,9 @@ async function handleAISearch() {
           if (newPronun && newPronun.length > 0) {
             setTimeout(() => {
                 showToastNotification({
-                    title: '🎙️ Bài Luyện Phát Âm Mới!',
+                    title: 'Bài Luyện Phát Âm Mới!',
                     message: `Bài mới: "${newPronun[0].title}"`,
-                    icon: '🎙️'
+                    icon: 'bi-mic-fill'
                 });
               }, 1200);
           }
@@ -3176,7 +3165,7 @@ async function handleAISearch() {
           // 2. MỞ MODAL TẠO PHÒNG & NỐI DỮ LIỆU ĐỀ READING
           function openCreateRoomModal() {
             if (!currentUser) {
-              notify("⚠️ Bạn cần đăng nhập tài khoản để khởi tạo phòng học!");
+              notify("[warning] Bạn cần đăng nhập tài khoản để khởi tạo phòng học!");
               return;
             }
 
@@ -3184,7 +3173,7 @@ async function handleAISearch() {
             if (!select) return;
 
             let optionsHtml = `<option value="">-- Chọn bài Reading --</option>`;
-            optionsHtml += `<option value="PRONUNCIATION_DEV">🎙️ Bài Luyện Phát Âm (Đang phát triển)</option>`;
+            optionsHtml += `<option value="PRONUNCIATION_DEV">Bài Luyện Phát Âm (Đang phát triển)</option>`;
 
             if (typeof globalTestsList !== 'undefined' && Array.isArray(globalTestsList) && globalTestsList.length > 0) {
               globalTestsList.forEach(test => {
@@ -3203,7 +3192,7 @@ async function handleAISearch() {
             if (!detailsCard) return;
 
             if (token === 'PRONUNCIATION_DEV') {
-              notify("ℹ️ Tính năng Luyện Phát Âm Nhóm đang được phát triển. Vui lòng chọn bài Reading!");
+              notify("ℹ Tính năng Luyện Phát Âm Nhóm đang được phát triển. Vui lòng chọn bài Reading!");
               const select = document.getElementById('roomExamSelect');
               if (select) select.value = '';
               detailsCard.classList.add('hidden');
@@ -3224,9 +3213,9 @@ async function handleAISearch() {
               const vocabEl = document.getElementById('roomCardVocab');
 
               if (titleEl) titleEl.innerText = exam.title;
-              if (qEl) qEl.innerText = `❓ ${exam.questions_count || 10} câu hỏi`;
-              if (timeEl) timeEl.innerText = `⏱️ ${exam.time_limit || 60} phút`;
-              if (vocabEl) vocabEl.innerText = `📚 ${vocabCount} từ vựng`;
+              if (qEl) qEl.innerHTML = `<i class="bi bi-question-circle-fill"></i> ${exam.questions_count || 10} câu hỏi`;
+              if (timeEl) timeEl.innerHTML = `<i class="bi bi-stopwatch"></i> ${exam.time_limit || 60} phút`;
+              if (vocabEl) vocabEl.innerHTML = `<i class="bi bi-journals"></i> ${vocabCount} từ vựng`;
 
               detailsCard.classList.remove('hidden');
             } else {
@@ -3237,7 +3226,7 @@ async function handleAISearch() {
           // 4. CHỦ PHÒNG TẠO PHÒNG LÊN SUPABASE
           async function handleCreateRoom() {
             if (!currentUser) {
-              notify("⚠️ Bạn cần đăng nhập tài khoản!");
+              notify("[warning] Bạn cần đăng nhập tài khoản!");
               return;
             }
 
@@ -3261,7 +3250,7 @@ async function handleAISearch() {
             }]);
 
             if (roomErr) {
-              notify("❌ Không thể tạo phòng: " + roomErr.message);
+              notify("[error] Không thể tạo phòng: " + roomErr.message);
               return;
             }
 
@@ -3292,7 +3281,7 @@ async function handleAISearch() {
           // 5. THAM GIA PHÒNG THÔNG QUA MÃ
           function openJoinRoomModal() {
             if (!currentUser) {
-              notify("⚠️ Bạn cần đăng nhập tài khoản sinh viên để tham gia phòng!");
+              notify("[warning] Bạn cần đăng nhập tài khoản sinh viên để tham gia phòng!");
               return;
             }
             openModal('modalJoinRoom');
@@ -3311,7 +3300,7 @@ async function handleAISearch() {
 
           async function joinRoom(roomCode) {
             if (!currentUser) {
-              notify("⚠️ Bạn cần đăng nhập để tham gia phòng!");
+              notify("[warning] Bạn cần đăng nhập để tham gia phòng!");
               return;
             }
 
@@ -3331,7 +3320,7 @@ async function handleAISearch() {
 
             if (roomErr || !room) {
               console.error("❌ Lỗi tìm phòng:", roomErr);
-              notify("❌ Mã phòng không tồn tại hoặc đã bị đóng!");
+              notify("[error] Mã phòng không tồn tại hoặc đã bị đóng!");
               return;
             }
 
@@ -3389,7 +3378,7 @@ async function handleAISearch() {
             const codeEl = document.getElementById('lobbyRoomCode');
             const modeEl = document.getElementById('lobbyModeBadge');
             if (codeEl) codeEl.innerText = roomCode;
-            if (modeEl) modeEl.innerText = room.mode === 'battle' ? '⚔️ Battle Mode' : '☕ Co-working Mode';
+            if (modeEl) modeEl.innerHTML = room.mode === 'battle' ? '<i class="bi bi-speedometer2"></i> Battle Mode' : '<i class="bi bi-cup-hot-fill"></i> Co-working Mode';
 
             const btnStart = document.getElementById('btnStartGame');
             if (btnStart) {
@@ -3431,9 +3420,9 @@ async function handleAISearch() {
             container.innerHTML = list.map(p => `
     <div class="p-2.5 bg-gray-50 dark:bg-zinc-800 rounded-xl flex items-center justify-between text-xs font-bold">
       <span class="text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
-        <span>👤</span> ${escapeHtml(p.full_name)}
+        <span><i class="bi bi-person-fill"></i></span> ${escapeHtml(p.full_name)}
       </span>
-      ${p.is_finished ? '<span class="text-green-600 dark:text-green-400">✅ Đã xong</span>' : '<span class="text-amber-500">⏳ Đang chờ</span>'}
+      ${p.is_finished ? '<span class="text-green-600 dark:text-green-400"><i class="bi bi-check-circle-fill"></i> Đã xong</span>' : '<span class="text-amber-500"><i class="bi bi-hourglass-split"></i> Đang chờ</span>'}
     </div>
   `).join('');
           }
@@ -3477,7 +3466,7 @@ async function handleAISearch() {
           function copyRoomCode() {
             if (!activeRoomCode) return;
             navigator.clipboard.writeText(activeRoomCode);
-            notify("📋 Đã sao chép mã phòng!");
+            notify("[copied] Đã sao chép mã phòng!");
           }
 
           // QUÉT QR CAMERA CỰC NHANH + PHẢN HỒI RUNG
@@ -3545,7 +3534,7 @@ async function handleAISearch() {
               await joinRoom(joinCode);
 
             } catch (err) {
-              notify("❌ Không tìm thấy mã QR hợp lệ trong ảnh này. Vui lòng chọn ảnh chụp rõ nét hơn!");
+              notify("[error] Không tìm thấy mã QR hợp lệ trong ảnh này. Vui lòng chọn ảnh chụp rõ nét hơn!");
             } finally {
               try { await html5QrCode.clear(); } catch(e) {}
               event.target.value = '';
@@ -3581,7 +3570,7 @@ async function handleAISearch() {
                 if (currentUser) {
                   await joinRoom(joinCodeParam);
                 } else {
-                  notify("⚠️ Bạn đã mở liên kết vào phòng! Vui lòng đăng nhập tài khoản để vào phòng thi đấu.");
+                  notify("[warning] Bạn đã mở liên kết vào phòng! Vui lòng đăng nhập tài khoản để vào phòng thi đấu.");
                 }
                 return;
               }
@@ -3667,7 +3656,7 @@ async function handleAISearch() {
                 .select('title')
                 .eq('token', room.exam_token)
                 .maybeSingle();
-                examTitleEl.innerText = `📖 Bài thi: ${examInfo?.title || room.exam_token}`;
+                examTitleEl.innerHTML = `<i class="bi bi-book"></i> Bài thi: ${escapeHtml(examInfo?.title || room.exam_token)}`;
               } else {
                 examTitleEl.innerText = '';
               }
@@ -3717,7 +3706,7 @@ async function handleAISearch() {
             container.innerHTML = list.map(p => {
                 let statusBadge = '';
                 if (p.is_finished) {
-                  let medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+                  let medal = rank === 1 ? '<i class="bi bi-award-fill text-lg text-amber-400"></i>' : rank === 2 ? '<i class="bi bi-award-fill text-lg text-slate-400"></i>' : rank === 3 ? '<i class="bi bi-award-fill text-lg text-orange-600"></i>' : `#${rank}`;
                   statusBadge = `
         <span class="text-[11px] font-black text-emerald-300 bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-500/30">
           ${medal} ${p.score || 0}đ (${p.completion_time || 0}s)
@@ -3726,14 +3715,14 @@ async function handleAISearch() {
                 } else {
                   statusBadge = `
         <span class="text-[10px] font-bold text-amber-300 bg-amber-950/60 px-2 py-1 rounded-lg animate-pulse border border-amber-500/30">
-          ⏳ Đang làm...
+          <i class="bi bi-hourglass-split"></i> Đang làm...
         </span>`;
                 }
 
                 return `
       <div class="p-2 bg-black/20 rounded-xl flex items-center justify-between border border-white/5">
         <span class="text-xs font-bold text-white flex items-center gap-1.5 truncate">
-          <span>👤</span> ${escapeHtml(p.full_name)}
+          <span><i class="bi bi-person-fill"></i></span> ${escapeHtml(p.full_name)}
         </span>
         ${statusBadge}
       </div>
@@ -3882,7 +3871,7 @@ async function handleAISearch() {
                 // [FIX] Chỉ xử lý nếu phòng này VẪN ĐANG là phòng đang active hiện tại -> tránh phòng CŨ (đã rời) gửi tín hiệu trễ làm mất trạng thái phòng MỚI
                 const stillActive = roomCode === (localStorage.getItem('last_active_room') || '');
                 if ((isDeleted || isFinished) && stillActive) {
-                  notify(isDeleted ? "⚠️ Chủ phòng đã hủy và xóa phòng này!" : "💾 Chủ phòng đã đóng và lưu phòng đấu!");
+                  notify(isDeleted ? "[warning] Chủ phòng đã hủy và xóa phòng này!" : "[saved] Chủ phòng đã đóng và lưu phòng đấu!");
                   closeActiveRoomCompletely(); // 👈 Xóa sạch khung đỏ & xóa cache
                 }
             })
@@ -3914,7 +3903,7 @@ async function handleAISearch() {
             const roomCode = localStorage.getItem('last_active_room') || document.getElementById('sectionRoomCode')?.innerText?.trim();
             if (!roomCode) return;
 
-            if (!confirm("💾 Bạn có chắc muốn LƯU & KHÓA phòng này? Kết quả sẽ được chuyển vào Lịch sử bài làm.")) return;
+            if (!confirm("Bạn có chắc muốn LƯU & KHÓA phòng này? Kết quả sẽ được chuyển vào Lịch sử bài làm.")) return;
 
             const { error } = await sbClient
             .from('rooms')
@@ -3922,11 +3911,11 @@ async function handleAISearch() {
             .eq('room_code', roomCode);
 
             if (error) {
-              notify("❌ Lỗi khi lưu phòng: " + error.message);
+              notify("[error] Lỗi khi lưu phòng: " + error.message);
               return;
             }
 
-            notify("✅ Đã lưu phòng thành công vào Lịch sử!");
+            notify("[success] Đã lưu phòng thành công vào Lịch sử!");
             closeActiveRoomCompletely(); // 👈 Đóng sạch khung đỏ & xóa cache
           }
 
@@ -3934,8 +3923,8 @@ async function handleAISearch() {
           // 1. Hàm Host thực hiện xóa phòng
           async function handleHostDeleteRoom() {
             const roomCode = currentRoomCode || localStorage.getItem('last_active_room') || document.getElementById('sectionRoomCode')?.innerText?.trim();
-            if (!roomCode || roomCode === 'READ-0000') { notify("⚠️ Không tìm thấy mã phòng để xóa!"); return; }
-            if (!confirm("⚠️ Bạn có chắc chắn muốn giải tán phòng đấu này?")) return;
+            if (!roomCode || roomCode === 'READ-0000') { notify("[warning] Không tìm thấy mã phòng để xóa!"); return; }
+            if (!confirm("Bạn có chắc chắn muốn giải tán phòng đấu này?")) return;
 
             // 1. Báo tức thì cho tất cả thành viên (chờ gửi xong rồi mới xóa)
             try {
@@ -3954,11 +3943,11 @@ async function handleAISearch() {
             // .select() để biết CHÍNH XÁC có dòng nào bị xóa không (RLS chặn thì trả về 0 dòng mà không báo lỗi)
             const r3 = await sbClient.from('rooms').delete().eq('room_code', roomCode).select();
             if (r3.error) {
-              notify("❌ Không xóa được phòng: " + r3.error.message);
+              notify("[error] Không xóa được phòng: " + r3.error.message);
               return;
             }
             if (!r3.data || r3.data.length === 0) {
-              notify("❌ Database không cho xóa phòng (thiếu quyền DELETE / RLS policy trên bảng 'rooms'). Xem hướng dẫn SQL.");
+              notify("[error] Database không cho xóa phòng (thiếu quyền DELETE / RLS policy trên bảng 'rooms'). Xem hướng dẫn SQL.");
               console.error("Xóa rooms trả về 0 dòng -> nhiều khả năng thiếu RLS policy DELETE cho host.");
               return;
             }
@@ -3986,7 +3975,7 @@ async function handleAISearch() {
                 container.style.transform = 'scale(1)';
 
                 if (!isHost) {
-                  notify("🔔 Chủ phòng đã giải tán phòng thi đấu này!");
+                  notify("[bell] Chủ phòng đã giải tán phòng thi đấu này!");
                 }
 
                 // Hủy kết nối Channel Realtime
@@ -4020,7 +4009,7 @@ async function handleAISearch() {
               // Toggle lớp hidden
               const isHidden = body.classList.toggle('hidden');
               if (btn) {
-                btn.innerHTML = isHidden ? '👁️ Hiện Khung' : 'Ẩn Khung ✕';
+                btn.innerHTML = isHidden ? '<i class="bi bi-eye-fill"></i> Hiện Khung' : 'Ẩn Khung <i class="bi bi-x-lg"></i>';
               }
             }
           }
@@ -4179,8 +4168,8 @@ async function handleAISearch() {
                 const d = new Date(item.joined_at);
                 const dateStr = d.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) + ' ' + d.toLocaleDateString('vi-VN');
                 const badge = room.status === 'finished'
-                  ? '<span class="ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-700">💾 Đã lưu</span>'
-                  : '<span class="ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-700">● Đang mở</span>';
+                  ? '<span class="ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-700"><i class="bi bi-floppy-fill"></i> Đã lưu</span>'
+                  : '<span class="ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-700"><i class="bi bi-circle-fill text-[6px] align-middle"></i> Đang mở</span>';
 
                 card.innerHTML = `
       <div>
@@ -4190,7 +4179,7 @@ async function handleAISearch() {
       <div class="text-right space-y-1.5">
         <span class="block text-base font-black text-red-600">${item.score || 0} điểm</span>
         <span class="block text-[10px] text-gray-400">Bấm để xem lại phòng & chat</span>
-        ${room.exam_token ? `<button onclick="event.stopPropagation(); window.location.href='exam.html?token=${encodeURIComponent(room.exam_token)}&room_code=${encodeURIComponent(item.room_code)}';" class="text-[10px] font-bold text-white bg-[#cf1717] hover:bg-red-700 px-2.5 py-1 rounded-lg transition">📝 Xem đáp án</button>` : ''}
+        ${room.exam_token ? `<button onclick="event.stopPropagation(); window.location.href='exam.html?token=${encodeURIComponent(room.exam_token)}&room_code=${encodeURIComponent(item.room_code)}';" class="text-[10px] font-bold text-white bg-[#cf1717] hover:bg-red-700 px-2.5 py-1 rounded-lg transition"><i class="bi bi-pencil-square"></i> Xem đáp án</button>` : ''}
       </div>
     `;
                 container.appendChild(card);
@@ -4217,7 +4206,7 @@ async function handleAISearch() {
               const { data: roomInfo } = await sbClient.from('rooms').select('exam_token').eq('room_code', roomCode).maybeSingle();
               if (roomInfo?.exam_token) {
                 const { data: examInfo } = await sbClient.from('exams').select('title').eq('token', roomInfo.exam_token).maybeSingle();
-                examTitleEl.innerText = `📖 Bài thi: ${examInfo?.title || roomInfo.exam_token}`;
+                examTitleEl.innerHTML = `<i class="bi bi-book"></i> Bài thi: ${escapeHtml(examInfo?.title || roomInfo.exam_token)}`;
               } else {
                 examTitleEl.innerText = '';
               }
@@ -4371,7 +4360,7 @@ async function handleAISearch() {
 
     <!-- Tiêu đề Modal -->
     <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
-      <h3 class="font-extrabold text-base text-gray-900 dark:text-white flex items-center gap-2">🔒 Đổi Mật Khẩu</h3>
+      <h3 class="font-extrabold text-base text-gray-900 dark:text-white flex items-center gap-2"><i class="bi bi-lock-fill"></i> Đổi Mật Khẩu</h3>
       <button onclick="togglePasswordModal(false)" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-xl">&times;</button>
     </div>
 
@@ -4391,10 +4380,7 @@ async function handleAISearch() {
           onclick="togglePasswordVisibility('newPasswordInput', this)"
           class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 focus:outline-none"
           >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-          </svg>
+          <i class="bi bi-eye text-lg leading-none"></i>
         </button>
       </div>
     </div>
@@ -4415,7 +4401,7 @@ async function handleAISearch() {
 
     <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
       <h3 id="studentGuideTitle" class="font-extrabold text-base text-[#cf1717] dark:text-red-400 flex items-center gap-2">
-        <span>💡</span> Hướng Dẫn Sử Dụng
+        <span><i class="bi bi-lightbulb-fill"></i></span> Hướng Dẫn Sử Dụng
       </h3>
       <button onclick="closeStudentGuide()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
     </div>
@@ -4438,7 +4424,7 @@ async function handleAISearch() {
     <!-- Icon Ngọn Lửa Phát Sáng -->
     <div class="relative z-10">
       <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-amber-100 to-red-100 dark:from-amber-950/60 dark:to-red-950/60 border border-amber-300/60 dark:border-red-800/60 flex items-center justify-center shadow-lg shadow-orange-500/10">
-        <span id="autoModalIcon" class="text-3xl animate-bounce-short select-none">🔥</span>
+        <span id="autoModalIcon" class="text-3xl text-[#cf1717] animate-bounce-short select-none"><i class="bi bi-fire"></i></span>
       </div>
     </div>
 
@@ -4459,7 +4445,7 @@ async function handleAISearch() {
       </button>
 
       <button id="autoModalActionBtn" class="w-1/2 py-2.5 text-xs font-extrabold text-white bg-gradient-to-r from-amber-500 via-orange-600 to-red-600 hover:from-amber-600 hover:to-red-700 rounded-2xl shadow-lg shadow-orange-500/30 active:scale-95 transition-all">
-        Khôi phục ngay 🔥
+        Khôi phục ngay <i class="bi bi-fire"></i>
       </button>
     </div>
 
@@ -4469,7 +4455,7 @@ async function handleAISearch() {
 <div id="micPermissionModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
   <div class="bg-white dark:bg-zinc-900 rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-gray-100 dark:border-zinc-800 text-center space-y-4">
     <div class="w-14 h-14 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full flex items-center justify-center mx-auto text-2xl animate-pulse">
-      🎙️
+      <i class="bi bi-mic-fill"></i>
     </div>
     <h3 class="font-extrabold text-base text-gray-900 dark:text-white">Cấp Quyền Micro</h3>
     <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
@@ -4493,9 +4479,9 @@ async function handleAISearch() {
   <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-lg w-full p-6 border border-gray-200 dark:border-zinc-800 shadow-2xl space-y-5">
     <div class="flex justify-between items-center border-b border-gray-100 dark:border-zinc-800 pb-3">
       <h3 class="font-black text-lg text-gray-900 dark:text-white flex items-center gap-2">
-        <span>➕</span> Tạo Phòng Học Nhóm / Thi Đấu
+        <span><i class="bi bi-plus-lg"></i></span> Tạo Phòng Học Nhóm / Thi Đấu
       </h3>
-      <button onclick="closeModal('modalCreateRoom')" class="text-gray-400 hover:text-white font-bold text-base">✕</button>
+      <button onclick="closeModal('modalCreateRoom')" class="text-gray-400 hover:text-white font-bold text-base"><i class="bi bi-x-lg"></i></button>
     </div>
 
     <div class="space-y-4">
@@ -4511,9 +4497,9 @@ async function handleAISearch() {
       <div id="roomExamCardDetails" class="hidden p-3.5 bg-red-50/60 dark:bg-red-950/30 rounded-xl border border-red-100 dark:border-red-900/40 text-xs space-y-1">
         <p id="roomCardTitle" class="font-extrabold text-[#cf1717] dark:text-red-300 text-sm"></p>
         <div class="flex items-center gap-3 text-gray-600 dark:text-gray-300 font-medium">
-          <span id="roomCardQuestions">❓ 0 câu hỏi</span>
-          <span id="roomCardTime">⏱️ 0 phút</span>
-          <span id="roomCardVocab">📚 0 từ vựng</span>
+          <span id="roomCardQuestions"><i class="bi bi-question-circle-fill"></i> 0 câu hỏi</span>
+          <span id="roomCardTime"><i class="bi bi-stopwatch"></i> 0 phút</span>
+          <span id="roomCardVocab"><i class="bi bi-journals"></i> 0 từ vựng</span>
         </div>
       </div>
 
@@ -4524,27 +4510,27 @@ async function handleAISearch() {
           <!-- Battle Mode -->
           <label class="relative flex flex-col p-3 rounded-2xl border-2 border-gray-200 dark:border-zinc-700 cursor-pointer hover:border-[#cf1717] transition has-[:checked]:border-[#cf1717] has-[:checked]:bg-red-50/50 dark:has-[:checked]:bg-red-950/20">
             <input type="radio" name="roomMode" value="battle" checked class="sr-only">
-            <span class="font-extrabold text-xs text-gray-900 dark:text-white flex items-center gap-1">⚔️ Đua Tốc Độ</span>
+            <span class="font-extrabold text-xs text-gray-900 dark:text-white flex items-center gap-1"><i class="bi bi-speedometer2"></i> Đua Tốc Độ</span>
             <span class="text-[10px] text-gray-500 dark:text-gray-400 mt-1">Tính điểm + thời gian. Ai làm nhanh và đúng nhất sẽ thắng.</span>
           </label>
 
           <!-- Co-working Mode -->
           <label class="relative flex flex-col p-3 rounded-2xl border-2 border-gray-200 dark:border-zinc-700 cursor-pointer hover:border-[#cf1717] transition has-[:checked]:border-[#cf1717] has-[:checked]:bg-red-50/50 dark:has-[:checked]:bg-red-950/20">
             <input type="radio" name="roomMode" value="coworking" class="sr-only">
-            <span class="font-extrabold text-xs text-gray-900 dark:text-white flex items-center gap-1">☕ Co-working</span>
-            <span class="text-[10px] text-gray-500 dark:text-gray-400 mt-1">Không áp lực thời gian, hiện tích xanh ✅ khi xong để mở bài thảo luận.</span>
+            <span class="font-extrabold text-xs text-gray-900 dark:text-white flex items-center gap-1"><i class="bi bi-cup-hot-fill"></i> Co-working</span>
+            <span class="text-[10px] text-gray-500 dark:text-gray-400 mt-1">Không áp lực thời gian, hiện tích xanh <i class="bi bi-check-circle-fill"></i> khi xong để mở bài thảo luận.</span>
           </label>
         </div>
       </div>
 
       <div class="p-2.5 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200/60 dark:border-amber-900/40 text-[11px] text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
-        <span>🔒</span> <span><strong>Lưu ý:</strong> Tất cả bạn bè cần có tài khoản đã đăng nhập để vào phòng.</span>
+        <span><i class="bi bi-lock-fill"></i></span> <span><strong>Lưu ý:</strong> Tất cả bạn bè cần có tài khoản đã đăng nhập để vào phòng.</span>
       </div>
     </div>
 
     <!-- ĐÃ CẬP NHẬT: Truyền ID bài học đã chọn từ ô select -->
     <button onclick="handleCreateRoom(document.getElementById('roomExamSelect').value)" class="w-full py-3 bg-[#cf1717] hover:bg-red-700 text-white font-extrabold text-sm rounded-xl transition shadow-lg active:scale-95 flex items-center justify-center gap-2">
-      🚀 Tạo Phòng Thi Đấu
+      <i class="bi bi-rocket-takeoff-fill"></i> Tạo Phòng Thi Đấu
     </button>
   </div>
 </div>
@@ -4554,13 +4540,13 @@ async function handleAISearch() {
   <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-md w-full p-6 border border-gray-200 dark:border-zinc-800 shadow-2xl text-center space-y-5">
 
     <div>
-      <span id="lobbyModeBadge" class="text-[10px] font-black uppercase px-3 py-1 rounded-full bg-red-100 text-[#cf1717] dark:bg-red-950 dark:text-red-300">⚔️ Battle Mode</span>
+      <span id="lobbyModeBadge" class="text-[10px] font-black uppercase px-3 py-1 rounded-full bg-red-100 text-[#cf1717] dark:bg-red-950 dark:text-red-300"><i class="bi bi-speedometer2"></i> Battle Mode</span>
       <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-2">Mã Phòng Tham Gia</h3>
 
       <!-- Mã Token Code 6 Ký tự -->
       <div class="flex items-center justify-center gap-2 mt-1">
         <span id="lobbyRoomCode" class="text-3xl font-black text-[#cf1717] tracking-wider font-mono">READ-0000</span>
-        <button onclick="copyRoomCode()" class="p-2 bg-gray-100 dark:bg-zinc-800 rounded-lg hover:bg-gray-200 text-xs" title="Sao chép mã">📋</button>
+        <button onclick="copyRoomCode()" class="p-2 bg-gray-100 dark:bg-zinc-800 rounded-lg hover:bg-gray-200 text-xs" title="Sao chép mã"><i class="bi bi-clipboard-check-fill"></i></button>
       </div>
     </div>
 
@@ -4575,9 +4561,7 @@ async function handleAISearch() {
         <!-- Nút 4 mũi tên - MẶC ĐỊNH ẨN (opacity-0), RÊ CHUỘT VÀO MỚI HIỆN (group-hover:opacity-100) -->
         <div class="absolute inset-0 flex items-center justify-center bg-black/30 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <div class="w-10 h-10 bg-zinc-900/90 text-white rounded-full flex items-center justify-center shadow-xl transform scale-90 group-hover:scale-100 transition-transform duration-200">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-            </svg>
+            <i class="bi bi-arrows-fullscreen text-base leading-none"></i>
           </div>
         </div>
       </div>
@@ -4591,7 +4575,7 @@ async function handleAISearch() {
     <div class="relative bg-white p-5 rounded-3xl shadow-2xl flex flex-col items-center max-w-sm w-full mx-auto animate-in fade-in zoom-in duration-200">
       <!-- Nút X góc trên -->
       <button onclick="closeEnlargedQrModal()" class="absolute -top-3 -right-3 w-10 h-10 bg-white text-zinc-900 hover:bg-gray-100 font-black text-lg rounded-full shadow-2xl flex items-center justify-center border border-gray-200 transition active:scale-90 z-20">
-        ✕
+        <i class="bi bi-x-lg"></i>
       </button>
 
       <!-- Canvas QR Phóng To -->
@@ -4613,7 +4597,7 @@ async function handleAISearch() {
   <!-- Nút Thao Tác -->
   <div class="pt-2 space-y-2">
     <button id="btnStartGame" onclick="handleStartGame()" class="hidden w-full py-3 bg-[#cf1717] hover:bg-red-700 text-white font-extrabold text-sm rounded-xl transition shadow-lg active:scale-95">
-      🚀 Bắt Đầu Ngay
+      <i class="bi bi-rocket-takeoff-fill"></i> Bắt Đầu Ngay
     </button>
     <button onclick="handleLeaveRoom()" class="w-full py-2 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 hover:text-red-600 font-bold text-xs rounded-xl transition">
       Rời Phòng
@@ -4629,9 +4613,9 @@ async function handleAISearch() {
 
     <div class="flex justify-between items-center border-b border-gray-100 dark:border-zinc-800 pb-3">
       <h3 class="font-black text-base text-gray-900 dark:text-white flex items-center gap-2">
-        🔑 Tham Gia Phòng Học
+        <i class="bi bi-key-fill"></i> Tham Gia Phòng Học
       </h3>
-      <button onclick="closeModal('modalJoinRoom')" class="text-gray-400 hover:text-white font-bold text-base">✕</button>
+      <button onclick="closeModal('modalJoinRoom')" class="text-gray-400 hover:text-white font-bold text-base"><i class="bi bi-x-lg"></i></button>
     </div>
 
     <!-- 1. Ô Nhập Token Thủ Công -->
@@ -4654,12 +4638,12 @@ async function handleAISearch() {
     <div class="grid grid-cols-2 gap-2">
       <!-- Nút bật Camera -->
       <button onclick="toggleQrScanner()" class="py-2.5 px-3 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-800 dark:text-white font-bold text-xs rounded-xl border border-gray-200 dark:border-zinc-700 flex items-center justify-center gap-1.5 transition">
-        <span>📷</span> Quét Camera
+        <span><i class="bi bi-camera-fill"></i></span> Quét Camera
       </button>
 
       <!-- Nút Tải Ảnh QR từ Thư viện -->
       <button onclick="triggerQrFileUpload()" class="py-2.5 px-3 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 text-[#cf1717] dark:text-red-300 font-bold text-xs rounded-xl border border-red-200 dark:border-red-900/50 flex items-center justify-center gap-1.5 transition">
-        <span>🖼️</span> Tải Ảnh QR
+        <span><i class="bi bi-image-fill"></i></span> Tải Ảnh QR
       </button>
     </div>
 
@@ -4677,7 +4661,7 @@ async function handleAISearch() {
   <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-md w-full p-6 border border-gray-200 dark:border-zinc-800 shadow-2xl text-center space-y-4">
 
     <div class="space-y-1">
-      <div class="text-4xl animate-bounce">🏆</div>
+      <div class="text-4xl text-amber-400 animate-bounce"><i class="bi bi-trophy-fill"></i></div>
       <h3 class="text-xl font-black text-gray-900 dark:text-white">Bảng Vàng Vinh Danh</h3>
       <p id="roomLeaderboardSubtitle" class="text-xs text-gray-500">Kết quả phòng thi đấu nhóm</p>
     </div>
