@@ -1032,6 +1032,21 @@ document.addEventListener('DOMContentLoaded', initScrollReveal);
       `;
     }
   }
+   // ===== Dropdown "dải chọn" (menu section) & menu Trang cá nhân =====
+  function toggleSectionNavMenu(e) {
+    if (e) e.stopPropagation();
+    pel('userDropdownMenu')?.classList.add('hidden');
+    pel('sectionNavMenu')?.classList.toggle('hidden');
+  }
+  function toggleUserDropdown(e) {
+    if (e) e.stopPropagation();
+    pel('sectionNavMenu')?.classList.add('hidden');
+    pel('userDropdownMenu')?.classList.toggle('hidden');
+  }
+  document.addEventListener('click', () => {
+    pel('sectionNavMenu')?.classList.add('hidden');
+    pel('userDropdownMenu')?.classList.add('hidden');
+  });
 </script>
   <!-- ================= MODAL HỖ TRỢ TRỰC TUYẾN ================= -->
 <div id="supportModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
