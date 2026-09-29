@@ -386,6 +386,8 @@
 
   let currentUser = null;
 
+  function pel(id) { return document.getElementById(id); }
+
   let rawProfileData = null; // Lưu trữ dữ liệu tạm để khôi phục khi ấn Hủy
   let profilePhoneIti;
   let profileDobFp; // Instance Flatpickr cho ô chọn Ngày sinh
@@ -857,14 +859,6 @@ async function handleUpdatePassword(e) {
     }
   }
 
-  function toggleUserDropdown(e) {
-  // Ngăn không cho sự kiện click vào Avatar lan ra ngoài window
-  if (e) e.stopPropagation(); 
-  
-  const menu = document.getElementById('userDropdownMenu');
-  if (menu) menu.classList.toggle('hidden');
-}
-
 async function handleLogout() {
   sessionStorage.clear();
   await sbClient.auth.signOut();
@@ -873,13 +867,6 @@ async function handleLogout() {
   
 window.onload = initProfile;
 
-// Đóng dropdown khi click bất kỳ đâu bên ngoài
-document.addEventListener('click', function(e) {
-  const menu = document.getElementById('userDropdownMenu');
-  if (menu && !menu.contains(e.target)) {
-    menu.classList.add('hidden');
-  }
-});
 let ratings = { q1: 5, q2: 5, q3: 5 };
 
   function openSupportModal() {
