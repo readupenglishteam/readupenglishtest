@@ -1146,7 +1146,9 @@
     opts = opts || {};
     const expired = !!opts.expired, used = opts.used || 1;
     const canEdit = !expired && (!a.max_attempts || used < a.max_attempts);
-    rv = { a, attempt, answers: JSON.parse(JSON.stringify(attempt.answers || {})), dirty: new Set(), canEdit, expired, used };
+    // Chỉ hiện đáp án đúng + giải thích khi bài HẾT HẠN (bài không đặt hạn thì hiện khi đã hết lượt)
+    const reveal = expired || (!a.due_date && !canEdit);
+    rv = { a, attempt, answers: JSON.parse(JSON.stringify(attempt.answers || {})), dirty: new Set(), canEdit, expired, used, reveal };
 
     pel('classPickView').classList.add('hidden');
     pel('listView').classList.add('hidden');
@@ -1166,8 +1168,8 @@
     const due = a.due_date ? fmtDueDate(a.due_date) : null;
     let msg, tone;
     if (expired) { msg = `⏰ Bài tập đã hết hạn (${due}). Bạn không thể làm hoặc sửa nữa — bên dưới là bài làm gần nhất, kèm điểm và nhận xét của giáo viên nếu đã chấm.`; tone = 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-300'; }
-    else if (canEdit) { msg = `✏️ ${due ? 'Bài còn hạn đến ' + due + '. ' : ''}Thấy câu nào chưa đúng, bấm “Sửa câu này” để làm lại ngay trên câu đó rồi bấm “Lưu chỉnh sửa”.${a.max_attempts ? ' Còn ' + (a.max_attempts - used) + ' lượt lưu.' : ''}`; tone = 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'; }
-    else { msg = `ℹ️ Bạn đã dùng hết ${a.max_attempts} lượt làm/sửa bài — đây là kết quả gần nhất.`; tone = 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-300'; }
+    else if (canEdit) { msg = `✏️ ${due ? 'Bài còn hạn đến ' + due + '. ' : ''}Bên dưới là điểm của từng câu. Đáp án đúng và giải thích sẽ hiện sau khi bài hết hạn. Câu nào chưa đạt điểm tối đa, bấm “Sửa câu này” để làm lại rồi bấm “Lưu chỉnh sửa”.${a.max_attempts ? ' Còn ' + (a.max_attempts - used) + ' lượt lưu.' : ''}`; tone = 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'; }
+    else { msg = `ℹ️ Bạn đã dùng hết ${a.max_attempts} lượt làm/sửa bài — đây là kết quả gần nhất.${rv.reveal ? '' : ' Đáp án đúng và giải thích sẽ hiện khi bài hết hạn' + (due ? ' (' + due + ')' : '') + '.'}`; tone = 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-300'; }
     const bn = pel('rsBanner'); bn.className = 'text-xs font-semibold rounded-xl p-3 text-left ' + tone; bn.innerText = msg;
 
     rvRenderAll();
@@ -1270,17 +1272,59 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  // Điểm đạt được của 1 câu (cùng luật chấm với scoreFromAnswers). null = tự luận chưa chấm.
+  function questionEarned(q, given, attempt) {
+    const pts = parseFloat(q.points) || 0;
+    const norm = x => String(x ?? '').toLowerCase().trim();
+    let earned = 0;
+    if (q.type === 'mcq' || q.type === 'tf') {
+      const c = (q.options || []).find(o => o.correct);
+      if (given && c && given === c.id) earned = pts;
+    } else if (q.type === 'multi') {
+      const ids = (q.options || []).filter(o => o.correct).map(o => o.id).sort();
+      const giv = Array.isArray(given) ? [...given].sort() : [];
+      if (ids.length && JSON.stringify(ids) === JSON.stringify(giv)) earned = pts;
+    } else if (q.type === 'fill') {
+      if (q.blanks && q.blanks.length) {
+        const go = (given && typeof given === 'object') ? given : {};
+        let ok = 0;
+        q.blanks.forEach(bl => { const v = norm(go[bl.gap]); if (v && (bl.accepted_answers || []).map(norm).includes(v)) ok++; });
+        earned = pts / q.blanks.length * ok;
+      } else { const v = norm(given); if (v && (q.accepted_answers || []).map(norm).includes(v)) earned = pts; }
+    } else if (q.type === 'essay') {
+      const m = attempt.manual_scores && attempt.manual_scores[q.id];
+      if (m === undefined || m === null) return null;
+      earned = parseFloat(m) || 0;
+    }
+    return Math.round(earned * 100) / 100;
+  }
+
   function renderReviewQuestion(q, qNo, attempt) {
+    const reveal = !!(rv && rv.reveal);   // true = được xem đáp án đúng + giải thích
     const given = attempt.answers ? attempt.answers[q.id] : null;
+    const pts = parseFloat(q.points) || 0;
+    const earned = questionEarned(q, given, attempt);
+    let chipCls = 'bg-gray-100 text-gray-500 dark:bg-zinc-800 dark:text-gray-300', chipTxt;
+    if (earned === null) chipTxt = `Chờ chấm / ${pts}`;
+    else {
+      chipTxt = `${earned} / ${pts}`;
+      chipCls = earned >= pts ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
+              : earned > 0 ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400'
+              : 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400';
+    }
     let bodyHtml = '';
     if (q.type === 'mcq' || q.type === 'tf' || q.type === 'multi') {
       const givenArr = Array.isArray(given) ? given : (given ? [given] : []);
       bodyHtml = (q.options || []).map(o => {
         let cls = 'border dark:border-zinc-700';
-        if (o.correct) cls = 'opt-correct border';
-        else if (givenArr.includes(o.id)) cls = 'opt-wrong border';
+        if (reveal) {
+          if (o.correct) cls = 'opt-correct border';
+          else if (givenArr.includes(o.id)) cls = 'opt-wrong border';
+        } else if (givenArr.includes(o.id)) {
+          cls = 'border-2 border-indigo-400 bg-indigo-50 dark:bg-indigo-950/30';   // chỉ đánh dấu lựa chọn của HS, không lộ đúng/sai
+        }
         return `<div class="p-2.5 rounded-xl ${cls} text-sm flex items-center gap-2">
-          ${givenArr.includes(o.id) ? '👉 ' : ''}${esc(o.text)} ${o.correct ? ' <span class="text-emerald-600 font-bold text-xs">(Đáp án đúng)</span>' : ''}
+          ${givenArr.includes(o.id) ? '👉 ' : ''}${esc(o.text)} ${reveal && o.correct ? ' <span class="text-emerald-600 font-bold text-xs">(Đáp án đúng)</span>' : ''}
         </div>`;
       }).join('');
     } else if (q.type === 'fill') {
@@ -1290,16 +1334,18 @@
           const gv = (givenObj[bl.gap] || '').trim();
           const accepted = bl.accepted_answers || [];
           const isCorrect = accepted.map(x => x.toLowerCase().trim()).includes(gv.toLowerCase());
-          return `<div class="p-2.5 rounded-xl border text-sm ${isCorrect ? 'opt-correct' : 'opt-wrong'}">
+          const cls = reveal ? (isCorrect ? 'opt-correct' : 'opt-wrong') : 'dark:border-zinc-700';
+          return `<div class="p-2.5 rounded-xl border text-sm ${cls}">
             Chỗ trống ${bl.gap}: bạn trả lời <b class="whitespace-pre-wrap">${esc(gv || '(bỏ trống)')}</b>
-            <span class="block text-xs text-gray-500 mt-0.5">Đáp án chấp nhận: ${esc(accepted.join(', '))}</span>
+            ${reveal ? `<span class="block text-xs text-gray-500 mt-0.5">Đáp án chấp nhận: ${esc(accepted.join(', '))}</span>` : ''}
           </div>`;
         }).join('');
       } else {
         const accepted = (q.accepted_answers || []).join(', ');
         const isCorrect = (q.accepted_answers || []).map(x => x.toLowerCase().trim()).includes((given || '').toLowerCase().trim());
-        bodyHtml = `<div class="p-2.5 rounded-xl border text-sm ${isCorrect ? 'opt-correct' : 'opt-wrong'} whitespace-pre-wrap">Bạn trả lời: <b>${esc(given || '(bỏ trống)')}</b></div>
-          <p class="text-xs text-gray-500 mt-1">Đáp án chấp nhận: ${esc(accepted)}</p>`;
+        const cls = reveal ? (isCorrect ? 'opt-correct' : 'opt-wrong') : 'dark:border-zinc-700';
+        bodyHtml = `<div class="p-2.5 rounded-xl border text-sm ${cls} whitespace-pre-wrap">Bạn trả lời: <b>${esc(given || '(bỏ trống)')}</b></div>
+          ${reveal ? `<p class="text-xs text-gray-500 mt-1">Đáp án chấp nhận: ${esc(accepted)}</p>` : ''}`;
       }
     } else if (q.type === 'essay') {
       const gradedScore = attempt.manual_scores && attempt.manual_scores[q.id] !== undefined ? attempt.manual_scores[q.id] : null;
@@ -1312,11 +1358,14 @@
     }
     return `
       <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm" data-q="${q.id}">
-        <p class="text-xs font-bold text-[#cf1717]">Câu ${qNo} · ${q.points} điểm</p>
+        <div class="flex items-center justify-between gap-2">
+          <p class="text-xs font-bold text-[#cf1717]">Câu ${qNo}</p>
+          <span class="text-[11px] font-extrabold px-2.5 py-1 rounded-full ${chipCls}">🎯 ${chipTxt} điểm</span>
+        </div>
         <div class="qcontent text-sm text-gray-900 dark:text-white">${q.content || ''}</div>
         <div class="space-y-2">${bodyHtml}</div>
         ${rvEditBtnHtml(q)}
-        ${q.explanation ? `<div class="pt-2 border-t dark:border-zinc-800"><p class="text-[10px] font-bold uppercase text-gray-400 mb-1">💡 Giải thích</p><div class="qcontent text-xs text-gray-600 dark:text-gray-300">${q.explanation}</div></div>` : ''}
+        ${reveal && q.explanation ? `<div class="pt-2 border-t dark:border-zinc-800"><p class="text-[10px] font-bold uppercase text-gray-400 mb-1">💡 Giải thích</p><div class="qcontent text-xs text-gray-600 dark:text-gray-300">${q.explanation}</div></div>` : ''}
       </div>`;
   }
 
