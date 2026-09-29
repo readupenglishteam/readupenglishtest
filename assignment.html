@@ -56,8 +56,10 @@
   .qcontent-2col img,.qcontent-2col table{break-inside:avoid}
   .opt-correct{background:rgba(16,185,129,.12)!important;border-color:#10b981!important}
   .opt-wrong{background:rgba(239,68,68,.12)!important;border-color:#ef4444!important}
-  .rd-hl{background:#fde68a;border-radius:2px;padding:0 1px}
+  .rd-hl{background:#fde68a;border-radius:2px;padding:0 1px;cursor:pointer;transition:background .15s}
+  .rd-hl:hover{background:#fca5a5;text-decoration:line-through}
   .dark .rd-hl{background:#92400e;color:#fde68a}
+  .dark .rd-hl:hover{background:#991b1b}
   .rd-split{display:flex;border:1px solid #e5e7eb;border-radius:1rem;overflow:hidden;background:#fff}
   .dark .rd-split{border-color:#3f3f46;background:#18181b}
   .rd-pane{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1rem}
@@ -950,7 +952,23 @@
       const btn = pel('rdHlBtn');
       btn.addEventListener('mousedown', e => e.preventDefault());
       btn.addEventListener('click', applyHighlightFromSelection);
+      // Bấm thẳng vào vùng đã đánh dấu -> xóa ngay (không cần bôi đen lại)
+      document.addEventListener('click', removeHighlightOnClick);
     }
+  }
+  function removeHighlightOnClick(e) {
+    const mark = e.target.closest && e.target.closest('mark.rd-hl');
+    if (!mark) return;
+    const container = closestPassage(mark); if (!container) return;
+    const sel = window.getSelection();
+    if (sel && !sel.isCollapsed) return;   // đang bôi đen văn bản -> không xóa
+    // Xóa cả vùng đánh dấu liền nhau (nếu bị tách thành nhiều mảnh) để bấm 1 lần là sạch
+    let group = [mark];
+    for (let n = mark.previousSibling; n && ((n.nodeType === 1 && n.matches('mark.rd-hl')) || (n.nodeType === 3 && !n.textContent)); n = n.previousSibling) if (n.nodeType === 1) group.push(n);
+    for (let n = mark.nextSibling; n && ((n.nodeType === 1 && n.matches('mark.rd-hl')) || (n.nodeType === 3 && !n.textContent)); n = n.nextSibling) if (n.nodeType === 1) group.push(n);
+    group.forEach(unwrapMark);
+    saveHighlightsForContainer(container);
+    pel('rdHlBtn').style.display = 'none';
   }
 
   function closestPassage(node) {
@@ -988,7 +1006,13 @@
       const mark = s && s.closest('mark.rd-hl');
       if (mark) unwrapMark(mark);
     } else {
-      const { start, end } = getCharOffsets(container, range);
+      let { start, end } = getCharOffsets(container, range);
+      // Gộp với các đoạn đã đánh dấu chạm vào vùng chọn (tránh lồng mark chồng nhau)
+      Array.from(container.querySelectorAll('mark.rd-hl')).forEach(m => {
+        const r = document.createRange(); r.selectNodeContents(m);
+        const o = getCharOffsets(container, r);
+        if (o.end >= start && o.start <= end) { start = Math.min(start, o.start); end = Math.max(end, o.end); unwrapMark(m); }
+      });
       wrapCharRange(container, start, end);
     }
     saveHighlightsForContainer(container);
@@ -1000,19 +1024,13 @@
     while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
     parent.removeChild(mark); parent.normalize();
   }
+  // Vị trí ký tự (start/end) của một vùng chọn so với đầu bài đọc — dùng được cả khi range nằm trên element (VD selectNodeContents(mark))
   function getCharOffsets(container, range) {
-    let start = -1, end = -1, pos = 0;
-    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
-    let node;
-    while (node = walker.nextNode()) {
-      const len = node.textContent.length;
-      if (node === range.startContainer) start = pos + range.startOffset;
-      if (node === range.endContainer) end = pos + range.endOffset;
-      pos += len;
-    }
-    if (start === -1) start = 0;
-    if (end === -1) end = pos;
-    return { start, end };
+    const pre = document.createRange();
+    pre.selectNodeContents(container);
+    pre.setEnd(range.startContainer, range.startOffset);
+    const start = pre.toString().length;
+    return { start, end: start + range.toString().length };
   }
   function wrapCharRange(container, start, end) {
     if (end <= start) return;
@@ -1031,7 +1049,7 @@
       try {
         r.setStart(t.node, t.from); r.setEnd(t.node, t.to);
         if (r.collapsed) return;
-        const mark = document.createElement('mark'); mark.className = 'rd-hl';
+        const mark = document.createElement('mark'); mark.className = 'rd-hl'; mark.title = 'Bấm vào để xóa đánh dấu';
         r.surroundContents(mark);
       } catch (e) { /* bỏ qua đoạn không bọc được (VD nằm giữa ảnh/bảng) */ }
     });
