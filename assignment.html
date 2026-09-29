@@ -289,6 +289,25 @@
   function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
   // =====================================================================
+  // BỘ NHỚ ĐỆM: vẽ ngay dữ liệu của lần trước rồi âm thầm tải bản mới nhất,
+  // để lịch học / danh sách bài tập cảm giác không có thời gian chờ.
+  // =====================================================================
+  const ruMem = {};
+  const RU_CACHE_VER = 'v1';
+  function cacheGet(key) {
+    if (key in ruMem) return ruMem[key];
+    try {
+      const raw = localStorage.getItem('ru_cache_' + RU_CACHE_VER + ':' + key);
+      if (raw) { const v = JSON.parse(raw); ruMem[key] = v; return v; }
+    } catch (e) {}
+    return null;
+  }
+  function cacheSet(key, val) {
+    ruMem[key] = val;
+    try { localStorage.setItem('ru_cache_' + RU_CACHE_VER + ':' + key, JSON.stringify(val)); } catch (e) {}
+  }
+
+  // =====================================================================
   // TOAST NOTIFICATION (giống hệ thống chung — đường màu đỏ chạy phía dưới)
   // =====================================================================
   function notify(rawMessage) {
@@ -417,6 +436,14 @@
 
   async function loadStudentCalendar() {
     const box = pel('scalSelectedContent');
+    const cacheKey = 'scal:' + currentUser.id;
+    const cached = cacheGet(cacheKey);
+    if (cached) {
+      scalSessions = cached.sessions || []; scalAssign = cached.assign || [];
+      scalLocked = new Set(cached.locked || []); scalAtt = cached.att || {};
+      scalClassMap = cached.classMap || {};
+      scalRenderReminder(); scalRender();
+    }
     try {
       const { data: cls, error: cErr } = await sbClient.from('class_students').select('class_id, classes(id, title, class_code)').eq('student_id', currentUser.id);
       if (cErr) throw cErr;
@@ -424,9 +451,10 @@
       (cls || []).forEach(r => { if (r.classes) scalClassMap[r.classes.id] = r.classes; });
       const classIds = Object.keys(scalClassMap);
       if (!classIds.length) {
-        scalSessions = []; scalLocked = new Set(); scalAtt = {};
-        scalRender();
-        box.innerHTML = '<p class="text-xs text-gray-400 italic">Bạn chưa tham gia lớp nào nên chưa có lịch học.</p>';
+        scalSessions = []; scalAssign = []; scalLocked = new Set(); scalAtt = {};
+        cacheSet(cacheKey, { sessions: [], assign: [], locked: [], att: {}, classMap: {} });
+        scalRenderReminder(); scalRender();
+        if (!cached) box.innerHTML = '<p class="text-xs text-gray-400 italic">Bạn chưa tham gia lớp nào nên chưa có lịch học.</p>';
         return;
       }
       scalSessions = await scalFetchAll(() => sbClient.from('class_schedule_sessions').select('*').in('class_id', classIds).order('session_date', { ascending: true }).order('id'));
@@ -447,10 +475,12 @@
         }
       } catch (e) { console.warn('Không tải được trạng thái điểm danh:', e); }
 
+      cacheSet(cacheKey, { sessions: scalSessions, assign: scalAssign, locked: [...scalLocked], att: scalAtt, classMap: scalClassMap });
       scalRenderReminder();
       scalRender();
     } catch (err) {
-      box.innerHTML = `<p class="text-red-500 text-xs">Lỗi tải lịch học: ${esc(err.message || err)}<br><span class="text-gray-400">Đã chạy file <b>3_student_calendar.sql</b> trong Supabase chưa?</span></p>`;
+      if (!cached) box.innerHTML = `<p class="text-red-500 text-xs">Lỗi tải lịch học: ${esc(err.message || err)}<br><span class="text-gray-400">Đã chạy file <b>3_student_calendar.sql</b> trong Supabase chưa?</span></p>`;
+      else console.warn('Làm mới lịch học thất bại, đang dùng bản đã lưu:', err);
     }
   }
 
@@ -632,18 +662,26 @@
       return;
     }
     pel('vipBadge0').classList.remove('hidden');
+    const cacheKey = 'classpicker:' + currentUser.id;
+    const cached = cacheGet(cacheKey);
+    function paintClassPicker(myClassRows) {
+      pel('classPickLoading').classList.add('hidden');
+      pel('classPickEmpty').classList.toggle('hidden', !!myClassRows.length);
+      pel('classPickGrid').innerHTML = myClassRows.map(r => `
+        <a href="assignment.html?class=${r.classes.id}" class="block bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 space-y-2 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition">
+          <span class="text-[10px] font-bold px-2 py-0.5 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">${esc(r.classes.class_code)}</span>
+          <h4 class="font-bold text-sm text-gray-900 dark:text-white">${esc(r.classes.title)}</h4>
+          ${r.classes.info ? `<p class="text-xs text-gray-400 line-clamp-2">${esc(r.classes.info)}</p>` : ''}
+          <p class="text-[11px] font-bold text-[#cf1717]">Xem bài tập →</p>
+        </a>`).join('');
+    }
+    if (cached) paintClassPicker(cached);
     const { data, error } = await sbClient.from('class_students').select('class_id, classes(id, title, class_code, info)').eq('student_id', currentUser.id);
-    pel('classPickLoading').classList.add('hidden');
-    if (error) { notify('❌ Lỗi tải danh sách lớp: ' + error.message); return; }
+    if (!cached) pel('classPickLoading').classList.add('hidden');
+    if (error) { if (!cached) notify('❌ Lỗi tải danh sách lớp: ' + error.message); return; }
     const myClassRows = (data || []).filter(r => r.classes);
-    if (!myClassRows.length) { pel('classPickEmpty').classList.remove('hidden'); return; }
-    pel('classPickGrid').innerHTML = myClassRows.map(r => `
-      <a href="assignment.html?class=${r.classes.id}" class="block bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 space-y-2 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition">
-        <span class="text-[10px] font-bold px-2 py-0.5 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">${esc(r.classes.class_code)}</span>
-        <h4 class="font-bold text-sm text-gray-900 dark:text-white">${esc(r.classes.title)}</h4>
-        ${r.classes.info ? `<p class="text-xs text-gray-400 line-clamp-2">${esc(r.classes.info)}</p>` : ''}
-        <p class="text-[11px] font-bold text-[#cf1717]">Xem bài tập →</p>
-      </a>`).join('');
+    cacheSet(cacheKey, myClassRows);
+    paintClassPicker(myClassRows);
   }
 
   // =====================================================================
@@ -668,12 +706,21 @@
     }
     pel('listClassTitle').innerText = `${membership.classes.class_code} — ${membership.classes.title}`;
 
+    const cacheKey = 'alist:' + classId + ':' + currentUser.id;
+    const cached = cacheGet(cacheKey);
+    if (cached) {
+      allAssignments = cached;
+      pel('emptyMsg').classList.toggle('hidden', !!allAssignments.length);
+      if (allAssignments.length) { pel('assignGridWrap').classList.remove('hidden'); currentPage = 1; renderPage(); }
+    }
+
     const { data, error } = await sbClient.from('assignments').select('id, token, title, description, total_points, created_at, classes(title, class_code)')
       .eq('class_id', classId).eq('is_published', true).order('created_at', { ascending: false });
     pel('loadingMsg').classList.add('hidden');
-    if (error) { notify('❌ Lỗi tải bài tập: ' + error.message); return; }
+    if (error) { if (!cached) notify('❌ Lỗi tải bài tập: ' + error.message); return; }
     allAssignments = data || [];
-    if (!allAssignments.length) { pel('emptyMsg').classList.remove('hidden'); return; }
+    pel('emptyMsg').classList.toggle('hidden', !!allAssignments.length);
+    if (!allAssignments.length) { cacheSet(cacheKey, []); return; }
 
     // Kiểm tra bài nào học sinh đã nộp
     const { data: myAttempts, error: attErr } = await sbClient.from('assignment_attempts').select('assignment_id, auto_score, total_points, manual_scores').eq('student_id', currentUser.id);
@@ -681,6 +728,7 @@
     const attemptMap = {}; (myAttempts || []).forEach(a => attemptMap[a.assignment_id] = a);
     allAssignments.forEach(a => a._attempt = attemptMap[a.id] || null);
 
+    cacheSet(cacheKey, allAssignments);
     pel('assignGridWrap').classList.remove('hidden');
     currentPage = 1;
     renderPage();
