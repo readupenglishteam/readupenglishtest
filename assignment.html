@@ -97,7 +97,7 @@
       <a href="dashboard.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
         <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
       </a>
-      <a href="dashboard.html" class="flex items-center gap-2 hover:opacity-90 transition">
+      <a href="assignment.html" class="flex items-center gap-2 hover:opacity-90 transition">
         <span class="text-2xl font-black text-[#cf1717] tracking-tight">ReadUp</span>
         <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full shadow-sm">English</span>
       </a>
@@ -125,16 +125,25 @@
       <!-- Nút Avatar / Trang cá nhân -->
       <div class="relative">
         <button onclick="toggleUserDropdown(event)" class="relative p-1.5 rounded-full bg-red-50 dark:bg-zinc-800 border-2 border-[#cf1717] text-[#cf1717] dark:text-red-400 hover:scale-105 transition shadow-md flex items-center justify-center w-11 h-11">
-          <div class="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
-            <svg class="w-7 h-7 fill-current" viewBox="0 0 16 16">
-              <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
-              <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
-            </svg>
-          </div>
+        <!-- Div bọc Avatar riêng để xử lý ẩn phần thừa của ảnh (thay vì dùng overflow-hidden trên button) -->
+        <div class="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
+        <!-- Icon bi-person-circle (mặc định khi chưa có ảnh đại diện) -->
+        <svg id="headerAvatarIcon" class="w-7 h-7 fill-current" viewBox="0 0 16 16">
+        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+        <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+        </svg>
+        <!-- Ảnh đại diện người dùng -->
+        <img id="headerAvatarImg" class="hidden w-full h-full object-cover rounded-full" src="" alt="Avatar">
+        </div>
+        <!-- Chấm tròn màu đỏ đẩy ra ngoài viền (-top-0.5 -right-0.5) -->
+        <span class="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-[#cf1717] border-2 border-white dark:border-zinc-950 rounded-full animate-ping"></span>
+        <span class="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-[#cf1717] border-2 border-white dark:border-zinc-950 rounded-full"></span>
         </button>
+
+        <!-- Menu Dropdown Xổ Xuống -->
         <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-52 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl py-2 z-50 transition-all">
-          <a href="profile.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-[#cf1717] dark:text-red-400 bg-red-50/50 dark:bg-red-950/30">
-            <span>👤</span><span>Trang cá nhân</span>
+          <a href="profile.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
+            <span>👤</span><span id="dropdownUserName">Trang cá nhân</span>
           </a>
           <button onclick="toggleDarkMode()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
             <span id="themeIcon">🌙</span> Sáng/Tối
@@ -391,14 +400,45 @@
     const { data: { user } } = await sbClient.auth.getUser();
     if (!user) { window.location.href = 'index.html'; return; }
     currentUser = user;
-    const { data: profile } = await sbClient.from('profiles').select('full_name, role, must_change_password').eq('id', user.id).single();
+
+    // Lấy thêm thông tin avatar_url nếu bạn muốn hiển thị cả avatar
+    const { data: profile } = await sbClient
+        .from('profiles')
+        .select('full_name, role, must_change_password, avatar_url')
+        .eq('id', user.id)
+        .single();
+
     myProfile = profile || { role: 'student' };
+
+    // Lấy tên học sinh: Ưu tiên full_name -> user_metadata -> Email -> 'Học sinh'
+    const studentName = myProfile?.full_name 
+        || user.user_metadata?.full_name 
+        || user.email?.split('@')[0] 
+        || 'Học sinh';
+
+    // Đẩy tên vào dropdown menu
+    const dropdownNameEl = document.getElementById('dropdownUserName') || pel('dropdownUserName');
+    if (dropdownNameEl) {
+        dropdownNameEl.innerText = studentName;
+    }
+
+    // (Tùy chọn) Cập nhật avatar nếu có
+    if (myProfile?.avatar_url) {
+        const avatarImg = document.getElementById('headerAvatarImg') || pel('headerAvatarImg');
+        const avatarIcon = document.getElementById('headerAvatarIcon') || pel('headerAvatarIcon');
+        if (avatarImg) {
+            avatarImg.src = myProfile.avatar_url;
+            avatarImg.classList.remove('hidden');
+        }
+        if (avatarIcon) avatarIcon.classList.add('hidden');
+    }
 
     // Nhắc đổi mật khẩu lần đầu nếu tài khoản do giáo viên/admin tạo hộ (must_change_password = true)
     if (myProfile.must_change_password) {
-      pel('mustChangePwBanner')?.classList.remove('hidden');
-      notify('🔑 Vui lòng đổi mật khẩu ban đầu do giáo viên cấp trong trang Hồ sơ cá nhân.');
+        pel('mustChangePwBanner')?.classList.remove('hidden');
+        notify('🔑 Vui lòng đổi mật khẩu ban đầu do giáo viên cấp trong trang Hồ sơ cá nhân.');
     }
+}
 
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
