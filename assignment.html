@@ -179,6 +179,7 @@
           <div class="grid grid-cols-7 text-center text-xs font-bold text-gray-400">
             <div>T2</div><div>T3</div><div>T4</div><div>T5</div><div>T6</div><div>T7</div><div>CN</div>
           </div>
+          <div id="scalReminderBox" class="hidden mb-1"></div>
           <div id="scalDaysGrid" class="grid grid-cols-7 gap-1 text-center text-xs sm:text-sm"></div>
           <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-gray-400 pt-1">
             <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#cf1717] inline-block"></span> Có buổi học</span>
@@ -391,6 +392,7 @@
   let scalLocked = new Set();   // session_id đã được GV chốt điểm danh
   let scalAtt = {};             // session_id -> 'P' | 'L' | 'E' | 'A' (chỉ của buổi đã chốt)
   let scalSelected = scalTodayStr();
+  let scalAssign = [];         // bài tập (đã xuất bản) của mọi lớp, có hạn nộp
   let scalMonth = (() => { const [y, m] = scalTodayStr().split('-').map(Number); return new Date(y, m - 1, 1); })();
 
   const SCAL_ATT = {
@@ -429,6 +431,11 @@
       }
       scalSessions = await scalFetchAll(() => sbClient.from('class_schedule_sessions').select('*').in('class_id', classIds).order('session_date', { ascending: true }).order('id'));
 
+      // Bài tập đã xuất bản của các lớp — hiển thị nhỏ trên lịch theo hạn nộp
+      try {
+        scalAssign = await scalFetchAll(() => sbClient.from('assignments').select('id, token, title, due_date, class_id').in('class_id', classIds).eq('is_published', true).not('due_date', 'is', null).order('due_date', { ascending: true }));
+      } catch (e) { scalAssign = []; console.warn('Không tải được hạn nộp bài tập:', e); }
+
       // Trạng thái điểm danh: chỉ lấy của các buổi GV ĐÃ CHỐT (nếu chưa chạy SQL chốt thì coi như chưa chốt)
       scalLocked = new Set(); scalAtt = {};
       try {
@@ -440,6 +447,7 @@
         }
       } catch (e) { console.warn('Không tải được trạng thái điểm danh:', e); }
 
+      scalRenderReminder();
       scalRender();
     } catch (err) {
       box.innerHTML = `<p class="text-red-500 text-xs">Lỗi tải lịch học: ${esc(err.message || err)}<br><span class="text-gray-400">Đã chạy file <b>3_student_calendar.sql</b> trong Supabase chưa?</span></p>`;
@@ -469,6 +477,11 @@
       const o = info[d] || (info[d] = { total: 0, suspended: 0 });
       o.total++; if (s.status === 'suspended') o.suspended++;
     });
+    const dueInfo = {}; // date -> số bài tập đến hạn ngày đó
+    scalAssign.forEach(x => {
+      const d = String(x.due_date || '').slice(0, 10);
+      if (d) dueInfo[d] = (dueInfo[d] || 0) + 1;
+    });
 
     let html = '<div class="p-2"></div>'.repeat(lead);
     for (let d = 1; d <= daysInMonth; d++) {
@@ -482,8 +495,13 @@
         const allSusp = o.suspended === o.total;
         dot = `<span class="w-2 h-2 mt-1 rounded-full shadow-sm ${sel ? 'bg-white' : (allSusp ? 'bg-gray-400' : 'bg-[#cf1717]')}"></span>`;
       }
+      // Chấm bài tập: nhỏ hơn hẳn chấm lịch học, đặt cạnh dưới
+      const dueCount = dueInfo[ds] || 0;
+      const dueDot = dueCount
+        ? `<span class="w-1.5 h-1.5 rounded-full ${sel ? 'bg-white' : 'bg-amber-500'}" style="margin-top:1px" title="${dueCount} bài tập đến hạn"></span>`
+        : '';
       html += `<div onclick="scalSelect('${ds}')" class="p-2 sm:p-2.5 rounded-xl cursor-pointer transition flex flex-col items-center justify-center min-h-[42px] ${cls}">
-        <span class="text-xs sm:text-sm font-bold">${d}</span>${dot}</div>`;
+        <span class="text-xs sm:text-sm font-bold">${d}</span>${dot}${dueDot}</div>`;
     }
     pel('scalDaysGrid').innerHTML = html;
   }
@@ -536,7 +554,70 @@
           ${attLine}
         </div>
       </div>`;
-    }).join('');
+    }).join('') + scalAssignCardsHtml();
+  }
+
+  // Bài tập đến hạn đúng ngày đang chọn — thẻ nhỏ hơn thẻ buổi học, bấm vào để làm bài luôn
+  function scalDueTone(diffDays) {
+    if (diffDays < 0) return { bar: 'bg-gray-400', tag: 'bg-gray-100 text-gray-500 dark:bg-zinc-700 dark:text-gray-300', label: 'Đã quá hạn' };
+    if (diffDays === 0) return { bar: 'bg-[#cf1717]', tag: 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400', label: 'Hạn hôm nay' };
+    return { bar: 'bg-amber-400', tag: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400', label: `Còn ${diffDays} ngày` };
+  }
+  function scalAssignCardsHtml() {
+    const list = scalAssign.filter(x => String(x.due_date || '').slice(0, 10) === scalSelected);
+    if (!list.length) return '';
+    const todayStr = scalTodayStr();
+    return `<div class="pt-1 space-y-1.5">
+      <p class="text-[10px] font-bold uppercase text-amber-600 pl-1">📝 Bài tập đến hạn ngày này</p>
+      ${list.map(x => {
+        const cls = scalClassMap[x.class_id] || {};
+        const diffDays = Math.round((new Date(String(x.due_date).slice(0, 10)) - new Date(todayStr)) / 86400000);
+        const tone = scalDueTone(diffDays);
+        return `<a href="assignment.html?token=${encodeURIComponent(x.token)}" class="flex items-center gap-2 bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-xl pl-2 pr-3 py-2 text-xs shadow-sm hover:shadow-md hover:-translate-y-0.5 transition no-underline text-gray-900 dark:text-gray-100">
+          <span class="w-1.5 self-stretch rounded-full ${tone.bar} flex-shrink-0"></span>
+          <span class="flex-1 min-w-0">
+            <span class="block font-bold truncate">${esc(x.title)}</span>
+            <span class="block text-[10px] text-gray-400 truncate">${esc(cls.class_code || '')} · ${esc(cls.title || '')}</span>
+          </span>
+          <span class="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${tone.tag}">${tone.label}</span>
+        </a>`;
+      }).join('')}
+    </div>`;
+  }
+
+  // Lời nhắc trên đầu lịch: tổng hợp bài tập sắp đến hạn / đã quá hạn trên MỌI ngày (không chỉ ngày đang chọn)
+  function scalRenderReminder() {
+    const box = pel('scalReminderBox');
+    if (!box) return;
+    const todayStr = scalTodayStr();
+    const upcoming = scalAssign
+      .map(x => ({ ...x, diffDays: Math.round((new Date(String(x.due_date).slice(0, 10)) - new Date(todayStr)) / 86400000) }))
+      .filter(x => x.diffDays >= -2 && x.diffDays <= 3) // quá hạn tối đa 2 ngày trước hoặc sắp tới trong 3 ngày
+      .sort((a, b) => a.diffDays - b.diffDays);
+    if (!upcoming.length) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+    const overdue = upcoming.filter(x => x.diffDays < 0).length;
+    const dueToday = upcoming.filter(x => x.diffDays === 0).length;
+    const parts = [];
+    if (overdue) parts.push(`<b>${overdue}</b> đã quá hạn`);
+    if (dueToday) parts.push(`<b>${dueToday}</b> hạn hôm nay`);
+    const soon = upcoming.length - overdue - dueToday;
+    if (soon) parts.push(`<b>${soon}</b> sắp đến hạn`);
+    box.classList.remove('hidden');
+    box.innerHTML = `<button type="button" onclick="scalJumpToFirstDue()" class="w-full text-left text-[11px] font-bold px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-amber-700 dark:text-amber-400 hover:brightness-105 transition">
+      🔔 Bạn có bài tập ${parts.join(', ')} — bấm để xem
+    </button>`;
+  }
+  function scalJumpToFirstDue() {
+    if (!scalAssign.length) return;
+    const todayStr = scalTodayStr();
+    const first = scalAssign
+      .map(x => ({ ...x, diffDays: Math.round((new Date(String(x.due_date).slice(0, 10)) - new Date(todayStr)) / 86400000) }))
+      .filter(x => x.diffDays >= -2 && x.diffDays <= 3)
+      .sort((a, b) => a.diffDays - b.diffDays)[0];
+    if (!first) return;
+    const [y, m] = String(first.due_date).slice(0, 10).split('-').map(Number);
+    scalMonth = new Date(y, m - 1, 1);
+    scalSelect(String(first.due_date).slice(0, 10));
   }
 
   // =====================================================================
