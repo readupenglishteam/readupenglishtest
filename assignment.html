@@ -262,12 +262,17 @@
   <div id="resultView" class="hidden space-y-5">
     <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 text-center shadow-sm space-y-2">
       <div class="text-4xl">🎉</div>
-      <h2 class="text-xl font-extrabold text-gray-900 dark:text-white">Đã nộp bài thành công!</h2>
-      <p class="text-sm text-gray-500">Điểm tự động: <b id="rsScore" class="text-[#cf1717]"></b></p>
+      <h2 id="rsTitle" class="text-xl font-extrabold text-gray-900 dark:text-white">Bài làm của bạn</h2>
+      <p class="text-sm text-gray-500">Điểm: <b id="rsScore" class="text-[#cf1717]"></b></p>
       <p id="rsEssayNote" class="hidden text-xs text-amber-500">Bài có câu tự luận — giáo viên sẽ chấm và cập nhật điểm sau.</p>
+      <div id="rsBanner" class="hidden text-xs font-semibold rounded-xl p-3 text-left"></div>
       <a href="assignment.html" id="backToListLink2" class="inline-block mt-2 text-xs font-bold text-[#cf1717] hover:underline">← Quay lại danh sách bài tập</a>
     </div>
     <div id="reviewArea" class="space-y-4"></div>
+    <div id="rvSaveBar" class="hidden sticky bottom-3 z-30 bg-white dark:bg-zinc-900 border-2 border-[#cf1717] rounded-2xl shadow-xl p-3 flex items-center justify-between gap-3">
+      <p class="text-xs font-bold text-gray-700 dark:text-gray-200">Bạn đã sửa <span id="rvSaveCount">0</span> câu chưa lưu</p>
+      <button id="rvSaveBtn" type="button" onclick="rvSave()" class="px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow transition">💾 Lưu chỉnh sửa</button>
+    </div>
   </div>
 
 </main>
@@ -293,7 +298,7 @@
   // để lịch học / danh sách bài tập cảm giác không có thời gian chờ.
   // =====================================================================
   const ruMem = {};
-  const RU_CACHE_VER = 'v1';
+  const RU_CACHE_VER = 'v2';
   function cacheGet(key) {
     if (key in ruMem) return ruMem[key];
     try {
@@ -411,6 +416,7 @@
   let scalLocked = new Set();   // session_id đã được GV chốt điểm danh
   let scalAtt = {};             // session_id -> 'P' | 'L' | 'E' | 'A' (chỉ của buổi đã chốt)
   let scalSelected = scalTodayStr();
+  let scalAssignErr = '';
   let scalAssign = [];         // bài tập (đã xuất bản) của mọi lớp, có hạn nộp
   let scalMonth = (() => { const [y, m] = scalTodayStr().split('-').map(Number); return new Date(y, m - 1, 1); })();
 
@@ -461,8 +467,8 @@
 
       // Bài tập đã xuất bản của các lớp — hiển thị nhỏ trên lịch theo hạn nộp
       try {
-        scalAssign = await scalFetchAll(() => sbClient.from('assignments').select('id, token, title, due_date, class_id').in('class_id', classIds).eq('is_published', true).not('due_date', 'is', null).order('due_date', { ascending: true }));
-      } catch (e) { scalAssign = []; console.warn('Không tải được hạn nộp bài tập:', e); }
+        scalAssignErr = ''; scalAssign = await scalFetchAll(() => sbClient.from('assignments').select('id, token, title, due_date, class_id').in('class_id', classIds).eq('is_published', true).not('due_date', 'is', null).order('due_date', { ascending: true }));
+      } catch (e) { scalAssignErr = e.message || String(e); console.error('Không tải được hạn nộp bài tập:', e); }
 
       // Trạng thái điểm danh: chỉ lấy của các buổi GV ĐÃ CHỐT (nếu chưa chạy SQL chốt thì coi như chưa chốt)
       scalLocked = new Set(); scalAtt = {};
@@ -548,7 +554,7 @@
     const box = pel('scalSelectedContent');
     if (!list.length) {
       box.innerHTML = `<div class="p-8 text-center bg-gray-50 dark:bg-zinc-800/40 rounded-2xl border border-dashed border-gray-200 dark:border-zinc-800">
-        <span class="text-2xl block mb-1">☕</span><p class="text-xs text-gray-400 font-medium">Không có buổi học nào trong ngày này.</p></div>`;
+        <span class="text-2xl block mb-1">☕</span><p class="text-xs text-gray-400 font-medium">Không có buổi học nào trong ngày này.</p></div>` + scalAssignCardsHtml();
       return;
     }
 
@@ -593,26 +599,33 @@
     if (diffDays === 0) return { bar: 'bg-[#cf1717]', tag: 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400', label: 'Hạn hôm nay' };
     return { bar: 'bg-amber-400', tag: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400', label: `Còn ${diffDays} ngày` };
   }
+  function scalAssignRowHtml(x, todayStr) {
+    const cls = scalClassMap[x.class_id] || {};
+    const dd = String(x.due_date).slice(0, 10);
+    const diffDays = Math.round((new Date(dd) - new Date(todayStr)) / 86400000);
+    const tone = scalDueTone(diffDays);
+    const [yy, mm, d2] = dd.split('-');
+    return `<a href="assignment.html?token=${encodeURIComponent(x.token)}" class="flex items-center gap-2 bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-xl pl-2 pr-3 py-2 text-xs shadow-sm hover:shadow-md hover:-translate-y-0.5 transition no-underline text-gray-900 dark:text-gray-100">
+      <span class="w-1.5 self-stretch rounded-full ${tone.bar} flex-shrink-0"></span>
+      <span class="flex-1 min-w-0">
+        <span class="block font-bold truncate">${esc(x.title)}</span>
+        <span class="block text-[10px] text-gray-400 truncate">${esc(cls.class_code || '')} · ${esc(cls.title || '')} · Hạn ${d2}/${mm}/${yy}</span>
+      </span>
+      <span class="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${tone.tag}">${tone.label}</span>
+    </a>`;
+  }
   function scalAssignCardsHtml() {
-    const list = scalAssign.filter(x => String(x.due_date || '').slice(0, 10) === scalSelected);
-    if (!list.length) return '';
     const todayStr = scalTodayStr();
-    return `<div class="pt-1 space-y-1.5">
-      <p class="text-[10px] font-bold uppercase text-amber-600 pl-1">📝 Bài tập đến hạn ngày này</p>
-      ${list.map(x => {
-        const cls = scalClassMap[x.class_id] || {};
-        const diffDays = Math.round((new Date(String(x.due_date).slice(0, 10)) - new Date(todayStr)) / 86400000);
-        const tone = scalDueTone(diffDays);
-        return `<a href="assignment.html?token=${encodeURIComponent(x.token)}" class="flex items-center gap-2 bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-xl pl-2 pr-3 py-2 text-xs shadow-sm hover:shadow-md hover:-translate-y-0.5 transition no-underline text-gray-900 dark:text-gray-100">
-          <span class="w-1.5 self-stretch rounded-full ${tone.bar} flex-shrink-0"></span>
-          <span class="flex-1 min-w-0">
-            <span class="block font-bold truncate">${esc(x.title)}</span>
-            <span class="block text-[10px] text-gray-400 truncate">${esc(cls.class_code || '')} · ${esc(cls.title || '')}</span>
-          </span>
-          <span class="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${tone.tag}">${tone.label}</span>
-        </a>`;
-      }).join('')}
-    </div>`;
+    let html = '';
+    if (scalAssignErr) html += `<p class="text-[11px] text-red-500 pt-1">⚠️ Không tải được bài tập trên lịch: ${esc(scalAssignErr)}</p>`;
+    const list = scalAssign.filter(x => String(x.due_date || '').slice(0, 10) === scalSelected);
+    if (list.length) html += `<div class="pt-1 space-y-1.5"><p class="text-[10px] font-bold uppercase text-amber-600 pl-1">📝 Bài tập đến hạn ngày này</p>${list.map(x => scalAssignRowHtml(x, todayStr)).join('')}</div>`;
+    // Bài tập sắp đến hạn (mọi tháng) để không phải lật từng tháng mới thấy
+    const upcoming = scalAssign
+      .filter(x => { const d = String(x.due_date || '').slice(0, 10); return d >= todayStr && d !== scalSelected; })
+      .sort((a, b) => String(a.due_date).localeCompare(String(b.due_date))).slice(0, 5);
+    if (upcoming.length) html += `<div class="pt-2 space-y-1.5 border-t border-dashed border-gray-200 dark:border-zinc-800"><p class="text-[10px] font-bold uppercase text-amber-600 pl-1">📌 Bài tập sắp đến hạn</p>${upcoming.map(x => scalAssignRowHtml(x, todayStr)).join('')}</div>`;
+    return html;
   }
 
   // Lời nhắc trên đầu lịch: tổng hợp bài tập sắp đến hạn / đã quá hạn trên MỌI ngày (không chỉ ngày đang chọn)
@@ -714,7 +727,7 @@
       if (allAssignments.length) { pel('assignGridWrap').classList.remove('hidden'); currentPage = 1; renderPage(); }
     }
 
-    const { data, error } = await sbClient.from('assignments').select('id, token, title, description, total_points, created_at, classes(title, class_code)')
+    const { data, error } = await sbClient.from('assignments').select('id, token, title, description, total_points, created_at, due_date, classes(title, class_code)')
       .eq('class_id', classId).eq('is_published', true).order('created_at', { ascending: false });
     pel('loadingMsg').classList.add('hidden');
     if (error) { if (!cached) notify('❌ Lỗi tải bài tập: ' + error.message); return; }
@@ -723,7 +736,7 @@
     if (!allAssignments.length) { cacheSet(cacheKey, []); return; }
 
     // Kiểm tra bài nào học sinh đã nộp
-    const { data: myAttempts, error: attErr } = await sbClient.from('assignment_attempts').select('assignment_id, auto_score, total_points, manual_scores').eq('student_id', currentUser.id);
+    const { data: myAttempts, error: attErr } = await sbClient.from('assignment_attempts').select('assignment_id, auto_score, total_points, manual_scores').eq('student_id', currentUser.id).order('submitted_at', { ascending: true });
     if (attErr) notify('⚠️ Không tải được trạng thái bài đã nộp: ' + attErr.message);
     const attemptMap = {}; (myAttempts || []).forEach(a => attemptMap[a.assignment_id] = a);
     allAssignments.forEach(a => a._attempt = attemptMap[a.id] || null);
@@ -744,11 +757,11 @@
       <a href="assignment.html?token=${encodeURIComponent(a.token)}" class="block bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 space-y-2 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition">
         <div class="flex items-center justify-between">
           <span class="text-[10px] font-bold px-2 py-0.5 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">${esc(a.classes?.class_code || '')}</span>
-          ${a._attempt ? `<span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 rounded-full">Đã nộp: ${Math.round(((a._attempt.auto_score||0)+sumManualScores(a._attempt.manual_scores))*100)/100}/${a._attempt.total_points}</span>` : `<span class="text-[10px] font-bold px-2 py-0.5 bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-full">Chưa làm</span>`}
+          ${a._attempt ? `<span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 rounded-full">Đã nộp: ${Math.round(((a._attempt.auto_score||0)+sumManualScores(a._attempt.manual_scores))*100)/100}/${a._attempt.total_points}</span>` : `<span class="text-[10px] font-bold px-2 py-0.5 bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-full">Chưa làm</span>`.replace(/^(?=.*)/, '') && (isAssignmentExpired(a) ? `<span class="text-[10px] font-bold px-2 py-0.5 bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-gray-300 rounded-full">Đã hết hạn</span>` : `<span class="text-[10px] font-bold px-2 py-0.5 bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-full">Chưa làm</span>`)}
         </div>
         <h4 class="font-bold text-sm text-gray-900 dark:text-white line-clamp-2">${esc(a.title)}</h4>
         <p class="text-xs text-gray-400 line-clamp-2">${esc(a.description || '')}</p>
-        <p class="text-[10px] text-gray-400">${a.total_points} điểm · ${new Date(a.created_at).toLocaleDateString('vi-VN')}</p>
+        <p class="text-[10px] text-gray-400">${a.total_points} điểm · ${new Date(a.created_at).toLocaleDateString('vi-VN')}${a.due_date ? ' · Hạn: ' + fmtDueDate(a.due_date) : ''}</p>
       </a>`).join('');
 
     let pagerHtml = '';
@@ -776,17 +789,21 @@
     const { data: membership } = await sbClient.from('class_students').select('id').eq('class_id', a.class_id).eq('student_id', currentUser.id).maybeSingle();
     if (!membership) { notify('❌ Bạn không thuộc lớp học của bài tập này.'); pel('listView').classList.remove('hidden'); pel('loadingMsg').classList.add('hidden'); pel('emptyMsg').classList.remove('hidden'); return; }
 
-    // Lấy toàn bộ số lần đã làm để áp dụng giới hạn số lần làm (max_attempts). Nếu đã hết lượt -> chỉ xem lại bài gần nhất.
+    // Hạn nộp tính theo NGÀY (hết ngày hạn, giờ Việt Nam). Hết hạn -> không làm / không sửa nữa.
+    const expired = isAssignmentExpired(a);
     const { data: allAttempts } = await sbClient.from('assignment_attempts').select('*').eq('assignment_id', a.id).eq('student_id', currentUser.id).order('submitted_at', { ascending: false });
-    const attemptsUsed = (allAttempts || []).length;
-    if (attemptsUsed > 0 && a.max_attempts && attemptsUsed >= a.max_attempts) {
-      notify(`ℹ️ Bạn đã làm bài này ${attemptsUsed}/${a.max_attempts} lần — đã hết lượt làm, đây là kết quả gần nhất.`);
-      showResult(a, allAttempts[0]);
+    const latest = (allAttempts || [])[0] || null;
+    if (latest) {
+      // Đã từng làm: luôn mở lại bài gần nhất KÈM điểm + nhận xét của giáo viên.
+      // Còn hạn -> sửa trực tiếp trên bài đó; hết hạn -> chỉ xem.
+      if (expired) notify(`⏰ Bài tập đã hết hạn (${fmtDueDate(a.due_date)}) — đây là bài làm gần nhất của bạn.`);
+      showResult(a, latest, { expired, used: attemptsUsedOf(allAttempts) });
       return;
     }
-    // Chưa vượt giới hạn (hoặc không giới hạn) nhưng đã từng nộp trước đó -> cho làm lại, không tự hiện lại kết quả cũ
-    if (attemptsUsed > 0) {
-      notify(`✏️ Bạn đang làm lại bài này (lần ${attemptsUsed + 1}${a.max_attempts ? '/' + a.max_attempts : ''}).`);
+    if (expired) {
+      notify(`⛔ Bài tập đã hết hạn (${fmtDueDate(a.due_date)}), bạn không thể làm bài này nữa.`);
+      setTimeout(() => { location.href = 'assignment.html?class=' + a.class_id; }, 2500);
+      return;
     }
 
     currentAssignment = a;
@@ -1046,8 +1063,15 @@
   // =====================================================================
   // NỘP BÀI & CHẤM ĐIỂM TỰ ĐỘNG
   // =====================================================================
+  // ===== Hạn nộp bài =====
+  function isAssignmentExpired(a) { const d = a && a.due_date ? String(a.due_date).slice(0, 10) : null; return !!d && scalTodayStr() > d; }
+  function fmtDueDate(v) { const [y, m, d] = String(v).slice(0, 10).split('-'); return `${d}/${m}/${y}`; }
+  // Số lượt đã dùng = số dòng bài làm (dữ liệu cũ) + số lần đã lưu chỉnh sửa trên bài gần nhất
+  function attemptsUsedOf(list) { const l = list || []; return l.length + ((l[0] && l[0].edit_count) || 0); }
+
   async function submitAssignment() {
     if (!currentAssignment) return;
+    if (isAssignmentExpired(currentAssignment)) { notify('⛔ Bài tập đã hết hạn, không thể nộp bài.'); return; }
     if (timerInterval) clearInterval(timerInterval);
     const btn = pel('submitBtn'); btn.disabled = true; btn.innerText = 'Đang nộp bài...';
 
@@ -1106,7 +1130,7 @@
     const { data: saved, error } = await sbClient.from('assignment_attempts').insert([row]).select().single();
     if (error) { notify('❌ Lỗi nộp bài: ' + error.message); btn.disabled = false; btn.innerText = '✅ Nộp Bài'; return; }
     notify('🎉 Nộp bài thành công!');
-    showResult(currentAssignment, saved);
+    showResult(currentAssignment, saved, { expired: false, used: 1 });
   }
 
   // =====================================================================
@@ -1114,23 +1138,136 @@
   // =====================================================================
   function sumManualScores(obj) { return Object.values(obj || {}).reduce((s, v) => s + (parseFloat(v) || 0), 0); }
 
-  function showResult(a, attempt) {
+  // ===== Xem lại bài đã làm + sửa trực tiếp trên bài đó (khi còn hạn) =====
+  let rv = null; // { a, attempt, answers (bản đang sửa), dirty:Set, canEdit, expired, used }
+  const rvViewAttempt = () => ({ ...rv.attempt, answers: rv.answers });
+
+  function showResult(a, attempt, opts) {
+    opts = opts || {};
+    const expired = !!opts.expired, used = opts.used || 1;
+    const canEdit = !expired && (!a.max_attempts || used < a.max_attempts);
+    rv = { a, attempt, answers: JSON.parse(JSON.stringify(attempt.answers || {})), dirty: new Set(), canEdit, expired, used };
+
     pel('classPickView').classList.add('hidden');
     pel('listView').classList.add('hidden');
     pel('attemptView').classList.add('hidden');
     pel('resultView').classList.remove('hidden');
     if (a.class_id) pel('backToListLink2').href = 'assignment.html?class=' + a.class_id;
+
     const manualSum = sumManualScores(attempt.manual_scores);
     const finalScore = Math.round(((attempt.auto_score || 0) + manualSum) * 100) / 100;
     pel('rsScore').innerText = `${finalScore} / ${attempt.total_points}`;
+    pel('rsTitle').innerText = expired ? '⏰ Bài đã hết hạn — kết quả gần nhất' : 'Bài làm của bạn';
 
     const essayQs = (a.questions || []).filter(q => q.type === 'essay');
     const allEssayGraded = essayQs.length > 0 && essayQs.every(q => attempt.manual_scores && attempt.manual_scores[q.id] !== undefined);
-    if (attempt.has_essay && !allEssayGraded) pel('rsEssayNote').classList.remove('hidden');
+    pel('rsEssayNote').classList.toggle('hidden', !(attempt.has_essay && !allEssayGraded));
 
-    const counter = { n: 0 };
-    pel('reviewArea').innerHTML = (a.questions || []).map(q => renderTopLevelBlock(q, counter, 'review', attempt)).join('');
+    const due = a.due_date ? fmtDueDate(a.due_date) : null;
+    let msg, tone;
+    if (expired) { msg = `⏰ Bài tập đã hết hạn (${due}). Bạn không thể làm hoặc sửa nữa — bên dưới là bài làm gần nhất, kèm điểm và nhận xét của giáo viên nếu đã chấm.`; tone = 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-300'; }
+    else if (canEdit) { msg = `✏️ ${due ? 'Bài còn hạn đến ' + due + '. ' : ''}Thấy câu nào chưa đúng, bấm “Sửa câu này” để làm lại ngay trên câu đó rồi bấm “Lưu chỉnh sửa”.${a.max_attempts ? ' Còn ' + (a.max_attempts - used) + ' lượt lưu.' : ''}`; tone = 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'; }
+    else { msg = `ℹ️ Bạn đã dùng hết ${a.max_attempts} lượt làm/sửa bài — đây là kết quả gần nhất.`; tone = 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-300'; }
+    const bn = pel('rsBanner'); bn.className = 'text-xs font-semibold rounded-xl p-3 text-left ' + tone; bn.innerText = msg;
+
+    rvRenderAll();
     initReadingHighlighting();
+    rvUpdateSaveBar();
+  }
+
+  function rvRenderAll() {
+    const counter = { n: 0 };
+    pel('reviewArea').innerHTML = (rv.a.questions || []).map(q => renderTopLevelBlock(q, counter, 'review', rvViewAttempt())).join('');
+  }
+  function rvFlat() { const out = []; (rv.a.questions || []).forEach(q => { if (q.type === 'reading') (q.sub_blocks || []).forEach(sb => out.push(sb)); else out.push(q); }); return out; }
+  function rvQNo(qid) { return rvFlat().filter(x => x.type !== 'text').findIndex(x => x.id === qid) + 1; }
+  function rvUpdateSaveBar() { const n = rv.dirty.size; pel('rvSaveBar').classList.toggle('hidden', !(rv.canEdit && n)); pel('rvSaveCount').innerText = n; }
+
+  function rvEditBtnHtml(q) {
+    if (!rv || !rv.canEdit || q.type === 'text') return '';
+    return `<div class="flex items-center gap-2">${rv.dirty.has(q.id) ? '<span class="text-[10px] font-bold text-amber-600">● Đã sửa, chưa lưu</span>' : ''}
+      <button type="button" onclick="rvStartEdit('${q.id}')" class="ml-auto text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-zinc-800 hover:bg-[#cf1717] hover:text-white transition">✏️ Sửa câu này</button></div>`;
+  }
+
+  function rvStartEdit(qid) {
+    if (!rv || !rv.canEdit) return;
+    const q = rvFlat().find(x => x.id === qid);
+    const card = document.querySelector(`#reviewArea [data-q="${qid}"]`);
+    if (!q || !card) return;
+    const wrap = document.createElement('div');
+    wrap.setAttribute('data-q-edit', qid);
+    wrap.innerHTML = renderQuestionInput(q, rvQNo(qid)) + `
+      <div class="flex gap-2 justify-end mt-2">
+        <button type="button" onclick="rvCancelEdit('${qid}')" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-zinc-800">↩️ Hủy</button>
+        <button type="button" onclick="rvApplyEdit('${qid}')" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-[#cf1717] text-white">✅ Xong câu này</button>
+      </div>`;
+    card.replaceWith(wrap);
+    rvPrefill(q, rv.answers[qid]);
+  }
+  function rvCloseEdit(qid) {
+    const q = rvFlat().find(x => x.id === qid);
+    const wrap = document.querySelector(`#reviewArea [data-q-edit="${qid}"]`);
+    if (q && wrap) wrap.outerHTML = renderReviewQuestion(q, rvQNo(qid), rvViewAttempt());
+    rvUpdateSaveBar();
+  }
+  function rvCancelEdit(qid) { rvCloseEdit(qid); }
+  function rvApplyEdit(qid) {
+    const q = rvFlat().find(x => x.id === qid); if (!q) return;
+    const val = rvReadAnswer(q);
+    if (JSON.stringify(val) !== JSON.stringify(rv.answers[qid] ?? null)) { rv.answers[qid] = val; rv.dirty.add(qid); }
+    rvCloseEdit(qid);
+  }
+
+  function rvPrefill(q, g) {
+    if (q.type === 'mcq' || q.type === 'tf') document.querySelectorAll(`input[name="ans-${q.id}"]`).forEach(i => { i.checked = (i.value === g); });
+    else if (q.type === 'multi') { const arr = Array.isArray(g) ? g : []; document.querySelectorAll(`input[name="ans-${q.id}"]`).forEach(i => { i.checked = arr.includes(i.value); }); }
+    else if (q.type === 'fill' && q.blanks && q.blanks.length) {
+      const o = (g && typeof g === 'object') ? g : {};
+      q.blanks.forEach(bl => { const el = pel(`ans-${q.id}-${bl.gap}`); if (el) { el.value = o[bl.gap] || ''; autoGrowFillInput(el); } });
+    } else { const el = pel('ans-' + q.id); if (el) { el.value = g || ''; if (q.type === 'fill') autoGrowFillInput(el); } }
+  }
+  function rvReadAnswer(q) {
+    if (q.type === 'mcq' || q.type === 'tf') { const el = document.querySelector(`input[name="ans-${q.id}"]:checked`); return el ? el.value : null; }
+    if (q.type === 'multi') return Array.from(document.querySelectorAll(`input[name="ans-${q.id}"]:checked`)).map(x => x.value);
+    if (q.type === 'fill') {
+      if (q.blanks && q.blanks.length) { const o = {}; q.blanks.forEach(bl => { o[bl.gap] = (pel(`ans-${q.id}-${bl.gap}`)?.value || '').trim(); }); return o; }
+      return (pel('ans-' + q.id)?.value || '').trim();
+    }
+    if (q.type === 'essay') return pel('ans-' + q.id)?.value || '';
+    return null;
+  }
+
+  // Chấm lại tự động từ bộ đáp án (cùng luật chấm với lúc nộp bài)
+  function scoreFromAnswers(questions, answers) {
+    let auto = 0, has_essay = false;
+    const flat = []; (questions || []).forEach(q => { if (q.type === 'reading') (q.sub_blocks || []).forEach(sb => flat.push(sb)); else flat.push(q); });
+    const norm = x => String(x ?? '').toLowerCase().trim();
+    flat.forEach(q => {
+      const g = answers[q.id], pts = parseFloat(q.points) || 0;
+      if (q.type === 'mcq' || q.type === 'tf') { const c = (q.options || []).find(o => o.correct); if (g && c && g === c.id) auto += pts; }
+      else if (q.type === 'multi') { const ids = (q.options || []).filter(o => o.correct).map(o => o.id).sort(); const giv = Array.isArray(g) ? [...g].sort() : []; if (ids.length && JSON.stringify(ids) === JSON.stringify(giv)) auto += pts; }
+      else if (q.type === 'fill') {
+        if (q.blanks && q.blanks.length) { const go = (g && typeof g === 'object') ? g : {}; let ok = 0; q.blanks.forEach(bl => { const v = norm(go[bl.gap]); if (v && (bl.accepted_answers || []).map(norm).includes(v)) ok++; }); auto += pts / q.blanks.length * ok; }
+        else { const v = norm(g); if (v && (q.accepted_answers || []).map(norm).includes(v)) auto += pts; }
+      } else if (q.type === 'essay') has_essay = true;
+    });
+    return { auto_score: Math.round(auto * 100) / 100, has_essay };
+  }
+
+  async function rvSave() {
+    if (!rv || !rv.dirty.size) return;
+    if (document.querySelector('#reviewArea [data-q-edit]')) { notify('⚠️ Còn câu đang sửa dở — bấm “Xong câu này” hoặc “Hủy” trước khi lưu.'); return; }
+    if (isAssignmentExpired(rv.a)) { notify('⛔ Bài tập đã hết hạn, không thể lưu chỉnh sửa.'); return; }
+    const btn = pel('rvSaveBtn'); btn.disabled = true; btn.innerText = 'Đang lưu...';
+    const { auto_score, has_essay } = scoreFromAnswers(rv.a.questions, rv.answers);
+    const patch = { answers: rv.answers, auto_score, has_essay, submitted_at: new Date().toISOString() };
+    if ('edit_count' in rv.attempt) patch.edit_count = (rv.attempt.edit_count || 0) + 1;
+    const { data, error } = await sbClient.from('assignment_attempts').update(patch).eq('id', rv.attempt.id).select().single();
+    btn.disabled = false; btn.innerText = '💾 Lưu chỉnh sửa';
+    if (error) { notify('❌ Không lưu được chỉnh sửa: ' + error.message + ' (đã chạy file SQL cập nhật quyền chưa?)'); return; }
+    notify('✅ Đã lưu chỉnh sửa!');
+    showResult(rv.a, data, { expired: false, used: rv.used + 1 });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function renderReviewQuestion(q, qNo, attempt) {
@@ -1178,6 +1315,7 @@
         <p class="text-xs font-bold text-[#cf1717]">Câu ${qNo} · ${q.points} điểm</p>
         <div class="qcontent text-sm text-gray-900 dark:text-white">${q.content || ''}</div>
         <div class="space-y-2">${bodyHtml}</div>
+        ${rvEditBtnHtml(q)}
         ${q.explanation ? `<div class="pt-2 border-t dark:border-zinc-800"><p class="text-[10px] font-bold uppercase text-gray-400 mb-1">💡 Giải thích</p><div class="qcontent text-xs text-gray-600 dark:text-gray-300">${q.explanation}</div></div>` : ''}
       </div>`;
   }
