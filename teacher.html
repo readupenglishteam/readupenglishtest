@@ -152,7 +152,7 @@
       <div class="lg:col-span-5 space-y-3">
         <div class="relative">
           <input type="text" id="acalSearchInput" oninput="searchAssistantSchedule(this.value)"
-                 placeholder="🔍 Tìm theo tên lớp, ca học, ghi chú..."
+                 placeholder="Tìm theo tên lớp, ca học, ghi chú..."
                  class="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
           <div id="acalSearchResults" class="hidden absolute z-20 mt-1 w-full bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl shadow-lg max-h-60 overflow-y-auto"></div>
         </div>
@@ -386,18 +386,18 @@
     </div>
 
     <div class="space-y-2">
-      <div class="flex items-center justify-between gap-2 flex-wrap">
-        <h4 class="font-bold text-xs uppercase text-gray-500">📋 Danh Sách Buổi Học (<span id="smCount">0</span>)</h4>
-        <div class="relative w-full sm:w-56">
-          <input id="smSearchInput" type="text" placeholder="🔎 Tìm theo tên buổi, phòng, GV, ngày..." oninput="smSearch(this.value)"
-                 class="w-full text-xs p-2 pl-3 pr-7 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
-          <button type="button" onclick="smSearch(''); pel('smSearchInput').value='';" title="Xóa tìm kiếm"
-                  class="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#cf1717] text-xs font-bold">✕</button>
+      <div class="flex flex-col gap-2">
+      <h4 class="font-bold text-xs uppercase text-gray-500">📋 Danh Sách Buổi Học (<span id="smCount">0</span>)</h4>
+      <div class="relative w-full">
+      <input id="smSearchInput" type="text" placeholder="Tìm theo tên buổi, phòng, GV, ngày..." oninput="smSearch(this.value)"
+             class="w-full text-xs p-2 pl-3 pr-7 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+      <button type="button" onclick="smSearch(''); pel('smSearchInput').value='';" title="Xóa tìm kiếm"
+             class="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#cf1717] text-xs font-bold p-1">✕</button>
         </div>
       </div>
-      <div id="smList" class="space-y-2 max-h-[28rem] overflow-y-auto pr-1">
-        <p class="text-xs text-gray-400 italic">Đang tải...</p>
-      </div>
+        <div id="smList" class="space-y-2 max-h-[28rem] overflow-y-auto pr-1">
+          <p class="text-xs text-gray-400 italic">Đang tải...</p>
+        </div>
     </div>
   </div>
 </div>
@@ -548,7 +548,7 @@
     </div>
     <div id="rmDist" class="hidden"></div>
     <div class="flex flex-wrap items-center gap-2 text-xs">
-      <input id="rmSearchName" oninput="renderResultsList()" placeholder="🔎 Tìm theo tên học sinh..." class="flex-1 min-w-[140px] p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
+      <input id="rmSearchName" oninput="renderResultsList()" placeholder="Tìm theo tên học sinh..." class="flex-1 min-w-[140px] p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
       <select id="rmSort" onchange="renderResultsList()" class="p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
         <option value="latest">Mới nộp trước</option>
         <option value="earliest">Nộp sớm nhất trước</option>
@@ -695,6 +695,34 @@
   function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
   // =====================================================================
+  // BỘ NHỚ ĐỆM (localStorage + bộ nhớ tạm) — vẽ ngay dữ liệu lần trước rồi âm thầm
+  // tải bản mới nhất và cập nhật lại, để mọi trang lịch/điểm danh/bài tập cảm giác
+  // không có thời gian chờ (trừ lần đầu tiên chưa từng có dữ liệu trong máy).
+  // =====================================================================
+  const ruMem = {};
+  const RU_CACHE_VER = 'v1';
+  function cacheGet(key) {
+    if (key in ruMem) return ruMem[key];
+    try {
+      const raw = localStorage.getItem('ru_cache_' + RU_CACHE_VER + ':' + key);
+      if (raw) { const v = JSON.parse(raw); ruMem[key] = v; return v; }
+    } catch (e) {}
+    return null;
+  }
+  function cacheSet(key, val) {
+    ruMem[key] = val;
+    try { localStorage.setItem('ru_cache_' + RU_CACHE_VER + ':' + key, JSON.stringify(val)); } catch (e) {}
+  }
+  function cacheDel(key) {
+    delete ruMem[key];
+    try { localStorage.removeItem('ru_cache_' + RU_CACHE_VER + ':' + key); } catch (e) {}
+  }
+  function attSyncCache() {
+    if (!attClass) return;
+    cacheSet('att:' + attClass.id, { students: attStudents, sessions: attSessions, map: attMap, locked: [...attLocked] });
+  }
+
+  // =====================================================================
   // 1. QUẢN LÝ LỚP HỌC
   // =====================================================================
   async function createClass(e) {
@@ -709,19 +737,7 @@
     loadClasses();
   }
 
-  async function loadClasses() {
-    let data, error;
-    if (isAssistantRole()) {
-      // Giáo viên phụ trách: chỉ thấy các lớp mà chủ lớp đã gán mình vào (bảng class_assistants)
-      const res = await sbClient.from('class_assistants').select('classes(*, class_students(count))').eq('teacher_id', currentUser.id);
-      data = (res.data || []).map(r => r.classes).filter(Boolean);
-      error = res.error;
-    } else {
-      const res = await sbClient.from('classes').select('*, class_students(count)').eq('teacher_id', currentUser.id).order('created_at', { ascending: false });
-      data = res.data; error = res.error;
-    }
-    if (error) { pel('classGrid').innerHTML = `<p class="text-red-500 text-sm col-span-full">Lỗi tải lớp: ${esc(error.message)}</p>`; return; }
-    myClasses = data || [];
+  function renderClassesUI() {
     pel('classCount').innerText = myClasses.length + ' lớp';
 
     const filterSel = pel('assignClassFilter');
@@ -750,8 +766,72 @@
           `}
         </div>
       </div>`).join('') || `<p class="text-gray-400 text-sm col-span-full">${isAssistantRole() ? 'Bạn chưa được phân công phụ trách lớp nào.' : 'Chưa có lớp nào. Hãy tạo lớp đầu tiên ở trên!'}</p>`;
+  }
 
+  async function loadClasses() {
+    const cacheKey = 'classes:' + currentUser.id + ':' + myRole;
+    const cached = cacheGet(cacheKey);
+    if (cached && cached.length) { myClasses = cached; renderClassesUI(); loadAssistantScheduleCalendar(); }
+
+    let data, error;
+    if (isAssistantRole()) {
+      // Giáo viên phụ trách: chỉ thấy các lớp mà chủ lớp đã gán mình vào (bảng class_assistants)
+      const res = await sbClient.from('class_assistants').select('classes(*, class_students(count))').eq('teacher_id', currentUser.id);
+      data = (res.data || []).map(r => r.classes).filter(Boolean);
+      error = res.error;
+    } else {
+      const res = await sbClient.from('classes').select('*, class_students(count)').eq('teacher_id', currentUser.id).order('created_at', { ascending: false });
+      data = res.data; error = res.error;
+    }
+    if (error) { if (!cached) pel('classGrid').innerHTML = `<p class="text-red-500 text-sm col-span-full">Lỗi tải lớp: ${esc(error.message)}</p>`; return; }
+    myClasses = data || [];
+    cacheSet(cacheKey, myClasses);
+    renderClassesUI();
     loadAssistantScheduleCalendar();
+    prefetchAllClassData();
+  }
+
+  // Âm thầm tải trước lịch học + điểm danh + bài tập của MỌI lớp ngay khi vào trang,
+  // để lúc bấm mở modal thì dữ liệu đã có sẵn trong bộ nhớ đệm — mở ra là thấy ngay.
+  async function prefetchAllClassData() {
+    for (const c of myClasses) {
+      prefetchScheduleFor(c.id);
+      prefetchAssignmentsFor(c.id);
+      prefetchAttendanceFor(c.id);
+    }
+  }
+  async function prefetchScheduleFor(classId) {
+    try {
+      const { data, error } = await sbClient.from('class_schedule_sessions').select('*').eq('class_id', classId).order('session_date', { ascending: true });
+      if (!error) cacheSet('sched:' + classId, data || []);
+    } catch (e) {}
+  }
+  async function prefetchAssignmentsFor(classId) {
+    try {
+      const { data, error } = await sbClient.from('assignments').select('*').eq('class_id', classId).order('created_at', { ascending: false });
+      if (!error) cacheSet('assign:' + classId, data || []);
+    } catch (e) {}
+  }
+  async function prefetchAttendanceFor(classId) {
+    try {
+      const [stuRes, sesRes, attRows, lockRes] = await Promise.all([
+        sbClient.rpc('get_class_student_emails', { p_class_id: classId }),
+        sbClient.from('class_schedule_sessions').select('id, session_date, session_time, subject_name, status')
+          .eq('class_id', classId).order('session_date', { ascending: true }).order('session_time', { ascending: true }),
+        attFetchAll(() => sbClient.from('class_attendance').select('session_id, student_id, status').eq('class_id', classId).order('id')),
+        sbClient.from('class_attendance_locks').select('session_id').eq('class_id', classId),
+      ]);
+      if (stuRes.error || sesRes.error) return;
+      const lastWord = s => (String(s || '').trim().split(/\s+/).pop() || '');
+      const students = (stuRes.data || []).slice().sort((a, b) =>
+        lastWord(a.full_name).localeCompare(lastWord(b.full_name), 'vi') ||
+        (a.full_name || '').localeCompare(b.full_name || '', 'vi'));
+      const sessions = sesRes.data || [];
+      const map = {};
+      (attRows || []).forEach(r => { map[r.session_id + '|' + r.student_id] = r.status; });
+      const locked = ((lockRes && !lockRes.error && lockRes.data) || []).map(r => r.session_id);
+      cacheSet('att:' + classId, { students, sessions, map, locked });
+    } catch (e) {}
   }
 
   async function deleteClass(id, title) {
@@ -946,10 +1026,16 @@
 
   async function loadSchedule() {
     if (!currentClassForSchedule) return;
-    pel('smList').innerHTML = '<p class="text-xs text-gray-400 italic">Đang tải...</p>';
-    const { data, error } = await sbClient.from('class_schedule_sessions').select('*').eq('class_id', currentClassForSchedule.id).order('session_date', { ascending: true });
-    if (error) { pel('smList').innerHTML = `<p class="text-red-500 text-xs">Lỗi: ${esc(error.message)}</p>`; return; }
+    const myId = currentClassForSchedule.id;
+    const cacheKey = 'sched:' + myId;
+    const cached = cacheGet(cacheKey);
+    if (cached) { currentScheduleRows = cached; renderSchedule(); }
+    else pel('smList').innerHTML = '<p class="text-xs text-gray-400 italic">Đang tải...</p>';
+    const { data, error } = await sbClient.from('class_schedule_sessions').select('*').eq('class_id', myId).order('session_date', { ascending: true });
+    if (!currentClassForSchedule || currentClassForSchedule.id !== myId) return; // đã đóng / đổi lớp trong lúc tải
+    if (error) { if (!cached) pel('smList').innerHTML = `<p class="text-red-500 text-xs">Lỗi: ${esc(error.message)}</p>`; return; }
     currentScheduleRows = data || [];
+    cacheSet(cacheKey, currentScheduleRows);
     renderSchedule();
   }
 
@@ -1053,16 +1139,16 @@
         .map(k => `${fieldLabel[k]}: "${oldRow[k] || ''}" → "${patch[k] || ''}"`);
       if (changes.length) logHistory(oldRow, 'edit', changes.join('; '));
     }
-    notify('✅ Đã lưu thay đổi.'); scheduleEditingId = null; loadSchedule();
+    notify('✅ Đã lưu thay đổi.'); scheduleEditingId = null; cacheDel('sched:' + currentClassForSchedule.id); loadSchedule();
   }
   async function quickSetStatus(id, status) {
     const row = currentScheduleRows.find(r => r.id === id);
     const patch = { status };
     if (status !== 'pending_suspend') { patch.requested_by = null; patch.request_note = null; }
     const { error } = await sbClient.from('class_schedule_sessions').update(patch).eq('id', id);
-    if (error) { notify('❌ Lỗi: ' + error.message); loadSchedule(); return; }
+    if (error) { notify('❌ Lỗi: ' + error.message); cacheDel('sched:' + currentClassForSchedule.id); loadSchedule(); return; }
     if (row) logHistory(row, 'status_change', `${statusLabel[row.status] || row.status} → ${statusLabel[status] || status}`);
-    notify('✅ Đã cập nhật trạng thái.'); loadSchedule();
+    notify('✅ Đã cập nhật trạng thái.'); cacheDel('sched:' + currentClassForSchedule.id); loadSchedule();
   }
   function toggleManualAddForm() { pel('manualAddForm').classList.toggle('hidden'); }
   async function addManualSession(e) {
@@ -1082,7 +1168,7 @@
     if (data) logHistory(data, 'create', `Đã thêm buổi học ${fmtDate(data.session_date)}${data.session_time ? ' · ' + data.session_time : ''}`);
     notify('🎉 Đã thêm buổi học!');
     ['maSubject', 'maDate', 'maTime', 'maRoom', 'maLecturer', 'maNote'].forEach(id => pel(id).value = '');
-    loadSchedule();
+    cacheDel('sched:' + currentClassForSchedule.id); loadSchedule();
   }
 
   function fmtDate(d) {
@@ -1097,21 +1183,21 @@
     const { error } = await sbClient.from('class_schedule_sessions').delete().eq('id', id);
     if (error) return notify('❌ Lỗi: ' + error.message);
     if (row) logHistory(row, 'delete', `Đã xóa buổi học ${fmtDate(row.session_date)}${row.session_time ? ' · ' + row.session_time : ''}`);
-    notify('✅ Đã xóa buổi học.'); loadSchedule();
+    notify('✅ Đã xóa buổi học.'); cacheDel('sched:' + currentClassForSchedule.id); loadSchedule();
   }
   async function approveSuspend(id) {
     const row = currentScheduleRows.find(r => r.id === id);
     const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'suspended' }).eq('id', id);
     if (error) return notify('❌ Lỗi: ' + error.message);
     if (row) logHistory(row, 'approve_suspend', `Đã duyệt tạm ngưng buổi ${fmtDate(row.session_date)}${row.session_time ? ' · ' + row.session_time : ''}`);
-    notify('✅ Đã duyệt tạm ngưng buổi học.'); loadSchedule(); loadNotifCounts();
+    notify('✅ Đã duyệt tạm ngưng buổi học.'); cacheDel('sched:' + currentClassForSchedule.id); loadSchedule(); loadNotifCounts();
   }
   async function rejectSuspend(id) {
     const row = currentScheduleRows.find(r => r.id === id);
     const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'active', requested_by: null, request_note: null }).eq('id', id);
     if (error) return notify('❌ Lỗi: ' + error.message);
     if (row) logHistory(row, 'reject_suspend', `Đã từ chối yêu cầu tạm ngưng buổi ${fmtDate(row.session_date)}`);
-    notify('✅ Đã từ chối yêu cầu — buổi học trở lại bình thường.'); loadSchedule(); loadNotifCounts();
+    notify('✅ Đã từ chối yêu cầu — buổi học trở lại bình thường.'); cacheDel('sched:' + currentClassForSchedule.id); loadSchedule(); loadNotifCounts();
   }
   async function requestSuspend(id) {
     const reason = prompt('Lý do đề nghị tạm ngưng buổi học này (giáo viên chủ nhiệm sẽ thấy lý do này để duyệt):');
@@ -1120,8 +1206,8 @@
     const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'pending_suspend', requested_by: currentUser.id, request_note: reason.trim() || null }).eq('id', id);
     if (error) return notify('❌ Lỗi: ' + error.message + ' (kiểm tra đã tạo policy "assistant requests suspend" trong SQL chưa)');
     if (row) logHistory(row, 'request_suspend', reason.trim() || null);
-    notify('📨 Đã gửi yêu cầu — chờ giáo viên chủ nhiệm duyệt.'); loadSchedule();
-    loadAssistantScheduleCalendar();
+    notify('📨 Đã gửi yêu cầu — chờ giáo viên chủ nhiệm duyệt.'); cacheDel('sched:' + currentClassForSchedule.id); loadSchedule();
+    cacheDel('acal:' + currentUser.id); loadAssistantScheduleCalendar();
     loadNotifCounts();
   }
 
@@ -1189,6 +1275,7 @@
       const { error: insErr } = await sbClient.from('class_schedule_sessions').insert(parsed);
       if (insErr) return notify('❌ Lỗi thêm lịch mới: ' + insErr.message);
       notify(`🎉 Đã cập nhật ${parsed.length} buổi học!`);
+      cacheDel('sched:' + currentClassForSchedule.id);
       loadSchedule();
     } catch (err) {
       notify('❌ Lỗi đọc file Excel: ' + (err.message || 'không xác định'));
@@ -1213,14 +1300,22 @@
       return;
     }
     const classIds = myClasses.map(c => c.id);
+    const cacheKey = 'acal:' + currentUser.id;
+    const cached = cacheGet(cacheKey);
+    if (cached) {
+      allAssistantSessions = cached.sessions || [];
+      acalLocked = new Set(cached.locked || []);
+      initAssistantCalendar();
+    }
     const { data, error } = await sbClient.from('class_schedule_sessions').select('*').in('class_id', classIds).order('session_date', { ascending: true });
-    if (error) { if (box) box.innerHTML = `<p class="text-red-500 text-xs">Lỗi tải lịch học: ${esc(error.message)}</p>`; return; }
+    if (error) { if (!cached && box) box.innerHTML = `<p class="text-red-500 text-xs">Lỗi tải lịch học: ${esc(error.message)}</p>`; return; }
     allAssistantSessions = data || [];
     acalLocked = new Set();
     try {
       const { data: lk } = await sbClient.from('class_attendance_locks').select('session_id').in('class_id', classIds);
       acalLocked = new Set((lk || []).map(r => r.session_id));
     } catch (e) { /* chưa có bảng chốt thì coi như chưa chốt */ }
+    cacheSet(cacheKey, { sessions: allAssistantSessions, locked: [...acalLocked] });
     initAssistantCalendar();
   }
 
@@ -1362,14 +1457,14 @@
     const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'suspended' }).eq('id', id);
     if (error) return notify('❌ Lỗi: ' + error.message);
     logHistory(row, 'approve_suspend', `Đã duyệt tạm ngưng buổi ${fmtDate(row.session_date)}${row.session_time ? ' · ' + row.session_time : ''}`);
-    notify('✅ Đã duyệt tạm ngưng buổi học.'); loadAssistantScheduleCalendar(); loadNotifCounts();
+    notify('✅ Đã duyệt tạm ngưng buổi học.'); cacheDel('acal:' + currentUser.id); loadAssistantScheduleCalendar(); loadNotifCounts();
   }
   async function calReject(id) {
     const row = acalRow(id); if (!row) return;
     const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'active', requested_by: null, request_note: null }).eq('id', id);
     if (error) return notify('❌ Lỗi: ' + error.message);
     logHistory(row, 'reject_suspend', `Đã từ chối yêu cầu tạm ngưng buổi ${fmtDate(row.session_date)}`);
-    notify('✅ Đã từ chối yêu cầu — buổi học trở lại bình thường.'); loadAssistantScheduleCalendar(); loadNotifCounts();
+    notify('✅ Đã từ chối yêu cầu — buổi học trở lại bình thường.'); cacheDel('acal:' + currentUser.id); loadAssistantScheduleCalendar(); loadNotifCounts();
   }
   async function calSuspendDirect(id) {
     const row = acalRow(id); if (!row) return;
@@ -1378,7 +1473,7 @@
     const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'suspended', request_note: reason.trim() || null }).eq('id', id);
     if (error) return notify('❌ Lỗi: ' + error.message);
     logHistory(row, 'status_change', `${statusLabel[row.status] || row.status} → ${statusLabel.suspended}${reason.trim() ? ' — Lý do: ' + reason.trim() : ''}`);
-    notify('✅ Đã tạm ngưng buổi học.'); loadAssistantScheduleCalendar();
+    notify('✅ Đã tạm ngưng buổi học.'); cacheDel('acal:' + currentUser.id); loadAssistantScheduleCalendar();
   }
   async function calReopen(id) {
     const row = acalRow(id); if (!row) return;
@@ -1386,7 +1481,7 @@
     const { error } = await sbClient.from('class_schedule_sessions').update({ status: 'active', requested_by: null, request_note: null }).eq('id', id);
     if (error) return notify('❌ Lỗi: ' + error.message);
     logHistory(row, 'status_change', `${statusLabel[row.status] || row.status} → ${statusLabel.active}`);
-    notify('✅ Đã mở lại buổi học.'); loadAssistantScheduleCalendar();
+    notify('✅ Đã mở lại buổi học.'); cacheDel('acal:' + currentUser.id); loadAssistantScheduleCalendar();
   }
 
   async function requestSuspendFromCalendar(id) {
@@ -1397,7 +1492,7 @@
     if (error) return notify('❌ Lỗi: ' + error.message);
     if (row) logHistory(row, 'request_suspend', reason.trim() || null);
     notify('📨 Đã gửi yêu cầu — chờ giáo viên chủ nhiệm duyệt.');
-    loadAssistantScheduleCalendar();
+    cacheDel('acal:' + currentUser.id); loadAssistantScheduleCalendar();
     loadNotifCounts();
   }
 
@@ -1670,8 +1765,8 @@
     const row = (payload.new && Object.keys(payload.new).length) ? payload.new : payload.old;
     if (!row || !row.class_id || !isMyClassId(row.class_id)) return;
 
-    if (currentClassForSchedule && currentClassForSchedule.id === row.class_id) loadSchedule();
-    loadAssistantScheduleCalendar();
+    if (currentClassForSchedule && currentClassForSchedule.id === row.class_id) { cacheDel('sched:' + row.class_id); loadSchedule(); }
+    cacheDel('acal:' + currentUser.id); loadAssistantScheduleCalendar();
     loadNotifCounts();
 
     const cls = classInfoOf(row.class_id);
@@ -1750,14 +1845,7 @@
     return (arr || []).reduce((s, q) => s + (q.type === 'text' ? 0 : q.type === 'reading' ? countGradable(q.sub_blocks || []) : 1), 0);
   }
 
-  async function loadAssignmentsForClass() {
-    currentClassForAssignments = pel('assignClassFilter').value;
-    pel('btnNewAssignment').disabled = !currentClassForAssignments;
-    if (!currentClassForAssignments) { pel('assignmentList').innerHTML = '<p class="text-gray-400 text-sm col-span-full">👆 Hãy chọn một lớp ở trên để xem bài tập.</p>'; return; }
-    pel('assignmentList').innerHTML = '<p class="text-gray-400 text-sm col-span-full">⏳ Đang tải bài tập...</p>';
-    const { data, error } = await sbClient.from('assignments').select('*').eq('class_id', currentClassForAssignments).order('created_at', { ascending: false });
-    if (error) { pel('assignmentList').innerHTML = `<p class="text-red-500 text-sm col-span-full">${esc(error.message)}</p>`; return; }
-    currentAssignments = data || [];
+  function renderAssignmentList() {
     pel('assignmentList').innerHTML = currentAssignments.map(a => `
       <div class="bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-2xl p-4 space-y-2">
         <div class="flex items-center justify-between">
@@ -1777,6 +1865,23 @@
           <button onclick="deleteAssignment('${a.id}')" class="text-xs font-bold text-red-500 hover:underline">Xóa</button>
         </div>
       </div>`).join('') || '<p class="text-gray-400 text-sm col-span-full">Lớp này chưa có bài tập nào.</p>';
+  }
+
+  async function loadAssignmentsForClass() {
+    currentClassForAssignments = pel('assignClassFilter').value;
+    pel('btnNewAssignment').disabled = !currentClassForAssignments;
+    if (!currentClassForAssignments) { pel('assignmentList').innerHTML = '<p class="text-gray-400 text-sm col-span-full">👆 Hãy chọn một lớp ở trên để xem bài tập.</p>'; return; }
+    const cid = currentClassForAssignments;
+    const cacheKey = 'assign:' + cid;
+    const cached = cacheGet(cacheKey);
+    if (cached) { currentAssignments = cached; renderAssignmentList(); }
+    else pel('assignmentList').innerHTML = '<p class="text-gray-400 text-sm col-span-full">⏳ Đang tải bài tập...</p>';
+    const { data, error } = await sbClient.from('assignments').select('*').eq('class_id', cid).order('created_at', { ascending: false });
+    if (currentClassForAssignments !== cid) return; // đã đổi lớp khác trong lúc tải
+    if (error) { if (!cached) pel('assignmentList').innerHTML = `<p class="text-red-500 text-sm col-span-full">${esc(error.message)}</p>`; return; }
+    currentAssignments = data || [];
+    cacheSet(cacheKey, currentAssignments);
+    renderAssignmentList();
   }
 
   function dueBadgeHtml(dueDate) {
@@ -1819,6 +1924,7 @@
     const { error } = await sbClient.from('assignments').insert([row]);
     if (error) return notify('❌ Lỗi sao chép: ' + error.message);
     notify(`🎉 Đã sao chép "${a.title}" sang lớp ${targetClass.class_code}!`);
+    cacheDel('assign:' + targetClass.id);
     if (currentClassForAssignments === targetClass.id) loadAssignmentsForClass();
   }
 
@@ -1826,7 +1932,7 @@
     if (!confirm('Xóa bài tập này? Kết quả làm bài liên quan cũng sẽ bị xóa.')) return;
     const { error } = await sbClient.from('assignments').delete().eq('id', id);
     if (error) return notify('❌ Lỗi: ' + error.message);
-    notify('✅ Đã xóa bài tập.'); loadAssignmentsForClass();
+    notify('✅ Đã xóa bài tập.'); cacheDel('assign:' + currentClassForAssignments); loadAssignmentsForClass();
   }
 
   // =====================================================================
@@ -2320,7 +2426,7 @@
     const { error } = editingId ? await sbClient.from('assignments').update(row).eq('id', editingId) : await sbClient.from('assignments').insert([row]);
     if (error) return notify('❌ Lỗi lưu bài tập: ' + error.message);
     notify('🎉 Đã lưu bài tập! Đường dẫn: assignment.html?token=' + token);
-    closeBuilder(); loadAssignmentsForClass();
+    closeBuilder(); cacheDel('assign:' + currentClassForAssignments); loadAssignmentsForClass();
   }
 
   // =====================================================================
@@ -2538,7 +2644,15 @@
   async function loadAttendance() {
     if (!attClass) return;
     const myId = attClass.id;
-    pel('attTableWrap').innerHTML = '<p class="text-xs text-gray-400 italic p-4">Đang tải...</p>';
+    const cacheKey = 'att:' + myId;
+    const cached = cacheGet(cacheKey);
+    if (cached) {
+      attStudents = cached.students || []; attSessions = cached.sessions || [];
+      attMap = cached.map || {}; attLocked = new Set(cached.locked || []);
+      renderAttendance();
+    } else {
+      pel('attTableWrap').innerHTML = '<p class="text-xs text-gray-400 italic p-4">Đang tải...</p>';
+    }
     try {
       const [stuRes, sesRes, attRows, lockRes] = await Promise.all([
         sbClient.rpc('get_class_student_emails', { p_class_id: myId }),
@@ -2561,10 +2675,15 @@
       attRows.forEach(r => { attMap[attKey(r.session_id, r.student_id)] = r.status; });
       if (lockRes && lockRes.error) console.warn('Không tải được trạng thái chốt:', lockRes.error);
       attLocked = new Set(((lockRes && !lockRes.error && lockRes.data) || []).map(r => r.session_id));
+      cacheSet(cacheKey, { students: attStudents, sessions: attSessions, map: attMap, locked: [...attLocked] });
       renderAttendance();
     } catch (err) {
-      pel('attTableWrap').innerHTML = `<p class="text-red-500 text-xs p-4">Lỗi tải điểm danh: ${esc(err.message || err)}<br>
-        <span class="text-gray-400">Bạn đã chạy file <b>1_attendance.sql</b> trong Supabase chưa?</span></p>`;
+      if (!cached) {
+        pel('attTableWrap').innerHTML = `<p class="text-red-500 text-xs p-4">Lỗi tải điểm danh: ${esc(err.message || err)}<br>
+          <span class="text-gray-400">Bạn đã chạy file <b>1_attendance.sql</b> trong Supabase chưa?</span></p>`;
+      } else {
+        console.warn('Làm mới điểm danh thất bại, đang dùng bản đã lưu:', err);
+      }
     }
   }
 
@@ -2653,6 +2772,7 @@
     if (error) { sel.value = old; sel.className = 'att-sel att-' + (old || 'none'); return notify('❌ Lỗi lưu điểm danh: ' + error.message); }
     if (v) attMap[key] = v; else delete attMap[key];
     attUpdateSummary(stu);
+    attSyncCache();
   }
 
   // Chốt / mở chốt điểm danh 1 buổi. Chốt: cả teacher lẫn assistant làm được; mở chốt: chỉ teacher.
@@ -2679,8 +2799,9 @@
     }
     if (error) return notify('❌ Lỗi chốt điểm danh: ' + error.message);
     if (wasLocked) attLocked.delete(sessionId); else attLocked.add(sessionId);
+    attSyncCache();
     renderAttendance();
-    loadAssistantScheduleCalendar();
+    cacheDel('acal:' + currentUser.id); loadAssistantScheduleCalendar();
     notify(wasLocked ? '🔓 Đã mở chốt điểm danh.' : '🔒 Đã chốt điểm danh — học sinh sẽ thấy trạng thái.');
   }
 
@@ -2697,6 +2818,7 @@
     const { error } = await sbClient.from('class_attendance').upsert(rows, { onConflict: 'session_id,student_id' });
     if (error) return notify('❌ Lỗi lưu điểm danh: ' + error.message);
     rows.forEach(r => { attMap[attKey(r.session_id, r.student_id)] = 'P'; });
+    attSyncCache();
     renderAttendance();
     notify('✅ Đã đánh dấu P cho ' + rows.length + ' học sinh.');
   }
