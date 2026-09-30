@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ReadUp English - Phòng Thi Reading</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <script>
     tailwind.config = { darkMode: 'class' };
   </script>
@@ -223,7 +225,7 @@
       
       <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
         <a href="dashboard.html" class="px-3 py-2 text-xs font-bold bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] dark:hover:text-red-400 rounded-xl transition border border-gray-200/50 dark:border-zinc-700/50 flex items-center gap-1 flex-shrink-0">
-          <span>←</span>
+          <span><i class="bi bi-arrow-left"></i></span>
           <span class="hidden sm:inline">Quay lại</span>
         </a>
 
@@ -238,12 +240,12 @@
 
       <div class="flex items-center gap-2">
         <button onclick="triggerPDFPrint()" class="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5 flex-shrink-0">
-          <span>🖨️</span>
+          <span><i class="bi bi-printer-fill"></i></span>
           <span class="hidden sm:inline">In PDF (A4)</span>
         </button>
 
         <div class="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 bg-red-500/10 dark:bg-red-950/50 rounded-xl border border-red-200/60 dark:border-red-900/60 shadow-sm flex-shrink-0">
-          <span class="text-xs font-bold text-[#cf1717] dark:text-red-400">⏱️</span>
+          <span class="text-xs font-bold text-[#cf1717] dark:text-red-400"><i class="bi bi-stopwatch-fill"></i></span>
           <span id="timerDisplay" class="font-mono font-black text-xs sm:text-sm text-[#cf1717] dark:text-red-400">00:00</span>
         </div>
 
@@ -252,7 +254,7 @@
         </button>
 
         <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50 flex-shrink-0">
-          <span id="themeIcon">🌙</span>
+          <span id="themeIcon"><i class="bi bi-moon-stars-fill"></i></span>
         </button>
       </div>
 
@@ -262,10 +264,10 @@
   <!-- MOBILE TAB -->
   <div class="lg:hidden flex border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
     <button id="mobileTabReading" onclick="switchMobileTab('reading')" class="w-1/2 py-2.5 text-center font-bold text-xs text-[#cf1717] border-b-2 border-[#cf1717]">
-      📖 Bài Đọc (Passage)
+      <i class="bi bi-book"></i> Bài Đọc (Passage)
     </button>
     <button id="mobileTabQuestions" onclick="switchMobileTab('questions')" class="w-1/2 py-2.5 text-center font-bold text-xs text-gray-400">
-      ✍️ Câu Hỏi (Questions)
+      <i class="bi bi-pencil-square"></i> Câu Hỏi (Questions)
     </button>
   </div>
 
@@ -275,11 +277,11 @@
     <!-- PASSAGE -->
     <section id="readingSection" class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 h-full overflow-y-auto shadow-sm space-y-4">
       <div class="flex items-center justify-between border-b dark:border-zinc-800 pb-3 sticky top-0 bg-white dark:bg-zinc-900 z-10">
-        <h2 class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white flex items-center gap-2">📖 Reading Passage</h2>
+        <h2 class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white flex items-center gap-2"><i class="bi bi-book"></i> Reading Passage</h2>
         <span id="examTopicTag" class="text-xs font-bold px-2.5 py-1 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-full">General</span>
       </div>
       <div id="passageContent" class="prose dark:prose-invert max-w-none text-xs sm:text-sm leading-relaxed text-gray-700 dark:text-gray-300 select-text">
-        <p class="text-gray-400">⏳ Đang tải nội dung đoạn văn...</p>
+        <p class="text-gray-400"><i class="bi bi-hourglass-split"></i> Đang tải nội dung đoạn văn...</p>
       </div>
     </section>
 
@@ -287,11 +289,11 @@
     <section id="questionsSection" class="hidden lg:block bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 h-full overflow-y-auto shadow-sm">
       <div class="space-y-6">
         <div class="flex items-center justify-between border-b dark:border-zinc-800 pb-3 sticky top-0 bg-white dark:bg-zinc-900 z-10">
-          <h2 class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white flex items-center gap-2">✍️ Questions</h2>
+          <h2 class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white flex items-center gap-2"><i class="bi bi-pencil-square"></i> Questions</h2>
           <span id="questionCountTag" class="text-xs font-bold text-gray-500">0 câu hỏi</span>
         </div>
         <form id="questionsForm" class="space-y-6">
-          <p class="text-gray-400 text-sm">⏳ Đang tải danh sách câu hỏi...</p>
+          <p class="text-gray-400 text-sm"><i class="bi bi-hourglass-split"></i> Đang tải danh sách câu hỏi...</p>
         </form>
       </div>
     </section>
@@ -301,7 +303,7 @@
   <!-- RESULT MODAL -->
   <div id="resultModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-2xl text-center space-y-5 sm:space-y-6">
-      <div class="w-14 h-14 sm:w-16 sm:h-16 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-full flex items-center justify-center text-2xl sm:text-3xl mx-auto">🏆</div>
+      <div class="w-14 h-14 sm:w-16 sm:h-16 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-full flex items-center justify-center text-2xl sm:text-3xl mx-auto"><i class="bi bi-trophy-fill"></i></div>
       <div>
         <h3 class="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white">Hoàn Thành Bài Thi!</h3>
         <p class="text-xs text-gray-500 mt-1">Kết quả của bạn đã được ghi nhận thành công.</p>
@@ -318,7 +320,7 @@
       </div>
       <div class="space-y-2.5">
         <button onclick="closeResultModal()" class="w-full py-3 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-800 dark:text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5">
-          <span>🔍</span>
+          <span><i class="bi bi-search"></i></span>
           <span>Xem Đáp Án & Giải Thích</span>
         </button>
         <button onclick="exitToDashboard()" class="w-full py-2.5 sm:py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-lg transition text-sm shadow">Trở Về Dashboard</button>
@@ -340,13 +342,13 @@
   <!-- FLOATING ACTION TOOLBAR HIGHLIGHT -->
   <div id="textSelectionMenu" class="fixed hidden z-50 bg-zinc-900/95 dark:bg-white/95 text-white dark:text-zinc-900 px-2.5 py-1.5 rounded-2xl shadow-2xl border border-zinc-700 dark:border-gray-200 backdrop-blur-md flex items-center gap-1.5 text-xs transition-all duration-150 -translate-x-1/2">
     <button onclick="applyHighlightFromMenu('bg-yellow-300 dark:bg-yellow-500 text-black')" class="px-2 py-1 hover:bg-zinc-800 dark:hover:bg-gray-200 rounded-xl flex items-center gap-1 font-bold whitespace-nowrap">
-      <span>🖍️</span> <span>Tô Vàng</span>
+      <span><i class="bi bi-highlighter text-yellow-400"></i></span> <span>Tô Vàng</span>
     </button>
     <button onclick="applyHighlightFromMenu('bg-green-300 dark:bg-green-600 text-black dark:text-white')" class="px-2 py-1 hover:bg-zinc-800 dark:hover:bg-gray-200 rounded-xl flex items-center gap-1 font-bold whitespace-nowrap">
-      <span>🟢</span> <span>Tô Xanh</span>
+      <span><i class="bi bi-highlighter text-green-500"></i></span> <span>Tô Xanh</span>
     </button>
     <button id="btnRemoveHighlight" onclick="removeActiveHighlight()" class="hidden px-2 py-1 bg-red-500/20 text-red-400 dark:text-red-600 hover:bg-red-500/30 rounded-xl font-bold flex items-center gap-1 whitespace-nowrap">
-      <span>🧽</span> <span>Xóa Tô</span>
+      <span><i class="bi bi-eraser-fill"></i></span> <span>Xóa Tô</span>
     </button>
   </div>
 
@@ -379,6 +381,14 @@
       currentExam = exam;
       renderExamData();
 
+      // [BỔ SUNG] Xem lại đáp án của MỘT LẦN LÀM BÀI CÁ NHÂN từ Dashboard (exam.html?token=...&result_id=...)
+      const resultId = urlParams.get('result_id');
+      if (resultId) {
+        const reviewed = await checkAndRenderResultReview(resultId, exam);
+        if (!reviewed) { window.location.href = 'dashboard.html'; }
+        return; // Chế độ xem lại: không bao giờ chạy giờ đếm ngược / cho làm lại
+      }
+
       // [BỔ SUNG] Nếu đây là phòng đã nộp bài rồi -> Hiển thị luôn Đáp Án & Giải Thích từ dữ liệu đã lưu, KHÔNG bắt làm lại / KHÔNG chạy lại giờ đếm ngược
       const roomCode = urlParams.get('room_code');
       if (roomCode) {
@@ -387,6 +397,46 @@
       }
 
       startTimer(exam.time_limit || 60);
+    }
+
+    // [BỔ SUNG] Hiển thị bài đã lưu (đáp án, giải thích, điểm, thời gian) - dùng chung cho xem lại theo phòng & theo lịch sử cá nhân
+    function showSavedResultUI(exam, savedResult, fallbackScore, fallbackTime) {
+      renderReviewFromSavedAnswers(exam.questions || [], savedResult.answers || {});
+
+      const finalScoreVal = (savedResult.score ?? fallbackScore ?? 0);
+      const scoreElem = document.getElementById('finalScore');
+      if (scoreElem) scoreElem.innerText = finalScoreVal + '/10 điểm';
+
+      const timeVal = savedResult.time_spent ?? fallbackTime ?? 0;
+      const timeElem = document.getElementById('finalTime');
+      if (timeElem) timeElem.innerText = Math.floor(timeVal / 60) + 'm ' + (timeVal % 60) + 's';
+
+      const timerElem = document.getElementById('timerDisplay');
+      if (timerElem) timerElem.innerHTML = '<i class="bi bi-check-circle-fill"></i> Đã nộp';
+
+      disableSubmitBtn();
+
+      const resultModal = document.getElementById('resultModal');
+      if (resultModal) resultModal.classList.remove('hidden');
+    }
+
+    // [BỔ SUNG] Xem lại đúng 1 lần làm bài trong Lịch sử & Kết quả (chỉ chủ bài làm mới xem được)
+    async function checkAndRenderResultReview(resultId, exam) {
+      try {
+        const { data: savedResult, error } = await sbClient
+          .from('exam_results')
+          .select('*')
+          .eq('id', resultId)
+          .eq('user_id', currentUser.id)
+          .eq('exam_id', exam.id)
+          .maybeSingle();
+        if (error || !savedResult) return false;
+        showSavedResultUI(exam, savedResult, 0, 0);
+        return true;
+      } catch (err) {
+        console.error("Lỗi xem lại bài làm:", err);
+        return false;
+      }
     }
 
     // [BỔ SUNG] Kiểm tra người dùng đã nộp bài trong phòng này chưa (room_participants.is_finished).
@@ -444,23 +494,7 @@
 
         if (!savedResult) return false; // Không tìm thấy dữ liệu đã nộp -> vẫn cho làm bài để không chặn nhầm
 
-        renderReviewFromSavedAnswers(exam.questions || [], savedResult.answers || {});
-
-        const finalScoreVal = (savedResult.score ?? participant.score ?? 0);
-        const scoreElem = document.getElementById('finalScore');
-        if (scoreElem) scoreElem.innerText = finalScoreVal + '/10 điểm';
-
-        const timeVal = savedResult.time_spent ?? participant.completion_time ?? 0;
-        const timeElem = document.getElementById('finalTime');
-        if (timeElem) timeElem.innerText = Math.floor(timeVal / 60) + 'm ' + (timeVal % 60) + 's';
-
-        const timerElem = document.getElementById('timerDisplay');
-        if (timerElem) timerElem.innerText = '✅ Đã nộp';
-
-        disableSubmitBtn();
-
-        const resultModal = document.getElementById('resultModal');
-        if (resultModal) resultModal.classList.remove('hidden');
+        showSavedResultUI(exam, savedResult, participant.score, participant.completion_time);
 
         return true;
       } catch (err) {
@@ -724,7 +758,7 @@
       document.getElementById('tooltipIpaType').innerText = ((item.ipa || '') + ' ' + typeStr).trim();
       
       const mElem = document.getElementById('tooltipMeaning');
-      mElem.innerHTML = item.meaning ? '👉 ' + item.meaning : '';
+      mElem.innerHTML = item.meaning ? '<i class="bi bi-arrow-right-short"></i> ' + item.meaning : '';
       mElem.style.display = item.meaning ? 'block' : 'none';
 
       const cElem = document.getElementById('tooltipContext');
@@ -963,7 +997,7 @@
       const { data, error } = await sbClient.from('exam_results').insert([payload]);
 
       if (error) {
-        alert("❌ Lỗi lưu kết quả: " + error.message);
+        alert("Lỗi lưu kết quả: " + error.message);
         return;
       }
       const urlParams = new URLSearchParams(window.location.search);
@@ -1008,17 +1042,17 @@
         let containerStyle = '';
 
         if (status === 'essay') {
-          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">📝 Tự luận (Đã ghi nhận)</span>`;
+          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"><i class="bi bi-pencil-square"></i> Tự luận (Đã ghi nhận)</span>`;
           containerStyle = 'bg-blue-50/30 border-blue-200 dark:bg-blue-950/10 dark:border-blue-900/40';
         } else if (status === 'correct') {
-          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">✓ Đúng</span>`;
+          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"><i class="bi bi-check-lg"></i> Đúng</span>`;
           containerStyle = 'bg-green-50/50 border-green-200 dark:bg-green-950/20 dark:border-green-900';
         } else if (status === 'partial') {
           const earned = q.earnedPoints !== undefined ? q.earnedPoints : 0;
-          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300">⚡ Đúng ${(q.correctSubCount || 0)}/${(q.totalBlanks || 0)} ý (+${earned}đ)</span>`;
+          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300"><i class="bi bi-lightning-charge-fill"></i> Đúng ${(q.correctSubCount || 0)}/${(q.totalBlanks || 0)} ý (+${earned}đ)</span>`;
           containerStyle = 'bg-amber-50/40 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/60';
         } else {
-          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300">✕ Sai</span>`;
+          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"><i class="bi bi-x-lg"></i> Sai</span>`;
           containerStyle = 'bg-red-50/50 border-red-200 dark:bg-red-950/20 dark:border-red-900';
         }
 
@@ -1089,7 +1123,7 @@
             explanationHTML = `
               <div class="mt-3 pt-3 border-t border-gray-200/60 dark:border-zinc-700/60 text-xs">
                 <div class="flex items-center gap-1 text-[#cf1717] dark:text-red-400 font-bold mb-1">
-                  <span>💡</span>
+                  <span><i class="bi bi-lightbulb-fill"></i></span>
                   <span>Giải thích chi tiết:</span>
                 </div>
                 <div class="text-gray-700 dark:text-gray-300 leading-relaxed bg-white dark:bg-zinc-800 p-3 rounded-xl border border-gray-100 dark:border-zinc-700">
@@ -1106,7 +1140,7 @@
             explanationHTML = `
               <div class="mt-3 pt-3 border-t border-gray-200/60 dark:border-zinc-700/60 text-xs">
                 <div class="flex items-center gap-1 text-[#cf1717] dark:text-red-400 font-bold mb-2">
-                  <span>💡</span>
+                  <span><i class="bi bi-lightbulb-fill"></i></span>
                   <span>Giải thích chi tiết từng vị trí:</span>
                 </div>
                 <div class="space-y-2 bg-white dark:bg-zinc-800 p-3 rounded-xl border border-gray-100 dark:border-zinc-700">
@@ -1219,12 +1253,12 @@ function triggerPDFPrint() {
 
     <div class="pdf-grid">
       <div class="pdf-passage-col">
-        <div class="pdf-passage-title">📖 Reading Passage</div>
+        <div class="pdf-passage-title"><i class="bi bi-book"></i> Reading Passage</div>
         <div class="pdf-passage">${passageHTML}</div>
       </div>
       <div class="pdf-questions-col">
         ${imageHTML}
-        <div class="pdf-passage-title">✍️ Questions</div>
+        <div class="pdf-passage-title"><i class="bi bi-pencil-square"></i> Questions</div>
         ${questionsPDFHTML}
       </div>
     </div>
@@ -1413,7 +1447,7 @@ async function onExamFinished(score, totalQuestions, timeInSeconds) {
 <div id="roomLeaderboardModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
   <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-100 dark:border-zinc-800 space-y-4">
     <div class="text-center space-y-1">
-      <span class="text-3xl">🏆</span>
+      <span class="text-3xl text-amber-400"><i class="bi bi-trophy-fill"></i></span>
       <h3 class="text-xl font-black text-gray-900 dark:text-white">Bảng Kết Quả Phòng Thi</h3>
       <p class="text-xs text-gray-500">Cập nhật trực tiếp tiến độ nộp bài của các thành viên</p>
     </div>
