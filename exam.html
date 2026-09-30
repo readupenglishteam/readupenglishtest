@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ReadUp English - Phòng Thi Reading</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Bootstrap Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <script>
     tailwind.config = { darkMode: 'class' };
   </script>
@@ -208,6 +206,12 @@
     background-color: #f9fafb;
   }
 }
+  .qcontent{line-height:1.7;word-wrap:break-word}
+  .qcontent p{margin:0 0 .4em}
+  .qcontent img{max-width:100%;height:auto;border-radius:10px;margin:.4em 0}
+  .qcontent table{border-collapse:collapse;width:100%;margin:.5em 0;font-size:.9em}
+  .qcontent td,.qcontent th{border:1px solid #d1d5db;padding:6px 8px}
+  .qcontent audio{width:100%;margin:.5em 0}
   </style>
 </head>
 <body class="bg-gray-100 dark:bg-zinc-950 dark:text-gray-100 h-screen flex flex-col overflow-hidden transition-colors duration-300">
@@ -225,7 +229,7 @@
       
       <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
         <a href="dashboard.html" class="px-3 py-2 text-xs font-bold bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] dark:hover:text-red-400 rounded-xl transition border border-gray-200/50 dark:border-zinc-700/50 flex items-center gap-1 flex-shrink-0">
-          <span><i class="bi bi-arrow-left"></i></span>
+          <span>←</span>
           <span class="hidden sm:inline">Quay lại</span>
         </a>
 
@@ -240,12 +244,12 @@
 
       <div class="flex items-center gap-2">
         <button onclick="triggerPDFPrint()" class="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5 flex-shrink-0">
-          <span><i class="bi bi-printer-fill"></i></span>
+          <span>🖨️</span>
           <span class="hidden sm:inline">In PDF (A4)</span>
         </button>
 
         <div class="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 bg-red-500/10 dark:bg-red-950/50 rounded-xl border border-red-200/60 dark:border-red-900/60 shadow-sm flex-shrink-0">
-          <span class="text-xs font-bold text-[#cf1717] dark:text-red-400"><i class="bi bi-stopwatch-fill"></i></span>
+          <span class="text-xs font-bold text-[#cf1717] dark:text-red-400">⏱️</span>
           <span id="timerDisplay" class="font-mono font-black text-xs sm:text-sm text-[#cf1717] dark:text-red-400">00:00</span>
         </div>
 
@@ -254,7 +258,7 @@
         </button>
 
         <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50 flex-shrink-0">
-          <span id="themeIcon"><i class="bi bi-moon-stars-fill"></i></span>
+          <span id="themeIcon">🌙</span>
         </button>
       </div>
 
@@ -264,10 +268,10 @@
   <!-- MOBILE TAB -->
   <div class="lg:hidden flex border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
     <button id="mobileTabReading" onclick="switchMobileTab('reading')" class="w-1/2 py-2.5 text-center font-bold text-xs text-[#cf1717] border-b-2 border-[#cf1717]">
-      <i class="bi bi-book"></i> Bài Đọc (Passage)
+      📖 Bài Đọc (Passage)
     </button>
     <button id="mobileTabQuestions" onclick="switchMobileTab('questions')" class="w-1/2 py-2.5 text-center font-bold text-xs text-gray-400">
-      <i class="bi bi-pencil-square"></i> Câu Hỏi (Questions)
+      ✍️ Câu Hỏi (Questions)
     </button>
   </div>
 
@@ -277,11 +281,11 @@
     <!-- PASSAGE -->
     <section id="readingSection" class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 h-full overflow-y-auto shadow-sm space-y-4">
       <div class="flex items-center justify-between border-b dark:border-zinc-800 pb-3 sticky top-0 bg-white dark:bg-zinc-900 z-10">
-        <h2 class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white flex items-center gap-2"><i class="bi bi-book"></i> Reading Passage</h2>
+        <h2 class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white flex items-center gap-2">📖 Reading Passage</h2>
         <span id="examTopicTag" class="text-xs font-bold px-2.5 py-1 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-full">General</span>
       </div>
       <div id="passageContent" class="prose dark:prose-invert max-w-none text-xs sm:text-sm leading-relaxed text-gray-700 dark:text-gray-300 select-text">
-        <p class="text-gray-400"><i class="bi bi-hourglass-split"></i> Đang tải nội dung đoạn văn...</p>
+        <p class="text-gray-400">⏳ Đang tải nội dung đoạn văn...</p>
       </div>
     </section>
 
@@ -289,11 +293,11 @@
     <section id="questionsSection" class="hidden lg:block bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 h-full overflow-y-auto shadow-sm">
       <div class="space-y-6">
         <div class="flex items-center justify-between border-b dark:border-zinc-800 pb-3 sticky top-0 bg-white dark:bg-zinc-900 z-10">
-          <h2 class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white flex items-center gap-2"><i class="bi bi-pencil-square"></i> Questions</h2>
+          <h2 class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white flex items-center gap-2">✍️ Questions</h2>
           <span id="questionCountTag" class="text-xs font-bold text-gray-500">0 câu hỏi</span>
         </div>
         <form id="questionsForm" class="space-y-6">
-          <p class="text-gray-400 text-sm"><i class="bi bi-hourglass-split"></i> Đang tải danh sách câu hỏi...</p>
+          <p class="text-gray-400 text-sm">⏳ Đang tải danh sách câu hỏi...</p>
         </form>
       </div>
     </section>
@@ -303,7 +307,7 @@
   <!-- RESULT MODAL -->
   <div id="resultModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-2xl text-center space-y-5 sm:space-y-6">
-      <div class="w-14 h-14 sm:w-16 sm:h-16 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-full flex items-center justify-center text-2xl sm:text-3xl mx-auto"><i class="bi bi-trophy-fill"></i></div>
+      <div class="w-14 h-14 sm:w-16 sm:h-16 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-full flex items-center justify-center text-2xl sm:text-3xl mx-auto">🏆</div>
       <div>
         <h3 class="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white">Hoàn Thành Bài Thi!</h3>
         <p class="text-xs text-gray-500 mt-1">Kết quả của bạn đã được ghi nhận thành công.</p>
@@ -320,7 +324,7 @@
       </div>
       <div class="space-y-2.5">
         <button onclick="closeResultModal()" class="w-full py-3 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-800 dark:text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5">
-          <span><i class="bi bi-search"></i></span>
+          <span>🔍</span>
           <span>Xem Đáp Án & Giải Thích</span>
         </button>
         <button onclick="exitToDashboard()" class="w-full py-2.5 sm:py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-lg transition text-sm shadow">Trở Về Dashboard</button>
@@ -342,13 +346,13 @@
   <!-- FLOATING ACTION TOOLBAR HIGHLIGHT -->
   <div id="textSelectionMenu" class="fixed hidden z-50 bg-zinc-900/95 dark:bg-white/95 text-white dark:text-zinc-900 px-2.5 py-1.5 rounded-2xl shadow-2xl border border-zinc-700 dark:border-gray-200 backdrop-blur-md flex items-center gap-1.5 text-xs transition-all duration-150 -translate-x-1/2">
     <button onclick="applyHighlightFromMenu('bg-yellow-300 dark:bg-yellow-500 text-black')" class="px-2 py-1 hover:bg-zinc-800 dark:hover:bg-gray-200 rounded-xl flex items-center gap-1 font-bold whitespace-nowrap">
-      <span><i class="bi bi-highlighter text-yellow-400"></i></span> <span>Tô Vàng</span>
+      <span>🖍️</span> <span>Tô Vàng</span>
     </button>
     <button onclick="applyHighlightFromMenu('bg-green-300 dark:bg-green-600 text-black dark:text-white')" class="px-2 py-1 hover:bg-zinc-800 dark:hover:bg-gray-200 rounded-xl flex items-center gap-1 font-bold whitespace-nowrap">
-      <span><i class="bi bi-highlighter text-green-500"></i></span> <span>Tô Xanh</span>
+      <span>🟢</span> <span>Tô Xanh</span>
     </button>
     <button id="btnRemoveHighlight" onclick="removeActiveHighlight()" class="hidden px-2 py-1 bg-red-500/20 text-red-400 dark:text-red-600 hover:bg-red-500/30 rounded-xl font-bold flex items-center gap-1 whitespace-nowrap">
-      <span><i class="bi bi-eraser-fill"></i></span> <span>Xóa Tô</span>
+      <span>🧽</span> <span>Xóa Tô</span>
     </button>
   </div>
 
@@ -366,6 +370,229 @@
     let timerInterval = null;
     let timeSpentSeconds = 0;
 
+    /* ====== HỖ TRỢ CÂU HỎI DẠNG KHỐI (admin/teacher): mcq, multi, tf, fill, essay, text ====== */
+    const BLOCK_TYPES = ['mcq', 'multi', 'tf', 'fill', 'essay', 'text'];
+    function isBlockQ(q) {
+      return !!q && typeof q === 'object' && q.question === undefined && BLOCK_TYPES.includes(q.type);
+    }
+    function escHTML(s) {
+      return s == null ? '' : String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    // Chuẩn hoá danh sách câu hỏi: parse JSON, làm phẳng khối reading, gán _key (khoá lưu bài làm) và _num (số câu hiển thị)
+    function normalizeQuestions(raw) {
+      let arr = raw;
+      if (typeof arr === 'string') { try { arr = JSON.parse(arr); } catch (e) { arr = []; } }
+      if (!Array.isArray(arr)) arr = [];
+      const flat = [];
+      arr.forEach(q => {
+        if (q && q.type === 'reading' && Array.isArray(q.sub_blocks)) {
+          if (q.content) flat.push({ id: (q.id || 'reading') + '_txt', type: 'text', content: q.content, points: 0 });
+          q.sub_blocks.forEach(sb => flat.push(sb));
+        } else flat.push(q);
+      });
+      let n = 0; const seen = {};
+      return flat.filter(q => q && typeof q === 'object').map((q, idx) => {
+        if (isBlockQ(q)) {
+          let key = String(q.id || ('q' + idx));
+          if (seen[key]) key += '_' + idx;
+          seen[key] = true; q._key = key;
+          if (q.type !== 'text') { n++; q._num = n; }
+        } else { n++; q._num = n; q._key = 'câu_' + (idx + 1); }
+        return q;
+      });
+    }
+    function isTextBlock(q) { return isBlockQ(q) && q.type === 'text'; }
+    function blockBlanks(q) {
+      if (Array.isArray(q.blanks)) return q.blanks.map(b => ({ gap: String(b.gap), accepted: b.accepted_answers || [] }));
+      const m = q.blanks || {};
+      return Object.keys(m).map(g => ({ gap: String(g), accepted: String(m[g] || '').split(';').map(s => s.trim()).filter(Boolean) }));
+    }
+    function gapNumbers(content) {
+      return [...new Set(Array.from(String(content || '').matchAll(/\{\{\s*(\d+)\s*\}\}/g)).map(m => m[1]))];
+    }
+    // Điểm mỗi câu quy về thang 10 theo trọng số "points" của admin (câu text không tính điểm)
+    function computePointsMap(questions) {
+      const scorable = questions.filter(q => !isTextBlock(q));
+      let ws = scorable.map(q => { if (!isBlockQ(q)) return 1; const p = Number(q.points); return isFinite(p) && p > 0 ? p : 0; });
+      let total = ws.reduce((a, b) => a + b, 0);
+      if (total <= 0) { ws = ws.map(() => 1); total = ws.length; }
+      const map = new Map();
+      scorable.forEach((q, i) => map.set(q, total > 0 ? 10 * ws[i] / total : 0));
+      return map;
+    }
+    function readAnswerFromDOM(q, idx) {
+      const t = isBlockQ(q) ? q.type : null;
+      if (t === 'multi') return Array.from(document.querySelectorAll(`input[name="q_idx_${idx}"]:checked`)).map(i => i.value);
+      if (t === 'mcq' || t === 'tf') { const r = document.querySelector(`input[name="q_idx_${idx}"]:checked`); return r ? r.value : ''; }
+      if (t === 'essay') { const e = document.querySelector(`textarea[name="q_idx_${idx}"]`); return e ? e.value.trim() : ''; }
+      const blanks = document.querySelectorAll(`input[name^="q_idx_${idx}_blank_"]`);
+      if (blanks.length) { const o = {}; blanks.forEach(i => { o[i.getAttribute('data-blank')] = i.value.trim(); }); return o; }
+      if (t === 'fill') return {};
+      if (q.options && Array.isArray(q.options) && q.options.length > 0) {
+        const radio = document.querySelector(`input[name="q_idx_${idx}"]:checked`);
+        return radio ? radio.value.trim() : '';
+      }
+      const el = document.querySelector(`textarea[name="q_idx_${idx}"], input[name="q_idx_${idx}"]`);
+      return el ? el.value.trim() : '';
+    }
+    // Chấm điểm chung cho cả lúc nộp bài (đọc từ ô nhập) và lúc xem lại (đọc từ dữ liệu đã lưu)
+    function gradeQuestions(questions, getVal) {
+      const ptsMap = computePointsMap(questions);
+      let totalScore = 0; const answers = {};
+      questions.forEach((q, idx) => {
+        if (isTextBlock(q)) { q.status = 'text'; return; }
+        const pts = ptsMap.get(q) || 0;
+        let val = getVal(q, idx);
+        let earned = 0, status = 'wrong';
+
+        if (isBlockQ(q)) {
+          if (q.type === 'essay') {
+            val = val == null ? '' : String(val);
+            q.status = 'essay'; q.isCorrect = null; q.earnedPoints = 0; q.userSelected = val;
+            answers[q._key] = val; return;
+          }
+          if (q.type === 'mcq' || q.type === 'tf') {
+            val = val == null ? '' : String(val);
+            const c = (q.options || []).find(o => o.correct);
+            if (c && val !== '' && val === String(c.id)) { earned = pts; status = 'correct'; }
+          } else if (q.type === 'multi') {
+            val = Array.isArray(val) ? val.map(String) : (val ? [String(val)] : []);
+            const correctIds = (q.options || []).filter(o => o.correct).map(o => String(o.id));
+            const good = val.filter(v => correctIds.includes(v)).length;
+            const bad = val.length - good;
+            const net = Math.max(0, good - bad);
+            q.correctSubCount = net; q.totalBlanks = correctIds.length;
+            if (correctIds.length && good === correctIds.length && bad === 0) { earned = pts; status = 'correct'; }
+            else if (net > 0) { earned = pts * net / correctIds.length; status = 'partial'; }
+          } else if (q.type === 'fill') {
+            val = (val && typeof val === 'object' && !Array.isArray(val)) ? val : {};
+            const blanks = blockBlanks(q);
+            let ok = 0;
+            blanks.forEach(b => { if (checkSingleMatch(val[b.gap], b.accepted)) ok++; });
+            q.correctSubCount = ok; q.totalBlanks = blanks.length;
+            if (blanks.length) earned = pts * ok / blanks.length;
+            status = (blanks.length && ok === blanks.length) ? 'correct' : (ok > 0 ? 'partial' : 'wrong');
+          }
+        } else {
+          // ---- Định dạng cũ (question / options dạng chuỗi / answer) ----
+          const isEssay = q.is_essay || q.type === 'essay' || (!q.answer && (!q.options || q.options.length === 0));
+          if (isEssay) {
+            val = val || '';
+            q.status = 'essay'; q.isCorrect = null; q.earnedPoints = 0; q.userSelected = val;
+            answers[q._key] = val; return;
+          }
+          if (typeof val === 'object' && val !== null) {
+            const correctObj = q.answer || {};
+            const keys = Object.keys(correctObj);
+            let ok = 0;
+            keys.forEach(k => { if (checkSingleMatch(val[k], correctObj[k])) ok++; });
+            q.correctSubCount = ok; q.totalBlanks = keys.length;
+            earned = keys.length > 0 ? pts * ok / keys.length : 0;
+            status = (ok === keys.length && keys.length > 0) ? 'correct' : (ok > 0 ? 'partial' : 'wrong');
+          } else if (q.options && Array.isArray(q.options) && q.options.length > 0) {
+            const userKey = (val || '').toString().trim().charAt(0).toLowerCase();
+            const correctKey = (q.answer || '').toString().trim().charAt(0).toLowerCase();
+            if (userKey !== '' && userKey === correctKey) { earned = pts; status = 'correct'; }
+          } else if (checkSingleMatch(val, q.answer)) { earned = pts; status = 'correct'; }
+        }
+
+        totalScore += earned;
+        q.status = status; q.isCorrect = status === 'correct';
+        q.earnedPoints = Number(earned.toFixed(2)); q.userSelected = val;
+        answers[q._key] = val;
+      });
+      return { totalScore, answers };
+    }
+
+    /* ---- Hiển thị câu hỏi dạng khối ---- */
+    function renderBlockQuestionHTML(q, idx) {
+      const box = 'p-3 sm:p-4 rounded-xl border border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/40 space-y-2 sm:space-y-3';
+      if (q.type === 'text') {
+        return `<div class="qcontent p-3 sm:p-4 rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 text-xs sm:text-sm text-gray-800 dark:text-gray-200">${q.content || ''}</div>`;
+      }
+      const head = inner => `<div class="flex gap-2 font-bold text-xs sm:text-sm text-gray-900 dark:text-white"><span class="flex-shrink-0">Câu ${q._num}:</span><div class="qcontent min-w-0 flex-1">${inner}</div></div>`;
+      if (q.type === 'essay') {
+        return `<div class="${box}">${head(q.content || '')}
+          <textarea name="q_idx_${idx}" rows="4" placeholder="Viết câu trả lời tự luận tại đây..." class="w-full p-2.5 text-xs sm:text-sm rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-[#cf1717]"></textarea></div>`;
+      }
+      if (q.type === 'fill') {
+        const html = String(q.content || '').replace(/\{\{\s*(\d+)\s*\}\}/g, (m, n) =>
+          `<input type="text" name="q_idx_${idx}_blank_${n}" data-qidx="${idx}" data-blank="${n}" placeholder="(${n})" autocomplete="off" class="inline-block w-28 sm:w-36 mx-1 px-2 py-0.5 text-xs sm:text-sm rounded border border-gray-300 dark:border-zinc-600 border-b-2 border-b-[#cf1717] bg-white dark:bg-zinc-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#cf1717]">`);
+        return `<div class="${box}">${head(html)}</div>`;
+      }
+      const type = q.type === 'multi' ? 'checkbox' : 'radio';
+      const hint = q.type === 'multi' ? '<p class="text-[11px] text-gray-400 italic">(Chọn tất cả đáp án đúng)</p>' : '';
+      return `<div class="${box}">${head(q.content || '')}${hint}
+        <div class="space-y-1.5 sm:space-y-2">
+          ${(q.options || []).map(o => `
+            <label class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm p-2 sm:p-2.5 rounded-lg border border-gray-200 dark:border-zinc-700 hover:bg-white dark:hover:bg-zinc-800 cursor-pointer transition">
+              <input type="${type}" name="q_idx_${idx}" value="${escHTML(o.id)}" class="accent-[#cf1717]">
+              <span>${escHTML(o.text)}</span>
+            </label>`).join('')}
+        </div></div>`;
+    }
+
+    /* ---- Hiển thị kết quả câu hỏi dạng khối ---- */
+    function renderBlockResult(q) {
+      if (q.type === 'text') {
+        return `<div class="qcontent p-3 sm:p-4 rounded-2xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 text-xs mb-4">${q.content || ''}</div>`;
+      }
+      const status = q.status || 'wrong';
+      let badge, style;
+      if (status === 'essay') {
+        badge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">📝 Tự luận (Đã ghi nhận)</span>`;
+        style = 'bg-blue-50/30 border-blue-200 dark:bg-blue-950/10 dark:border-blue-900/40';
+      } else if (status === 'correct') {
+        badge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">✓ Đúng</span>`;
+        style = 'bg-green-50/50 border-green-200 dark:bg-green-950/20 dark:border-green-900';
+      } else if (status === 'partial') {
+        badge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300">⚡ Đúng ${q.correctSubCount || 0}/${q.totalBlanks || 0} ý (+${q.earnedPoints || 0}đ)</span>`;
+        style = 'bg-amber-50/40 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/60';
+      } else {
+        badge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300">✕ Sai</span>`;
+        style = 'bg-red-50/50 border-red-200 dark:bg-red-950/20 dark:border-red-900';
+      }
+      let contentHTML = q.content || '', body = '';
+      const userVal = q.userSelected;
+      if (q.type === 'essay') {
+        body = `<div class="p-3 bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 text-xs">
+          <span class="text-gray-400 font-bold block mb-1">Câu trả lời tự luận của bạn:</span>
+          <p class="text-gray-800 dark:text-gray-200 whitespace-pre-line font-medium">${escHTML(userVal) || 'Chưa nhập nội dung.'}</p></div>`;
+      } else if (q.type === 'fill') {
+        contentHTML = contentHTML.replace(/\{\{\s*(\d+)\s*\}\}/g, (m, n) => `<b class="text-[#cf1717]">(${n})</b> ______`);
+        const u = (userVal && typeof userVal === 'object') ? userVal : {};
+        body = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">` + blockBlanks(q).map(b => {
+          const ok = checkSingleMatch(u[b.gap], b.accepted);
+          return `<div class="p-2.5 bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 text-xs space-y-1">
+            <div class="font-bold text-[#cf1717] dark:text-red-400">Vị trí (${escHTML(b.gap)}):</div>
+            <div><span class="text-gray-400">Bạn nhập:</span> <strong class="${ok ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${escHTML(u[b.gap]) || 'Chưa trả lời'}</strong></div>
+            <div><span class="text-gray-400">Đáp án chuẩn:</span> <strong class="text-green-600 dark:text-green-400">${escHTML(b.accepted.join(' / '))}</strong></div></div>`;
+        }).join('') + `</div>`;
+      } else {
+        const picked = Array.isArray(userVal) ? userVal.map(String) : (userVal ? [String(userVal)] : []);
+        body = (q.options || []).map(o => {
+          const isPicked = picked.includes(String(o.id));
+          let cls = 'text-gray-600 dark:text-gray-400 p-1.5 rounded-lg';
+          if (o.correct) cls = 'font-bold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/50 p-1.5 rounded-lg';
+          else if (isPicked) cls = 'font-bold text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/50 p-1.5 rounded-lg line-through';
+          return `<div class="${cls}">${isPicked ? '👉 ' : ''}${escHTML(o.text)}${o.correct ? ' ✓' : ''}</div>`;
+        }).join('');
+      }
+      const exp = (typeof q.explanation === 'string' && q.explanation.replace(/<[^>]*>|&nbsp;/g, '').trim()) ? `
+        <div class="mt-3 pt-3 border-t border-gray-200/60 dark:border-zinc-700/60 text-xs">
+          <div class="flex items-center gap-1 text-[#cf1717] dark:text-red-400 font-bold mb-1"><span>💡</span><span>Giải thích chi tiết:</span></div>
+          <div class="qcontent text-gray-700 dark:text-gray-300 leading-relaxed bg-white dark:bg-zinc-800 p-3 rounded-xl border border-gray-100 dark:border-zinc-700">${q.explanation}</div>
+        </div>` : '';
+      return `<div class="p-4 sm:p-5 rounded-2xl border ${style} space-y-3 mb-4">
+        <div class="flex justify-between items-start gap-2">
+          <div class="flex gap-2 font-bold text-sm text-gray-900 dark:text-white"><span class="flex-shrink-0">Câu ${q._num}:</span><div class="qcontent min-w-0">${contentHTML}</div></div>
+          ${badge}
+        </div>
+        <div class="space-y-1.5 text-xs">${body}</div>
+        ${exp}
+      </div>`;
+    }
+
     async function initExam() {
       const { data: { user } } = await sbClient.auth.getUser();
       if (!user) { window.location.href = 'index.html'; return; }
@@ -378,16 +605,9 @@
       const { data: exam } = await sbClient.from('exams').select('*').eq('token', token).single();
       if (!exam) { window.location.href = 'dashboard.html'; return; }
 
+      exam.questions = normalizeQuestions(exam.questions);
       currentExam = exam;
       renderExamData();
-
-      // [BỔ SUNG] Xem lại đáp án của MỘT LẦN LÀM BÀI CÁ NHÂN từ Dashboard (exam.html?token=...&result_id=...)
-      const resultId = urlParams.get('result_id');
-      if (resultId) {
-        const reviewed = await checkAndRenderResultReview(resultId, exam);
-        if (!reviewed) { window.location.href = 'dashboard.html'; }
-        return; // Chế độ xem lại: không bao giờ chạy giờ đếm ngược / cho làm lại
-      }
 
       // [BỔ SUNG] Nếu đây là phòng đã nộp bài rồi -> Hiển thị luôn Đáp Án & Giải Thích từ dữ liệu đã lưu, KHÔNG bắt làm lại / KHÔNG chạy lại giờ đếm ngược
       const roomCode = urlParams.get('room_code');
@@ -397,46 +617,6 @@
       }
 
       startTimer(exam.time_limit || 60);
-    }
-
-    // [BỔ SUNG] Hiển thị bài đã lưu (đáp án, giải thích, điểm, thời gian) - dùng chung cho xem lại theo phòng & theo lịch sử cá nhân
-    function showSavedResultUI(exam, savedResult, fallbackScore, fallbackTime) {
-      renderReviewFromSavedAnswers(exam.questions || [], savedResult.answers || {});
-
-      const finalScoreVal = (savedResult.score ?? fallbackScore ?? 0);
-      const scoreElem = document.getElementById('finalScore');
-      if (scoreElem) scoreElem.innerText = finalScoreVal + '/10 điểm';
-
-      const timeVal = savedResult.time_spent ?? fallbackTime ?? 0;
-      const timeElem = document.getElementById('finalTime');
-      if (timeElem) timeElem.innerText = Math.floor(timeVal / 60) + 'm ' + (timeVal % 60) + 's';
-
-      const timerElem = document.getElementById('timerDisplay');
-      if (timerElem) timerElem.innerHTML = '<i class="bi bi-check-circle-fill"></i> Đã nộp';
-
-      disableSubmitBtn();
-
-      const resultModal = document.getElementById('resultModal');
-      if (resultModal) resultModal.classList.remove('hidden');
-    }
-
-    // [BỔ SUNG] Xem lại đúng 1 lần làm bài trong Lịch sử & Kết quả (chỉ chủ bài làm mới xem được)
-    async function checkAndRenderResultReview(resultId, exam) {
-      try {
-        const { data: savedResult, error } = await sbClient
-          .from('exam_results')
-          .select('*')
-          .eq('id', resultId)
-          .eq('user_id', currentUser.id)
-          .eq('exam_id', exam.id)
-          .maybeSingle();
-        if (error || !savedResult) return false;
-        showSavedResultUI(exam, savedResult, 0, 0);
-        return true;
-      } catch (err) {
-        console.error("Lỗi xem lại bài làm:", err);
-        return false;
-      }
     }
 
     // [BỔ SUNG] Kiểm tra người dùng đã nộp bài trong phòng này chưa (room_participants.is_finished).
@@ -494,7 +674,23 @@
 
         if (!savedResult) return false; // Không tìm thấy dữ liệu đã nộp -> vẫn cho làm bài để không chặn nhầm
 
-        showSavedResultUI(exam, savedResult, participant.score, participant.completion_time);
+        renderReviewFromSavedAnswers(exam.questions || [], savedResult.answers || {});
+
+        const finalScoreVal = (savedResult.score ?? participant.score ?? 0);
+        const scoreElem = document.getElementById('finalScore');
+        if (scoreElem) scoreElem.innerText = finalScoreVal + '/10 điểm';
+
+        const timeVal = savedResult.time_spent ?? participant.completion_time ?? 0;
+        const timeElem = document.getElementById('finalTime');
+        if (timeElem) timeElem.innerText = Math.floor(timeVal / 60) + 'm ' + (timeVal % 60) + 's';
+
+        const timerElem = document.getElementById('timerDisplay');
+        if (timerElem) timerElem.innerText = '✅ Đã nộp';
+
+        disableSubmitBtn();
+
+        const resultModal = document.getElementById('resultModal');
+        if (resultModal) resultModal.classList.remove('hidden');
 
         return true;
       } catch (err) {
@@ -506,53 +702,8 @@
     // [BỔ SUNG] Chấm lại & hiển thị Đáp Án + Giải Thích dựa trên dữ liệu ĐÃ LƯU (answers từ exam_results),
     // dùng lại cùng logic chấm điểm như submitExam() nhưng lấy giá trị từ dữ liệu đã nộp thay vì từ các ô input trên màn hình.
     function renderReviewFromSavedAnswers(questions, savedAnswers) {
-      const totalQuestions = questions.length;
-      const pointsPerQuestion = totalQuestions > 0 ? (10 / totalQuestions) : 0;
-
-      questions.forEach((q, idx) => {
-        const key = 'câu_' + (idx + 1);
-        const selectedVal = savedAnswers ? savedAnswers[key] : undefined;
-        const isEssay = q.is_essay || q.type === 'essay' || (!q.answer && (!q.options || q.options.length === 0));
-
-        if (isEssay) {
-          q.status = 'essay';
-          q.isCorrect = null;
-          q.earnedPoints = 0;
-          q.userSelected = selectedVal || '';
-          return;
-        }
-
-        const isMultiBlank = typeof selectedVal === 'object' && selectedVal !== null;
-
-        if (isMultiBlank) {
-          const correctObj = q.answer || {};
-          const keys = Object.keys(correctObj);
-          let correctSubCount = 0;
-          keys.forEach(k => {
-            if (checkSingleMatch(selectedVal[k], correctObj[k])) correctSubCount++;
-          });
-
-          const pointsPerSub = keys.length > 0 ? (pointsPerQuestion / keys.length) : 0;
-          q.correctSubCount = correctSubCount;
-          q.totalBlanks = keys.length;
-          q.earnedPoints = Number((correctSubCount * pointsPerSub).toFixed(2));
-          q.status = (correctSubCount === keys.length && keys.length > 0) ? 'correct' : (correctSubCount > 0 ? 'partial' : 'wrong');
-        } else if (q.options && Array.isArray(q.options) && q.options.length > 0) {
-          const userKey = (selectedVal || '').toString().trim().charAt(0).toLowerCase();
-          const correctKey = (q.answer || '').toString().trim().charAt(0).toLowerCase();
-          const isCorrectMC = userKey !== '' && userKey === correctKey;
-          q.status = isCorrectMC ? 'correct' : 'wrong';
-          q.earnedPoints = isCorrectMC ? Number(pointsPerQuestion.toFixed(2)) : 0;
-        } else {
-          const isCorrectText = checkSingleMatch(selectedVal, q.answer);
-          q.status = isCorrectText ? 'correct' : 'wrong';
-          q.earnedPoints = isCorrectText ? Number(pointsPerQuestion.toFixed(2)) : 0;
-        }
-
-        q.isCorrect = q.status === 'correct';
-        q.userSelected = selectedVal;
-      });
-
+      const saved = savedAnswers || {};
+      gradeQuestions(questions, q => saved[q._key]);
       renderResultMode(questions);
     }
 
@@ -758,7 +909,7 @@
       document.getElementById('tooltipIpaType').innerText = ((item.ipa || '') + ' ' + typeStr).trim();
       
       const mElem = document.getElementById('tooltipMeaning');
-      mElem.innerHTML = item.meaning ? '<i class="bi bi-arrow-right-short"></i> ' + item.meaning : '';
+      mElem.innerHTML = item.meaning ? '👉 ' + item.meaning : '';
       mElem.style.display = item.meaning ? 'block' : 'none';
 
       const cElem = document.getElementById('tooltipContext');
@@ -810,13 +961,15 @@
 
       const questions = currentExam.questions || [];
       const countTag = document.getElementById('questionCountTag');
-      if (countTag) countTag.innerText = questions.length + ' câu hỏi';
+      if (countTag) countTag.innerText = questions.filter(q => !isTextBlock(q)).length + ' câu hỏi';
 
       const form = document.getElementById('questionsForm');
       if (!form) return;
+      form.onsubmit = e => e.preventDefault();
 
       form.innerHTML = questions.map((q, idx) => {
-        const qNum = idx + 1;
+        if (isBlockQ(q)) return renderBlockQuestionHTML(q, idx);
+        const qNum = q._num || (idx + 1);
         const isEssay = q.is_essay || q.type === 'essay';
 
         if (isEssay) {
@@ -842,7 +995,7 @@
             </div>`;
         } 
         
-        const matches = [...q.question.matchAll(/\((\d+)\)/g)];
+        const matches = [...String(q.question || '').matchAll(/\((\d+)\)/g)];
         const blankNumbers = [...new Set(matches.map(m => m[1]))];
 
         if (blankNumbers.length > 0) {
@@ -889,97 +1042,9 @@
     async function submitExam() {
       clearInterval(timerInterval);
       const questions = currentExam.questions || [];
-      
-      const totalQuestions = questions.length;
-      const pointsPerQuestion = totalQuestions > 0 ? (10 / totalQuestions) : 0;
-      let totalScore = 0;
-      let userAnswers = {};
-
-      questions.forEach((q, idx) => {
-        let selectedVal = null;
-        let earnedPoints = 0;
-        let status = 'wrong';
-
-        const isEssay = q.is_essay || q.type === 'essay' || (!q.answer && (!q.options || q.options.length === 0));
-
-        if (isEssay) {
-          const essayInput = document.querySelector(`textarea[name="q_idx_${idx}"], input[name="q_idx_${idx}"]`);
-          selectedVal = essayInput ? essayInput.value.trim() : '';
-          
-          q.status = 'essay';
-          q.isCorrect = null;
-          q.earnedPoints = 0;
-          q.userSelected = selectedVal;
-          userAnswers['câu_' + (idx + 1)] = selectedVal;
-          return;
-        }
-
-        const blankInputs = document.querySelectorAll(`input[name^="q_idx_${idx}_blank_"]`);
-
-        if (blankInputs.length > 0) {
-          selectedVal = {};
-          blankInputs.forEach(input => {
-            const blankNum = input.getAttribute('data-blank');
-            selectedVal[blankNum] = input.value.trim();
-          });
-
-          const correctObj = q.answer || {};
-          const keys = Object.keys(correctObj);
-          const totalBlanks = keys.length;
-          let correctSubCount = 0;
-
-          keys.forEach(key => {
-            if (checkSingleMatch(selectedVal[key], correctObj[key])) {
-              correctSubCount++;
-            }
-          });
-
-          const pointsPerSub = totalBlanks > 0 ? (pointsPerQuestion / totalBlanks) : 0;
-          earnedPoints = correctSubCount * pointsPerSub;
-
-          if (correctSubCount === totalBlanks && totalBlanks > 0) {
-            status = 'correct';
-          } else if (correctSubCount > 0) {
-            status = 'partial';
-          } else {
-            status = 'wrong';
-          }
-
-          q.correctSubCount = correctSubCount;
-          q.totalBlanks = totalBlanks;
-        } 
-        else if (q.options && Array.isArray(q.options) && q.options.length > 0) {
-          const radio = document.querySelector(`input[name="q_idx_${idx}"]:checked`);
-          selectedVal = radio ? radio.value.trim() : '';
-          
-          const userKey = selectedVal.charAt(0).toLowerCase();
-          const correctKey = (q.answer || '').toString().trim().charAt(0).toLowerCase();
-
-          if (userKey !== '' && userKey === correctKey) {
-            earnedPoints = pointsPerQuestion;
-            status = 'correct';
-          }
-        } 
-        else {
-          const textInput = document.querySelector(`input[name="q_idx_${idx}"]`);
-          selectedVal = textInput ? textInput.value.trim() : '';
-
-          if (checkSingleMatch(selectedVal, q.answer)) {
-            earnedPoints = pointsPerQuestion;
-            status = 'correct';
-          }
-        }
-
-        totalScore += earnedPoints;
-
-        q.status = status;
-        q.isCorrect = status === 'correct';
-        q.earnedPoints = Number(earnedPoints.toFixed(2));
-        q.userSelected = selectedVal;
-        userAnswers['câu_' + (idx + 1)] = selectedVal;
-      });
-
-      const finalScore10 = Number(totalScore.toFixed(2));
+      const graded = gradeQuestions(questions, readAnswerFromDOM);
+      const userAnswers = graded.answers;
+      const finalScore10 = Number(graded.totalScore.toFixed(2));
 
       // [BỔ SUNG] Lấy room_code trên URL (nếu đang làm bài trong phòng) để lưu kèm vào exam_results
       const submitUrlParams = new URLSearchParams(window.location.search);
@@ -997,7 +1062,7 @@
       const { data, error } = await sbClient.from('exam_results').insert([payload]);
 
       if (error) {
-        alert("Lỗi lưu kết quả: " + error.message);
+        alert("❌ Lỗi lưu kết quả: " + error.message);
         return;
       }
       const urlParams = new URLSearchParams(window.location.search);
@@ -1034,6 +1099,7 @@
       if (!questionBox) return;
 
       const htmlContent = questions.map((q, idx) => {
+        if (isBlockQ(q)) return renderBlockResult(q);
         const status = q.status || (q.isCorrect ? 'correct' : 'wrong');
         const userVal = q.userSelected;
         const correctVal = q.answer;
@@ -1042,17 +1108,17 @@
         let containerStyle = '';
 
         if (status === 'essay') {
-          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"><i class="bi bi-pencil-square"></i> Tự luận (Đã ghi nhận)</span>`;
+          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">📝 Tự luận (Đã ghi nhận)</span>`;
           containerStyle = 'bg-blue-50/30 border-blue-200 dark:bg-blue-950/10 dark:border-blue-900/40';
         } else if (status === 'correct') {
-          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"><i class="bi bi-check-lg"></i> Đúng</span>`;
+          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">✓ Đúng</span>`;
           containerStyle = 'bg-green-50/50 border-green-200 dark:bg-green-950/20 dark:border-green-900';
         } else if (status === 'partial') {
           const earned = q.earnedPoints !== undefined ? q.earnedPoints : 0;
-          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300"><i class="bi bi-lightning-charge-fill"></i> Đúng ${(q.correctSubCount || 0)}/${(q.totalBlanks || 0)} ý (+${earned}đ)</span>`;
+          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300">⚡ Đúng ${(q.correctSubCount || 0)}/${(q.totalBlanks || 0)} ý (+${earned}đ)</span>`;
           containerStyle = 'bg-amber-50/40 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/60';
         } else {
-          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"><i class="bi bi-x-lg"></i> Sai</span>`;
+          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300">✕ Sai</span>`;
           containerStyle = 'bg-red-50/50 border-red-200 dark:bg-red-950/20 dark:border-red-900';
         }
 
@@ -1123,7 +1189,7 @@
             explanationHTML = `
               <div class="mt-3 pt-3 border-t border-gray-200/60 dark:border-zinc-700/60 text-xs">
                 <div class="flex items-center gap-1 text-[#cf1717] dark:text-red-400 font-bold mb-1">
-                  <span><i class="bi bi-lightbulb-fill"></i></span>
+                  <span>💡</span>
                   <span>Giải thích chi tiết:</span>
                 </div>
                 <div class="text-gray-700 dark:text-gray-300 leading-relaxed bg-white dark:bg-zinc-800 p-3 rounded-xl border border-gray-100 dark:border-zinc-700">
@@ -1140,7 +1206,7 @@
             explanationHTML = `
               <div class="mt-3 pt-3 border-t border-gray-200/60 dark:border-zinc-700/60 text-xs">
                 <div class="flex items-center gap-1 text-[#cf1717] dark:text-red-400 font-bold mb-2">
-                  <span><i class="bi bi-lightbulb-fill"></i></span>
+                  <span>💡</span>
                   <span>Giải thích chi tiết từng vị trí:</span>
                 </div>
                 <div class="space-y-2 bg-white dark:bg-zinc-800 p-3 rounded-xl border border-gray-100 dark:border-zinc-700">
@@ -1186,6 +1252,15 @@ function triggerPDFPrint() {
 
   // Tạo HTML câu hỏi
   const questionsPDFHTML = questions.map((q, idx) => {
+    if (isBlockQ(q)) {
+      if (q.type === 'text') return '<div class="pdf-question-item">' + (q.content || '') + '</div>';
+      let body = q.content || '', bopts = '';
+      if (q.type === 'fill') body = body.replace(/\{\{\s*(\d+)\s*\}\}/g, (m, n) => '<b>(' + n + ')</b> ________');
+      if (['mcq', 'multi', 'tf'].includes(q.type) && Array.isArray(q.options)) {
+        bopts = '<div class="pdf-options">' + q.options.map(o => '<div class="pdf-option">' + escHTML(o.text) + '</div>').join('') + '</div>';
+      }
+      return '<div class="pdf-question-item"><div class="pdf-question-title">Câu ' + q._num + ': ' + body + '</div>' + bopts + '</div>';
+    }
     let opts = '';
     if (q.options && Array.isArray(q.options)) {
       opts = '<div class="pdf-options">' + 
@@ -1193,7 +1268,7 @@ function triggerPDFPrint() {
       '</div>';
     }
     return '<div class="pdf-question-item">' +
-      '<div class="pdf-question-title">Câu ' + (idx + 1) + ': ' + q.question + '</div>' +
+      '<div class="pdf-question-title">Câu ' + (q._num || idx + 1) + ': ' + (q.question || '') + '</div>' +
       opts +
     '</div>';
   }).join('');
@@ -1253,12 +1328,12 @@ function triggerPDFPrint() {
 
     <div class="pdf-grid">
       <div class="pdf-passage-col">
-        <div class="pdf-passage-title"><i class="bi bi-book"></i> Reading Passage</div>
+        <div class="pdf-passage-title">📖 Reading Passage</div>
         <div class="pdf-passage">${passageHTML}</div>
       </div>
       <div class="pdf-questions-col">
         ${imageHTML}
-        <div class="pdf-passage-title"><i class="bi bi-pencil-square"></i> Questions</div>
+        <div class="pdf-passage-title">✍️ Questions</div>
         ${questionsPDFHTML}
       </div>
     </div>
@@ -1447,7 +1522,7 @@ async function onExamFinished(score, totalQuestions, timeInSeconds) {
 <div id="roomLeaderboardModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
   <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-100 dark:border-zinc-800 space-y-4">
     <div class="text-center space-y-1">
-      <span class="text-3xl text-amber-400"><i class="bi bi-trophy-fill"></i></span>
+      <span class="text-3xl">🏆</span>
       <h3 class="text-xl font-black text-gray-900 dark:text-white">Bảng Kết Quả Phòng Thi</h3>
       <p class="text-xs text-gray-500">Cập nhật trực tiếp tiến độ nộp bài của các thành viên</p>
     </div>
