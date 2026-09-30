@@ -360,7 +360,16 @@
 
         <div>
           <label class="block text-xs font-bold uppercase mb-1">Nội dung đoạn văn Reading (HTML)<button type="button" onclick="openGuideModal('reading_passage', 'Nội dung đoạn văn Reading')" class="w-5 h-5 rounded-full bg-[#cf1717] text-white flex items-center justify-center text-xs font-bold hover:bg-red-700 transition shadow" title="Xem hướng dẫn">?</button></label>
-          <textarea id="examPassage" rows="5" required placeholder="Đoạn văn Reading (HTML)..." class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 font-mono text-sm"></textarea>
+          <div class="flex justify-end mb-2">
+            <div class="flex rounded-lg overflow-hidden border dark:border-zinc-700">
+              <button type="button" id="passTabWord" onclick="setPassageMode('word')" class="px-3 py-1.5 font-bold text-xs bg-[#cf1717] text-white">✍️ Soạn kiểu Word</button>
+              <button type="button" id="passTabHtml" onclick="setPassageMode('html')" class="px-3 py-1.5 font-bold text-xs bg-gray-100 dark:bg-zinc-800">&lt;/&gt; Mã HTML</button>
+            </div>
+          </div>
+          <div id="passageToolbar" class="flex flex-wrap items-center gap-1 p-2 bg-gray-100 dark:bg-zinc-800 rounded-t-lg border border-b-0 dark:border-zinc-700"></div>
+          <div id="passageEditor" contenteditable="true" class="post-content min-h-[260px] max-h-[420px] overflow-y-auto p-4 border rounded-b-lg bg-white dark:bg-zinc-800 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-[#cf1717]"></div>
+          <textarea id="examPassage" rows="12" placeholder="Đoạn văn Reading (HTML)..." class="hidden w-full p-3 rounded-b-lg border dark:bg-zinc-800 dark:border-zinc-700 font-mono text-xs"></textarea>
+          <p id="passageEditorStatus" class="mt-1 text-xs font-semibold text-gray-500">💡 Dán thẳng từ Word (Ctrl+V) hoặc bấm "Nhập file .docx" — hệ thống tự chuyển thành HTML.</p>
         </div>
         <div>
           <label class="block text-xs font-bold uppercase mb-1">Danh sách câu hỏi (JSON)<button type="button" onclick="openGuideModal('questions_json', 'Danh sách câu hỏi')" class="w-5 h-5 rounded-full bg-[#cf1717] text-white flex items-center justify-center text-xs font-bold hover:bg-red-700 transition shadow" title="Xem hướng dẫn">?</button></label> 
@@ -562,7 +571,7 @@
     document.getElementById('examTopic').value = '';
     document.getElementById('examTime').value = '60';
     document.getElementById('examNotes').value = '';
-    document.getElementById('examPassage').value = '';
+    setPassageMode('word'); setPassageHtml('');
     document.getElementById('examQuestions').value = '[]';
     
     const vocabElem = document.getElementById('examVocab');
@@ -584,7 +593,7 @@
     document.getElementById('examTopic').value = exam.topic || '';
     document.getElementById('examTime').value = exam.time_limit || 60;
     document.getElementById('examNotes').value = exam.notes || '';
-    document.getElementById('examPassage').value = exam.passage_html || '';
+    setPassageMode('word'); setPassageHtml(exam.passage_html || '');
     document.getElementById('examQuestions').value = JSON.stringify(exam.questions || [], null, 2);
     
     // 💥 BỔ SUNG: Đổ dữ liệu từ vựng hiện tại vào ô examVocab
@@ -602,6 +611,8 @@
   async function handleSaveExam(e) {
   e.preventDefault();
   const id = document.getElementById('editingExamId').value;
+  const passageHtml = getPassageHtml();
+  if (!passageHtml) { alert('Bạn chưa nhập đoạn văn Reading!'); return; }
   try {
     const questionsJson = JSON.parse(document.getElementById('examQuestions').value || '[]');
     const vocabVal = document.getElementById('examVocab')?.value.trim();
@@ -618,7 +629,7 @@
       topic: topicVal,
       time_limit: parseInt(document.getElementById('examTime').value) || 60,
       notes: document.getElementById('examNotes').value,
-      passage_html: document.getElementById('examPassage').value,
+      passage_html: passageHtml,
       questions: questionsJson,
       vocabulary: vocabularyJson,
       token: generatedToken
@@ -678,7 +689,7 @@
         const data = await res.json();
         if (data.success) {
           const imgTag = `<img src="${data.data.url}" alt="Illustration" class="w-full max-w-lg mx-auto my-4 rounded-xl shadow-md">`;
-          document.getElementById('examPassage').value += `\n${imgTag}`;
+          insertPassageHtml(imgTag);
           status.innerText = "✅ Đã tự chèn mã HTML ảnh vào ô Reading Passage!";
         }
       } catch (err) { status.innerText = "❌ Lỗi upload!"; }
@@ -1452,6 +1463,129 @@ function previewPost() {
 }
 function closePostPreview() { pel('postPreviewModal').classList.add('hidden'); pel('postPreviewModal').classList.remove('flex'); }
 document.addEventListener('DOMContentLoaded', () => { initPostEditor(); previewToken(); loadAdminPosts(); });
+</script>
+<script>
+/* ============ EDITOR ĐOẠN VĂN READING (giống phần Post) ============ */
+let passageMode = 'word', _psel = null;
+const pasEd = () => document.getElementById('passageEditor');
+const pasTa = () => document.getElementById('examPassage');
+const pasSt = () => document.getElementById('passageEditorStatus');
+
+function initPassageEditor() {
+  const B = [['bold','<b>B</b>','In đậm'],['italic','<i>I</i>','In nghiêng'],['underline','<u>U</u>','Gạch chân'],
+    ['insertUnorderedList','• Danh sách','Danh sách chấm'],['insertOrderedList','1. Danh sách','Danh sách số'],
+    ['justifyLeft','⬅','Căn trái'],['justifyCenter','↔','Căn giữa'],['justifyRight','➡','Căn phải'],['removeFormat','🧹','Xóa định dạng']];
+  const btn = 'px-2 py-1 rounded bg-white dark:bg-zinc-700 border dark:border-zinc-600 hover:bg-red-50 font-bold text-xs';
+  document.getElementById('passageToolbar').innerHTML =
+    `<select onchange="pasCmd('formatBlock',this.value);this.value=''" class="p-1 text-xs rounded border dark:bg-zinc-700 dark:border-zinc-600"><option value="">Kiểu chữ</option><option value="<p>">Đoạn văn</option><option value="<h2>">Tiêu đề lớn</option><option value="<h3>">Tiêu đề nhỏ</option><option value="<blockquote>">Trích dẫn</option></select>` +
+    B.map(b => `<button type="button" title="${b[2]}" onmousedown="event.preventDefault()" onclick="pasCmd('${b[0]}')" class="${btn}">${b[1]}</button>`).join('') +
+    `<input type="color" value="#cf1717" title="Màu chữ" onchange="pasCmd('foreColor',this.value)" class="w-7 h-7 p-0 border rounded cursor-pointer">` +
+    `<button type="button" onmousedown="event.preventDefault()" onclick="passageLink()" class="${btn}">🔗 Link</button>` +
+    `<label class="${btn} cursor-pointer">📷 Ảnh<input type="file" accept="image/*" class="hidden" onchange="passageImage(this)"></label>` +
+    `<button type="button" onmousedown="event.preventDefault()" onclick="passageTable()" class="${btn}">▦ Bảng</button>` +
+    `<button type="button" onmousedown="event.preventDefault()" onclick="passageVideo()" class="${btn}">📹 YouTube</button>` +
+    `<label class="${btn} cursor-pointer bg-blue-50 text-blue-700">📄 Nhập file .docx<input type="file" accept=".docx" class="hidden" onchange="importPassageDocx(this)"></label>`;
+
+  const e = pasEd();
+  // nhớ vị trí con trỏ trong editor
+  document.addEventListener('selectionchange', () => {
+    const s = getSelection();
+    if (s.rangeCount && e.contains(s.getRangeAt(0).commonAncestorContainer)) _psel = s.getRangeAt(0).cloneRange();
+  });
+  // dán từ Word -> dọn HTML rác
+  e.addEventListener('paste', ev => {
+    const h = ev.clipboardData.getData('text/html'); if (!h) return;
+    ev.preventDefault(); document.execCommand('insertHTML', false, pasClean(h));
+  });
+}
+
+function pasClean(h) {
+  const d = new DOMParser().parseFromString(h, 'text/html');
+  d.querySelectorAll('style,meta,link,script,xml').forEach(n => n.remove());
+  d.querySelectorAll('*').forEach(n => {
+    n.removeAttribute('class');
+    const s = (n.getAttribute('style') || '').split(';').filter(x => /^\s*(font-weight|font-style|text-decoration|text-align|color)\s*:/i.test(x)).join(';');
+    s ? n.setAttribute('style', s) : n.removeAttribute('style');
+  });
+  return d.body.innerHTML.replace(/<!--[\s\S]*?-->/g, '').replace(/<\/?o:p>/g, '');
+}
+
+function pasRestore() {
+  pasEd().focus();
+  if (_psel) { const s = getSelection(); s.removeAllRanges(); s.addRange(_psel); }
+}
+function pasCmd(c, v) { pasRestore(); document.execCommand(c, false, v || null); }
+
+function insertPassageHtml(html) {
+  if (passageMode === 'html') {
+    const t = pasTa(), a = t.selectionStart ?? t.value.length, b = t.selectionEnd ?? a;
+    t.value = t.value.slice(0, a) + '\n' + html + '\n' + t.value.slice(b); return;
+  }
+  pasRestore(); document.execCommand('insertHTML', false, html);
+}
+function passageLink() {
+  const u = prompt('Nhập đường dẫn (https://...):'); if (!u) return;
+  pasRestore(); document.execCommand('createLink', false, u);
+}
+function passageTable() {
+  const td = '<td style="border:1px solid #d1d5db;padding:8px 10px">&nbsp;</td>'.repeat(3);
+  const th = '<th style="border:1px solid #d1d5db;padding:8px 10px;background:#fdecec">Tiêu đề</th>'.repeat(3);
+  insertPassageHtml(`<table style="width:100%;border-collapse:collapse;margin:1em 0"><tr>${th}</tr><tr>${td}</tr><tr>${td}</tr></table><p><br></p>`);
+}
+function passageVideo() {
+  const u = prompt('Dán link YouTube:'); if (!u) return;
+  const m = u.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/); if (!m) return alert('Link YouTube không hợp lệ');
+  insertPassageHtml(`<div style="position:relative;padding-top:56.25%;margin:1em 0"><iframe src="https://www.youtube.com/embed/${m[1]}" style="position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:12px" allowfullscreen></iframe></div><p><br></p>`);
+}
+async function pasUpload(fileOrB64) {
+  const fd = new FormData(); fd.append('image', fileOrB64);
+  const r = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: fd });
+  const d = await r.json(); return d.success ? d.data.url : null;
+}
+async function passageImage(inp) {
+  const f = inp.files[0]; if (!f) return; const st = pasSt();
+  st.innerText = '⏳ Đang tải ảnh...';
+  const url = await pasUpload(f);
+  st.innerText = url ? '✅ Đã chèn ảnh!' : '❌ Lỗi upload ảnh!';
+  if (url) insertPassageHtml(`<img src="${url}" alt="" style="max-width:100%;height:auto;border-radius:12px;display:block;margin:1em auto">`);
+  inp.value = '';
+}
+async function importPassageDocx(inp) {
+  const f = inp.files[0]; if (!f) return; const st = pasSt();
+  if (typeof mammoth === 'undefined') { inp.value = ''; return alert('Không tải được thư viện đọc Word. Hãy thử dán (Ctrl+V) nội dung trực tiếp.'); }
+  if (getPassageHtml() && !confirm('Nhập file Word sẽ thay thế toàn bộ đoạn văn hiện tại. Tiếp tục?')) { inp.value = ''; return; }
+  st.innerText = '⏳ Đang chuyển Word → HTML (ảnh trong file sẽ được upload)...';
+  try {
+    const res = await mammoth.convertToHtml({ arrayBuffer: await f.arrayBuffer() }, {
+      convertImage: mammoth.images.imgElement(async img => {
+        const b64 = await img.read('base64'); const url = await pasUpload(b64);
+        return { src: url || `data:${img.contentType};base64,${b64}` };
+      })
+    });
+    setPassageHtml(res.value); st.innerText = '✅ Đã nhập file Word thành công!';
+  } catch (err) { st.innerText = '❌ Không đọc được file .docx'; }
+  inp.value = '';
+}
+
+/* ---------- LẤY / GÁN / CHUYỂN CHẾ ĐỘ ---------- */
+function getPassageHtml() {
+  const h = (passageMode === 'html' ? pasTa().value : pasEd().innerHTML).trim();
+  const d = document.createElement('div'); d.innerHTML = h;
+  return (!d.textContent.trim() && !d.querySelector('img,iframe,table')) ? '' : h;
+}
+function setPassageHtml(h) { _psel = null; pasEd().innerHTML = h || ''; pasTa().value = h || ''; }
+function setPassageMode(m) {
+  if (m !== passageMode) {
+    if (m === 'html') pasTa().value = pasEd().innerHTML; else pasEd().innerHTML = pasTa().value;
+    passageMode = m; _psel = null;
+  }
+  pasTa().classList.toggle('hidden', m !== 'html');
+  pasEd().classList.toggle('hidden', m === 'html');
+  document.getElementById('passageToolbar').classList.toggle('hidden', m === 'html');
+  document.getElementById('passTabWord').className = 'px-3 py-1.5 font-bold text-xs ' + (m === 'word' ? 'bg-[#cf1717] text-white' : 'bg-gray-100 dark:bg-zinc-800');
+  document.getElementById('passTabHtml').className = 'px-3 py-1.5 font-bold text-xs ' + (m === 'html' ? 'bg-[#cf1717] text-white' : 'bg-gray-100 dark:bg-zinc-800');
+}
+document.addEventListener('DOMContentLoaded', initPassageEditor);
 </script>
 <!-- MODAL HƯỚNG DẪN SỬ DỤNG PHÍA ADMIN (CÓ TAB) -->
 <div id="guideModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden flex items-start justify-center p-4 z-[9999] overflow-y-auto">
