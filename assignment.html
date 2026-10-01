@@ -434,17 +434,31 @@
     }
 
     // Nhắc đổi mật khẩu lần đầu nếu tài khoản do giáo viên/admin tạo hộ (must_change_password = true)
-    if (myProfile.must_change_password) {
-        pel('mustChangePwBanner')?.classList.remove('hidden');
-        notify('🔑 Vui lòng đổi mật khẩu ban đầu do giáo viên cấp trong trang Hồ sơ cá nhân.');
-    }
+    // Banner luôn hiện (nhẹ, không animation). Toast sẽ được hiện SAU khi màn hình đã tải xong (xem bên dưới)
+    const needPwToast = !!myProfile.must_change_password;
+    if (needPwToast) pel('mustChangePwBanner')?.classList.remove('hidden');
 
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
     const classId = params.get('class');
-    if (token) loadAttempt(token);
-    else if (classId) loadList(classId);
-    else loadClassPicker();
+    // Tải màn hình chính XONG rồi mới hiện toast nhắc đổi mật khẩu -> hai việc không chạy song song nữa.
+    // Khi đang mở trực tiếp 1 bài làm (có token) thì KHÔNG hiện toast để không làm gián đoạn việc làm bài
+    // (banner đổi mật khẩu phía trên vẫn hiển thị).
+    try {
+      if (token) await loadAttempt(token);
+      else if (classId) await loadList(classId);
+      else await loadClassPicker();
+    } catch (err) {
+      console.error('Lỗi tải trang:', err);
+    }
+
+    if (needPwToast && !token && !sessionStorage.getItem('ru_pw_toast_shown')) {
+      sessionStorage.setItem('ru_pw_toast_shown', '1');
+      // đợi trình duyệt vẽ xong khung hình rồi mới hiện toast
+      requestAnimationFrame(() => setTimeout(() => {
+        notify('🔑 Vui lòng đổi mật khẩu ban đầu do giáo viên cấp trong trang Hồ sơ cá nhân.');
+      }, 400));
+    }
   }
 
   // =====================================================================
