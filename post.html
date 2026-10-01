@@ -162,7 +162,15 @@ if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.match
       </article>
       <aside class="bg-white/70 dark:bg-zinc-900/60 rounded-2xl border border-gray-100 dark:border-zinc-800 p-5 h-fit lg:sticky lg:top-24">
         <h3 class="font-extrabold text-lg text-gray-900 dark:text-white mb-4">Bài viết mới nhất</h3>
-        <div id="latestList" class="space-y-4"></div>
+        <style>
+          .latest-slider{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch}
+          .latest-slider::-webkit-scrollbar{display:none}
+          .latest-dot{height:8px;border-radius:9999px;transition:all .35s ease}
+          @keyframes latestIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+          .latest-anim{animation:latestIn .5s ease both}
+        </style>
+        <div id="latestList" class="latest-slider flex overflow-x-auto snap-x snap-mandatory scroll-smooth"></div>
+        <div id="latestDots" class="flex justify-center items-center gap-2 mt-4"></div>
       </aside>
     </div>
   </section>
@@ -402,6 +410,70 @@ function renderList(){
     `<button onclick="page=${n};renderList();window.scrollTo({top:0,behavior:'smooth'})" class="w-9 h-9 rounded-lg text-xs font-bold transition ${n===page?'bg-[#cf1717] text-white shadow':'bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-zinc-700'}">${n}</button>`).join('');
 }
 
+
+let latestIdx = 0, latestCount = 0, latestPausedUntil = 0, latestTimer = null;
+const LATEST_AUTO_MS = 4500;
+
+function renderLatestSlider(list){
+  const track = $('latestList'), dots = $('latestDots');
+  if(!list.length){ track.innerHTML = '<p class="text-xs text-gray-400">Chưa có bài khác.</p>'; dots.innerHTML=''; return; }
+  latestCount = list.length; latestIdx = 0;
+  track.innerHTML = list.map(l => `
+    <div class="snap-start shrink-0 w-full px-0.5 py-1">
+      <a href="${link(l)}" class="latest-anim group block rounded-2xl overflow-hidden bg-gray-50 dark:bg-zinc-800/60 border border-gray-100 dark:border-zinc-700/60 hover:border-[#cf1717] hover:shadow-lg transition-all duration-300">
+        <div class="overflow-hidden">${thumb(l,'w-full h-40 group-hover:scale-105 transition duration-500')}</div>
+        <div class="p-3.5">
+          <p class="text-[11px] text-gray-400 mb-1">📅 ${fmt(l.created_at)}</p>
+          <h4 class="text-sm font-extrabold text-gray-800 dark:text-white line-clamp-2 group-hover:text-[#cf1717] transition">${esc(l.title)}</h4>
+          ${l.excerpt ? `<p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400 line-clamp-2">${esc(l.excerpt)}</p>` : ''}
+          <span class="inline-block mt-2 text-xs font-bold text-[#cf1717]">Đọc thêm →</span>
+        </div>
+      </a>
+    </div>`).join('');
+  track.scrollLeft = 0;
+  dots.innerHTML = latestCount > 1
+    ? list.map((_,i)=>`<button type="button" onclick="goLatest(${i},true)" aria-label="Bài ${i+1}" class="latest-dot"></button>`).join('') : '';
+  updateLatestDots();
+
+  if(!track.dataset.bound){
+    track.dataset.bound = '1';
+    let t;
+    track.addEventListener('scroll', ()=>{
+      clearTimeout(t);
+      t = setTimeout(()=>{
+        latestIdx = Math.max(0, Math.min(latestCount-1, Math.round(track.scrollLeft/(track.clientWidth||1))));
+        updateLatestDots();
+      }, 60);
+    }, {passive:true});
+    const pause = ()=>{ latestPausedUntil = Date.now()+8000; };
+    ['pointerdown','touchstart','wheel','mouseenter','focusin'].forEach(ev=>track.addEventListener(ev,pause,{passive:true}));
+    track.addEventListener('mouseleave', ()=>{ latestPausedUntil = Date.now()+1500; });
+  }
+  clearInterval(latestTimer);
+  if(latestCount > 1){
+    latestTimer = setInterval(()=>{
+      if(document.hidden || Date.now() < latestPausedUntil) return;
+      goLatest((latestIdx+1) % latestCount);
+    }, LATEST_AUTO_MS);
+  }
+}
+function updateLatestDots(){
+  document.querySelectorAll('#latestDots .latest-dot').forEach((d,i)=>{
+    const on = i === latestIdx;
+    d.style.width = on ? '24px' : '8px';
+    d.style.background = on ? '#cf1717' : '';
+    d.classList.toggle('bg-gray-300', !on);
+    d.classList.toggle('dark:bg-zinc-600', !on);
+  });
+}
+function goLatest(i, byUser){
+  const track = $('latestList'); if(!track || !latestCount) return;
+  if(byUser) latestPausedUntil = Date.now()+8000;
+  latestIdx = (i + latestCount) % latestCount;
+  track.scrollTo({left: latestIdx*track.clientWidth, behavior:'smooth'});
+  updateLatestDots();
+}
+
 async function showDetail(token){
   $('detailView').classList.remove('hidden');
   const {data:p} = await sbClient.from('posts').select('*').eq('token',token).eq('is_published',true).maybeSingle();
@@ -413,12 +485,8 @@ async function showDetail(token){
   $('crumb').innerHTML = `<a href="dashboard.html" class="hover:text-[#cf1717]">Trang Chủ</a><span>›</span><a href="post.html" class="hover:text-[#cf1717]">Bài Học</a><span>›</span><span class="text-gray-800 dark:text-gray-200 font-bold">${esc(p.title)}</span>`;
   $('dTitle').innerText = p.title; $('dDate').innerText = '📅 ' + fmt(p.created_at);
   $('dContent').innerHTML = (p.content_html||'').replace(/<script[\s\S]*?<\/script>/gi,'');
-  const {data:latest} = await sbClient.from('posts').select('title,token,thumbnail_url').eq('is_published',true).neq('token',token).order('created_at',{ascending:false}).limit(5);
-  $('latestList').innerHTML = (latest||[]).map(l => `
-    <a href="${link(l)}" class="group flex gap-3 items-center">
-      <div class="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden">${thumb(l,'w-20 h-20')}</div>
-      <span class="text-sm font-bold text-gray-700 dark:text-gray-200 group-hover:text-[#cf1717] transition">${esc(l.title)}</span>
-    </a>`).join('') || '<p class="text-xs text-gray-400">Chưa có bài khác.</p>';
+  const {data:latest} = await sbClient.from('posts').select('title,token,thumbnail_url,excerpt,created_at').eq('is_published',true).neq('token',token).order('created_at',{ascending:false}).limit(3);
+  renderLatestSlider(latest || []);
 }
 
   let ratings = { q1: 5, q2: 5, q3: 5 };
