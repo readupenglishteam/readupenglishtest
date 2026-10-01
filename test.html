@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReadUp English - Phòng thi</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={darkMode:'class'}</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  if (localStorage.theme==='dark'||(!('theme' in localStorage)&&matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
+</script>
+<link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
+<style>
+  @keyframes blob{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-50px) scale(1.1)}66%{transform:translate(-20px,20px) scale(.95)}}
+  .animate-blob{animation:blob 10s infinite ease-in-out}.d2{animation-delay:2s}.d4{animation-delay:4s}
+  /* CHỐNG SAO CHÉP: chỉ ô nhập liệu mới được chọn/gõ */
+  body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  input[type=text],textarea{-webkit-user-select:text;user-select:text}
+  .qc{line-height:1.8;font-size:.97rem;word-wrap:break-word}
+  .qc img{max-width:100%;border-radius:10px;margin:.5em 0;pointer-events:none}
+  .qc table{border-collapse:collapse;width:100%;margin:.6em 0;font-size:.9em}
+  .qc td,.qc th{border:1px solid #d1d5db;padding:6px 8px}.dark .qc td,.dark .qc th{border-color:#52525b}
+  .qc ul{list-style:disc;padding-left:1.6em}.qc ol{list-style:decimal;padding-left:1.6em}
+  .qc audio{width:100%}.two{column-count:2;column-gap:1.8rem}@media(max-width:640px){.two{column-count:1}}
+  .gap{display:inline-block;width:7.5rem;margin:0 .25rem;padding:.1rem .5rem;border-bottom:2px solid #cf1717;background:rgba(207,23,23,.06);border-radius:6px 6px 0 0;outline:none;text-align:center;font-weight:700}
+  .opt{display:flex;gap:.6rem;align-items:flex-start;padding:.6rem .8rem;border:1.5px solid #e5e7eb;border-radius:12px;cursor:pointer;transition:.15s}
+  .dark .opt{border-color:#3f3f46}.opt:hover{border-color:#cf1717}.opt.sel{border-color:#cf1717;background:rgba(207,23,23,.08)}
+  .opt.ok{border-color:#10b981;background:rgba(16,185,129,.12)}.opt.bad{border-color:#ef4444;background:rgba(239,68,68,.1)}
+  @media print{body{display:none!important}}
+</style>
+</head>
+<body class="bg-slate-50 dark:bg-zinc-950 text-gray-800 dark:text-gray-100 min-h-screen">
+<div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none bg-slate-50 dark:bg-zinc-950">
+  <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#cf1717]/20 dark:bg-[#cf1717]/15 rounded-full blur-3xl animate-blob"></div>
+  <div class="absolute top-1/3 -right-24 w-[30rem] h-[30rem] bg-indigo-500/15 dark:bg-red-900/10 rounded-full blur-3xl animate-blob d2"></div>
+  <div class="absolute -bottom-24 left-1/3 w-96 h-96 bg-amber-500/15 dark:bg-amber-600/10 rounded-full blur-3xl animate-blob d4"></div>
+</div>
+<div id="toast" class="fixed top-5 right-5 z-[100000] flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+
+<!-- ===== MÀN HÌNH CHÍNH (không header) ===== -->
+<main id="app" class="max-w-3xl mx-auto px-4 py-10 sm:py-16"></main>
+
+<!-- ===== PHÒNG THI ===== -->
+<div id="exam" class="hidden fixed inset-0 z-[9000] bg-slate-50 dark:bg-zinc-950 overflow-y-auto">
+  <div class="sticky top-0 z-10 bg-white/90 dark:bg-zinc-900/90 backdrop-blur border-b border-[#cf1717]/30 px-4 py-3 flex items-center justify-between gap-3">
+    <div class="min-w-0"><div id="exTitle" class="font-extrabold text-[#cf1717] truncate"></div><div id="exWho" class="text-xs text-gray-500 truncate"></div></div>
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <span id="exViol" class="text-xs font-bold px-2 py-1 rounded-lg bg-amber-100 text-amber-800">Cảnh báo 0/3</span>
+      <span id="exTimer" class="font-mono font-black text-lg px-3 py-1 rounded-xl bg-[#cf1717] text-white">--:--</span>
+    </div>
+  </div>
+  <div class="max-w-3xl mx-auto px-4 py-6">
+    <p id="exDesc" class="text-sm text-gray-500 mb-4"></p>
+    <div id="exQs" class="space-y-4"></div>
+    <button onclick="confirmSubmit()" class="mt-6 w-full py-3.5 rounded-2xl bg-[#cf1717] text-white font-extrabold shadow-lg hover:bg-red-700 transition">Nộp bài</button>
+  </div>
+</div>
+
+<!-- ===== MODAL DÙNG CHUNG ===== -->
+<div id="modal" class="hidden fixed inset-0 z-[9500] bg-black/70 backdrop-blur-sm items-center justify-center p-4">
+  <div id="modalBox" class="bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl p-6 w-full max-w-md"></div>
+</div>
+
+<script>
+const SB = supabase.createClient("https://klovtvjfvfenhkvifujy.supabase.co","sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-");
+const MAX_VIOL = 3;               // quá 3 lần (lần thứ 4) → tự động nộp
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let me = JSON.parse(sessionStorage.getItem('rt_me')||'null'), cls = null, tests = [], offset = 0, ticker = null;
+let X = null; // trạng thái phòng thi
+
+function toast(m){const d=document.createElement('div');d.className='pointer-events-auto bg-white dark:bg-zinc-800 border-l-4 border-[#cf1717] shadow-xl rounded-xl px-4 py-3 text-sm font-bold';d.textContent=m;$('toast').appendChild(d);setTimeout(()=>d.remove(),4500);}
+const nowMs = () => Date.now() + offset;
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'], DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+function fmt(iso){const d=new Date(iso);let h=d.getHours(),ap=h>=12?'PM':'AM';h=h%12||12;return `${DAYS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${h}:${String(d.getMinutes()).padStart(2,'0')} ${ap}`;}
+function openModal(h){$('modalBox').innerHTML=h;$('modal').classList.remove('hidden');$('modal').classList.add('flex');}
+function closeModal(){$('modal').classList.add('hidden');$('modal').classList.remove('flex');}
+const logo = `<div class="flex flex-col items-center mb-6"><div class="w-20 h-20 rounded-full bg-[#cf1717] flex items-center justify-center shadow-lg"><img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" class="h-14"></div><div class="mt-3 text-3xl font-black text-[#cf1717]">ReadUp <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full align-middle">Test</span></div></div>`;
+const card = 'bg-white/80 dark:bg-zinc-900/80 backdrop-blur border border-gray-200 dark:border-zinc-800 rounded-3xl shadow-xl';
+const inp = 'w-full p-3 rounded-xl border dark:bg-zinc-800 dark:border-zinc-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#cf1717]';
+
+/* ---------- MÀN 1: THÔNG TIN ---------- */
+function screenInfo(){
+  clearInterval(ticker);
+  $('app').innerHTML = `${logo}<div class="${card} p-6 sm:p-8 max-w-md mx-auto">
+    <h1 class="text-xl font-extrabold mb-1">Thông tin thí sinh</h1>
+    <p class="text-xs text-gray-500 mb-5">Nhập đúng họ tên và email đã đăng ký với trung tâm để hệ thống tìm lớp của bạn.</p>
+    <div class="space-y-3">
+      <input id="inName" class="${inp}" placeholder="Họ và tên" value="${esc(me?.name||'')}" autocomplete="name">
+      <input id="inEmail" type="email" class="${inp}" placeholder="Email của bạn" value="${esc(me?.email||'')}" autocomplete="email">
+      <button id="btnFind" onclick="findClasses()" class="w-full py-3 rounded-xl bg-[#cf1717] text-white font-extrabold hover:bg-red-700 transition">Tìm lớp của tôi</button>
+    </div></div>`;
+}
+async function findClasses(){
+  const name=$('inName').value.trim(), email=$('inEmail').value.trim();
+  if(!name||!/^\S+@\S+\.\S+$/.test(email)) return toast('⚠️ Vui lòng nhập họ tên và email hợp lệ');
+  $('btnFind').disabled=true; $('btnFind').textContent='Đang tìm...';
+  const {data,error}=await SB.rpc('test_find_classes',{p_name:name,p_email:email});
+  if(error){toast('❌ '+error.message);return screenInfo();}
+  me={name,email}; sessionStorage.setItem('rt_me',JSON.stringify(me));
+  if(!data||!data.length){toast('Không tìm thấy lớp nào khớp họ tên + email này');return screenInfo();}
+  screenClasses(data);
+}
+
+/* ---------- MÀN 2: CHỌN LỚP ---------- */
+function screenClasses(list){
+  clearInterval(ticker);
+  $('app').innerHTML = `${logo}<div class="max-w-xl mx-auto">
+    <div class="flex justify-between items-center mb-3"><h1 class="text-lg font-extrabold">Xin chào, ${esc(me.name)} 👋</h1><button onclick="logout()" class="text-xs font-bold text-[#cf1717] hover:underline">Đổi thí sinh</button></div>
+    <p class="text-sm text-gray-500 mb-4">Chọn lớp để xem bài thi:</p>
+    <div class="space-y-3">${list.map((c,i)=>`<button onclick='pickClass(${JSON.stringify(c).replace(/'/g,"&#39;")})' class="${card} w-full text-left p-5 hover:border-[#cf1717] hover:-translate-y-0.5 transition">
+      <div class="text-xs font-black text-[#cf1717] uppercase">${esc(c.class_code)}</div>
+      <div class="font-extrabold text-lg">${esc(c.title)}</div>
+      <div class="text-sm text-gray-500 mt-1">${esc(c.info||'')}</div></button>`).join('')}</div></div>`;
+  window._classes=list;
+}
+function logout(){sessionStorage.removeItem('rt_me');me=null;screenInfo();}
+
+/* ---------- MÀN 3: BÀI THI CỦA LỚP ---------- */
+async function pickClass(c){
+  cls=c; $('app').innerHTML=`${logo}<p class="text-center text-gray-500">Đang tải bài thi...</p>`;
+  const {data,error}=await SB.rpc('test_list',{p_class_id:c.id,p_name:me.name,p_email:me.email});
+  if(error||!data){toast('❌ '+(error?.message||'Không có quyền truy cập lớp'));return screenClasses(window._classes);}
+  offset=new Date(data.now).getTime()-Date.now(); tests=data.tests; renderTests();
+  clearInterval(ticker); ticker=setInterval(renderTests,1000);
+}
+function renderTests(){
+  if(!$('testList')) $('app').innerHTML=`${logo}<div class="max-w-xl mx-auto">
+    <button onclick="screenClasses(window._classes)" class="text-xs font-bold text-[#cf1717] mb-3 hover:underline">← Chọn lớp khác</button>
+    <div class="${card} p-5 mb-4"><div class="text-xs font-black text-[#cf1717] uppercase">${esc(cls.class_code)}</div><div class="text-xl font-extrabold">${esc(cls.title)}</div><div class="text-sm text-gray-500">${esc(cls.info||'')}</div></div>
+    <div id="testList" class="space-y-3"></div></div>`;
+  $('testList').innerHTML = tests.length ? tests.map(testCard).join('') : '<p class="text-center text-gray-400 italic py-8">Lớp này chưa có bài thi nào.</p>';
+}
+function testCard(t){
+  const n=nowMs(), op=new Date(t.open_at).getTime(), cl=new Date(t.close_at).getTime();
+  let act='';
+  if(t.submitted){
+    act = n>=cl ? (t.show_result?`<button onclick="showResult('${t.id}')" class="btn">Xem kết quả</button>`:`<span class="badge">Đã nộp</span>`)
+                : `<span class="badge">✅ Đã nộp — kết quả hiển thị lúc ${fmt(t.close_at).split(', ').slice(1).join(', ')}</span>`;
+  } else if(n<op){ const s=Math.ceil((op-n)/1000); act=`<span class="badge">⏳ Mở sau ${s>86400?Math.floor(s/86400)+' ngày ':''}${String(Math.floor(s%86400/3600)).padStart(2,'0')}:${String(Math.floor(s%3600/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}</span>`; }
+  else if(n>=cl){ act='<span class="badge" style="color:#ef4444">⛔ Bạn chưa nộp bài — đề đã đóng</span>'; }
+  else act=`<button onclick="askPass('${t.id}')" class="btn">${t.started?'Tiếp tục làm bài':'Vào làm bài'}</button>`;
+  return `<div class="${card} p-5 flex flex-wrap items-center gap-4">
+    <div class="w-12 h-12 rounded-xl bg-pink-500 flex items-center justify-center text-white text-2xl flex-shrink-0">☑</div>
+    <div class="flex-1 min-w-[12rem]"><div class="text-lg font-semibold">${esc(t.title)}</div>
+      <div class="text-sm"><b>Đã mở:</b> ${fmt(t.open_at)}</div><div class="text-sm"><b>Đã đóng:</b> ${fmt(t.close_at)}</div>
+      ${t.time_limit?`<div class="text-xs text-gray-500 mt-1">Thời gian làm bài: ${t.time_limit} phút</div>`:''}</div>
+    <div>${act}</div></div>
+    <style>.btn{padding:.6rem 1.1rem;border-radius:12px;background:#cf1717;color:#fff;font-weight:800;font-size:.85rem}.btn:hover{background:#b01212}.badge{font-size:.78rem;font-weight:700;color:#6b7280}</style>`;
+}
+
+/* ---------- MẬT KHẨU + NỘI QUY ---------- */
+function askPass(id){
+  const t=tests.find(x=>x.id===id);
+  openModal(`<h2 class="text-lg font-extrabold text-[#cf1717] mb-1">${esc(t.title)}</h2>
+    <ul class="text-xs text-gray-500 list-disc pl-4 mb-4 space-y-1"><li>Bài thi chạy ở chế độ <b>toàn màn hình</b>.</li><li>Thoát toàn màn hình / chuyển tab / chuyển cửa sổ bị tính là vi phạm. Quá <b>${MAX_VIOL} lần</b> hệ thống tự động nộp bài.</li><li>Không thể sao chép đề bài, không chuột phải, không dán nội dung.</li></ul>
+    <input id="pw" type="password" class="${inp} mb-3" placeholder="Mật khẩu vào thi" onkeydown="if(event.key==='Enter')enter('${id}')">
+    <div class="flex gap-2"><button onclick="closeModal()" class="flex-1 py-2.5 rounded-xl border font-bold text-sm">Huỷ</button>
+    <button id="pwBtn" onclick="enter('${id}')" class="flex-1 py-2.5 rounded-xl bg-[#cf1717] text-white font-extrabold text-sm">Vào làm bài</button></div>`);
+  setTimeout(()=>$('pw').focus(),50);
+}
+async function enter(id){
+  const pw=$('pw').value; if(!pw) return toast('Nhập mật khẩu');
+  // yêu cầu fullscreen NGAY trong thao tác click của người dùng
+  try{ await document.documentElement.requestFullscreen(); }catch(e){ return toast('❌ Trình duyệt không cho bật toàn màn hình — hãy dùng Chrome/Edge/Firefox trên máy tính'); }
+  $('pwBtn').disabled=true;
+  const {data,error}=await SB.rpc('test_start',{p_assignment_id:id,p_name:me.name,p_email:me.email,p_password:pw});
+  if(error){ if(document.fullscreenElement) document.exitFullscreen(); $('pwBtn').disabled=false; return toast('❌ '+error.message); }
+  closeModal(); startExam(data);
+}
+
+/* ---------- PHÒNG THI ---------- */
+function startExam(d){
+  offset=new Date(d.now).getTime()-Date.now();
+  const key='rt_ans_'+d.session_id;
+  X={sid:d.session_id,q:d.questions,deadline:new Date(d.deadline).getTime(),viol:d.violations||0,ans:JSON.parse(sessionStorage.getItem(key)||'{}'),key,active:true,lock:false,last:0,done:false};
+  $('exTitle').textContent=d.title; $('exWho').textContent=`${me.name} • ${me.email}`; $('exDesc').textContent=d.description||'';
+  let n=0; $('exQs').innerHTML=X.q.map(q=>qHtml(q,()=>++n)).join('');
+  $('exam').classList.remove('hidden'); $('exam').scrollTop=0; updViol();
+  restoreAnswers(); tick(); X.timer=setInterval(tick,500);
+}
+const GAPRE=/\{\{(\d+)\}\}/g;
+function qHtml(q,next,sub){
+  if(q.type==='text') return `<div class="${card} p-5 qc ${q.two_col?'two':''}">${q.content||''}</div>`;
+  if(q.type==='reading') return `<div class="${card} p-5"><div class="qc ${q.two_col?'two':''}">${q.content||''}</div></div>`+(q.sub_blocks||[]).map(s=>qHtml(s,next,true)).join('');
+  const no=next(); let body='';
+  if(q.type==='mcq'||q.type==='tf') body=(q.options||[]).map(o=>`<label class="opt" data-q="${q.id}" data-o="${o.id}"><input type="radio" name="r_${q.id}" class="mt-1 accent-[#cf1717]" onchange="setAns('${q.id}','${o.id}')"><span class="qc">${o.text}</span></label>`).join('');
+  else if(q.type==='multi') body=(q.options||[]).map(o=>`<label class="opt" data-q="${q.id}" data-o="${o.id}"><input type="checkbox" class="mt-1 accent-[#cf1717]" onchange="setMulti('${q.id}')"><span class="qc">${o.text}</span></label>`).join('');
+  else if(q.type==='essay') body=`<textarea rows="6" class="${inp}" data-essay="${q.id}" oninput="setAns('${q.id}',this.value)" onpaste="return false" placeholder="Nhập câu trả lời..."></textarea>`;
+  else if(q.type==='fill') body=''; 
+  const content = q.type==='fill' ? (q.content||'').replace(GAPRE,(m,g)=>`<input type="text" class="gap" data-fq="${q.id}" data-g="${g}" autocomplete="off" spellcheck="false" onpaste="return false" oninput="setGap('${q.id}','${g}',this.value)">`) : (q.content||'');
+  return `<div class="${card} p-5"><div class="flex items-center gap-2 mb-2"><span class="text-xs font-extrabold text-[#cf1717]">Câu ${no}</span><span class="text-[11px] text-gray-400">(${q.points||0} điểm)</span></div>
+    <div class="qc mb-3">${content}</div><div class="space-y-2">${body}</div></div>`;
+}
+function save(){ sessionStorage.setItem(X.key,JSON.stringify(X.ans)); }
+function setAns(q,v){ X.ans[q]=v; if(document.querySelector(`[data-q="${q}"]`)) document.querySelectorAll(`[data-q="${q}"]`).forEach(l=>l.classList.toggle('sel',l.dataset.o===v)); save(); }
+function setMulti(q){ const v=[...document.querySelectorAll(`[data-q="${q}"]`)].filter(l=>l.querySelector('input').checked).map(l=>(l.classList.add('sel'),l.dataset.o)); document.querySelectorAll(`[data-q="${q}"]`).forEach(l=>l.classList.toggle('sel',l.querySelector('input').checked)); X.ans[q]=v; save(); }
+function setGap(q,g,v){ if(typeof X.ans[q]!=='object'||Array.isArray(X.ans[q])) X.ans[q]={}; X.ans[q][g]=v; save(); }
+function restoreAnswers(){
+  for(const [q,v] of Object.entries(X.ans)){
+    document.querySelectorAll(`[data-q="${q}"]`).forEach(l=>{const i=l.querySelector('input'),on=Array.isArray(v)?v.includes(l.dataset.o):v===l.dataset.o;i.checked=on;l.classList.toggle('sel',on);});
+    if(v&&typeof v==='object'&&!Array.isArray(v)) Object.entries(v).forEach(([g,t])=>{const e=document.querySelector(`[data-fq="${q}"][data-g="${g}"]`);if(e)e.value=t;});
+    const ta=document.querySelector(`[data-essay="${q}"]`); if(ta&&typeof v==='string') ta.value=v;
+  }
+}
+function tick(){
+  if(!X||X.done) return;
+  const s=Math.max(0,Math.ceil((X.deadline-nowMs())/1000)), m=Math.floor(s/60);
+  $('exTimer').textContent=`${String(m).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  $('exTimer').style.background = s<=300?'#b45309':'#cf1717';
+  if(s<=0) submit(true,'⏰ Hết giờ — hệ thống đã tự động nộp bài.');
+}
+function updViol(){ $('exViol').textContent=`Cảnh báo ${Math.min(X.viol,MAX_VIOL)}/${MAX_VIOL}`; }
+
+/* ---------- PHÁT HIỆN VI PHẠM ---------- */
+function violation(reason){
+  if(!X||X.done||!X.active) return;
+  const t=Date.now(); if(t-X.last<1500) return; X.last=t;   // gộp các sự kiện đồng thời
+  X.viol++; updViol(); SB.rpc('test_violation',{p_session_id:X.sid,p_count:X.viol});
+  if(X.viol>MAX_VIOL) return submit(true,`🚫 Bạn đã vi phạm quá ${MAX_VIOL} lần — hệ thống tự động nộp bài.`);
+  X.lock=true;
+  openModal(`<div class="text-center"><div class="text-5xl mb-2">⚠️</div><h2 class="text-lg font-extrabold text-[#cf1717] mb-2">Cảnh báo ${X.viol}/${MAX_VIOL}</h2>
+    <p class="text-sm mb-4">${esc(reason)}.<br>Nếu vi phạm thêm ${MAX_VIOL-X.viol+1} lần nữa, bài thi sẽ được <b>tự động nộp</b>.</p>
+    <button onclick="resume()" class="w-full py-3 rounded-xl bg-[#cf1717] text-white font-extrabold">Quay lại làm bài (toàn màn hình)</button></div>`);
+  $('modal').style.zIndex=99999;
+}
+async function resume(){ try{await document.documentElement.requestFullscreen();}catch(e){return toast('Hãy cho phép toàn màn hình để tiếp tục');} X.lock=false; closeModal(); $('modal').style.zIndex=''; }
+document.addEventListener('fullscreenchange',()=>{ if(X&&!X.done&&!document.fullscreenElement) violation('Bạn đã thoát chế độ toàn màn hình'); });
+document.addEventListener('visibilitychange',()=>{ if(X&&!X.done&&document.hidden) violation('Bạn đã chuyển tab / thu nhỏ trình duyệt'); });
+window.addEventListener('blur',()=>{ if(X&&!X.done) setTimeout(()=>{ if(!document.hasFocus()) violation('Bạn đã chuyển sang cửa sổ khác'); },200); });
+
+/* ---------- NỘP BÀI ---------- */
+function confirmSubmit(){
+  const total=X.q.reduce((s,q)=>s+cnt(q),0), done=Object.values(X.ans).filter(v=>v&&(typeof v!=='object'||Object.values(v).some(Boolean)||v.length)).length;
+  openModal(`<h2 class="text-lg font-extrabold mb-2">Nộp bài?</h2><p class="text-sm text-gray-500 mb-4">Bạn đã trả lời ${done}/${total} câu. Sau khi nộp sẽ không thể sửa.</p>
+    <div class="flex gap-2"><button onclick="closeModal()" class="flex-1 py-2.5 rounded-xl border font-bold text-sm">Làm tiếp</button><button onclick="submit(false)" class="flex-1 py-2.5 rounded-xl bg-[#cf1717] text-white font-extrabold text-sm">Nộp bài</button></div>`);
+}
+const cnt=q=>q.type==='text'?0:q.type==='reading'?(q.sub_blocks||[]).reduce((s,x)=>s+cnt(x),0):1;
+async function submit(auto,msg){
+  if(!X||X.done) return; X.done=true; clearInterval(X.timer);
+  const {error}=await SB.rpc('test_submit',{p_session_id:X.sid,p_answers:X.ans,p_violations:X.viol,p_auto:!!auto});
+  if(error){ X.done=false; X.timer=setInterval(tick,500); return toast('❌ Nộp lỗi: '+error.message+' (thử lại)'); }
+  sessionStorage.removeItem(X.key); X.active=false;
+  if(document.fullscreenElement) await document.exitFullscreen().catch(()=>{});
+  $('exam').classList.add('hidden'); X=null;
+  openModal(`<div class="text-center"><div class="text-5xl mb-2">✅</div><h2 class="text-lg font-extrabold mb-2">Đã nộp bài</h2><p class="text-sm text-gray-500 mb-4">${esc(msg||'Bài làm của bạn đã được ghi nhận.')}<br>Kết quả và đáp án sẽ hiển thị khi bài thi đóng.</p><button onclick="closeModal();pickClass(cls)" class="w-full py-2.5 rounded-xl bg-[#cf1717] text-white font-extrabold">Về danh sách bài thi</button></div>`);
+}
+
+/* ---------- KẾT QUẢ (chỉ sau giờ đóng) ---------- */
+async function showResult(id){
+  const {data,error}=await SB.rpc('test_result',{p_assignment_id:id,p_name:me.name,p_email:me.email});
+  if(error) return toast('⚠️ '+error.message);
+  if(data.hidden) return toast('Giáo viên chưa cho hiển thị kết quả bài này');
+  const given=data.answers||{}; let n=0;
+  const rq=q=>{
+    if(q.type==='text') return `<div class="${card} p-4 qc">${q.content||''}</div>`;
+    if(q.type==='reading') return `<div class="${card} p-4 qc">${q.content||''}</div>`+(q.sub_blocks||[]).map(rq).join('');
+    n++; const g=given[q.id]; let b='';
+    if(['mcq','tf','multi'].includes(q.type)){const ga=Array.isArray(g)?g:(g?[g]:[]);b=(q.options||[]).map(o=>`<div class="opt ${o.correct?'ok':(ga.includes(o.id)?'bad':'')}" style="cursor:default"><span class="qc">${ga.includes(o.id)?'👉 ':''}${o.text}</span></div>`).join('');}
+    else if(q.type==='fill'){const go=(g&&typeof g==='object')?g:{};b=(q.blanks||[]).map(bl=>`<div class="text-sm">Chỗ trống ${bl.gap}: <b>${esc(go[bl.gap]||'(bỏ trống)')}</b> <span class="text-emerald-600">(đáp án: ${esc((bl.accepted_answers||[]).join(' / '))})</span></div>`).join('');}
+    else b=`<div class="text-sm whitespace-pre-wrap p-3 rounded-xl bg-gray-50 dark:bg-zinc-800">${esc(g||'(bỏ trống)')}</div>${data.comments?.[q.id]?`<div class="text-xs mt-2 text-indigo-600">💬 ${esc(data.comments[q.id])}</div>`:''}`;
+    return `<div class="${card} p-5"><div class="text-xs font-extrabold text-[#cf1717] mb-1">Câu ${n}</div><div class="qc mb-2">${q.type==='fill'?(q.content||'').replace(GAPRE,'[$1]'):(q.content||'')}</div><div class="space-y-2">${b}</div>${q.explanation?`<div class="text-xs mt-2 text-gray-500">💡 ${q.explanation}</div>`:''}</div>`;
+  };
+  $('app').innerHTML=`${logo}<div class="max-w-2xl mx-auto"><button onclick="pickClass(cls)" class="text-xs font-bold text-[#cf1717] mb-3 hover:underline">← Danh sách bài thi</button>
+    <div class="${card} p-6 text-center mb-4"><div class="text-sm text-gray-500">Điểm của bạn</div><div class="text-5xl font-black text-[#cf1717]">${data.score}<span class="text-xl text-gray-400"> / ${data.total}</span></div>
+    <div class="text-xs text-gray-500 mt-2">Số lần cảnh báo: ${data.violations||0} • Điểm tự luận (nếu có) do giáo viên chấm</div></div>
+    <div class="space-y-4">${data.review&&data.questions?data.questions.map(rq).join(''):'<p class="text-center text-gray-400 italic">Giáo viên không cho phép xem lại chi tiết bài làm.</p>'}</div></div>`;
+  clearInterval(ticker); scrollTo(0,0);
+}
+
+/* ---------- CHỐNG SAO CHÉP ---------- */
+const inField=e=>e.target.matches&&e.target.matches('input[type=text],textarea,input[type=password],input[type=email]');
+['copy','cut','dragstart','selectstart'].forEach(ev=>document.addEventListener(ev,e=>{ if(!inField(e)||ev==='copy'&&X) e.preventDefault(); }));
+document.addEventListener('paste',e=>{ if(X) e.preventDefault(); });
+document.addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('keydown',e=>{
+  const k=e.key.toLowerCase();
+  if(e.key==='F12'||e.key==='PrintScreen'||(e.ctrlKey||e.metaKey)&&['c','x','a','p','s','u','v'].includes(k)&&!(inField(e)&&!X&&['c','x','a','v'].includes(k))||(e.ctrlKey&&e.shiftKey&&['i','j','c'].includes(k))){
+    e.preventDefault(); if(e.key==='PrintScreen') navigator.clipboard?.writeText('').catch(()=>{});
+  }
+});
+window.addEventListener('beforeunload',e=>{ if(X&&!X.done){e.preventDefault();e.returnValue='';} });
+
+screenInfo();
+</script>
+</body>
+</html>
