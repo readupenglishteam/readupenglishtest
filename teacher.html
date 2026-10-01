@@ -480,6 +480,16 @@
         <label class="block font-bold uppercase mb-1">Mô tả / hướng dẫn làm bài</label>
         <textarea id="asDesc" rows="2" placeholder="Hướng dẫn ngắn cho học sinh..." class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></textarea>
       </div>
+      <div class="sm:col-span-3 rounded-xl border-2 border-[#cf1717]/30 bg-[#cf1717]/5 p-3">
+        <label class="flex items-center gap-2 font-extrabold text-sm text-[#cf1717]"><input type="checkbox" id="asIsTest" onchange="toggleTestBox()"> 🔒 Đây là BÀI TEST (làm ở test.html: toàn màn hình, chống thoát/sao chép)</label>
+        <div id="testBox" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+          <div><label class="block font-bold uppercase mb-1">Ngày giờ mở đề</label><input id="asOpenAt" type="datetime-local" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></div>
+          <div><label class="block font-bold uppercase mb-1">Ngày giờ đóng đề</label><input id="asCloseAt" type="datetime-local" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></div>
+          <div class="sm:col-span-2"><label class="block font-bold uppercase mb-1">Mật khẩu vào làm bài</label><input id="asTestPass" placeholder="Để trống = dùng tiêu đề bài thi làm mật khẩu" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></div>
+          <label class="flex items-center gap-2 font-bold"><input type="checkbox" id="asShowResult" checked> Hiển thị kết quả + đáp án (khi đến giờ đóng)</label>
+          <label class="flex items-center gap-2 font-bold"><input type="checkbox" id="asAllowReview" checked> Cho phép học viên xem lại bài</label>
+        </div>
+      </div>
       <div class="sm:col-span-3 text-gray-400 flex items-center gap-2">
         Đường dẫn bài tập: <code id="asTokenPreview" class="text-[#cf1717] font-bold">assignment.html?token=...</code>
         <button type="button" onclick="copyAsToken()" class="text-[11px] font-bold text-blue-500 hover:underline">📋 Sao chép</button>
@@ -2148,6 +2158,7 @@
     });
   }
 
+  function toggleTestBox(){ pel('testBox').classList.toggle('hidden', !pel('asIsTest').checked); }
   function openBuilder(assignmentToEdit) {
     pel('editingAssignmentId').value = assignmentToEdit ? assignmentToEdit.id : '';
     pel('builderModeTitle').innerText = assignmentToEdit ? 'Chỉnh Sửa Bài Tập' : 'Tạo Bài Tập Mới';
@@ -2157,6 +2168,9 @@
     pel('asMaxAttempts').value = assignmentToEdit?.max_attempts || '';
     pel('asDueDate').value = assignmentToEdit?.due_date ? String(assignmentToEdit.due_date).slice(0, 10) : '';
     pel('asPublished').checked = assignmentToEdit ? !!assignmentToEdit.is_published : true;
+    (function(){const a=assignmentToEdit||{},ls=v=>v?new Date(new Date(v)-new Date(v).getTimezoneOffset()*6e4).toISOString().slice(0,16):'';
+      pel('asIsTest').checked=!!a.is_test; pel('asOpenAt').value=ls(a.open_at); pel('asCloseAt').value=ls(a.close_at);
+      pel('asTestPass').value=a.test_password||''; pel('asShowResult').checked=a.show_result!==false; pel('asAllowReview').checked=a.allow_review!==false; toggleTestBox();})();
     const rawBlocks = assignmentToEdit ? JSON.parse(JSON.stringify(assignmentToEdit.questions || [])) : [];
     // Bài đã lưu trước đó có blanks ở dạng mảng [{gap, accepted_answers}] (định dạng lưu xuống DB),
     // trong khi khung soạn thảo cần dạng object {gap: "đáp án;đáp án"} để hiển thị ô nhập.
@@ -2468,6 +2482,10 @@
     const sumPoints = arr => arr.reduce((s, b) => s + (b.type === 'text' ? 0 : (b.type === 'reading' ? sumPoints(b.sub_blocks || []) : (parseFloat(b.points) || 0))), 0);
     const total_points = sumPoints(finalBlocks);
 
+    if (pel('asIsTest').checked) {
+      if (!pel('asOpenAt').value || !pel('asCloseAt').value) return notify('⚠️ Bài test cần có ngày giờ mở và ngày giờ đóng.');
+      if (new Date(pel('asCloseAt').value) <= new Date(pel('asOpenAt').value)) return notify('⚠️ Giờ đóng phải sau giờ mở.');
+    }
     const cls = myClasses.find(c => c.id === currentClassForAssignments);
     const editingId = pel('editingAssignmentId').value;
     let token;
@@ -2487,6 +2505,11 @@
       max_attempts: pel('asMaxAttempts').value ? parseInt(pel('asMaxAttempts').value) : null,
       due_date: pel('asDueDate').value || null,
       questions: finalBlocks, total_points, is_published: pel('asPublished').checked,
+      is_test: pel('asIsTest').checked,
+      open_at: pel('asIsTest').checked && pel('asOpenAt').value ? new Date(pel('asOpenAt').value).toISOString() : null,
+      close_at: pel('asIsTest').checked && pel('asCloseAt').value ? new Date(pel('asCloseAt').value).toISOString() : null,
+      test_password: pel('asIsTest').checked ? (pel('asTestPass').value.trim() || null) : null,
+      show_result: pel('asShowResult').checked, allow_review: pel('asAllowReview').checked,
       updated_at: new Date().toISOString()
     };
     const { error } = editingId ? await sbClient.from('assignments').update(row).eq('id', editingId) : await sbClient.from('assignments').insert([row]);
