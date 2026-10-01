@@ -1724,7 +1724,7 @@ function qbInsertAudio(input) {
 function qbAdd(type) {
   const base = { id: qbNewId(), type, content: '', points: 1, explanation: '' };
   if (type === 'mcq' || type === 'multi') base.options = [{ id: 'a', text: '', correct: type === 'mcq' }, { id: 'b', text: '', correct: false }];
-  if (type === 'tf') base.options = [{ id: 'true', text: 'Đúng', correct: true }, { id: 'false', text: 'Sai', correct: false }];
+  if (type === 'tf') base.options = [{ id: 'true', text: 'True', correct: true }, { id: 'false', text: 'False', correct: false }];
   if (type === 'fill') base.blanks = {};
   if (type === 'text') base.points = 0;
   qbBlocks.push(base); qbRender();
