@@ -20,6 +20,7 @@
     }
   </script>
   <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen transition-colors duration-300 flex flex-col justify-between">
 
@@ -480,16 +481,6 @@
         <label class="block font-bold uppercase mb-1">Mô tả / hướng dẫn làm bài</label>
         <textarea id="asDesc" rows="2" placeholder="Hướng dẫn ngắn cho học sinh..." class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></textarea>
       </div>
-      <div class="sm:col-span-3 rounded-xl border-2 border-[#cf1717]/30 bg-[#cf1717]/5 p-3">
-        <label class="flex items-center gap-2 font-extrabold text-sm text-[#cf1717]"><input type="checkbox" id="asIsTest" onchange="toggleTestBox()"> 🔒 Đây là BÀI TEST (làm ở test.html: toàn màn hình, chống thoát/sao chép)</label>
-        <div id="testBox" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-          <div><label class="block font-bold uppercase mb-1">Ngày giờ mở đề</label><input id="asOpenAt" type="datetime-local" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></div>
-          <div><label class="block font-bold uppercase mb-1">Ngày giờ đóng đề</label><input id="asCloseAt" type="datetime-local" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></div>
-          <div class="sm:col-span-2"><label class="block font-bold uppercase mb-1">Mật khẩu vào làm bài</label><input id="asTestPass" placeholder="Để trống = dùng tiêu đề bài thi làm mật khẩu" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></div>
-          <label class="flex items-center gap-2 font-bold"><input type="checkbox" id="asShowResult" checked> Hiển thị kết quả + đáp án (khi đến giờ đóng)</label>
-          <label class="flex items-center gap-2 font-bold"><input type="checkbox" id="asAllowReview" checked> Cho phép học viên xem lại bài</label>
-        </div>
-      </div>
       <div class="sm:col-span-3 text-gray-400 flex items-center gap-2">
         Đường dẫn bài tập: <code id="asTokenPreview" class="text-[#cf1717] font-bold">assignment.html?token=...</code>
         <button type="button" onclick="copyAsToken()" class="text-[11px] font-bold text-blue-500 hover:underline">📋 Sao chép</button>
@@ -572,6 +563,7 @@
       <button onclick="closeResultsModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
     </div>
     <div id="rmDist" class="hidden"></div>
+    <div id="rmLive" class="hidden"></div>
     <div class="flex flex-wrap items-center gap-2 text-xs">
       <input id="rmSearchName" oninput="renderResultsList()" placeholder="Tìm theo tên học sinh..." class="flex-1 min-w-[140px] p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
       <select id="rmSort" onchange="renderResultsList()" class="p-2 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
@@ -2158,7 +2150,6 @@
     });
   }
 
-  function toggleTestBox(){ pel('testBox').classList.toggle('hidden', !pel('asIsTest').checked); }
   function openBuilder(assignmentToEdit) {
     pel('editingAssignmentId').value = assignmentToEdit ? assignmentToEdit.id : '';
     pel('builderModeTitle').innerText = assignmentToEdit ? 'Chỉnh Sửa Bài Tập' : 'Tạo Bài Tập Mới';
@@ -2168,9 +2159,6 @@
     pel('asMaxAttempts').value = assignmentToEdit?.max_attempts || '';
     pel('asDueDate').value = assignmentToEdit?.due_date ? String(assignmentToEdit.due_date).slice(0, 10) : '';
     pel('asPublished').checked = assignmentToEdit ? !!assignmentToEdit.is_published : true;
-    (function(){const a=assignmentToEdit||{},ls=v=>v?new Date(new Date(v)-new Date(v).getTimezoneOffset()*6e4).toISOString().slice(0,16):'';
-      pel('asIsTest').checked=!!a.is_test; pel('asOpenAt').value=ls(a.open_at); pel('asCloseAt').value=ls(a.close_at);
-      pel('asTestPass').value=a.test_password||''; pel('asShowResult').checked=a.show_result!==false; pel('asAllowReview').checked=a.allow_review!==false; toggleTestBox();})();
     const rawBlocks = assignmentToEdit ? JSON.parse(JSON.stringify(assignmentToEdit.questions || [])) : [];
     // Bài đã lưu trước đó có blanks ở dạng mảng [{gap, accepted_answers}] (định dạng lưu xuống DB),
     // trong khi khung soạn thảo cần dạng object {gap: "đáp án;đáp án"} để hiển thị ô nhập.
@@ -2482,10 +2470,6 @@
     const sumPoints = arr => arr.reduce((s, b) => s + (b.type === 'text' ? 0 : (b.type === 'reading' ? sumPoints(b.sub_blocks || []) : (parseFloat(b.points) || 0))), 0);
     const total_points = sumPoints(finalBlocks);
 
-    if (pel('asIsTest').checked) {
-      if (!pel('asOpenAt').value || !pel('asCloseAt').value) return notify('⚠️ Bài test cần có ngày giờ mở và ngày giờ đóng.');
-      if (new Date(pel('asCloseAt').value) <= new Date(pel('asOpenAt').value)) return notify('⚠️ Giờ đóng phải sau giờ mở.');
-    }
     const cls = myClasses.find(c => c.id === currentClassForAssignments);
     const editingId = pel('editingAssignmentId').value;
     let token;
@@ -2505,11 +2489,6 @@
       max_attempts: pel('asMaxAttempts').value ? parseInt(pel('asMaxAttempts').value) : null,
       due_date: pel('asDueDate').value || null,
       questions: finalBlocks, total_points, is_published: pel('asPublished').checked,
-      is_test: pel('asIsTest').checked,
-      open_at: pel('asIsTest').checked && pel('asOpenAt').value ? new Date(pel('asOpenAt').value).toISOString() : null,
-      close_at: pel('asIsTest').checked && pel('asCloseAt').value ? new Date(pel('asCloseAt').value).toISOString() : null,
-      test_password: pel('asIsTest').checked ? (pel('asTestPass').value.trim() || null) : null,
-      show_result: pel('asShowResult').checked, allow_review: pel('asAllowReview').checked,
       updated_at: new Date().toISOString()
     };
     const { error } = editingId ? await sbClient.from('assignments').update(row).eq('id', editingId) : await sbClient.from('assignments').insert([row]);
@@ -2536,8 +2515,40 @@
     if (error) { pel('rmList').innerHTML = `<p class="text-red-500">${esc(error.message)}</p>`; return; }
     currentAttemptsList = data || [];
     pel('rmSearchName').value = ''; pel('rmSort').value = 'latest';
+    await loadTestSessions();
     renderScoreDistribution();
     renderResultsList();
+    // Bài thi (is_test): tự làm mới mỗi 5 giây để theo dõi học sinh đang làm bài + số lần cảnh báo
+    clearInterval(resultsTimer);
+    if (a.is_test) resultsTimer = setInterval(refreshResults, 5000);
+  }
+
+  // ---- Phiên làm bài của bài thi (đang làm / đã nộp / số lần cảnh báo) ----
+  let currentSessions = [], sessionsError = '', resultsTimer = null;
+  const MAX_VIOL_SHOWN = 3;
+  async function loadTestSessions() {
+    const a = currentResultsAssignment; currentSessions = []; sessionsError = '';
+    if (!a || !a.is_test) return;
+    const { data, error } = await sbClient.rpc('teacher_test_sessions', { p_assignment_id: a.id });
+    if (error) { sessionsError = error.message; return; }
+    currentSessions = data || [];
+  }
+  async function refreshResults() {
+    const a = currentResultsAssignment;
+    if (!a || pel('resultsModal').classList.contains('hidden')) { clearInterval(resultsTimer); return; }
+    const { data } = await sbClient.from('assignment_attempts').select('*, profiles(full_name)').eq('assignment_id', a.id).order('submitted_at', { ascending: false });
+    if (a !== currentResultsAssignment) return;
+    if (data) currentAttemptsList = data;
+    await loadTestSessions();
+    if (a !== currentResultsAssignment) return;
+    renderScoreDistribution(); renderResultsList();
+  }
+  const attemptStudentId = r => r.student_id ?? r.user_id ?? null;
+  function violBadge(v) {
+    const cls = v >= MAX_VIOL_SHOWN ? 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400'
+              : v > 0 ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-400'
+              : 'bg-gray-100 text-gray-500 dark:bg-zinc-800 dark:text-gray-400';
+    return `<span title="Số lần cảnh báo (rời toàn màn hình / chuyển tab)" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-bold text-[11px] ${cls}"><i class="bi bi-exclamation-triangle-fill"></i> Cảnh báo ${v}/${MAX_VIOL_SHOWN}</span>`;
   }
   function scoreOf(r) { return Math.round(((r.auto_score || 0) + sumManualScores(r.manual_scores)) * 100) / 100; }
 
@@ -2571,31 +2582,77 @@
   function renderResultsList() {
     const search = (pel('rmSearchName').value || '').toLowerCase().trim();
     const sort = pel('rmSort').value;
-    let list = currentAttemptsList.filter(r => !search || (r.profiles?.full_name || '').toLowerCase().includes(search));
-    list = [...list].sort((a, b) => {
-      if (sort === 'earliest') return new Date(a.submitted_at) - new Date(b.submitted_at);
-      if (sort === 'latest') return new Date(b.submitted_at) - new Date(a.submitted_at);
-      if (sort === 'score_desc') return scoreOf(b) - scoreOf(a);
-      if (sort === 'score_asc') return scoreOf(a) - scoreOf(b);
-      if (sort === 'name') return (a.profiles?.full_name || '').localeCompare(b.profiles?.full_name || '');
+    // Gộp bài đã nộp + phiên đang làm bài (nếu là bài thi)
+    const sessBy = {}; currentSessions.forEach(x => { sessBy[x.student_id] = x; });
+    let list = currentAttemptsList.map(r => ({ r, s: sessBy[attemptStudentId(r)] || null, name: r.profiles?.full_name || 'N/A' }));
+    const used = new Set(currentAttemptsList.map(attemptStudentId));
+    currentSessions.forEach(x => { if (!used.has(x.student_id)) list.push({ r: null, s: x, name: x.full_name || 'N/A' }); });
+    renderLiveSummary();
+    const tKey = it => it.r ? new Date(it.r.submitted_at).getTime() : Date.now();   // đang làm bài = mới nhất
+    list = list.filter(it => !search || it.name.toLowerCase().includes(search));
+    list.sort((a, b) => {
+      if (sort === 'earliest') return tKey(a) - tKey(b);
+      if (sort === 'latest') return tKey(b) - tKey(a);
+      if (sort === 'score_desc') return (b.r ? scoreOf(b.r) : -1) - (a.r ? scoreOf(a.r) : -1);
+      if (sort === 'score_asc') return (a.r ? scoreOf(a.r) : Infinity) - (b.r ? scoreOf(b.r) : Infinity);
+      if (sort === 'name') return a.name.localeCompare(b.name);
       return 0;
     });
-    pel('rmList').innerHTML = list.map(r => {
-      const finalScore = scoreOf(r);
-      return `
-      <div class="flex items-center justify-between bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl px-3 py-2">
+    const fmtT = d => new Date(d).toLocaleString('vi-VN');
+    pel('rmList').innerHTML = list.map(({ r, s: ss, name }) => {
+      const warn = ss ? violBadge(ss.violations || 0) : '';
+      if (!r) {
+        const inProg = !ss.submitted_at;
+        return `
+      <div class="flex items-center justify-between gap-2 flex-wrap bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl px-3 py-2">
         <div>
-          <p class="font-bold text-gray-900 dark:text-white">${esc(r.profiles?.full_name || 'N/A')}</p>
-          <p class="text-[10px] text-gray-400">${new Date(r.submitted_at).toLocaleString('vi-VN')} ${r.has_essay ? '· có câu tự luận cần chấm tay' : ''}</p>
+          <p class="font-bold text-gray-900 dark:text-white">${esc(name)}</p>
+          <p class="text-[10px] text-gray-400">${inProg ? 'Bắt đầu lúc ' + fmtT(ss.started_at) : 'Đã nộp lúc ' + fmtT(ss.submitted_at)}</p>
         </div>
         <div class="flex items-center gap-3">
-          <button onclick="openGradeAttempt('${r.id}')" class="text-[11px] font-bold text-blue-500 hover:underline">${r.has_essay ? '✏️ Chấm tự luận' : '👁️ Xem bài làm'}</button>
+          ${warn}
+          ${inProg
+            ? '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md font-bold text-[11px] bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400"><span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> Đang làm bài</span>'
+            : '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-bold text-[11px] bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"><i class="bi bi-check-circle-fill"></i> Đã nộp</span>'}
+        </div>
+      </div>`;
+      }
+      const finalScore = scoreOf(r);
+      return `
+      <div class="flex items-center justify-between gap-2 flex-wrap bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl px-3 py-2">
+        <div>
+          <p class="font-bold text-gray-900 dark:text-white">${esc(name)}</p>
+          <p class="text-[10px] text-gray-400">${fmtT(r.submitted_at)} ${r.has_essay ? '· có câu tự luận cần chấm tay' : ''}</p>
+        </div>
+        <div class="flex items-center gap-3">
+          ${warn}
+          <button onclick="openGradeAttempt('${r.id}')" class="text-[11px] font-bold text-blue-500 hover:underline">${r.has_essay ? '<i class="bi bi-pencil-square"></i> Chấm tự luận' : '<i class="bi bi-eye"></i> Xem bài làm'}</button>
           <span class="font-extrabold text-[#cf1717]">${finalScore}/${r.total_points}</span>
         </div>
       </div>`;
     }).join('') || '<p class="text-gray-400 italic">Không có học sinh nào khớp với bộ lọc.</p>';
   }
-  function closeResultsModal() { pel('resultsModal').classList.add('hidden'); pel('resultsModal').classList.remove('flex'); }
+
+  function renderLiveSummary() {
+    const box = pel('rmLive'), a = currentResultsAssignment;
+    if (!a || !a.is_test) { box.classList.add('hidden'); return; }
+    box.classList.remove('hidden');
+    if (sessionsError) {
+      box.innerHTML = `<div class="text-xs rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900 text-amber-800 dark:text-amber-300 p-3"><i class="bi bi-exclamation-triangle-fill"></i> Không tải được danh sách đang làm bài: ${esc(sessionsError)} (cần chạy file <b>teacher_test_sessions.sql</b> trong Supabase).</div>`;
+      return;
+    }
+    const doing = currentSessions.filter(x => !x.submitted_at).length;
+    const done = currentSessions.filter(x => x.submitted_at).length;
+    const warned = currentSessions.filter(x => (x.violations || 0) > 0).length;
+    box.innerHTML = `
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl px-3 py-2">
+        <span class="inline-flex items-center gap-1.5 font-bold text-blue-600"><span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> Đang làm bài: ${doing}</span>
+        <span class="inline-flex items-center gap-1 font-bold text-emerald-600"><i class="bi bi-check-circle-fill"></i> Đã nộp: ${done}</span>
+        <span class="inline-flex items-center gap-1 font-bold text-amber-600"><i class="bi bi-exclamation-triangle-fill"></i> Có cảnh báo: ${warned}</span>
+        <span class="ml-auto text-[10px] text-gray-400"><i class="bi bi-arrow-repeat"></i> Tự làm mới mỗi 5 giây</span>
+      </div>`;
+  }
+  function closeResultsModal() { clearInterval(resultsTimer); pel('resultsModal').classList.add('hidden'); pel('resultsModal').classList.remove('flex'); }
 
   // ---- Modal chấm bài chi tiết (xem từng câu + cho điểm câu tự luận) ----
   let currentGradingAttempt = null;
