@@ -427,6 +427,31 @@
           <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white"><i class="bi bi-calendar-event"></i> Lịch Học & Bài Thi Reading</h2>
         </div>
 
+
+        <!-- ===== DẢI BÀI HỌC (POST) TỰ ĐỘNG CHUYỂN ===== -->
+        <style>
+          .post-slider{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch}
+          .post-slider::-webkit-scrollbar{display:none}
+          .post-dot{height:8px;border-radius:9999px;transition:all .35s ease}
+          @keyframes postSlideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+          .post-card-anim{animation:postSlideIn .5s ease both}
+        </style>
+        <div id="postSliderWrap" class="hidden bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-3xl p-4 sm:p-5 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-extrabold text-sm sm:text-base text-gray-900 dark:text-white flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-red-50 dark:bg-red-950 text-[#cf1717] flex items-center justify-center"><i class="bi bi-journal-richtext"></i></span>
+              Bài Học Mới
+            </h3>
+            <a href="post.html" class="text-xs font-bold text-[#cf1717] hover:text-red-700 dark:text-red-400 transition">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+          </div>
+          <div class="relative">
+            <button type="button" onclick="postSliderStep(-1)" class="hidden sm:flex absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-white items-center justify-center shadow hover:bg-[#cf1717] hover:text-white hover:border-[#cf1717] transition" aria-label="Trước">‹</button>
+            <div id="postSlider" class="post-slider flex overflow-x-auto snap-x snap-mandatory scroll-smooth"></div>
+            <button type="button" onclick="postSliderStep(1)" class="hidden sm:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-white items-center justify-center shadow hover:bg-[#cf1717] hover:text-white hover:border-[#cf1717] transition" aria-label="Sau">›</button>
+          </div>
+          <div id="postDots" class="flex justify-center items-center gap-2 mt-4"></div>
+        </div>
+
         <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-sm grid grid-cols-1 lg:grid-cols-12 gap-6">
           <!-- Cột Trái: Bộ Lịch Tháng -->
           <div class="lg:col-span-5 space-y-4">
@@ -919,6 +944,9 @@
           // Tác vụ 2: Tải Tin tức
           typeof loadNews === 'function' ? loadNews() : Promise.resolve(),
 
+          // Tác vụ 2b: Tải Bài học (post) cho Lịch + Dải slider
+          typeof loadPosts === 'function' ? loadPosts() : Promise.resolve(),
+
           // Tác vụ 3: Tải Bài thi
           typeof loadExams === 'function' ? loadExams() : Promise.resolve(),
 
@@ -948,6 +976,138 @@
   let globalNewsList = [];
   let currentNewsPage = 1;
   const NEWS_PER_PAGE = 3;
+
+
+  // =========================================================================
+  // BÀI HỌC (POST): dữ liệu dùng chung cho Lịch + Dải slider
+  // =========================================================================
+  let globalPostsList = [];
+  let postSlideIdx = 0, postSlideCount = 0, postPausedUntil = 0, postSlideTimer = null;
+  const POSTS_PER_SLIDE = 2;      // 2 bài dọc / 1 slide
+  const POST_MAX_SLIDES = 5;      // tối đa 5 slide (10 bài mới nhất)
+  const POST_AUTO_MS = 5000;      // tự chuyển mỗi 5 giây
+
+  const escPost = s => s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '';
+  const postLink = p => 'post.html?token=' + encodeURIComponent(p.token);
+  function localDateStr(d) {
+    const x = new Date(d);
+    return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`;
+  }
+  function postThumb(p, cls) {
+    return p.thumbnail_url
+      ? `<img src="${escPost(p.thumbnail_url)}" alt="${escPost(p.title)}" loading="lazy" class="${cls} object-cover">`
+      : `<div class="${cls} bg-gradient-to-br from-red-500 to-[#cf1717] flex items-center justify-center text-white text-2xl"><i class="bi bi-journal-richtext"></i></div>`;
+  }
+
+  async function loadPosts() {
+    try {
+      const { data, error } = await sbClient.from('posts')
+        .select('id,title,token,thumbnail_url,excerpt,created_at')
+        .eq('is_published', true)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      globalPostsList = data || [];
+    } catch (e) {
+      console.error('Lỗi tải bài học:', e);
+      globalPostsList = [];
+    }
+    renderPostSlider();
+  }
+
+  function postCardHtml(p, i) {
+    return `
+      <a href="${postLink(p)}" style="animation-delay:${i * 80}ms"
+         class="post-card-anim group flex items-center gap-4 p-3 sm:p-4 rounded-2xl bg-gray-50 dark:bg-zinc-800/60 border border-gray-100 dark:border-zinc-700/60 hover:border-[#cf1717] hover:bg-white dark:hover:bg-zinc-800 hover:shadow-lg transition-all duration-300">
+        <div class="w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-2xl overflow-hidden shadow-md ring-2 ring-white dark:ring-zinc-700">
+          ${postThumb(p, 'w-full h-full group-hover:scale-110 transition duration-500')}
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-[10px] font-extrabold uppercase text-[#cf1717] bg-red-50 dark:bg-red-950 px-2 py-0.5 rounded-md">Bài học</span>
+            <span class="text-[11px] text-gray-400"><i class="bi bi-calendar3"></i> ${new Date(p.created_at).toLocaleDateString('vi-VN')}</span>
+          </div>
+          <h4 class="font-extrabold text-sm sm:text-base text-gray-900 dark:text-white line-clamp-1 group-hover:text-[#cf1717] transition-colors">${escPost(p.title)}</h4>
+          <p class="mt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">${escPost(p.excerpt)} <span class="text-[#cf1717] font-bold whitespace-nowrap">đọc thêm <i class="bi bi-arrow-right"></i></span></p>
+        </div>
+      </a>`;
+  }
+
+  function renderPostSlider() {
+    const wrap = document.getElementById('postSliderWrap');
+    const track = document.getElementById('postSlider');
+    const dots = document.getElementById('postDots');
+    if (!wrap || !track || !dots) return;
+
+    const posts = (globalPostsList || []).slice(0, POSTS_PER_SLIDE * POST_MAX_SLIDES);
+    if (!posts.length) { wrap.classList.add('hidden'); return; }
+    wrap.classList.remove('hidden');
+
+    const slides = [];
+    for (let i = 0; i < posts.length; i += POSTS_PER_SLIDE) slides.push(posts.slice(i, i + POSTS_PER_SLIDE));
+    postSlideCount = slides.length;
+    postSlideIdx = 0;
+
+    track.innerHTML = slides.map(group => `
+      <div class="snap-start shrink-0 w-full space-y-3 px-0.5 py-1">
+        ${group.map((p, i) => postCardHtml(p, i)).join('')}
+      </div>`).join('');
+    track.scrollLeft = 0;
+
+    // Chỉ hiện dấu chấm khi có từ 2 slide trở lên
+    dots.innerHTML = postSlideCount > 1
+      ? slides.map((_, i) => `<button type="button" onclick="goToPostSlide(${i}, true)" aria-label="Slide ${i+1}" class="post-dot"></button>`).join('')
+      : '';
+    document.querySelectorAll('#postSliderWrap button[aria-label="Trước"], #postSliderWrap button[aria-label="Sau"]')
+      .forEach(b => b.style.display = postSlideCount > 1 ? '' : 'none');
+    updatePostDots();
+
+    if (!track.dataset.bound) {
+      track.dataset.bound = '1';
+      // Người dùng vuốt tay / lăn chuột -> đồng bộ dấu chấm
+      let t;
+      track.addEventListener('scroll', () => {
+        clearTimeout(t);
+        t = setTimeout(() => {
+          const w = track.clientWidth || 1;
+          postSlideIdx = Math.max(0, Math.min(postSlideCount - 1, Math.round(track.scrollLeft / w)));
+          updatePostDots();
+        }, 60);
+      }, { passive: true });
+      // Người dùng đang tương tác -> tạm dừng tự chuyển
+      const pause = () => { postPausedUntil = Date.now() + 8000; };
+      ['pointerdown', 'touchstart', 'wheel', 'mouseenter', 'focusin'].forEach(ev => track.addEventListener(ev, pause, { passive: true }));
+      track.addEventListener('mouseleave', () => { postPausedUntil = Date.now() + 1500; });
+      window.addEventListener('resize', () => { track.style.scrollBehavior = 'auto'; track.scrollLeft = postSlideIdx * track.clientWidth; track.style.scrollBehavior = ''; });
+    }
+
+    clearInterval(postSlideTimer);
+    if (postSlideCount > 1) {
+      postSlideTimer = setInterval(() => {
+        if (document.hidden || Date.now() < postPausedUntil) return;
+        goToPostSlide((postSlideIdx + 1) % postSlideCount);
+      }, POST_AUTO_MS);
+    }
+  }
+
+  function updatePostDots() {
+    document.querySelectorAll('#postDots .post-dot').forEach((d, i) => {
+      const active = i === postSlideIdx;
+      d.style.width = active ? '24px' : '8px';
+      d.style.background = active ? '#cf1717' : '';
+      d.classList.toggle('bg-gray-300', !active);
+      d.classList.toggle('dark:bg-zinc-600', !active);
+    });
+  }
+
+  function goToPostSlide(i, byUser) {
+    const track = document.getElementById('postSlider');
+    if (!track || !postSlideCount) return;
+    if (byUser) postPausedUntil = Date.now() + 8000;
+    postSlideIdx = (i + postSlideCount) % postSlideCount;
+    track.scrollTo({ left: postSlideIdx * track.clientWidth, behavior: 'smooth' });
+    updatePostDots();
+  }
+  function postSliderStep(dir) { goToPostSlide(postSlideIdx + dir, true); }
 
   // --- 1. QUẢN LÝ TIN TỨC & THÔNG BÁO ---
   async function loadNews() {
@@ -2810,6 +2970,10 @@ async function handleAISearch() {
           });
         }
 
+        // Tập hợp các ngày có bài Học (post)
+        const datesWithPosts = new Set();
+        (globalPostsList || []).forEach(p => { if (p.created_at) datesWithPosts.add(localDateStr(p.created_at)); });
+
         // Các ô trống đầu tháng
         for (let i = 0; i < startingDay; i++) {
           grid.innerHTML += `<div class="p-2"></div>`;
@@ -2823,6 +2987,7 @@ async function handleAISearch() {
           const dateStr = `${year}-${monthFormatted}-${dayFormatted}`;
 
           const hasExam = datesWithExams.has(dateStr);
+          const hasPost = datesWithPosts.has(dateStr);
           const isSelected = dateStr === calSelectedDateStr;
           const isToday = dateStr === todayStr;
 
@@ -2837,7 +3002,10 @@ async function handleAISearch() {
       <div onclick="selectCalendarDate('${dateStr}')"
            class="p-2 sm:p-2.5 rounded-xl cursor-pointer transition flex flex-col items-center justify-center relative min-h-[42px] ${bgClass}">
         <span class="text-xs sm:text-sm font-bold">${d}</span>
-        ${hasExam ? `<span class="w-2 h-2 ${isSelected ? 'bg-white' : 'bg-[#cf1717]'} rounded-full mt-1 shadow-sm"></span>` : '<span class="w-2 h-2 mt-1"></span>'}
+        <span class="flex items-center justify-center gap-0.5 mt-1 h-2">
+          ${hasExam ? `<span class="w-2 h-2 ${isSelected ? 'bg-white' : 'bg-[#cf1717]'} rounded-full shadow-sm"></span>` : ''}
+          ${hasPost ? `<span class="w-2 h-2 ${isSelected ? 'bg-amber-200' : 'bg-indigo-500'} rounded-full shadow-sm"></span>` : ''}
+        </span>
       </div>
     `;
         }
@@ -2899,6 +3067,25 @@ async function handleAISearch() {
           html += `</div>`;
         }
 
+        // 1b. HIỂN THỊ BÀI HỌC (POST) TRONG NGÀY -> BẤM VÀO CHUYỂN SANG TRANG POST
+        const dayPosts = (globalPostsList || []).filter(p => p.created_at && localDateStr(p.created_at) === calSelectedDateStr);
+        if (dayPosts.length > 0) {
+          html += `<div class="space-y-2 mb-3">`;
+          dayPosts.forEach(p => {
+            html += `
+        <a href="${postLink(p)}"
+           class="p-3 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200/80 dark:border-indigo-900/50 rounded-2xl flex items-center gap-3 hover:bg-indigo-100/80 dark:hover:bg-indigo-900/40 hover:border-indigo-400 transition shadow-sm group">
+          <div class="w-12 h-12 shrink-0 rounded-xl overflow-hidden shadow">${postThumb(p, 'w-full h-full')}</div>
+          <div class="min-w-0 flex-1">
+            <span class="text-[10px] font-extrabold uppercase text-indigo-600 dark:text-indigo-300"><i class="bi bi-journal-richtext"></i> Bài học</span>
+            <p class="text-xs sm:text-sm font-bold text-indigo-950 dark:text-indigo-100 truncate">${escPost(p.title)}</p>
+          </div>
+          <span class="text-[10px] font-extrabold text-indigo-600 dark:text-indigo-300 shrink-0 group-hover:translate-x-0.5 transition-transform">Xem bài <i class="bi bi-arrow-right"></i></span>
+        </a>`;
+          });
+          html += `</div>`;
+        }
+
         // 2. HIỂN THỊ BÀI THI READING (MỖI BÀI 1 KHUNG RIÊNG)
         if (dayExams.length > 0) {
           dayExams.forEach(exam => {
@@ -2956,11 +3143,11 @@ async function handleAISearch() {
         }
 
         // Trường hợp không có dữ liệu
-        if (dayNews.length === 0 && dayExams.length === 0) {
+        if (dayNews.length === 0 && dayExams.length === 0 && dayPosts.length === 0) {
           html = `
       <div class="p-8 text-center bg-gray-50 dark:bg-zinc-800/40 rounded-2xl border border-dashed border-gray-200 dark:border-zinc-800">
         <span class="text-2xl block mb-1"><i class="bi bi-cup-hot-fill"></i></span>
-        <p class="text-xs text-gray-400 font-medium">Không có bài làm hay thông báo nào trong ngày này.</p>
+        <p class="text-xs text-gray-400 font-medium">Không có bài làm, bài học hay thông báo nào trong ngày này.</p>
       </div>
     `;
         }
