@@ -146,7 +146,7 @@
 
 <!-- ================= LỐI TẮT VÀO THẲNG TRANG VIP ASSIGNMENT ================= -->
 <div class="w-full flex justify-center pb-8 px-4 -mt-4">
-  <a href="assignment.html" class="w-full max-w-md flex items-center justify-center gap-2 py-3 bg-amber-50 dark:bg-amber-950/30 border-2 border-dashed border-amber-400 dark:border-amber-700 text-amber-600 dark:text-amber-400 font-extrabold text-xs sm:text-sm rounded-xl hover:bg-amber-100 dark:hover:bg-amber-950/50 transition shadow-sm">
+  <a href="assignment.html" id="vipShortcut" class="w-full max-w-md flex items-center justify-center gap-2 py-3 bg-amber-50 dark:bg-amber-950/30 border-2 border-dashed border-amber-400 dark:border-amber-700 text-amber-600 dark:text-amber-400 font-extrabold text-xs sm:text-sm rounded-xl hover:bg-amber-100 dark:hover:bg-amber-950/50 transition shadow-sm">
     <span>⭐</span><span>Tài khoản VIP — Vào thẳng trang làm bài Assignment</span>
   </a>
 </div>
@@ -157,6 +157,22 @@
   const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   let currentMode = 'login';
+
+  // Trang muốn quay lại sau khi đăng nhập (chỉ cho phép file .html cùng thư mục, tránh chuyển hướng ra ngoài)
+  const nextParam = new URLSearchParams(location.search).get('next');
+  const nextUrl = (nextParam && /^[\w\-]+\.html(\?[^#\s]*)?$/.test(nextParam)) ? nextParam : null;
+
+  // Lối tắt Assignment: chưa đăng nhập thì báo rõ, không âm thầm bị bật ngược về đây
+  document.getElementById('vipShortcut')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const { data: { session } } = await sbClient.auth.getSession();
+    if (session) { window.location.href = 'assignment.html'; return; }
+    const msg = document.getElementById('authMsg');
+    msg.innerText = '⚠️ Bạn chưa đăng nhập. Hãy đăng nhập bằng tài khoản VIP ở trên, hệ thống sẽ tự chuyển vào trang Assignment.';
+    msg.className = 'mt-4 text-center text-sm font-semibold text-amber-600';
+    window.__goAssignmentAfterLogin = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
 
   function switchTab(mode) {
   currentMode = mode;
@@ -255,7 +271,7 @@ async function handleAuth(e) {
 } else {
   msg.innerHTML = '<i class="bi bi-check-circle"></i> Đăng nhập thành công';
   msg.className = "mt-4 text-center text-sm font-semibold text-green-600";
-  setTimeout(() => window.location.href = 'dashboard.html', 1000);
+  setTimeout(() => window.location.href = nextUrl || (window.__goAssignmentAfterLogin ? 'assignment.html' : 'dashboard.html'), 1000);
 }
   }
 }
