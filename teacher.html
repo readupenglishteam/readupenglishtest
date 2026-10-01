@@ -52,6 +52,15 @@
   .qeditor td,.qeditor th{border:1px solid #d1d5db;padding:6px 8px;min-width:40px}
   .dark .qeditor td,.dark .qeditor th{border-color:#52525b}
   .qeditor audio{width:100%;margin:.5em 0}
+  .qeditor ul{list-style:disc;padding-left:1.6em;margin:.6em 0}
+  .qeditor ol{list-style:decimal;padding-left:1.6em;margin:.6em 0}
+  .qeditor li{margin:.2em 0}
+  .qeditor a{color:#cf1717;text-decoration:underline}
+  .qeditor h2{font-size:1.4rem;font-weight:800;margin:.8em 0 .4em}
+  .qeditor h3{font-size:1.15rem;font-weight:800;margin:.8em 0 .4em}
+  .qeditor blockquote{border-left:4px solid #cf1717;background:rgba(207,23,23,.06);padding:.5em 1em;margin:.8em 0;border-radius:0 8px 8px 0}
+  .qeditor .video-wrap{position:relative;padding-top:56.25%;margin:1em 0}
+  .qeditor .video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:12px}
   .qeditor-2col{column-count:2;column-gap:1.8rem}
   @media (max-width:640px){.qeditor-2col{column-count:1}}
   .qeditor-2col img,.qeditor-2col table{break-inside:avoid}
@@ -483,9 +492,10 @@
       <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('bold')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 font-bold text-xs">B</button>
       <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('italic')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 italic text-xs">I</button>
       <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('underline')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 underline text-xs">U</button>
-      <label class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 flex items-center justify-center cursor-pointer relative" title="Màu chữ">
-        <span class="pointer-events-none font-bold text-xs">A</span>
-        <input type="color" value="#cf1717" onmousedown="event.stopPropagation()" onchange="qcmd('foreColor', this.value)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+      <label class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 flex flex-col items-center justify-center cursor-pointer relative" title="Màu chữ (bôi đen chữ trước)">
+        <span class="pointer-events-none font-bold text-xs leading-none">A</span>
+        <span id="qColorBar" class="pointer-events-none w-4 h-1 rounded mt-0.5" style="background:#cf1717"></span>
+        <input type="color" value="#cf1717" onmousedown="qSaveSel()" oninput="document.getElementById('qColorBar').style.background=this.value; qcmd('foreColor', this.value)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
       </label>
       <select onchange="qcmd('fontSize', this.value); this.selectedIndex=0" class="h-7 rounded border-0 bg-transparent hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs" title="Cỡ chữ">
         <option value="">Cỡ chữ</option>
@@ -496,6 +506,11 @@
       </select>
       <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('insertUnorderedList')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs">•≡</button>
       <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('insertOrderedList')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs">1≡</button>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('justifyLeft')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs" title="Căn trái">⬅</button>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('justifyCenter')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs" title="Căn giữa">↔</button>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('removeFormat')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs" title="Xóa định dạng">🧹</button>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qInsertLink()" class="px-2 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs font-bold" title="Gắn link vào chữ đang bôi đen">🔗 Link</button>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qInsertYoutube()" class="px-2 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs font-bold" title="Chèn video YouTube">📹 YouTube</button>
       <label class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs flex items-center justify-center cursor-pointer" title="Chèn ảnh">🖼️
         <input type="file" accept="image/*" class="hidden" onchange="qInsertImage(this)">
       </label>
@@ -1953,8 +1968,59 @@
     if (!lastFocusedEditable) return notify('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước.');
     lastFocusedEditable.focus();
     if (savedRange) { const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedRange); }
-    document.execCommand(cmd, false, value === undefined ? null : value);
+    if (cmd === 'foreColor') document.execCommand('styleWithCSS', false, true);
+    document.execCommand(cmd, false, value === undefined || value === '' ? null : value);
+    if (cmd === 'foreColor') document.execCommand('styleWithCSS', false, false);
+    lastFocusedEditable.dispatchEvent(new Event('input', { bubbles: true }));
   }
+  function qSaveSel() {
+    const sel = window.getSelection();
+    if (lastFocusedEditable && sel && sel.rangeCount && lastFocusedEditable.contains(sel.getRangeAt(0).commonAncestorContainer)) savedRange = sel.getRangeAt(0).cloneRange();
+  }
+  function qRestore() {
+    if (!lastFocusedEditable) { notify('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước.'); return false; }
+    lastFocusedEditable.focus();
+    if (savedRange) { const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedRange); }
+    return true;
+  }
+  function qInsertLink() {
+    if (!lastFocusedEditable) return notify('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước.');
+    const hasSel = savedRange && !savedRange.collapsed;
+    let u = prompt(hasSel ? 'Nhập đường dẫn (https://...) cho đoạn chữ đang bôi đen:' : 'Nhập đường dẫn (https://...):');
+    if (!u) return;
+    if (!/^(https?:|mailto:)/i.test(u)) u = 'https://' + u;
+    if (!qRestore()) return;
+    if (hasSel) document.execCommand('createLink', false, u);
+    else document.execCommand('insertHTML', false, `<a href="${u}" target="_blank" rel="noopener">${u}</a>&nbsp;`);
+    lastFocusedEditable.querySelectorAll('a[href]').forEach(a => { a.target = '_blank'; a.rel = 'noopener'; });
+    lastFocusedEditable.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  function qInsertYoutube() {
+    if (!lastFocusedEditable) return notify('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước.');
+    const u = prompt('Dán link YouTube (watch?v=..., youtu.be/..., shorts/...):'); if (!u) return;
+    const m = u.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/);
+    if (!m) return notify('❌ Link YouTube không hợp lệ.');
+    if (!qRestore()) return;
+    document.execCommand('insertHTML', false, `<div class="video-wrap" contenteditable="false" style="position:relative;padding-top:56.25%;margin:1em 0"><iframe src="https://www.youtube.com/embed/${m[1]}" style="position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:12px" allowfullscreen></iframe></div><p><br></p>`);
+    lastFocusedEditable.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  // Dán từ Word/web: giữ đậm/nghiêng/màu/căn lề, bỏ rác
+  function qClean(h) {
+    const d = new DOMParser().parseFromString(h, 'text/html');
+    d.querySelectorAll('style,meta,link,script,xml').forEach(n => n.remove());
+    d.querySelectorAll('*').forEach(n => {
+      n.removeAttribute('class');
+      const st = (n.getAttribute('style') || '').split(';').filter(x => /^\s*(font-weight|font-style|text-decoration|text-align|color)\s*:/i.test(x)).join(';');
+      st ? n.setAttribute('style', st) : n.removeAttribute('style');
+    });
+    return d.body.innerHTML.replace(/<!--[\s\S]*?-->/g, '').replace(/<\/?o:p>/g, '');
+  }
+  document.addEventListener('paste', (e) => {
+    const t = e.target;
+    if (!t.classList || !t.classList.contains('qeditor')) return;
+    const h = e.clipboardData.getData('text/html'); if (!h) return;
+    e.preventDefault(); document.execCommand('insertHTML', false, qClean(h));
+  });
   function qInsertImage(input) {
     const file = input.files[0]; if (!file || !lastFocusedEditable) return;
     const reader = new FileReader();
