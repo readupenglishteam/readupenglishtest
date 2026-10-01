@@ -1280,7 +1280,7 @@ function triggerPDFPrint() {
       let body = q.content || '', bopts = '';
       if (q.type === 'fill') body = body.replace(/\{\{\s*(\d+)\s*\}\}/g, (m, n) => '<b>(' + n + ')</b> ________');
       if (['mcq', 'multi', 'tf'].includes(q.type) && Array.isArray(q.options)) {
-        bopts = '<div class="pdf-options">' + q.options.map(o => '<div class="pdf-option">' + escHTML(o.text) + '</div>').join('') + '</div>';
+        bopts = '<div class="pdf-options">' + q.options.map((o, oi) => '<div class="pdf-option"><b>' + String.fromCharCode(65 + oi) + '.</b> ' + escHTML(o.text) + '</div>').join('') + '</div>';
       }
       return '<div class="pdf-question-item"><div class="pdf-question-title">Câu ' + q._num + ': ' + body + '</div>' + bopts + '</div>';
     }
