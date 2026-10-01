@@ -1368,7 +1368,7 @@ const pel = id => document.getElementById(id);
 function initPostEditor() {
   const B = [['bold','<b>B</b>','In đậm'],['italic','<i>I</i>','In nghiêng'],['underline','<u>U</u>','Gạch chân'],
     ['insertUnorderedList','• Danh sách','Danh sách chấm'],['insertOrderedList','1. Danh sách','Danh sách số'],
-    ['justifyLeft','⬅','Căn trái'],['justifyCenter','↔','Căn giữa'],['justifyRight','➡','Căn phải'],['removeFormat','🧹','Xóa định dạng']];
+    ['justifyLeft','⬅','Căn trái'],['justifyCenter','↔','Căn giữa'],['justifyRight','➡','Căn phải'],['justifyFull','☰','Căn đều hai bên'],['removeFormat','🧹','Xóa định dạng']];
   const btn = 'px-2 py-1 rounded bg-white dark:bg-zinc-700 border dark:border-zinc-600 hover:bg-red-50 font-bold';
   pel('postToolbar').innerHTML =
     `<select onchange="pcmd('formatBlock',this.value);this.value=''" class="p-1 rounded border dark:bg-zinc-700 dark:border-zinc-600"><option value="">Kiểu chữ</option><option value="<p>">Đoạn văn</option><option value="<h2>">Tiêu đề lớn</option><option value="<h3>">Tiêu đề nhỏ</option><option value="<blockquote>">Trích dẫn</option></select>` +
@@ -1527,7 +1527,7 @@ const pasSt = () => document.getElementById('passageEditorStatus');
 function initPassageEditor() {
   const B = [['bold','<b>B</b>','In đậm'],['italic','<i>I</i>','In nghiêng'],['underline','<u>U</u>','Gạch chân'],
     ['insertUnorderedList','• Danh sách','Danh sách chấm'],['insertOrderedList','1. Danh sách','Danh sách số'],
-    ['justifyLeft','⬅','Căn trái'],['justifyCenter','↔','Căn giữa'],['justifyRight','➡','Căn phải'],['removeFormat','🧹','Xóa định dạng']];
+    ['justifyLeft','⬅','Căn trái'],['justifyCenter','↔','Căn giữa'],['justifyRight','➡','Căn phải'],['justifyFull','☰','Căn đều hai bên'],['removeFormat','🧹','Xóa định dạng']];
   const btn = 'px-2 py-1 rounded bg-white dark:bg-zinc-700 border dark:border-zinc-600 hover:bg-red-50 font-bold text-xs';
   document.getElementById('passageToolbar').innerHTML =
     `<select onchange="pasCmd('formatBlock',this.value);this.value=''" class="p-1 text-xs rounded border dark:bg-zinc-700 dark:border-zinc-600"><option value="">Kiểu chữ</option><option value="<p>">Đoạn văn</option><option value="<h2>">Tiêu đề lớn</option><option value="<h3>">Tiêu đề nhỏ</option><option value="<blockquote>">Trích dẫn</option></select>` +
