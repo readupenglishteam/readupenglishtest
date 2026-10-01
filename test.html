@@ -28,7 +28,7 @@
   .opt{display:flex;gap:.6rem;align-items:flex-start;padding:.6rem .8rem;border:1.5px solid #e5e7eb;border-radius:12px;cursor:pointer;transition:.15s}
   .dark .opt{border-color:#3f3f46}.opt:hover{border-color:#cf1717}.opt.sel{border-color:#cf1717;background:rgba(207,23,23,.08)}
   .opt.ok{border-color:#10b981;background:rgba(16,185,129,.12)}.opt.bad{border-color:#ef4444;background:rgba(239,68,68,.1)}
-  .rsplit{display:grid;grid-template-columns:1fr 1fr;gap:1rem;height:calc(100vh - 7.5rem);height:calc(100dvh - 7.5rem);min-height:420px}
+  .rsplit{max-width:60rem;margin-left:auto;margin-right:auto;display:grid;grid-template-columns:1fr 1fr;gap:1rem;height:calc(100vh - 7.5rem);height:calc(100dvh - 7.5rem);min-height:420px}
   .reading-mode .rsplit{height:calc(100vh - 5.6rem);height:calc(100dvh - 5.6rem)}
   .reading-mode .xwrap{padding-top:.75rem;padding-bottom:.75rem}
   .rhead{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:.5rem;padding:.45rem .9rem;border-radius:12px;background:#cf1717;color:#fff;font-weight:800;font-size:.75rem;letter-spacing:.04em;text-transform:uppercase;box-shadow:0 2px 8px rgba(207,23,23,.25)}
@@ -61,7 +61,7 @@
       <span id="exTimer" class="font-mono font-black text-lg px-3 py-1 rounded-xl bg-[#cf1717] text-white">--:--</span>
     </div>
   </div>
-  <div class="xwrap max-w-7xl mx-auto px-4 py-6">
+  <div class="xwrap max-w-5xl mx-auto px-4 py-6">
     <p id="exDesc" class="nrm text-sm text-gray-500 mb-4"></p>
     <div id="exQs" class="space-y-4"></div>
     <button onclick="confirmSubmit()" class="nrm block mt-6 w-full py-3.5 rounded-2xl bg-[#cf1717] text-white font-extrabold shadow-lg hover:bg-red-700 transition">Nộp bài</button>
@@ -148,8 +148,8 @@ function testCard(t){
   const n=nowMs(), op=new Date(t.open_at).getTime(), cl=new Date(t.close_at).getTime();
   let act='';
   if(t.submitted){
-    act = n>=cl ? (t.show_result?`<button onclick="showResult('${t.id}')" class="btn">Xem kết quả</button>`:`<span class="badge">Đã nộp</span>`)
-                : `<span class="badge"><i class="bi bi-check-circle-fill text-emerald-500"></i> Đã nộp — kết quả hiển thị lúc ${fmt(t.close_at).split(', ').slice(1).join(', ')}</span>`;
+    act = n>=cl ? (t.show_result?`<button onclick="showResult('${t.id}')" class="btn">View grade</button>`:`<span class="badge">Submitted</span>`)
+                : `<span class="badge"><i class="bi bi-check-circle-fill text-emerald-500"></i> Submitted — grade available at ${fmt(t.close_at).split(', ').slice(1).join(', ')}</span>`;
   } else if(n<op){ const s=Math.ceil((op-n)/1000); act=`<span class="badge"><i class="bi bi-hourglass-split"></i> Mở sau ${s>86400?Math.floor(s/86400)+' ngày ':''}${String(Math.floor(s%86400/3600)).padStart(2,'0')}:${String(Math.floor(s%3600/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}</span>`; }
   else if(n>=cl){ act='<span class="badge" style="color:#ef4444"><i class="bi bi-x-octagon-fill"></i> Bạn chưa nộp bài — đề đã đóng</span>'; }
   else act=`<button onclick="askPass('${t.id}')" class="btn">${t.started?'Tiếp tục làm bài':'Vào làm bài'}</button>`;
@@ -208,7 +208,7 @@ function qHtml(q,next,sub){
   else if(q.type==='essay') body=`<textarea rows="6" class="${inp}" data-essay="${q.id}" oninput="setAns('${q.id}',this.value)" onpaste="return false" placeholder="Nhập câu trả lời..."></textarea>`;
   else if(q.type==='fill') body=''; 
   const content = q.type==='fill' ? (q.content||'').replace(GAPRE,(m,g)=>`<input type="text" class="gap" data-fq="${q.id}" data-g="${g}" autocomplete="off" spellcheck="false" onpaste="return false" oninput="setGap('${q.id}','${g}',this.value)">`) : (q.content||'');
-  return `<div class="${N}${card} p-5"><div class="flex items-center gap-2 mb-2"><span class="text-xs font-extrabold text-[#cf1717]">Question ${no}</span><span class="text-[11px] text-gray-400">(${q.points||0} điểm)</span></div>
+  return `<div class="${N}${card} p-5"><div class="flex items-center gap-2 mb-2"><span class="text-xs font-extrabold text-[#cf1717]">Question ${no}</span><span class="text-[11px] text-gray-400">(${q.points||0} ${(+q.points||0)===1?'point':'points'})</span></div>
     <div class="qc mb-3">${content}</div><div class="space-y-2">${body}</div></div>`;
 }
 function save(){ sessionStorage.setItem(X.key,JSON.stringify(X.ans)); }
@@ -262,14 +262,14 @@ async function submit(auto,msg){
   sessionStorage.removeItem(X.key); X.active=false;
   if(document.fullscreenElement) await document.exitFullscreen().catch(()=>{});
   $('exam').classList.add('hidden'); X=null;
-  openModal(`<div class="text-center"><div class="text-5xl mb-2 text-emerald-500"><i class="bi bi-check-circle-fill"></i></div><h2 class="text-lg font-extrabold mb-2">Đã nộp bài</h2><p class="text-sm text-gray-500 mb-4">${esc(msg||'Bài làm của bạn đã được ghi nhận.')}<br>Kết quả và đáp án sẽ hiển thị khi bài thi đóng.</p><button onclick="closeModal();pickClass(cls)" class="w-full py-2.5 rounded-xl bg-[#cf1717] text-white font-extrabold">Về danh sách bài thi</button></div>`);
+  openModal(`<div class="text-center"><div class="text-5xl mb-2 text-emerald-500"><i class="bi bi-check-circle-fill"></i></div><h2 class="text-lg font-extrabold mb-2">Đã nộp bài</h2><p class="text-sm text-gray-500 mb-4">${esc(msg||'Bài làm của bạn đã được ghi nhận.')}<br>Your grade and answers will be shown when the test closes.</p><button onclick="closeModal();pickClass(cls)" class="w-full py-2.5 rounded-xl bg-[#cf1717] text-white font-extrabold">Về danh sách bài thi</button></div>`);
 }
 
 /* ---------- KẾT QUẢ (chỉ sau giờ đóng) ---------- */
 async function showResult(id){
   const {data,error}=await SB.rpc('test_result',{p_assignment_id:id,p_name:me.name,p_email:me.email});
   if(error) return toast(error.message,'exclamation-triangle-fill');
-  if(data.hidden) return toast('Giáo viên chưa cho hiển thị kết quả bài này');
+  if(data.hidden) return toast('The teacher has not released the grade for this test yet');
   const given=data.answers||{}; let n=0;
   const rq=(q,sub)=>{
     const N=sub?'':'nrm ';
@@ -277,14 +277,14 @@ async function showResult(id){
     if(q.type==='reading'){ const a=n+1, qs=(q.sub_blocks||[]).map(x=>rq(x,true)).join(''); return rsplitHtml(q.content,qs,a,n); }
     n++; const g=given[q.id]; let b='';
     if(['mcq','tf','multi'].includes(q.type)){const ga=Array.isArray(g)?g:(g?[g]:[]);b=(q.options||[]).map(o=>`<div class="opt ${o.correct?'ok':(ga.includes(o.id)?'bad':'')}" style="cursor:default"><span class="qc">${ga.includes(o.id)?'<i class="bi bi-arrow-right-circle-fill text-[#cf1717]"></i> ':''}${o.text}</span></div>`).join('');}
-    else if(q.type==='fill'){const go=(g&&typeof g==='object')?g:{};b=(q.blanks||[]).map(bl=>`<div class="text-sm">Chỗ trống ${bl.gap}: <b>${esc(go[bl.gap]||'(bỏ trống)')}</b> <span class="text-emerald-600">(đáp án: ${esc((bl.accepted_answers||[]).join(' / '))})</span></div>`).join('');}
-    else b=`<div class="text-sm whitespace-pre-wrap p-3 rounded-xl bg-gray-50 dark:bg-zinc-800">${esc(g||'(bỏ trống)')}</div>${data.comments?.[q.id]?`<div class="text-xs mt-2 text-indigo-600"><i class="bi bi-chat-left-text"></i> ${esc(data.comments[q.id])}</div>`:''}`;
+    else if(q.type==='fill'){const go=(g&&typeof g==='object')?g:{};b=(q.blanks||[]).map(bl=>`<div class="text-sm">Blank ${bl.gap}: <b>${esc(go[bl.gap]||'(left blank)')}</b> <span class="text-emerald-600">(answer: ${esc((bl.accepted_answers||[]).join(' / '))})</span></div>`).join('');}
+    else b=`<div class="text-sm whitespace-pre-wrap p-3 rounded-xl bg-gray-50 dark:bg-zinc-800">${esc(g||'(left blank)')}</div>${data.comments?.[q.id]?`<div class="text-xs mt-2 text-indigo-600"><i class="bi bi-chat-left-text"></i> ${esc(data.comments[q.id])}</div>`:''}`;
     return `<div class="${N}${card} p-5"><div class="text-xs font-extrabold text-[#cf1717] mb-1">Question ${n}</div><div class="qc mb-2">${q.type==='fill'?(q.content||'').replace(GAPRE,'[$1]'):(q.content||'')}</div><div class="space-y-2">${b}</div>${q.explanation?`<div class="text-xs mt-2 text-gray-500"><i class="bi bi-lightbulb-fill text-amber-500"></i> ${q.explanation}</div>`:''}</div>`;
   };
-  $('app').innerHTML=`${logo}<div class="max-w-7xl mx-auto"><button onclick="pickClass(cls)" class="text-xs font-bold text-[#cf1717] mb-3 hover:underline"><i class="bi bi-arrow-left"></i> Danh sách bài thi</button>
-    <div class="nrm ${card} p-6 text-center mb-4"><div class="text-sm text-gray-500">Điểm của bạn</div><div class="text-5xl font-black text-[#cf1717]">${data.score}<span class="text-xl text-gray-400"> / ${data.total}</span></div>
-    <div class="text-xs text-gray-500 mt-2">Số lần cảnh báo: ${data.violations||0} • Điểm tự luận (nếu có) do giáo viên chấm</div></div>
-    <div class="space-y-4">${data.review&&data.questions?data.questions.map(q=>rq(q,false)).join(''):'<p class="nrm text-center text-gray-400 italic">Giáo viên không cho phép xem lại chi tiết bài làm.</p>'}</div></div>`;
+  $('app').innerHTML=`${logo}<div class="max-w-5xl mx-auto"><button onclick="pickClass(cls)" class="text-xs font-bold text-[#cf1717] mb-3 hover:underline"><i class="bi bi-arrow-left"></i> Danh sách bài thi</button>
+    <div class="nrm ${card} p-6 text-center mb-4"><div class="text-sm text-gray-500">Your grade</div><div class="text-5xl font-black text-[#cf1717]">${data.score}<span class="text-xl text-gray-400"> / ${data.total}</span></div>
+    <div class="text-xs text-gray-500 mt-2">Warnings: ${data.violations||0} • Essay grade (if any) is marked by the teacher</div></div>
+    <div class="space-y-4">${data.review&&data.questions?data.questions.map(q=>rq(q,false)).join(''):'<p class="nrm text-center text-gray-400 italic">The teacher has not allowed reviewing the detailed answers.</p>'}</div></div>`;
   clearInterval(ticker); scrollTo(0,0); $('exam').classList.remove('reading-mode');
 }
 
