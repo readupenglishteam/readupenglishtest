@@ -2132,7 +2132,7 @@
   function addBlock(type) {
     const base = { id: newId(), type, content: '', points: 1, explanation: '' };
     if (type === 'mcq' || type === 'multi') base.options = [{ id: 'a', text: '', correct: type === 'mcq' }, { id: 'b', text: '', correct: false }];
-    if (type === 'tf') base.options = [{ id: 'true', text: 'Đúng', correct: true }, { id: 'false', text: 'Sai', correct: false }];
+    if (type === 'tf') base.options = [{ id: 'true', text: 'True', correct: true }, { id: 'false', text: 'False', correct: false }];
     if (type === 'fill') { base.blanks = {}; }
     if (type === 'text') { base.points = 0; }
     if (type === 'reading') { base.points = 0; base.sub_blocks = []; }
@@ -2151,7 +2151,7 @@
     const rb = blocks.find(b => b.id === readingId); if (!rb) return;
     const base = { id: newId(), type, content: '', points: 1, explanation: '' };
     if (type === 'mcq' || type === 'multi') base.options = [{ id: 'a', text: '', correct: type === 'mcq' }, { id: 'b', text: '', correct: false }];
-    if (type === 'tf') base.options = [{ id: 'true', text: 'Đúng', correct: true }, { id: 'false', text: 'Sai', correct: false }];
+    if (type === 'tf') base.options = [{ id: 'true', text: 'True', correct: true }, { id: 'false', text: 'Flase', correct: false }];
     if (type === 'fill') base.blanks = {};
     if (type === 'text') base.points = 0;
     rb.sub_blocks = rb.sub_blocks || [];
