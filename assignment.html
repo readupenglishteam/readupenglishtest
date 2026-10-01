@@ -31,8 +31,18 @@
 <!-- KHUNG TOAST GÓC PHẢI TRÊN (đường màu đỏ chạy phía dưới mỗi thông báo) -->
 <div id="toastContainer" class="fixed top-5 right-5 z-[100000] flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
 
-<!-- Nút nổi "Highlight" hiện lên khi học sinh bôi đen văn bản trong bài đọc (hoạt động cả trên điện thoại) -->
-<button id="rdHlBtn" class="rd-hl-btn">🖍️ Đánh dấu</button>
+<!-- FLOATING ACTION TOOLBAR HIGHLIGHT (lấy từ trang EXAM) -->
+<div id="textSelectionMenu" class="fixed hidden z-50 bg-zinc-900/95 dark:bg-white/95 text-white dark:text-zinc-900 px-2.5 py-1.5 rounded-2xl shadow-2xl border border-zinc-700 dark:border-gray-200 backdrop-blur-md flex items-center gap-1.5 text-xs transition-all duration-150 -translate-x-1/2">
+  <button onclick="applyHighlightFromMenu('bg-yellow-300 dark:bg-yellow-500 text-black')" class="px-2 py-1 hover:bg-zinc-800 dark:hover:bg-gray-200 rounded-xl flex items-center gap-1 font-bold whitespace-nowrap">
+    <span>🖍️</span> <span>Tô Vàng</span>
+  </button>
+  <button onclick="applyHighlightFromMenu('bg-green-300 dark:bg-green-600 text-black dark:text-white')" class="px-2 py-1 hover:bg-zinc-800 dark:hover:bg-gray-200 rounded-xl flex items-center gap-1 font-bold whitespace-nowrap">
+    <span>🟢</span> <span>Tô Xanh</span>
+  </button>
+  <button id="btnRemoveHighlight" onclick="removeActiveHighlight()" class="hidden px-2 py-1 bg-red-500/20 text-red-400 dark:text-red-600 hover:bg-red-500/30 rounded-xl font-bold flex items-center gap-1 whitespace-nowrap">
+    <span>🧽</span> <span>Xóa Tô</span>
+  </button>
+</div>
 
 <style>
   @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
@@ -57,10 +67,6 @@
   .qcontent-2col img,.qcontent-2col table{break-inside:avoid}
   .opt-correct{background:rgba(16,185,129,.12)!important;border-color:#10b981!important}
   .opt-wrong{background:rgba(239,68,68,.12)!important;border-color:#ef4444!important}
-  .rd-hl{background:#fde68a;border-radius:2px;padding:0 1px;cursor:pointer;transition:background .15s}
-  .rd-hl:hover{background:#fca5a5;text-decoration:line-through}
-  .dark .rd-hl{background:#92400e;color:#fde68a}
-  .dark .rd-hl:hover{background:#991b1b}
   .rd-split{display:flex;border:1px solid #e5e7eb;border-radius:1rem;overflow:hidden;background:#fff}
   .dark .rd-split{border-color:#3f3f46;background:#18181b}
   .rd-pane{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1rem}
@@ -80,7 +86,14 @@
     .dark .rd-tabs{border-color:#3f3f46}
   }
   .rd-tab-btn.active{color:#cf1717;border-color:#cf1717}
-  .rd-hl-btn{position:fixed;z-index:9999;background:#18181b;color:#fde68a;font-size:11px;font-weight:700;padding:6px 10px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.3);cursor:pointer;display:none;white-space:nowrap}
+  /* ===== Highlight (lấy từ trang EXAM) ===== */
+  mark.highlight-item { cursor: pointer; transition: background-color 0.2s; }
+  mark.highlight-item:hover { filter: brightness(0.9); }
+  [data-rd-passage], mark.highlight-item {
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: text !important;
+    user-select: text !important;
+  }
   .fillbox{display:inline-block;vertical-align:middle;resize:none;overflow:hidden;line-height:1.4}
   /* ===== Lịch học của học sinh ===== */
   .sc-card { position: relative; overflow: hidden; }
@@ -1135,133 +1148,137 @@
     }
   }
 
-  let currentHlToken = null;
-  function initReadingHighlighting() {
-    currentHlToken = new URLSearchParams(window.location.search).get('token') || 'preview';
-    document.querySelectorAll('[data-rd-passage]').forEach(applyStoredHighlights);
-    initReadingSplits();
-    if (!window._rdHlBound) {
-      window._rdHlBound = true;
-      let selRaf = 0;
-      document.addEventListener('selectionchange', () => {
-        if (selRaf) return;
-        selRaf = requestAnimationFrame(() => { selRaf = 0; handleSelectionForHighlight(); });
-      });
-      const btn = pel('rdHlBtn');
-      btn.addEventListener('mousedown', e => e.preventDefault());
-      btn.addEventListener('click', applyHighlightFromSelection);
-      // Bấm thẳng vào vùng đã đánh dấu -> xóa ngay (không cần bôi đen lại)
-      document.addEventListener('click', removeHighlightOnClick);
-    }
-  }
-  function removeHighlightOnClick(e) {
-    const mark = e.target.closest && e.target.closest('mark.rd-hl');
-    if (!mark) return;
-    const container = closestPassage(mark); if (!container) return;
-    const sel = window.getSelection();
-    if (sel && !sel.isCollapsed) return;   // đang bôi đen văn bản -> không xóa
-    // Xóa cả vùng đánh dấu liền nhau (nếu bị tách thành nhiều mảnh) để bấm 1 lần là sạch
-    let group = [mark];
-    for (let n = mark.previousSibling; n && ((n.nodeType === 1 && n.matches('mark.rd-hl')) || (n.nodeType === 3 && !n.textContent)); n = n.previousSibling) if (n.nodeType === 1) group.push(n);
-    for (let n = mark.nextSibling; n && ((n.nodeType === 1 && n.matches('mark.rd-hl')) || (n.nodeType === 3 && !n.textContent)); n = n.nextSibling) if (n.nodeType === 1) group.push(n);
-    group.forEach(unwrapMark);
-    saveHighlightsForContainer(container);
-    pel('rdHlBtn').style.display = 'none';
-  }
+  // =====================================================================
+  // HIGHLIGHT BÀI ĐỌC — lấy nguyên cơ chế từ trang EXAM (thanh công cụ Tô Vàng / Tô Xanh / Xóa Tô)
+  // =====================================================================
+  function initReadingHighlighting() { initReadingSplits(); }
 
   function closestPassage(node) {
-    const el = node.nodeType === 3 ? node.parentElement : node;
-    return el ? el.closest('[data-rd-passage]') : null;
+    const el = node && (node.nodeType === 3 ? node.parentElement : node);
+    return el && el.closest ? el.closest('[data-rd-passage]') : null;
   }
-  let rdSavedRange = null, rdSavedContainer = null;
-  function handleSelectionForHighlight() {
-    const btn = pel('rdHlBtn'); if (!btn) return;
-    const sel = window.getSelection();
-    if (!sel || sel.isCollapsed || !sel.rangeCount) { btn.style.display = 'none'; return; }
-    const range = sel.getRangeAt(0);
-    const container = closestPassage(range.commonAncestorContainer);
-    if (!container) { btn.style.display = 'none'; return; }
-    rdSavedRange = range.cloneRange();
-    rdSavedContainer = container;
-    const rect = range.getBoundingClientRect();
-    if (!rect || (!rect.width && !rect.height)) { btn.style.display = 'none'; return; }
-    btn.textContent = isRangeFullyHighlighted(range) ? '🧹 Bỏ đánh dấu' : '🖍️ Đánh dấu';
-    btn.style.left = Math.max(8, Math.min(window.innerWidth - 110, rect.left + rect.width / 2 - 50)) + 'px';
-    btn.style.top = Math.max(8, rect.top - 40) + 'px';
-    btn.style.display = 'block';
-  }
-  function isRangeFullyHighlighted(range) {
-    const s = (range.startContainer.nodeType === 3 ? range.startContainer.parentElement : range.startContainer);
-    const e = (range.endContainer.nodeType === 3 ? range.endContainer.parentElement : range.endContainer);
-    const sm = s && s.closest('mark.rd-hl'), em = e && e.closest('mark.rd-hl');
-    return !!(sm && sm === em);
-  }
-  function applyHighlightFromSelection() {
-    if (!rdSavedRange || !rdSavedContainer) return;
-    const range = rdSavedRange, container = rdSavedContainer;
-    if (isRangeFullyHighlighted(range)) {
-      const s = (range.startContainer.nodeType === 3 ? range.startContainer.parentElement : range.startContainer);
-      const mark = s && s.closest('mark.rd-hl');
-      if (mark) unwrapMark(mark);
-    } else {
-      let { start, end } = getCharOffsets(container, range);
-      // Gộp với các đoạn đã đánh dấu chạm vào vùng chọn (tránh lồng mark chồng nhau)
-      Array.from(container.querySelectorAll('mark.rd-hl')).forEach(m => {
-        const r = document.createRange(); r.selectNodeContents(m);
-        const o = getCharOffsets(container, r);
-        if (o.end >= start && o.start <= end) { start = Math.min(start, o.start); end = Math.max(end, o.end); unwrapMark(m); }
-      });
-      wrapCharRange(container, start, end);
+
+  let savedRange = null;
+  let activeMarkNode = null;
+
+  document.addEventListener('selectionchange', handleSelectionChange);
+  document.addEventListener('mouseup', handleSelectionMenuShow);
+  document.addEventListener('touchend', handleSelectionMenuShow);
+  document.addEventListener('click', handleMarkClick);
+
+  function handleSelectionChange() {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
+      const range = selection.getRangeAt(0);
+      if (closestPassage(range.commonAncestorContainer)) {
+        savedRange = range.cloneRange();
+      }
     }
-    saveHighlightsForContainer(container);
-    pel('rdHlBtn').style.display = 'none';
-    window.getSelection().removeAllRanges();
   }
-  function unwrapMark(mark) {
-    const parent = mark.parentNode; if (!parent) return;
-    while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
-    parent.removeChild(mark); parent.normalize();
-  }
-  // Vị trí ký tự (start/end) của một vùng chọn so với đầu bài đọc — dùng được cả khi range nằm trên element (VD selectNodeContents(mark))
-  function getCharOffsets(container, range) {
-    const pre = document.createRange();
-    pre.selectNodeContents(container);
-    pre.setEnd(range.startContainer, range.startOffset);
-    const start = pre.toString().length;
-    return { start, end: start + range.toString().length };
-  }
-  function wrapCharRange(container, start, end) {
-    if (end <= start) return;
-    let pos = 0; const targets = [];
-    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
-    let node;
-    while (node = walker.nextNode()) {
-      const len = node.textContent.length;
-      const nodeStart = pos, nodeEnd = pos + len;
-      if (nodeEnd > start && nodeStart < end) targets.push({ node, from: Math.max(0, start - nodeStart), to: Math.min(len, end - nodeStart) });
-      pos += len;
-      if (pos >= end) break;
+
+  function positionSelectionMenu(rect) {
+    const menu = document.getElementById('textSelectionMenu');
+    if (!menu) return;
+
+    menu.classList.remove('hidden');
+    const menuWidth = menu.offsetWidth || 200;
+    const menuHeight = menu.offsetHeight || 40;
+
+    // Thanh công cụ dùng position: fixed nên tính theo toạ độ màn hình (không cộng scroll)
+    let top = rect.top - menuHeight - 15;
+    if (top < 10) {
+      top = rect.bottom + 10;
     }
-    targets.reverse().forEach(t => {
-      const r = document.createRange();
-      try {
-        r.setStart(t.node, t.from); r.setEnd(t.node, t.to);
-        if (r.collapsed) return;
-        const mark = document.createElement('mark'); mark.className = 'rd-hl'; mark.title = 'Bấm vào để xóa đánh dấu';
-        r.surroundContents(mark);
-      } catch (e) { /* bỏ qua đoạn không bọc được (VD nằm giữa ảnh/bảng) */ }
-    });
+
+    let left = rect.left + (rect.width / 2);
+    const halfWidth = menuWidth / 2;
+    const minLeft = halfWidth + 12;
+    const maxLeft = window.innerWidth - halfWidth - 12;
+
+    if (left < minLeft) left = minLeft;
+    if (left > maxLeft) left = maxLeft;
+
+    menu.style.top = top + 'px';
+    menu.style.left = left + 'px';
   }
-  function highlightKey(container) { return 'rd_hl_' + (currentHlToken || 'x') + '_' + container.id; }
-  function saveHighlightsForContainer(container) {
-    const marks = Array.from(container.querySelectorAll('mark.rd-hl'));
-    const ranges = marks.map(m => { const r = document.createRange(); r.selectNodeContents(m); return getCharOffsets(container, r); });
-    try { localStorage.setItem(highlightKey(container), JSON.stringify(ranges)); } catch (e) {}
+
+  function handleSelectionMenuShow(e) {
+    if (e.target.closest && e.target.closest('#textSelectionMenu')) return;
+
+    const selection = window.getSelection();
+    const menu = document.getElementById('textSelectionMenu');
+    const removeBtn = document.getElementById('btnRemoveHighlight');
+
+    const inPassage = selection && selection.rangeCount > 0 && !selection.isCollapsed &&
+      closestPassage(selection.getRangeAt(0).commonAncestorContainer);
+
+    if (inPassage && savedRange) {
+      activeMarkNode = null;
+      if (removeBtn) removeBtn.classList.add('hidden');
+
+      const rect = selection.getRangeAt(0).getBoundingClientRect();
+      if (rect.width > 0 && menu) {
+        positionSelectionMenu(rect);
+      }
+    } else if (menu && !(e.target.closest && e.target.closest('mark.highlight-item'))) {
+      // bấm ra chỗ khác (không phải vùng đã tô) -> ẩn thanh công cụ
+      activeMarkNode = null;
+      menu.classList.add('hidden');
+    }
   }
-  function applyStoredHighlights(container) {
-    let ranges = [];
-    try { ranges = JSON.parse(localStorage.getItem(highlightKey(container)) || '[]'); } catch (e) {}
-    ranges.forEach(r => wrapCharRange(container, r.start, r.end));
+
+  function handleMarkClick(e) {
+    const mark = e.target.closest && e.target.closest('mark.highlight-item');
+    const menu = document.getElementById('textSelectionMenu');
+    const removeBtn = document.getElementById('btnRemoveHighlight');
+
+    if (mark) {
+      activeMarkNode = mark;
+      const rect = mark.getBoundingClientRect();
+      if (menu && removeBtn) {
+        removeBtn.classList.remove('hidden');
+        positionSelectionMenu(rect);
+      }
+      e.stopPropagation();
+    }
+  }
+
+  function applyHighlightFromMenu(colorClass) {
+    const selection = window.getSelection();
+    let range = (selection && !selection.isCollapsed) ? selection.getRangeAt(0) : savedRange;
+
+    if (!range || range.collapsed) {
+      alert("Vui lòng bôi đen đoạn văn bản trong bài đọc!");
+      return;
+    }
+
+    const mark = document.createElement('mark');
+    mark.className = `highlight-item ${colorClass} px-1 rounded`;
+
+    try {
+      mark.appendChild(range.extractContents());
+      range.insertNode(mark);
+    } catch (err) {
+      console.warn("Không thể highlight cấu trúc phức tạp:", err);
+    }
+
+    if (selection) selection.removeAllRanges();
+    savedRange = null;
+    document.getElementById('textSelectionMenu')?.classList.add('hidden');
+  }
+
+  function removeActiveHighlight() {
+    if (!activeMarkNode) return;
+
+    const parent = activeMarkNode.parentNode;
+    while (activeMarkNode.firstChild) {
+      parent.insertBefore(activeMarkNode.firstChild, activeMarkNode);
+    }
+    parent.removeChild(activeMarkNode);
+    parent.normalize();
+
+    activeMarkNode = null;
+    document.getElementById('textSelectionMenu')?.classList.add('hidden');
   }
 
   function startTimer(seconds) {
