@@ -611,6 +611,15 @@
 
       // [BỔ SUNG] Nếu đây là phòng đã nộp bài rồi -> Hiển thị luôn Đáp Án & Giải Thích từ dữ liệu đã lưu, KHÔNG bắt làm lại / KHÔNG chạy lại giờ đếm ngược
       const roomCode = urlParams.get('room_code');
+      const resultId = urlParams.get('result_id');
+
+      // [FIX] Mở từ "Lịch sử & kết quả thi" (?result_id=...) -> xem lại đúng lượt nộp đó, KHÔNG bắt làm lại
+      if (resultId) {
+        const reviewedById = await renderReviewByResultId(resultId, exam);
+        if (reviewedById) return;
+      }
+
+      // Mở từ "Lịch sử phòng thi" (?room_code=...) -> xem lại bài đã nộp trong phòng
       if (roomCode) {
         const alreadyReviewed = await checkAndRenderRoomReview(roomCode, exam);
         if (alreadyReviewed) return;
@@ -619,8 +628,53 @@
       startTimer(exam.time_limit || 60);
     }
 
-    // [BỔ SUNG] Kiểm tra người dùng đã nộp bài trong phòng này chưa (room_participants.is_finished).
-    // Nếu đã nộp -> lấy bài làm đã lưu gần nhất trong exam_results (theo exam_id + user_id) để hiển thị lại Đáp Án & Giải Thích.
+    // [FIX] Hiển thị chế độ xem lại (Đáp Án & Giải Thích) từ bài làm đã lưu - dùng chung cho cả 2 luồng (result_id / room_code)
+    function showSavedReview(exam, savedResult, participant) {
+      renderReviewFromSavedAnswers(exam.questions || [], savedResult.answers || {});
+
+      const finalScoreVal = (savedResult.score ?? participant?.score ?? 0);
+      const scoreElem = document.getElementById('finalScore');
+      if (scoreElem) scoreElem.innerText = finalScoreVal + '/10 điểm';
+
+      const timeVal = savedResult.time_spent ?? participant?.completion_time ?? 0;
+      const timeElem = document.getElementById('finalTime');
+      if (timeElem) timeElem.innerText = Math.floor(timeVal / 60) + 'm ' + (timeVal % 60) + 's';
+
+      const timerElem = document.getElementById('timerDisplay');
+      if (timerElem) timerElem.innerText = '✅ Đã nộp';
+
+      disableSubmitBtn();
+
+      const resultModal = document.getElementById('resultModal');
+      if (resultModal) resultModal.classList.remove('hidden');
+    }
+
+    // [FIX] Xem lại bài đã nộp theo id lượt làm bài (exam_results.id) - dùng cho nút "Xem đáp án" ở Lịch sử & kết quả thi
+    async function renderReviewByResultId(resultId, exam) {
+      try {
+        const { data: saved, error } = await sbClient
+          .from('exam_results')
+          .select('*')
+          .eq('id', resultId)
+          .eq('user_id', currentUser.id)
+          .eq('exam_id', exam.id)
+          .maybeSingle();
+
+        if (error || !saved) {
+          console.error('Không tìm thấy kết quả đã nộp:', error);
+          return false;
+        }
+        showSavedReview(exam, saved, null);
+        return true;
+      } catch (err) {
+        console.error('Lỗi xem lại bài theo result_id:', err);
+        return false;
+      }
+    }
+
+    // Kiểm tra người dùng đã nộp bài trong phòng này chưa.
+    // [FIX] Có bài nộp gắn đúng room_code trong exam_results -> coi là ĐÃ NỘP (không phụ thuộc room_participants.is_finished).
+    // Bản ghi cũ chưa có room_code -> chỉ fallback theo đề thi khi phòng đã đánh dấu is_finished.
     // Trả về true nếu đã hiển thị chế độ xem lại thành công (để initExam() không khởi động giờ làm bài mới).
     async function checkAndRenderRoomReview(roomCode, exam) {
       try {
@@ -631,12 +685,9 @@
           .eq('user_id', currentUser.id)
           .maybeSingle();
 
-        if (!participant || !participant.is_finished) return false; // Chưa nộp bài trong phòng này -> cho làm bài bình thường
-
-        // Lấy bài làm đã nộp gần nhất của người dùng cho đúng đề thi này
         let savedResult = null;
 
-        // [FIX] Ưu tiên tìm chính xác theo room_code (đã bổ sung cột room_code trong bảng exam_results)
+        // 1) Tìm chính xác theo room_code
         try {
           const { data: exactResults, error: exactErr } = await sbClient
             .from('exam_results')
@@ -647,51 +698,23 @@
             .order('submitted_at', { ascending: false })
             .limit(1);
           if (!exactErr && exactResults && exactResults.length > 0) savedResult = exactResults[0];
-        } catch (e) { /* Cột room_code có thể chưa tồn tại ở phiên bản cũ -> bỏ qua, dùng fallback bên dưới */ }
+        } catch (e) { /* Cột room_code có thể chưa tồn tại -> dùng fallback bên dưới */ }
 
-        // [FALLBACK] Nếu chưa tìm thấy theo room_code (bản ghi cũ trước khi có cột này) -> lấy bài nộp gần nhất theo đề thi
-        if (!savedResult) {
-          try {
-            const { data: results, error } = await sbClient
-              .from('exam_results')
-              .select('*')
-              .eq('exam_id', exam.id)
-              .eq('user_id', currentUser.id)
-              .order('submitted_at', { ascending: false })
-              .limit(1);
-            if (!error && results && results.length > 0) savedResult = results[0];
-          } catch (e) {
-            // Cột 'submitted_at' có thể không tồn tại -> thử lại không sắp xếp để tránh crash
-            const { data: results2 } = await sbClient
-              .from('exam_results')
-              .select('*')
-              .eq('exam_id', exam.id)
-              .eq('user_id', currentUser.id)
-              .limit(1);
-            if (results2 && results2.length > 0) savedResult = results2[0];
-          }
+        // 2) Fallback cho bản ghi cũ: chỉ dùng khi phòng đã đánh dấu hoàn thành
+        if (!savedResult && participant && participant.is_finished) {
+          const { data: results, error } = await sbClient
+            .from('exam_results')
+            .select('*')
+            .eq('exam_id', exam.id)
+            .eq('user_id', currentUser.id)
+            .order('submitted_at', { ascending: false })
+            .limit(1);
+          if (!error && results && results.length > 0) savedResult = results[0];
         }
 
-        if (!savedResult) return false; // Không tìm thấy dữ liệu đã nộp -> vẫn cho làm bài để không chặn nhầm
+        if (!savedResult) return false; // Chưa nộp bài trong phòng này -> cho làm bài bình thường
 
-        renderReviewFromSavedAnswers(exam.questions || [], savedResult.answers || {});
-
-        const finalScoreVal = (savedResult.score ?? participant.score ?? 0);
-        const scoreElem = document.getElementById('finalScore');
-        if (scoreElem) scoreElem.innerText = finalScoreVal + '/10 điểm';
-
-        const timeVal = savedResult.time_spent ?? participant.completion_time ?? 0;
-        const timeElem = document.getElementById('finalTime');
-        if (timeElem) timeElem.innerText = Math.floor(timeVal / 60) + 'm ' + (timeVal % 60) + 's';
-
-        const timerElem = document.getElementById('timerDisplay');
-        if (timerElem) timerElem.innerText = '✅ Đã nộp';
-
-        disableSubmitBtn();
-
-        const resultModal = document.getElementById('resultModal');
-        if (resultModal) resultModal.classList.remove('hidden');
-
+        showSavedReview(exam, savedResult, participant);
         return true;
       } catch (err) {
         console.error("Lỗi kiểm tra bài đã nộp trong phòng:", err);
