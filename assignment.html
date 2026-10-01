@@ -43,14 +43,6 @@
   }
   .animate-blob { animation: blob 10s infinite ease-in-out; }
   .animation-delay-2000 { animation-delay: 2s; }
-  /* Điện thoại / máy yếu: tắt blob mờ chuyển động + backdrop-blur (rất nặng GPU khi trang bài làm dài, dễ gây đứng hình) */
-  @media (max-width: 768px), (prefers-reduced-motion: reduce) {
-    .animate-blob { animation: none !important; filter: none !important; }
-    .animate-ping { animation: none !important; }
-    header.sticky, .backdrop-blur-md { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
-    header.sticky { background-color: rgba(255,255,255,.96) !important; }
-    .dark header.sticky { background-color: rgba(9,9,11,.96) !important; }
-  }
   .animation-delay-4000 { animation-delay: 4s; }
   .qcontent{line-height:1.8}
   .qcontent img{max-width:100%;border-radius:10px;margin:.5em 0}
@@ -877,8 +869,6 @@
 
     const counter = { n: 0 };
     pel('questionArea').innerHTML = (a.questions || []).map(q => renderTopLevelBlock(q, counter, 'attempt')).join('');
-    // Ảnh trong đề: tải lười + giải mã ngầm để điện thoại không bị treo khi đề có nhiều ảnh lớn
-    pel('questionArea').querySelectorAll('img').forEach(im => { im.loading = 'lazy'; im.decoding = 'async'; });
     initReadingHighlighting();
 
     if (a.time_limit_minutes) startTimer(a.time_limit_minutes * 60);
@@ -1011,11 +1001,7 @@
     initReadingSplits();
     if (!window._rdHlBound) {
       window._rdHlBound = true;
-      let selRaf = 0;
-      document.addEventListener('selectionchange', () => {
-        if (selRaf) return;
-        selRaf = requestAnimationFrame(() => { selRaf = 0; handleSelectionForHighlight(); });
-      });
+      document.addEventListener('selectionchange', handleSelectionForHighlight);
       const btn = pel('rdHlBtn');
       btn.addEventListener('mousedown', e => e.preventDefault());
       btn.addEventListener('click', applyHighlightFromSelection);
