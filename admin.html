@@ -1405,8 +1405,13 @@ function insertAtCursor(html) {
 }
 function postLink() { const u = prompt('Nhập đường dẫn (https://...):'); if (u) { ed().focus(); if (_sel) { const s = getSelection(); s.removeAllRanges(); s.addRange(_sel); } document.execCommand('createLink', false, u); } }
 function postTable() {
-  const c = '<td>&nbsp;</td>'.repeat(3), r = `<tr>${c}</tr>`;
-  insertAtCursor(`<table><tr>${'<th>Tiêu đề</th>'.repeat(3)}</tr>${r}${r}</table><p><br></p>`);
+  const rows = parseInt(prompt('Bảng bao nhiêu HÀNG? (tính cả hàng tiêu đề)', '3'));
+  if (!rows) return;
+  const cols = parseInt(prompt('Bảng bao nhiêu CỘT?', '3'));
+  if (!cols) return;
+  const R = Math.min(Math.max(rows, 1), 50), C = Math.min(Math.max(cols, 1), 20);
+  const tr = `<tr>${'<td>&nbsp;</td>'.repeat(C)}</tr>`;
+  insertAtCursor(`<table><tr>${'<th>Tiêu đề</th>'.repeat(C)}</tr>${tr.repeat(R - 1)}</table><p><br></p>`);
 }
 function postVideo() {
   const u = prompt('Dán link YouTube:'); if (!u) return;
@@ -1581,9 +1586,14 @@ function passageLink() {
   pasRestore(); document.execCommand('createLink', false, u);
 }
 function passageTable() {
-  const td = '<td style="border:1px solid #d1d5db;padding:8px 10px">&nbsp;</td>'.repeat(3);
-  const th = '<th style="border:1px solid #d1d5db;padding:8px 10px;background:#fdecec">Tiêu đề</th>'.repeat(3);
-  insertPassageHtml(`<table style="width:100%;border-collapse:collapse;margin:1em 0"><tr>${th}</tr><tr>${td}</tr><tr>${td}</tr></table><p><br></p>`);
+  const rows = parseInt(prompt('Bảng bao nhiêu HÀNG? (tính cả hàng tiêu đề)', '3'));
+  if (!rows) return;
+  const cols = parseInt(prompt('Bảng bao nhiêu CỘT?', '3'));
+  if (!cols) return;
+  const R = Math.min(Math.max(rows, 1), 50), C = Math.min(Math.max(cols, 1), 20);
+  const td = '<td style="border:1px solid #d1d5db;padding:8px 10px">&nbsp;</td>'.repeat(C);
+  const th = '<th style="border:1px solid #d1d5db;padding:8px 10px;background:#fdecec">Tiêu đề</th>'.repeat(C);
+  insertPassageHtml(`<table style="width:100%;border-collapse:collapse;margin:1em 0"><tr>${th}</tr>${`<tr>${td}</tr>`.repeat(R - 1)}</table><p><br></p>`);
 }
 function passageVideo() {
   const u = prompt('Dán link YouTube:'); if (!u) return;
