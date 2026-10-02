@@ -38,6 +38,7 @@
   .rsplit .pane+.pane{display:flex;flex-direction:column;gap:1rem}
   @media(max-width:860px){.rsplit,.reading-mode .rsplit{display:block;height:auto;min-height:0}.rsplit>.pane{overflow:visible}.rsplit>.pane:first-child{position:sticky;top:4.1rem;z-index:6;max-height:42vh;overflow-y:auto;margin-bottom:1rem;padding-bottom:.5rem;background:#f8fafc}.dark .rsplit>.pane:first-child{background:#09090b}.rsplit>.pane+.pane .rhead{position:static}.rsplit .pane+.pane{gap:1rem}}
   .nrm{max-width:48rem;margin-left:auto;margin-right:auto}
+  @media(min-width:1024px){#app.info-wide{max-width:76rem}}
   @media print{body{display:none!important}}
 </style>
 </head>
@@ -94,7 +95,10 @@ const inp = 'w-full p-3 rounded-xl border dark:bg-zinc-800 dark:border-zinc-700 
 /* ---------- MÀN 1: THÔNG TIN ---------- */
 function screenInfo(){
   clearInterval(ticker);
-  $('app').innerHTML = `${logo}<div class="${card} p-6 sm:p-8 max-w-md mx-auto">
+  $('app').classList.add('info-wide');
+  $('app').innerHTML = `<div class="lg:grid lg:grid-cols-2 lg:gap-10 lg:items-center">
+    <div class="hidden lg:flex justify-center items-center"><img src="https://i.ibb.co/YFwT790Y/Nh-m-h-c-ti-ng-Anh-Read-Up-n-ng-ng.png" alt="Nhóm học tiếng Anh Read Up năng động" loading="lazy" draggable="false" class="w-full max-w-[34rem] max-h-[80vh] object-contain pointer-events-none select-none drop-shadow-2xl"></div>
+    <div class="lg:pl-6">${logo}<div class="${card} p-6 sm:p-8 max-w-md mx-auto">
     <h1 class="text-center text-xl sm:text-2xl font-black text-[#cf1717] uppercase tracking-wide leading-snug mb-4">HỆ THỐNG PHÒNG LÀM BÀI KIỂM TRA</h1>
     <h2 class="text-base font-extrabold mb-1">Thông tin thí sinh</h2>
     <p class="text-xs text-gray-500 mb-5">Nhập đúng họ tên và email đã đăng ký với trung tâm để hệ thống tìm lớp của bạn.</p>
@@ -102,7 +106,7 @@ function screenInfo(){
       <input id="inName" class="${inp}" placeholder="Họ và tên" value="${esc(me?.name||'')}" autocomplete="name">
       <input id="inEmail" type="email" class="${inp}" placeholder="Email của bạn" value="${esc(me?.email||'')}" autocomplete="email">
       <button id="btnFind" onclick="findClasses()" class="w-full py-3 rounded-xl bg-[#cf1717] text-white font-extrabold hover:bg-red-700 transition">Tìm lớp của tôi</button>
-    </div></div>`;
+    </div></div></div></div>`;
 }
 async function findClasses(){
   const name=$('inName').value.trim(), email=$('inEmail').value.trim();
@@ -118,7 +122,7 @@ async function findClasses(){
 /* ---------- MÀN 2: CHỌN LỚP ---------- */
 const meChip=()=>me?`<span class="inline-flex items-center gap-1 text-[11px] text-gray-500 dark:text-gray-400 max-w-full"><i class="bi bi-person-badge"></i><span class="truncate">${esc(me.name)} · ${esc(me.email)}</span></span>`:'';
 function screenClasses(list){
-  clearInterval(ticker); sessionStorage.setItem('rt_classes',JSON.stringify(list)); sessionStorage.removeItem('rt_cls');
+  $('app').classList.remove('info-wide'); clearInterval(ticker); sessionStorage.setItem('rt_classes',JSON.stringify(list)); sessionStorage.removeItem('rt_cls');
   $('app').innerHTML = `${logo}<div class="max-w-xl mx-auto">
     <div class="flex justify-between items-center mb-3"><h1 class="text-lg font-extrabold"><i class="bi bi-person-circle text-[#cf1717]"></i> Xin chào, ${esc(me.name)}</h1><button onclick="logout()" class="text-xs font-bold text-[#cf1717] hover:underline">Đổi thí sinh</button></div>
     <div class="mb-3">${meChip()}</div>
@@ -133,7 +137,7 @@ function logout(){['rt_me','rt_classes','rt_cls'].forEach(k=>sessionStorage.remo
 
 /* ---------- MÀN 3: BÀI THI CỦA LỚP ---------- */
 async function pickClass(c){
-  cls=c; sessionStorage.setItem('rt_cls',JSON.stringify(c)); $('app').innerHTML=`${logo}<p class="text-center text-gray-500">Đang tải bài thi...</p>`;
+  $('app').classList.remove('info-wide'); cls=c; sessionStorage.setItem('rt_cls',JSON.stringify(c)); $('app').innerHTML=`${logo}<p class="text-center text-gray-500">Đang tải bài thi...</p>`;
   const {data,error}=await SB.rpc('test_list',{p_class_id:c.id,p_name:me.name,p_email:me.email});
   if(error||!data){toast(error?.message||'Không có quyền truy cập lớp','x-circle-fill');return screenClasses(window._classes);}
   offset=new Date(data.now).getTime()-Date.now(); tests=data.tests; renderTests();
@@ -283,6 +287,7 @@ async function showResult(id){
   const {data,error}=await SB.rpc('test_result',{p_assignment_id:id,p_name:me.name,p_email:me.email});
   if(error) return toast(error.message,'exclamation-triangle-fill');
   if(data.hidden) return toast('The teacher has not released the grade for this test yet');
+  $('app').classList.remove('info-wide');
   const given=data.answers||{}; let n=0;
   const rq=(q,sub)=>{
     const N=sub?'':'nrm ';
