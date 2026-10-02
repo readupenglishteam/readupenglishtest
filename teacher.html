@@ -2521,8 +2521,11 @@
       show_result: pel('asShowResult').checked, allow_review: pel('asAllowReview').checked,
       updated_at: new Date().toISOString()
     };
-    const { error } = editingId ? await sbClient.from('assignments').update(row).eq('id', editingId) : await sbClient.from('assignments').insert([row]);
-    if (error) return notify('❌ Lỗi lưu bài tập: ' + error.message);
+    const saveRes = editingId ? await sbClient.from('assignments').update(row).eq('id', editingId).select('id, is_test') : await sbClient.from('assignments').insert([row]).select('id, is_test');
+    if (saveRes.error) return notify('❌ Lỗi lưu bài tập: ' + saveRes.error.message);
+    // Supabase/RLS có thể "im lặng" không cập nhật dòng nào → báo rõ thay vì hiện "Đã lưu"
+    if (!saveRes.data || !saveRes.data.length) return notify('❌ Không lưu được: tài khoản này không có quyền sửa bài này (bị chặn bởi RLS). Chưa có thay đổi nào được ghi.');
+    if (saveRes.data[0].is_test !== row.is_test) return notify('⚠️ Máy chủ vẫn giữ is_test = ' + saveRes.data[0].is_test + ' dù bạn đã ' + (row.is_test ? 'tích' : 'bỏ tích') + ' — có trigger/ràng buộc trong Supabase đang ghi đè.');
     notify('🎉 Đã lưu bài tập! Đường dẫn: assignment.html?token=' + token);
     closeBuilder(); cacheDel('assign:' + currentClassForAssignments); loadAssignmentsForClass();
   }
