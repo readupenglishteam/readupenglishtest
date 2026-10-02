@@ -166,7 +166,7 @@ function testCard(t){
   else if(inProg&&n<cl){ act=`<button onclick="askPass('${t.id}')" class="btn">Tiếp tục làm bài</button>`; }
   else if(t.submitted||used>0){
     if(n>=cl) act = t.show_result?`<button onclick="showResult('${t.id}')" class="btn">View grade</button>`:(gradeBadge||`<span class="badge">Submitted</span>`);
-    else act = `<div class="flex flex-col items-end gap-2">${gradeBadge||`<span class="badge"><i class="bi bi-check-circle-fill text-emerald-500"></i> Submitted — grade available at ${fmt(t.close_at).split(', ').slice(1).join(', ')}</span>`}${left&&hasAtt?`<button onclick="askPass('${t.id}')" class="btn">Làm lại bài</button>`:''}<span class="text-[11px] text-gray-400">Answers are shown when the test closes.</span></div>`;
+    else act = `<div class="flex flex-col items-end gap-2">${(!max&&gradeBadge)||`<span class="badge"><i class="bi bi-check-circle-fill text-emerald-500"></i> Submitted</span>`}${left&&hasAtt?`<button onclick="askPass('${t.id}')" class="btn">Làm lại bài</button>`:''}<span class="text-[11px] text-gray-400">${max?'You can view your grade when the test closes.':'Answers are shown when the test closes.'}</span></div>`;
   }
   else if(n>=cl){ act='<span class="badge" style="color:#ef4444"><i class="bi bi-x-octagon-fill"></i> Bạn chưa nộp bài — đề đã đóng</span>'; }
   else act=`<button onclick="askPass('${t.id}')" class="btn">${t.started?'Tiếp tục làm bài':'Vào làm bài'}</button>`;
