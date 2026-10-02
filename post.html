@@ -4,13 +4,19 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ReadUp English - Bài Học</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script>tailwind.config={darkMode:'class'}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Montserrat','ui-sans-serif','system-ui','sans-serif']}}}}</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark');
 </script>
 <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
 <style>
+html,body,button,input,textarea,select{font-family:'Montserrat',ui-sans-serif,system-ui,sans-serif}
+.bi{line-height:1;vertical-align:-.125em}
 @keyframes blob{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-50px) scale(1.1)}66%{transform:translate(-20px,20px) scale(.95)}}
 .animate-blob{animation:blob 10s infinite ease-in-out}.animation-delay-2000{animation-delay:2s}.animation-delay-4000{animation-delay:4s}
 .post-content{line-height:1.85;font-size:1.02rem;color:#374151;word-wrap:break-word}
@@ -28,8 +34,6 @@ if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.match
 .post-content .video-wrap{position:relative;padding-top:56.25%;margin:1em 0}
 .post-content .video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border-radius:12px}
 </style>
-</head>
-<body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen transition-colors duration-300">
 </head>
 <body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen transition-colors duration-300">
 <!-- ================= NỀN ĐỘNG CHUYỂN ĐỘNG DÙNG CHUNG ================= -->
@@ -61,41 +65,39 @@ if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.match
     <!-- 2. KHU VỰC THÔNG TIN & MENU TRANG CÁ NHÂN -->
     <div class="flex items-center gap-3 relative">
       <!-- Tên Sinh Viên -->
-      <span id="welcomeUser" class="text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-200 hidden sm:inline-block">👋 Chào mừng sinh viên</span>
+      <span id="welcomeUser" class="text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-200 hidden sm:inline-block"><i class="bi bi-person-check mr-1"></i>Chào mừng sinh viên</span>
 
       <!-- Nút Menu 3 Gạch: Điều Hướng Nhanh Tới Section -->
       <div class="relative">
         <button onclick="toggleSectionNavMenu(event)" class="w-9 h-9 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-zinc-700 hover:scale-105 transition shadow-md flex items-center justify-center" title="Chuyển nhanh tới mục">
-          <svg class="w-5 h-5 fill-current" viewBox="0 0 16 16">
-            <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
-          </svg>
+          <i class="bi bi-list text-2xl"></i>
         </button>
 
         <!-- Menu Dropdown Điều Hướng Section -->
         <div id="sectionNavMenu" class="hidden absolute right-0 mt-2 w-64 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl py-2 z-50 transition-all max-h-[70vh] overflow-y-auto">
           <p class="px-4 pt-1 pb-2 text-[10px] font-extrabold text-gray-400 uppercase tracking-wide">Chuyển nhanh tới mục</p>
-          <a href="post.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-[#cf1717] bg-red-50 dark:bg-red-950/40 transition"><span>📖</span><span>Bài Học (Post)</span></a>
-          <a href="assignment.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition"><span>⭐</span><span>Assignment (VIP)</span></a>
+          <a href="post.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-[#cf1717] bg-red-50 dark:bg-red-950/40 transition"><i class="bi bi-book-half w-4 text-center"></i><span>Bài Học (Post)</span></a>
+          <a href="assignment.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition"><i class="bi bi-star-fill w-4 text-center"></i><span>Assignment (VIP)</span></a>
           <a href="dashboard.html#section-lich-hoc" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
-            <span>📅</span><span>Lịch Học & Bài Thi Reading</span>
+            <i class="bi bi-calendar-event w-4 text-center"></i><span>Lịch Học & Bài Thi Reading</span>
           </a>
           <a href="dashboard.html#section-tin-tuc" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
-            <span>📰</span><span>Tin Tức & Thông Báo Mới</span>
+            <i class="bi bi-newspaper w-4 text-center"></i><span>Tin Tức & Thông Báo Mới</span>
           </a>
           <a href="dashboard.html#section-bai-thi" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
-            <span>📚</span><span>Danh Sách Bài Thi Reading</span>
+            <i class="bi bi-collection w-4 text-center"></i><span>Danh Sách Bài Thi Reading</span>
           </a>
           <a href="dashboard.html#section-lich-su" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
-            <span>📜</span><span>Lịch Sử & Kết Quả Bài Làm</span>
+            <i class="bi bi-clock-history w-4 text-center"></i><span>Lịch Sử & Kết Quả Bài Làm</span>
           </a>
           <a href="dashboard.html#section-speaking" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
-            <span>🎙️</span><span>AI Speaking Assistant</span>
+            <i class="bi bi-mic w-4 text-center"></i><span>AI Speaking Assistant</span>
           </a>
           <a href="dashboard.html#section-luyen-am" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
-            <span>🎙️</span><span>Luyện Phát Âm & Tiến Bộ</span>
+            <i class="bi bi-soundwave w-4 text-center"></i><span>Luyện Phát Âm & Tiến Bộ</span>
           </a>
           <a href="dashboard.html#section-nhom" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
-            <span>👥</span><span>Luyện Tập Cùng Bạn Bè</span>
+            <i class="bi bi-people w-4 text-center"></i><span>Luyện Tập Cùng Bạn Bè</span>
           </a>
         </div>
       </div>
@@ -105,11 +107,8 @@ if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.match
         <button onclick="toggleUserDropdown(event)" class="relative p-1.5 rounded-full bg-red-50 dark:bg-zinc-800 border-2 border-[#cf1717] text-[#cf1717] dark:text-red-400 hover:scale-105 transition shadow-md flex items-center justify-center w-11 h-11">
         <!-- Div bọc Avatar riêng để xử lý ẩn phần thừa của ảnh (thay vì dùng overflow-hidden trên button) -->
         <div class="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
-        <!-- Icon bi-person-circle (mặc định khi chưa có ảnh đại diện) -->
-        <svg id="headerAvatarIcon" class="w-7 h-7 fill-current" viewBox="0 0 16 16">
-        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
-        <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
-        </svg>
+        <!-- Icon mặc định khi chưa có ảnh đại diện -->
+        <i id="headerAvatarIcon" class="bi bi-person-circle text-3xl"></i>
         <!-- Ảnh đại diện người dùng -->
         <img id="headerAvatarImg" class="hidden w-full h-full object-cover rounded-full" src="" alt="Avatar">
         </div>
@@ -121,14 +120,14 @@ if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.match
         <!-- Menu Dropdown Xổ Xuống -->
         <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-52 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl py-2 z-50 transition-all">
           <a href="profile.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
-            <span>👤</span><span id="dropdownUserName">Trang cá nhân</span>
+            <i class="bi bi-person w-4 text-center"></i><span id="dropdownUserName">Trang cá nhân</span>
           </a>
           <button onclick="toggleDarkMode()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
-            <span id="themeIcon">🌙</span> Sáng/Tối
+            <i id="themeIcon" class="bi bi-circle-half w-4 text-center"></i> Sáng/Tối
           </button>
           <div class="border-t border-gray-100 dark:border-zinc-800 my-1"></div>
           <button onclick="handleLogout()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition">
-            <span>🚪</span> Đăng xuất
+            <i class="bi bi-box-arrow-right w-4 text-center"></i> Đăng xuất
           </button>
         </div>
       </div>
@@ -144,10 +143,13 @@ if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.match
   <!-- DANH SÁCH BÀI HỌC -->
   <section id="listView" class="hidden">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-l-4 border-[#cf1717] pl-3 mb-2">
-      <h1 class="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white">📖 Bài Học</h1>
-      <input id="postSearch" oninput="q=this.value;page=1;renderList()" placeholder="🔍 Tìm bài học..." class="w-full sm:w-72 p-2.5 text-sm rounded-xl border border-gray-200 dark:border-zinc-700 dark:bg-zinc-900 outline-none focus:ring-2 focus:ring-[#cf1717]">
+      <h1 class="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2"><i class="bi bi-book-half text-[#cf1717]"></i>Bài Học</h1>
+      <div class="relative w-full sm:w-72">
+        <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+        <input id="postSearch" oninput="q=this.value;page=1;renderList()" placeholder="Tìm bài học..." class="w-full p-2.5 pl-9 text-sm rounded-xl border border-gray-200 dark:border-zinc-700 dark:bg-zinc-900 outline-none focus:ring-2 focus:ring-[#cf1717]">
+      </div>
     </div>
-    <div id="postList" class="bg-white/70 dark:bg-zinc-900/60 backdrop-blur rounded-2xl px-4 sm:px-6 border border-gray-100 dark:border-zinc-800"><p class="py-8 text-sm text-gray-400">⏳ Đang tải bài học...</p></div>
+    <div id="postList" class="bg-white/70 dark:bg-zinc-900/60 backdrop-blur rounded-2xl px-4 sm:px-6 border border-gray-100 dark:border-zinc-800"><p class="py-8 text-sm text-gray-400"><i class="bi bi-hourglass-split mr-1"></i>Đang tải bài học...</p></div>
     <div id="postPager" class="flex justify-center gap-1.5 pt-6"></div>
   </section>
 
@@ -158,7 +160,7 @@ if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.match
         <h1 id="dTitle" class="text-2xl sm:text-4xl font-black text-gray-900 dark:text-white leading-tight"></h1>
         <p id="dDate" class="text-xs text-gray-400 mt-2 mb-6"></p>
         <div id="dContent" class="post-content"></div>
-        <a href="post.html" class="inline-block mt-8 px-4 py-2 rounded-xl bg-[#cf1717] hover:bg-red-700 text-white text-xs font-bold shadow transition">← Quay lại danh sách bài học</a>
+        <a href="post.html" class="inline-block mt-8 px-4 py-2 rounded-xl bg-[#cf1717] hover:bg-red-700 text-white text-xs font-bold shadow transition"><i class="bi bi-arrow-left mr-1"></i>Quay lại danh sách bài học</a>
       </article>
       <aside class="bg-white/70 dark:bg-zinc-900/60 rounded-2xl border border-gray-100 dark:border-zinc-800 p-5 h-fit lg:sticky lg:top-24">
         <h3 class="font-extrabold text-lg text-gray-900 dark:text-white mb-4">Bài viết mới nhất</h3>
@@ -191,7 +193,7 @@ if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.match
       </div>
       <p class="text-gray-400 leading-relaxed">Nền tảng luyện thi IELTS Reading thông minh, tối ưu hóa vốn từ vựng theo ngữ cảnh.</p>
       <div class="space-y-1">
-        <p>📧 Email: <a href="mailto:readupenglish.team@gmail.com" class="text-white hover:underline">readupenglish.team@gmail.com</a></p>
+        <p><i class="bi bi-envelope mr-1"></i>Email: <a href="mailto:readupenglish.team@gmail.com" class="text-white hover:underline">readupenglish.team@gmail.com</a></p>
       </div>
       <!-- Mạng xã hội -->
       <div class="flex items-center gap-3 pt-2">
@@ -211,20 +213,20 @@ if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.match
 
     <!-- 2. HỖ TRỢ TRỰC TUYẾN -->
     <div class="space-y-3">
-      <h4 class="font-bold text-white text-sm">Hỗ Trợ Trực Tuyến 🎧</h4>
+      <h4 class="font-bold text-white text-sm"><i class="bi bi-headset mr-1"></i>Hỗ Trợ Trực Tuyến</h4>
       <p class="text-gray-400">Gặp sự cố khi làm bài hoặc cần giải đáp thắc mắc? Đội ngũ ReadUp luôn sẵn sàng hỗ trợ bạn.</p>
       <button onclick="openSupportModal()" class="w-full py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl transition shadow-lg flex items-center justify-center gap-2">
-        <span>🎧</span>
+        <i class="bi bi-headset"></i>
         <span>Gửi Yêu Cầu Hỗ Trợ</span>
       </button>
     </div>
 
     <!-- 3. KHẢO SÁT DỊCH VỤ -->
     <div class="space-y-3">
-      <h4 class="font-bold text-white text-sm">Khảo Sát & Góp Ý 📝</h4>
+      <h4 class="font-bold text-white text-sm"><i class="bi bi-pencil-square mr-1"></i>Khảo Sát & Góp Ý</h4>
       <p class="text-gray-400">Đánh giá của bạn giúp ReadUp English cải thiện chất lượng bộ đề và giao diện ngày một tốt hơn.</p>
       <button onclick="openFeedbackModal()" class="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition border border-zinc-700 flex items-center justify-center gap-2">
-        <span>⭐</span>
+        <i class="bi bi-star"></i>
         <span>Đánh Giá Trải Nghiệm Website</span>
       </button>
     </div>
@@ -239,16 +241,16 @@ if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.match
 <!-- ================= MODAL HỖ TRỢ TRỰC TUYẾN ================= -->
 <div id="supportModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
   <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-lg w-full p-6 relative shadow-2xl border dark:border-zinc-800 max-h-[90vh] overflow-y-auto">
-    <button onclick="closeSupportModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white font-bold text-base">✕</button>
+    <button onclick="closeSupportModal()" class="absolute top-4 right-4 text-gray-400 hover:text-[#cf1717] text-lg"><i class="bi bi-x-lg"></i></button>
     
     <div id="supportChoiceView" class="space-y-4">
-      <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">🎧 Hỗ trợ Trực tuyến</h3>
+      <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2"><i class="bi bi-headset text-[#cf1717]"></i>Hỗ trợ Trực tuyến</h3>
       <div class="space-y-2.5">
         <button onclick="showCreateTicketForm()" class="w-full p-3.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-2xl text-xs transition flex items-center justify-center gap-2">
-          <span>➕</span><span>Tạo yêu cầu hỗ trợ mới</span>
+          <i class="bi bi-plus-circle"></i><span>Tạo yêu cầu hỗ trợ mới</span>
         </button>
         <button onclick="showTicketHistoryView()" class="w-full p-3.5 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 text-gray-800 dark:text-white font-bold rounded-2xl text-xs transition flex items-center justify-center gap-2 border dark:border-zinc-700">
-          <span>📋</span><span>Kiểm tra tình trạng yêu cầu</span>
+          <i class="bi bi-clipboard-check"></i><span>Kiểm tra tình trạng yêu cầu</span>
         </button>
       </div>
     </div>
@@ -257,7 +259,7 @@ if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.match
     <form id="createTicketForm" onsubmit="handleCreateTicket(event)" class="space-y-3 hidden">
       <div class="flex justify-between items-center">
         <h4 class="font-bold text-sm text-gray-900 dark:text-white">Tạo Yêu Cầu Hỗ Trợ Mới</h4>
-        <button type="button" onclick="showSupportChoice()" class="text-xs text-red-500 hover:underline">← Quay lại</button>
+        <button type="button" onclick="showSupportChoice()" class="text-xs text-red-500 hover:underline"><i class="bi bi-arrow-left mr-1"></i>Quay lại</button>
       </div>
       <div>
         <label class="block text-[11px] font-bold text-gray-500 mb-1">Họ và tên</label>
@@ -282,7 +284,7 @@ if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.match
     <div id="ticketHistoryView" class="space-y-3 hidden">
       <div class="flex justify-between items-center">
         <h4 class="font-bold text-sm text-gray-900 dark:text-white">Lịch Sử Yêu Cầu Hỗ Trợ</h4>
-        <button onclick="showSupportChoice()" class="text-xs text-red-500 hover:underline">← Quay lại</button>
+        <button onclick="showSupportChoice()" class="text-xs text-red-500 hover:underline"><i class="bi bi-arrow-left mr-1"></i>Quay lại</button>
       </div>
       <div id="ticketListContainer" class="space-y-3 max-h-80 overflow-y-auto pr-1">
         <!-- Render danh sách ticket bằng JS -->
@@ -294,42 +296,42 @@ if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.match
 <!-- ================= MODAL KHẢO SÁT WEBSITE ================= -->
 <div id="feedbackModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
   <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-md w-full p-6 relative shadow-2xl border dark:border-zinc-800">
-    <button onclick="closeFeedbackModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white font-bold text-base">✕</button>
+    <button onclick="closeFeedbackModal()" class="absolute top-4 right-4 text-gray-400 hover:text-[#cf1717] text-lg"><i class="bi bi-x-lg"></i></button>
     
-    <h3 class="text-base font-bold text-gray-900 dark:text-white mb-1 flex items-center gap-2">⭐ Khảo Sát Trải Nghiệm</h3>
+    <h3 class="text-base font-bold text-gray-900 dark:text-white mb-1 flex items-center gap-2"><i class="bi bi-star-fill text-amber-400"></i>Khảo Sát Trải Nghiệm</h3>
     <p class="text-[11px] text-gray-400 mb-4">Đánh giá ẩn danh (không yêu cầu tài khoản).</p>
 
     <form onsubmit="handleSendFeedback(event)" class="space-y-4">
       <div>
         <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">1. Giao diện website dễ nhìn, dễ thao tác?</label>
         <div class="flex gap-2 text-xl cursor-pointer" id="starQ1">
-          <span onclick="setRating(1, 1)" class="star1 text-gray-300">★</span>
-          <span onclick="setRating(1, 2)" class="star1 text-gray-300">★</span>
-          <span onclick="setRating(1, 3)" class="star1 text-gray-300">★</span>
-          <span onclick="setRating(1, 4)" class="star1 text-gray-300">★</span>
-          <span onclick="setRating(1, 5)" class="star1 text-gray-300">★</span>
+          <i onclick="setRating(1, 1)" class="bi bi-star-fill star1 text-gray-300"></i>
+          <i onclick="setRating(1, 2)" class="bi bi-star-fill star1 text-gray-300"></i>
+          <i onclick="setRating(1, 3)" class="bi bi-star-fill star1 text-gray-300"></i>
+          <i onclick="setRating(1, 4)" class="bi bi-star-fill star1 text-gray-300"></i>
+          <i onclick="setRating(1, 5)" class="bi bi-star-fill star1 text-gray-300"></i>
         </div>
       </div>
 
       <div>
         <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">2. Nội dung đề thi & giải thích chi tiết?</label>
         <div class="flex gap-2 text-xl cursor-pointer" id="starQ2">
-          <span onclick="setRating(2, 1)" class="star2 text-gray-300">★</span>
-          <span onclick="setRating(2, 2)" class="star2 text-gray-300">★</span>
-          <span onclick="setRating(2, 3)" class="star2 text-gray-300">★</span>
-          <span onclick="setRating(2, 4)" class="star2 text-gray-300">★</span>
-          <span onclick="setRating(2, 5)" class="star2 text-gray-300">★</span>
+          <i onclick="setRating(2, 1)" class="bi bi-star-fill star2 text-gray-300"></i>
+          <i onclick="setRating(2, 2)" class="bi bi-star-fill star2 text-gray-300"></i>
+          <i onclick="setRating(2, 3)" class="bi bi-star-fill star2 text-gray-300"></i>
+          <i onclick="setRating(2, 4)" class="bi bi-star-fill star2 text-gray-300"></i>
+          <i onclick="setRating(2, 5)" class="bi bi-star-fill star2 text-gray-300"></i>
         </div>
       </div>
 
       <div>
         <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">3. Tốc độ tải bài & độ ổn định?</label>
         <div class="flex gap-2 text-xl cursor-pointer" id="starQ3">
-          <span onclick="setRating(3, 1)" class="star3 text-gray-300">★</span>
-          <span onclick="setRating(3, 2)" class="star3 text-gray-300">★</span>
-          <span onclick="setRating(3, 3)" class="star3 text-gray-300">★</span>
-          <span onclick="setRating(3, 4)" class="star3 text-gray-300">★</span>
-          <span onclick="setRating(3, 5)" class="star3 text-gray-300">★</span>
+          <i onclick="setRating(3, 1)" class="bi bi-star-fill star3 text-gray-300"></i>
+          <i onclick="setRating(3, 2)" class="bi bi-star-fill star3 text-gray-300"></i>
+          <i onclick="setRating(3, 3)" class="bi bi-star-fill star3 text-gray-300"></i>
+          <i onclick="setRating(3, 4)" class="bi bi-star-fill star3 text-gray-300"></i>
+          <i onclick="setRating(3, 5)" class="bi bi-star-fill star3 text-gray-300"></i>
         </div>
       </div>
 
@@ -356,10 +358,12 @@ const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f
 const fmt = d => new Date(d).toLocaleDateString('vi-VN');
 const link = p => 'post.html?token=' + encodeURIComponent(p.token);
 
-function notify(m){
+function notify(m, icon='bi-info-circle-fill'){
   const t=document.createElement('div');
   t.className='fixed top-20 right-4 z-[9999] max-w-xs bg-white dark:bg-zinc-900 border-l-4 border-[#cf1717] shadow-2xl rounded-xl p-4 text-xs font-bold text-gray-800 dark:text-white';
-  t.textContent=m; document.body.appendChild(t); setTimeout(()=>t.remove(),4500);
+  const i=document.createElement('i'); i.className='bi '+icon+' mr-1.5';
+  const sp=document.createElement('span'); sp.textContent=m;
+  t.append(i,sp); document.body.appendChild(t); setTimeout(()=>t.remove(),4500);
 }
 function toggleDarkMode(){const d=document.documentElement.classList.toggle('dark');localStorage.theme=d?'dark':'light';}
 async function handleLogout(){await sbClient.auth.signOut();window.location.href='index.html';}
@@ -369,7 +373,7 @@ document.addEventListener('click',e=>{['userDropdownMenu','sectionNavMenu'].forE
 
 const thumb = (p,cls) => p.thumbnail_url
   ? `<img src="${esc(p.thumbnail_url)}" alt="${esc(p.title)}" loading="lazy" class="${cls} object-cover">`
-  : `<div class="${cls} bg-gradient-to-br from-red-600 to-[#cf1717] flex items-center justify-center text-4xl">📖</div>`;
+  : `<div class="${cls} bg-gradient-to-br from-red-600 to-[#cf1717] flex items-center justify-center text-white text-4xl"><i class="bi bi-book"></i></div>`;
 
 async function initPost(){
   const {data:{session}} = await sbClient.auth.getSession();
@@ -377,7 +381,7 @@ async function initPost(){
   currentUser = session.user;
   sbClient.from('profiles').select('full_name, avatar_url').eq('id',currentUser.id).maybeSingle().then(({data:p})=>{
     const n = p?.full_name || currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Người dùng';
-    $('welcomeUser').innerText = `👋 Chào, ${n}`; $('dropdownUserName').innerText = n;
+    $('welcomeUser').innerHTML = `<i class="bi bi-person-check mr-1"></i>Chào, ${esc(n)}`; $('dropdownUserName').innerText = n;
     if(p?.avatar_url){$('headerAvatarImg').src=p.avatar_url;$('headerAvatarImg').classList.remove('hidden');$('headerAvatarIcon').classList.add('hidden');}
   });
   const token = new URLSearchParams(location.search).get('token');
@@ -388,7 +392,7 @@ async function showList(){
   $('crumb').innerHTML = `<a href="dashboard.html" class="hover:text-[#cf1717]">Trang Chủ</a><span>›</span><span class="text-gray-800 dark:text-gray-200 font-bold">Bài Học</span>`;
   $('listView').classList.remove('hidden');
   const {data,error} = await sbClient.from('posts').select('id,title,token,thumbnail_url,excerpt,created_at').eq('is_published',true).order('created_at',{ascending:false});
-  if(error) $('postList').innerHTML = `<p class="py-8 text-sm text-red-500">❌ ${esc(error.message)}</p>`;
+  if(error) $('postList').innerHTML = `<p class="py-8 text-sm text-red-500"><i class="bi bi-x-circle mr-1"></i>${esc(error.message)}</p>`;
   allPosts = data || []; renderList();
 }
 
@@ -403,7 +407,7 @@ function renderList(){
       <div class="min-w-0 flex-1">
         <h3 class="text-lg sm:text-2xl font-extrabold text-gray-800 dark:text-white group-hover:text-[#cf1717] transition">${esc(p.title)}</h3>
         <p class="mt-3 text-sm sm:text-base text-gray-400 line-clamp-4">${esc(p.excerpt)} … <span class="text-[#cf1717] font-bold">Xem tiếp</span></p>
-        <p class="mt-3 text-[11px] text-gray-400">📅 ${fmt(p.created_at)}</p>
+        <p class="mt-3 text-[11px] text-gray-400"><i class="bi bi-calendar-event mr-1"></i>${fmt(p.created_at)}</p>
       </div>
     </a>`).join('') : '<p class="py-10 text-center text-sm text-gray-400">Chưa có bài học nào.</p>';
   $('postPager').innerHTML = pages<2 ? '' : Array.from({length:pages},(_,i)=>i+1).map(n =>
@@ -413,6 +417,7 @@ function renderList(){
 
 let latestIdx = 0, latestCount = 0, latestPausedUntil = 0, latestTimer = null;
 const LATEST_AUTO_MS = 4500;
+const LATEST_LIMIT = 6; // số bài hiển thị ở mục "Bài viết mới nhất"
 
 function renderLatestSlider(list){
   const track = $('latestList'), dots = $('latestDots');
@@ -423,10 +428,10 @@ function renderLatestSlider(list){
       <a href="${link(l)}" class="latest-anim group block rounded-2xl overflow-hidden bg-gray-50 dark:bg-zinc-800/60 border border-gray-100 dark:border-zinc-700/60 hover:border-[#cf1717] hover:shadow-lg transition-all duration-300">
         <div class="overflow-hidden">${thumb(l,'w-full h-40 group-hover:scale-105 transition duration-500')}</div>
         <div class="p-3.5">
-          <p class="text-[11px] text-gray-400 mb-1">📅 ${fmt(l.created_at)}</p>
+          <p class="text-[11px] text-gray-400 mb-1"><i class="bi bi-calendar-event mr-1"></i>${fmt(l.created_at)}</p>
           <h4 class="text-sm font-extrabold text-gray-800 dark:text-white line-clamp-2 group-hover:text-[#cf1717] transition">${esc(l.title)}</h4>
           ${l.excerpt ? `<p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400 line-clamp-2">${esc(l.excerpt)}</p>` : ''}
-          <span class="inline-block mt-2 text-xs font-bold text-[#cf1717]">Đọc thêm →</span>
+          <span class="inline-block mt-2 text-xs font-bold text-[#cf1717]">Đọc thêm <i class="bi bi-arrow-right"></i></span>
         </div>
       </a>
     </div>`).join('');
@@ -483,9 +488,9 @@ async function showDetail(token){
   }
   document.title = p.title + ' | ReadUp English';
   $('crumb').innerHTML = `<a href="dashboard.html" class="hover:text-[#cf1717]">Trang Chủ</a><span>›</span><a href="post.html" class="hover:text-[#cf1717]">Bài Học</a><span>›</span><span class="text-gray-800 dark:text-gray-200 font-bold">${esc(p.title)}</span>`;
-  $('dTitle').innerText = p.title; $('dDate').innerText = '📅 ' + fmt(p.created_at);
+  $('dTitle').innerText = p.title; $('dDate').innerHTML = '<i class="bi bi-calendar-event mr-1"></i>' + fmt(p.created_at);
   $('dContent').innerHTML = (p.content_html||'').replace(/<script[\s\S]*?<\/script>/gi,'');
-  const {data:latest} = await sbClient.from('posts').select('title,token,thumbnail_url,excerpt,created_at').eq('is_published',true).neq('token',token).order('created_at',{ascending:false}).limit(3);
+  const {data:latest} = await sbClient.from('posts').select('title,token,thumbnail_url,excerpt,created_at').eq('is_published',true).neq('token',token).order('created_at',{ascending:false}).limit(LATEST_LIMIT);
   renderLatestSlider(latest || []);
 }
 
@@ -525,9 +530,9 @@ async function showDetail(token){
     };
 
     const { error } = await sbClient.from('support_tickets').insert([payload]);
-    if (error) { notify("❌ Lỗi gửi yêu cầu: " + error.message); return; }
+    if (error) { notify("Lỗi gửi yêu cầu: " + error.message, 'bi-x-circle-fill'); return; }
 
-    notify(`✅ Gửi yêu cầu thành công! Mã hỗ trợ của bạn là: ${ticketCode}`);
+    notify(`Gửi yêu cầu thành công! Mã hỗ trợ của bạn là: ${ticketCode}`, 'bi-check-circle-fill');
     document.getElementById('spTitle').value = '';
     document.getElementById('spContent').value = '';
     showTicketHistoryView();
@@ -570,11 +575,11 @@ async function showDetail(token){
         </div>
         ${t.admin_reply ? `
           <div class="p-3 bg-red-50/60 dark:bg-red-950/30 rounded-xl border border-red-100 dark:border-red-900/40 text-xs space-y-1">
-            <span class="font-bold text-[#cf1717] block">💬 Trả lời từ hỗ trợ:</span>
+            <span class="font-bold text-[#cf1717] block"><i class="bi bi-chat-left-text mr-1"></i>Trả lời từ hỗ trợ:</span>
             <p class="text-gray-800 dark:text-gray-200">${t.admin_reply}</p>
           </div>
         ` : `
-          <p class="text-[11px] text-yellow-600 italic">⏳ Đang chờ Quản trị viên phản hồi...</p>
+          <p class="text-[11px] text-yellow-600 italic"><i class="bi bi-hourglass-split mr-1"></i>Đang chờ Quản trị viên phản hồi...</p>
         `}
       </div>
     `).join('');
@@ -588,7 +593,7 @@ async function showDetail(token){
     ratings[`q${qNum}`] = starCount;
     const stars = document.querySelectorAll(`#starQ${qNum} .star${qNum}`);
     stars.forEach((s, idx) => {
-      s.className = `star${qNum} ${idx < starCount ? 'text-amber-400' : 'text-gray-300'}`;
+      s.className = `bi bi-star-fill star${qNum} ${idx < starCount ? 'text-amber-400' : 'text-gray-300'}`;
     });
   }
 
@@ -602,9 +607,9 @@ async function showDetail(token){
     };
 
     const { error } = await sbClient.from('feedbacks').insert([payload]);
-    if (error) { notify("❌ Lỗi gửi đánh giá: " + error.message); return; }
+    if (error) { notify("Lỗi gửi đánh giá: " + error.message, 'bi-x-circle-fill'); return; }
 
-    notify("❤️ Cảm ơn bạn đã đóng góp ý kiến cho ReadUp English!");
+    notify("Cảm ơn bạn đã đóng góp ý kiến cho ReadUp English!", 'bi-heart-fill');
     document.getElementById('fbComment').value = '';
     closeFeedbackModal();
   }
