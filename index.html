@@ -66,6 +66,26 @@
   .animate-plane-3 { animation: flyPlane3 18s ease-in-out infinite 7s; }
 .animate-plane-4 { animation: flyPlane4 15s ease-in-out infinite 11s; }
 .animate-plane-5 { animation: flyPlane1 13s ease-in-out infinite 6s; }
+
+  /* ===== SLIDER ĐẦU TRANG ===== */
+  .ru-slider { position: relative; overflow: hidden; border-radius: 1.5rem; aspect-ratio: 16 / 9; background: #f3f4f6;
+    box-shadow: 0 10px 30px rgba(0,0,0,.12); -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; cursor: pointer; }
+  .dark .ru-slider { background: #18181b; }
+  .ru-track { display: flex; height: 100%; transition: transform .7s cubic-bezier(.22,.61,.36,1); will-change: transform; }
+  .ru-slide { position: relative; flex: 0 0 100%; height: 100%; }
+  .ru-slide img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; -webkit-user-drag: none; user-drag: none; }
+  /* Lớp phủ trong suốt: chặn chuột phải/giữ ảnh, bấm vào sẽ về trang index */
+  .ru-shield { position: absolute; inset: 0; z-index: 2; background: transparent; }
+  .ru-arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 5; width: 40px; height: 40px; border-radius: 9999px;
+    background: rgba(255,255,255,.9); color: #333; font-size: 22px; line-height: 1; border: 0; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.2); transition: .2s; }
+  .ru-arrow:hover { background: #cf1717; color: #fff; }
+  .ru-prev { left: 10px; } .ru-next { right: 10px; }
+  .ru-dots { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
+  .ru-dot { width: 10px; height: 10px; border-radius: 9999px; background: #d1d5db; border: 0; padding: 0; cursor: pointer; transition: all .3s; }
+  .dark .ru-dot { background: #52525b; }
+  .ru-dot.active { width: 34px; background: #cf1717; }
+  @media (max-width: 640px) { .ru-slider { border-radius: 1rem; } .ru-arrow { width: 32px; height: 32px; font-size: 18px; } }
+  @media print { .ru-slider { display: none; } }
   </style>
   <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
 </head>
@@ -158,6 +178,27 @@
 
   </div>
 </header>
+
+
+  <!-- ================= SLIDER ẢNH ĐẦU TRANG (TỰ ĐỘNG LƯỚT) ================= -->
+  <div class="max-w-6xl mx-auto px-4 pt-6">
+    <div class="ru-slider" id="ruSlider" title="ReadUp English">
+      <div class="ru-track" id="ruTrack">
+        <div class="ru-slide"><img src="https://i.ibb.co/FLGp4FpT/Secure-Online-Exam-Experience.png" alt="Secure Online Exam Experience" draggable="false" loading="eager"><div class="ru-shield"></div></div>
+        <div class="ru-slide"><img src="https://i.ibb.co/cc3ZGV4H/Read-Up-English-Learning-Dashboard.png" alt="Read Up English Learning Dashboard" draggable="false" loading="lazy"><div class="ru-shield"></div></div>
+        <div class="ru-slide"><img src="https://i.ibb.co/C5wY3dmj/Read-Up-English-Learning-Journey.png" alt="Read Up English Learning Journey" draggable="false" loading="lazy"><div class="ru-shield"></div></div>
+        <div class="ru-slide"><img src="https://i.ibb.co/svStdTKW/a5fcdb6f-276f-4d03-ab9c-7e7746597a81.png" alt="ReadUp English" draggable="false" loading="lazy"><div class="ru-shield"></div></div>
+      </div>
+      <button class="ru-arrow ru-prev" id="ruPrev" aria-label="Ảnh trước">&#8249;</button>
+      <button class="ru-arrow ru-next" id="ruNext" aria-label="Ảnh sau">&#8250;</button>
+    </div>
+    <div class="ru-dots" id="ruDots">
+        <button class="ru-dot active" aria-label="Ảnh 1"></button>
+        <button class="ru-dot" aria-label="Ảnh 2"></button>
+        <button class="ru-dot" aria-label="Ảnh 3"></button>
+        <button class="ru-dot" aria-label="Ảnh 4"></button>
+    </div>
+  </div>
 
   <main class="max-w-6xl mx-auto px-4 pt-12 pb-20 space-y-24">
     
@@ -954,6 +995,54 @@
     reveals.forEach((el) => observer.observe(el));
   });
     
+  </script>
+  <script>
+  (function () {
+    var slider = document.getElementById('ruSlider');
+    var track  = document.getElementById('ruTrack');
+    var dots   = document.querySelectorAll('#ruDots .ru-dot');
+    var total  = dots.length, idx = 0, timer = null, DELAY = 4000;
+
+    function go(n) {
+      idx = (n + total) % total;
+      track.style.transform = 'translateX(' + (-idx * 100) + '%)';
+      dots.forEach(function (d, i) { d.classList.toggle('active', i === idx); });
+    }
+    function start() { stop(); timer = setInterval(function () { go(idx + 1); }, DELAY); }
+    function stop()  { if (timer) { clearInterval(timer); timer = null; } }
+
+    document.getElementById('ruPrev').addEventListener('click', function (e) { e.stopPropagation(); go(idx - 1); start(); });
+    document.getElementById('ruNext').addEventListener('click', function (e) { e.stopPropagation(); go(idx + 1); start(); });
+    dots.forEach(function (d, i) { d.addEventListener('click', function () { go(i); start(); }); });
+
+    slider.addEventListener('mouseenter', stop);
+    slider.addEventListener('mouseleave', start);
+
+    // Vuốt trên điện thoại (vuốt = chuyển ảnh, chạm = về index)
+    var sx = 0, moved = false;
+    slider.addEventListener('touchstart', function (e) { sx = e.touches[0].clientX; moved = false; stop(); }, { passive: true });
+    slider.addEventListener('touchend', function (e) {
+      var dx = e.changedTouches[0].clientX - sx;
+      if (Math.abs(dx) > 40) { moved = true; go(dx < 0 ? idx + 1 : idx - 1); }
+      start();
+    });
+
+    // Bấm vào ảnh -> quay về trang index
+    slider.addEventListener('click', function () {
+      if (moved) { moved = false; return; }
+      window.location.href = 'index.html';
+    });
+
+    // Chặn chuột phải, kéo thả, chọn, giữ ảnh
+    ['contextmenu', 'dragstart', 'selectstart', 'copy', 'cut'].forEach(function (ev) {
+      slider.addEventListener(ev, function (e) { e.preventDefault(); });
+    });
+
+    // Tạm dừng khi chuyển tab để tiết kiệm tài nguyên
+    document.addEventListener('visibilitychange', function () { document.hidden ? stop() : start(); });
+
+    go(0); start();
+  })();
   </script>
 </body>
 </html>
