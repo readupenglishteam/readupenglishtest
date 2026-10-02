@@ -153,7 +153,8 @@ function testCard(t){
   const inProg=!!t.in_progress||(t.started&&!t.submitted);
   const gradeBadge=hasBest?`<span class="badge"><i class="bi bi-award-fill text-amber-500"></i> Your grade: <b class="text-[#cf1717]">${esc(bestTxt)}</b>${!max&&used>1?' (highest)':''}</span>`:'';
   let act='';
-  if(n<op){ const s=Math.ceil((op-n)/1000); act=`<span class="badge"><i class="bi bi-hourglass-split"></i> Mở sau ${s>86400?Math.floor(s/86400)+' ngày ':''}${String(Math.floor(s%86400/3600)).padStart(2,'0')}:${String(Math.floor(s%3600/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}</span>`; }
+  if(t.cancelled){ act='<span class="badge" style="color:#ef4444"><i class="bi bi-slash-circle"></i> Result cancelled — no retake</span>'; }
+  else if(n<op){ const s=Math.ceil((op-n)/1000); act=`<span class="badge"><i class="bi bi-hourglass-split"></i> Mở sau ${s>86400?Math.floor(s/86400)+' ngày ':''}${String(Math.floor(s%86400/3600)).padStart(2,'0')}:${String(Math.floor(s%3600/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}</span>`; }
   else if(inProg&&n<cl){ act=`<button onclick="askPass('${t.id}')" class="btn">Tiếp tục làm bài</button>`; }
   else if(t.submitted||used>0){
     if(n>=cl) act = t.show_result?`<button onclick="showResult('${t.id}')" class="btn">View grade</button>`:(gradeBadge||`<span class="badge">Submitted</span>`);
@@ -274,7 +275,7 @@ async function submit(auto,msg){
   sessionStorage.removeItem(X.key); X.active=false;
   if(document.fullscreenElement) await document.exitFullscreen().catch(()=>{});
   $('exam').classList.add('hidden'); X=null;
-  openModal(`<div class="text-center"><div class="text-5xl mb-2 text-emerald-500"><i class="bi bi-check-circle-fill"></i></div><h2 class="text-lg font-extrabold mb-2">Đã nộp bài</h2><p class="text-sm text-gray-500 mb-4">${esc(msg||'Bài làm của bạn đã được ghi nhận.')}<br>Your grade and answers will be shown when the test closes.</p><button onclick="closeModal();pickClass(cls)" class="w-full py-2.5 rounded-xl bg-[#cf1717] text-white font-extrabold">Về danh sách bài thi</button></div>`);
+  openModal(`<div class="text-center"><div class="text-5xl mb-2 text-emerald-500"><i class="bi bi-check-circle-fill"></i></div><h2 class="text-lg font-extrabold mb-2">Đã nộp bài</h2><p class="text-sm text-gray-500 mb-4">${esc(msg||'Bài làm của bạn đã được ghi nhận.')}<br>Your grade appears in the test list. Answers will be shown when the test closes.</p><button onclick="closeModal();pickClass(cls)" class="w-full py-2.5 rounded-xl bg-[#cf1717] text-white font-extrabold">Về danh sách bài thi</button></div>`);
 }
 
 /* ---------- KẾT QUẢ (chỉ sau giờ đóng) ---------- */
@@ -295,6 +296,7 @@ async function showResult(id){
   };
   $('app').innerHTML=`${logo}<div class="max-w-5xl mx-auto"><button onclick="pickClass(cls)" class="text-xs font-bold text-[#cf1717] mb-3 hover:underline"><i class="bi bi-arrow-left"></i> Danh sách bài thi</button>
     <div class="nrm ${card} p-6 text-center mb-4"><div class="text-sm text-gray-500">Your grade</div><div class="text-5xl font-black text-[#cf1717]">${data.score}<span class="text-xl text-gray-400"> / ${data.total}</span></div>
+    ${(data.attempts||0)>1?`<div class="text-xs text-gray-500 mt-1">Highest of ${data.attempts} attempts</div>`:''}
     <div class="text-xs text-gray-500 mt-2">Warnings: ${data.violations||0} • Essay grade (if any) is marked by the teacher</div></div>
     <div class="space-y-4">${data.review&&data.questions?data.questions.map(q=>rq(q,false)).join(''):'<p class="nrm text-center text-gray-400 italic">The teacher has not allowed reviewing the detailed answers.</p>'}</div></div>`;
   clearInterval(ticker); scrollTo(0,0); $('exam').classList.remove('reading-mode');
