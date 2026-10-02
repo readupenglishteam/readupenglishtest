@@ -4,9 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ReadUp English - Đăng nhập / Đăng ký</title> 
+  <!-- Font Montserrat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <style>
+    html, body, button, input, select, textarea, optgroup, * { font-family: 'Montserrat', sans-serif; }
+  </style>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = { darkMode: 'class' };
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { fontFamily: {
+        sans: ['Montserrat', 'sans-serif'],
+        serif: ['Montserrat', 'sans-serif'],
+        mono: ['Montserrat', 'sans-serif']
+      } } }
+    };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Thêm Bootstrap Icons CDN để hiển thị các icon trong thông báo -->
@@ -61,11 +75,11 @@
 
     <div class="flex items-center gap-2 sm:gap-3">
       <a href="index.html" class="px-3 py-2 text-xs font-bold bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300 rounded-xl transition border border-gray-200/50 dark:border-zinc-700/50 flex items-center gap-1">
-        <span>🏠</span>
+        <i class="bi bi-house-door-fill"></i>
         <span class="hidden sm:inline">Trang chủ</span>
       </a>
       <button type="button" onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50">
-        <span id="themeIcon">🌙</span>
+        <span id="themeIcon"><i class="bi bi-moon-stars-fill"></i></span>
       </button>
     </div>
   </div>
@@ -110,10 +124,7 @@
         <div class="relative w-full">
           <input type="password" id="password" required placeholder="••••••••" class="w-full p-3 pr-10 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
           <button type="button" onclick="togglePasswordVisibility('password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none p-1">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
+            <i class="bi bi-eye text-lg leading-none"></i>
           </button>
         </div>
       </div>
@@ -147,7 +158,7 @@
 <!-- ================= LỐI TẮT VÀO THẲNG TRANG VIP ASSIGNMENT ================= -->
 <div class="w-full flex justify-center pb-8 px-4 -mt-4">
   <a href="assignment.html" id="vipShortcut" class="w-full max-w-md flex items-center justify-center gap-2 py-3 bg-amber-50 dark:bg-amber-950/30 border-2 border-dashed border-amber-400 dark:border-amber-700 text-amber-600 dark:text-amber-400 font-extrabold text-xs sm:text-sm rounded-xl hover:bg-amber-100 dark:hover:bg-amber-950/50 transition shadow-sm">
-    <span>⭐</span><span>Tài khoản VIP — Vào thẳng trang làm bài Assignment</span>
+    <i class="bi bi-star-fill"></i><span>Tài khoản VIP — Vào thẳng trang làm bài Assignment</span>
   </a>
 </div>
 
@@ -168,7 +179,7 @@
     const { data: { session } } = await sbClient.auth.getSession();
     if (session) { window.location.href = 'assignment.html'; return; }
     const msg = document.getElementById('authMsg');
-    msg.innerText = '⚠️ Bạn chưa đăng nhập. Hãy đăng nhập bằng tài khoản VIP ở trên, hệ thống sẽ tự chuyển vào trang Assignment.';
+    msg.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> Bạn chưa đăng nhập. Hãy đăng nhập bằng tài khoản VIP ở trên, hệ thống sẽ tự chuyển vào trang Assignment.';
     msg.className = 'mt-4 text-center text-sm font-semibold text-amber-600';
     window.__goAssignmentAfterLogin = true;
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -206,17 +217,17 @@ async function handleAuth(e) {
   const isoDob = document.getElementById('dob')?.value?.trim() || ''; 
   const msg = document.getElementById('authMsg');
 
-  msg.innerText = "⏳ Đang xử lý...";
+  msg.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang xử lý...';
   msg.className = "mt-4 text-center text-sm font-semibold text-gray-500";
 
   if (currentMode === 'register') {
     if (!fullName || !isoDob) {
-      msg.innerText = "⚠️ Vui lòng nhập đầy đủ Họ tên và Chọn ngày sinh!";
+      msg.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> Vui lòng nhập đầy đủ Họ tên và Chọn ngày sinh!';
       msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
       return;
     }
     if (!phone) {
-      msg.innerText = "⚠️ Vui lòng nhập đầy đủ Số điện thoại!";
+      msg.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> Vui lòng nhập đầy đủ Số điện thoại!';
       msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
       return;
     }
@@ -247,7 +258,8 @@ async function handleAuth(e) {
     const { data: authData, error: authError } = await sbClient.auth.signInWithPassword({ email, password });
     
     if (authError) {
-      msg.innerText = "❌ Đăng nhập thất bại: " + authError.message;
+      msg.innerHTML = '<i class="bi bi-x-circle-fill"></i> Đăng nhập thất bại: ';
+      msg.appendChild(document.createTextNode(authError.message));
       msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
       return;
     }
@@ -332,7 +344,7 @@ async function handleAuth(e) {
       msg.innerHTML = `<i class="bi bi-dash-circle-fill"></i> Lỗi gửi liên kết: ${error.message}`;
       msg.className = "mt-4 text-center text-sm font-semibold text-red-500";
     } else {
-      alert("✉️ Đã gửi link đăng nhập vào Email của bạn!");
+      alert("Đã gửi link đăng nhập vào Email của bạn!");
     }
   }
 
@@ -348,20 +360,14 @@ async function handleAuth(e) {
 
   function togglePasswordVisibility(inputId, btn) {
     const input = document.getElementById(inputId);
-    const icon = btn.querySelector('svg');
+    const icon = btn.querySelector('i');
 
     if (input.type === 'password') {
       input.type = 'text';
-      icon.innerHTML = `
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.04 10.04 0 013.122-.563c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18" />
-      `;
+      icon.className = 'bi bi-eye-slash text-lg leading-none';
     } else {
       input.type = 'password';
-      icon.innerHTML = `
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-      `;
+      icon.className = 'bi bi-eye text-lg leading-none';
     }
   }
   function formatToISO(vnDateStr) {
