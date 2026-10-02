@@ -4,13 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ReadUp English - Quản Trị Admin</title>
+  <!-- Font Montserrat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    html, body, button, input, select, textarea, optgroup, table, * { font-family: 'Montserrat', sans-serif; }
+  </style>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>// BẮT BUỘC: Bảo Tailwind lắng nghe class "dark" ở thẻ <html> 
     tailwind.config = {
-    darkMode: 'class'}
+    darkMode: 'class',
+    theme: { extend: { fontFamily: {
+      sans: ['Montserrat', 'sans-serif'],
+      serif: ['Montserrat', 'sans-serif'],
+      mono: ['Montserrat', 'sans-serif']
+    } } }}
 </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>Chart.defaults.font.family = "'Montserrat', sans-serif";</script>
   <script>
     if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       document.documentElement.classList.add('dark');
@@ -70,7 +85,7 @@
       </button>
 
       <!-- Nút Đăng Bài Học -->
-      <a href="#section-posts" class="bg-white/80 dark:bg-zinc-800/80 text-[#cf1717] font-bold px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm border border-[#cf1717]/40 hover:bg-red-50 transition flex items-center gap-1"><span>📝</span><span class="hidden sm:inline">Đăng Bài Học</span></a>
+      <a href="#section-posts" class="bg-white/80 dark:bg-zinc-800/80 text-[#cf1717] font-bold px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm border border-[#cf1717]/40 hover:bg-red-50 transition flex items-center gap-1"><span><i class="bi bi-pencil-square"></i></span><span class="hidden sm:inline">Đăng Bài Học</span></a>
 
       <!-- Nút Đăng Xuất -->
       <button onclick="handleLogout()" class="px-3 py-2 text-xs font-bold bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-red-100 dark:hover:bg-red-950/50 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] dark:hover:text-red-400 rounded-xl transition border border-gray-200/50 dark:border-zinc-700/50">
@@ -79,7 +94,7 @@
 
       <!-- Nút Chuyển Chế Độ Sáng / Tối -->
       <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50">
-        <span id="themeIcon">🌙</span>
+        <span id="themeIcon"><i class="bi bi-moon-stars-fill"></i></span>
       </button>
     </div>
 
@@ -91,18 +106,18 @@
     <!-- QUẢN LÝ BÀI THI READING -->
     <section class="space-y-4">
       <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
-        <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white">📚 Quản Lý Bài Thi Reading <button type="button" onclick="openGuideModal('huong_dan_su_dung', 'Hướng Dẫn Sử Dụng')" class="w-5 h-5 rounded-full bg-[#cf1717] text-white flex items-center justify-center text-xs font-bold hover:bg-red-700 transition shadow" title="Xem hướng dẫn">?</button></h2>
+        <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white"><i class="bi bi-journal-text"></i> Quản Lý Bài Thi Reading <button type="button" onclick="openGuideModal('huong_dan_su_dung', 'Hướng Dẫn Sử Dụng')" class="w-5 h-5 rounded-full bg-[#cf1717] text-white flex items-center justify-center text-xs font-bold hover:bg-red-700 transition shadow" title="Xem hướng dẫn">?</button></h2>
         <span id="adminExamCount" class="text-xs font-bold px-2.5 py-1 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">0 bài</span>
       </div>
       <div id="adminExamList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <p class="text-gray-500 text-sm col-span-full">⏳ Đang tải bài thi...</p>
+        <p class="text-gray-500 text-sm col-span-full"><i class="bi bi-hourglass-split"></i> Đang tải bài thi...</p>
       </div>
     </section>
 
     <!-- PHỔ ĐIỂM KÈM BẢNG ĐIỂM TỪNG BÀI -->
     <section class="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border dark:border-zinc-800 shadow-sm space-y-6">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-l-4 border-[#cf1717] pl-3">
-        <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white">📊 Phổ Điểm & Bảng Điểm Học Sinh</h2>
+        <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white"><i class="bi bi-bar-chart-fill"></i> Phổ Điểm & Bảng Điểm Học Sinh</h2>
         <select id="examSelectFilter" onchange="renderScoreChartAndTable()" class="p-2 text-xs rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
           <option value="">Chọn bài thi để xem...</option>
         </select>
@@ -115,7 +130,7 @@
 
       <!-- BẢNG ĐIỂM CHI TIẾT SINH VIÊN -->
       <div class="overflow-x-auto pt-4 border-t dark:border-zinc-800">
-        <h3 class="font-bold text-sm text-gray-900 dark:text-white mb-3">📝 Danh Sách Sinh Viên Đã Nộp Bài</h3>
+        <h3 class="font-bold text-sm text-gray-900 dark:text-white mb-3"><i class="bi bi-pencil-square"></i> Danh Sách Sinh Viên Đã Nộp Bài</h3>
         <table class="w-full text-left text-xs">
           <thead class="bg-gray-100 dark:bg-zinc-800 uppercase text-[10px] text-gray-500">
             <tr>
@@ -136,7 +151,7 @@
     <!-- QUẢN LÝ TIN TỨC & THÔNG BÁO -->
     <section class="space-y-4">
       <div class="flex items-center border-l-4 border-[#cf1717] pl-3">
-        <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white">📢 Quản Lý Tin Tức & Thông Báo</h2>
+        <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white"><i class="bi bi-megaphone-fill"></i> Quản Lý Tin Tức & Thông Báo</h2>
       </div>
 
       <!-- Form đăng tin -->
@@ -163,7 +178,7 @@
 
       <!-- Danh sách tin cũ -->
       <div id="adminNewsList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <p class="text-gray-400 text-sm">⏳ Đang tải thông báo...</p>
+        <p class="text-gray-400 text-sm"><i class="bi bi-hourglass-split"></i> Đang tải thông báo...</p>
       </div>
     </section>
 
@@ -184,8 +199,8 @@
 .post-content .video-wrap{position:relative;padding-top:56.25%;margin:1em 0}
 .post-content .video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border-radius:12px}</style>
   <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
-    <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white">📝 Quản Lý Bài Học (Post)</h2>
-    <div class="flex items-center gap-2"><a href="post.html" target="_blank" class="text-xs font-bold text-[#cf1717] hover:underline">Mở trang Post ↗</a><span id="adminPostCount" class="text-xs font-bold px-2.5 py-1 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">0 bài</span></div>
+    <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white"><i class="bi bi-pencil-square"></i> Quản Lý Bài Học (Post)</h2>
+    <div class="flex items-center gap-2"><a href="post.html" target="_blank" class="text-xs font-bold text-[#cf1717] hover:underline">Mở trang Post <i class="bi bi-box-arrow-up-right"></i></a><span id="adminPostCount" class="text-xs font-bold px-2.5 py-1 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">0 bài</span></div>
   </div>
   <form onsubmit="savePost(event)" class="bg-white dark:bg-zinc-900 p-6 rounded-2xl border dark:border-zinc-800 shadow-sm space-y-4 text-xs">
     <input type="hidden" id="editingPostId"><input type="hidden" id="postToken"><input type="hidden" id="postThumb">
@@ -210,14 +225,14 @@
       <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
         <label class="font-bold uppercase">Nội dung bài học</label>
         <div class="flex rounded-lg overflow-hidden border dark:border-zinc-700">
-          <button type="button" id="tabWord" onclick="setPostMode('word')" class="px-3 py-1.5 font-bold bg-[#cf1717] text-white">✍️ Soạn kiểu Word</button>
+          <button type="button" id="tabWord" onclick="setPostMode('word')" class="px-3 py-1.5 font-bold bg-[#cf1717] text-white"><i class="bi bi-file-earmark-word-fill"></i> Soạn kiểu Word</button>
           <button type="button" id="tabHtml" onclick="setPostMode('html')" class="px-3 py-1.5 font-bold bg-gray-100 dark:bg-zinc-800">&lt;/&gt; Mã HTML</button>
         </div>
       </div>
       <div id="postToolbar" class="flex flex-wrap items-center gap-1 p-2 bg-gray-100 dark:bg-zinc-800 rounded-t-lg border border-b-0 dark:border-zinc-700"></div>
       <div id="postEditor" contenteditable="true" class="post-content min-h-[300px] max-h-[520px] overflow-y-auto p-4 border rounded-b-lg bg-white dark:bg-zinc-800 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-[#cf1717]"></div>
       <textarea id="postHtml" rows="14" class="hidden w-full p-3 rounded-b-lg border dark:bg-zinc-800 dark:border-zinc-700 font-mono text-xs" placeholder="<h2>Tiêu đề</h2><p>Nội dung HTML...</p>"></textarea>
-      <p id="postEditorStatus" class="mt-1 font-semibold text-gray-500">💡 Dán thẳng từ Word (Ctrl+V) hoặc bấm "Nhập file .docx" — hệ thống tự chuyển thành HTML.</p>
+      <p id="postEditorStatus" class="mt-1 font-semibold text-gray-500"><i class="bi bi-lightbulb-fill"></i> Dán thẳng từ Word (Ctrl+V) hoặc bấm "Nhập file .docx" — hệ thống tự chuyển thành HTML.</p>
     </div>
     <label class="flex items-center gap-2 font-bold"><input type="checkbox" id="postPublished" checked> Hiển thị cho học sinh</label>
     <div class="flex flex-wrap gap-2">
@@ -226,14 +241,14 @@
       <button type="button" id="postCancelBtn" onclick="resetPostForm()" class="hidden bg-gray-200 dark:bg-zinc-700 font-bold px-4 py-2.5 rounded-lg text-sm">Hủy sửa</button>
     </div>
   </form>
-  <div id="adminPostList" class="grid grid-cols-1 md:grid-cols-2 gap-4"><p class="text-gray-400 text-sm">⏳ Đang tải bài học...</p></div>
+  <div id="adminPostList" class="grid grid-cols-1 md:grid-cols-2 gap-4"><p class="text-gray-400 text-sm"><i class="bi bi-hourglass-split"></i> Đang tải bài học...</p></div>
 </section>
 
 <!-- QUẢN LÝ TỪ/CỤM TỪ LUYỆN PHÁT ÂM -->
 <section class="space-y-4">
   <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
     <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
-      🎙️ Quản Lý Từ/Cụm Từ Luyện Phát Âm
+      <i class="bi bi-mic-fill"></i> Quản Lý Từ/Cụm Từ Luyện Phát Âm
       <button type="button" onclick="openGuideModal('luyen_phat_am', 'Hướng Dẫn')" class="w-5 h-5 rounded-full bg-[#cf1717] text-white flex items-center justify-center text-xs font-bold hover:bg-red-700 transition shadow" title="Xem hướng dẫn">?</button>
     </h2>
     <span id="adminPronunCount" class="text-xs font-bold px-2.5 py-1 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">0 câu</span>
@@ -269,7 +284,7 @@
 
     <!-- Danh sách câu mẫu -->
     <div id="adminPronunList" class="space-y-2 max-h-80 overflow-y-auto pr-1">
-      <p class="text-gray-500 text-sm italic">⏳ Đang tải danh sách câu...</p>
+      <p class="text-gray-500 text-sm italic"><i class="bi bi-hourglass-split"></i> Đang tải danh sách câu...</p>
     </div>
   </div>
 </section>
@@ -277,7 +292,7 @@
     <section><!-- BẢNG XẾP HẠNG VÀ CHUỖI HỌC SINH -->
 <div class="p-5 bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 shadow-sm my-6">
   <h3 class="font-extrabold text-base text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-    <span>🏆</span> Quản Lý Chuỗi Học & Điểm XP Học Sinh
+    <span><i class="bi bi-trophy-fill"></i></span> Quản Lý Chuỗi Học & Điểm XP Học Sinh
   </h3>
   
   <div class="overflow-x-auto">
@@ -285,8 +300,8 @@
       <thead class="bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-white font-bold uppercase text-[10px]">
         <tr>
           <th class="p-3">Học Sinh ID</th>
-          <th class="p-3">Chuỗi 🔥</th>
-          <th class="p-3">Tổng XP ⚡</th>
+          <th class="p-3">Chuỗi <i class="bi bi-fire"></i></th>
+          <th class="p-3">Tổng XP <i class="bi bi-lightning-charge-fill"></i></th>
           <th class="p-3">Ngày Học Gần Nhất</th>
           <th class="p-3">Trạng Thái</th>
         </tr>
@@ -301,22 +316,22 @@
    <!-- ================= 1. QUẢN LÝ YÊU CẦU HỖ TRỢ ================= -->
 <section class="space-y-4 mb-10">
   <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
-    <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white">🎧 Quản Lý Yêu Cầu Hỗ Trợ</h2>
+    <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white"><i class="bi bi-headset"></i> Quản Lý Yêu Cầu Hỗ Trợ</h2>
     <span id="adminTicketCount" class="text-xs font-bold px-2.5 py-1 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">0 yêu cầu</span>
   </div>
   <div id="adminTicketList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    <p class="text-gray-500 text-sm col-span-full">⏳ Đang tải danh sách hỗ trợ...</p>
+    <p class="text-gray-500 text-sm col-span-full"><i class="bi bi-hourglass-split"></i> Đang tải danh sách hỗ trợ...</p>
   </div>
 </section>
 
 <!-- ================= 2. QUẢN LÝ ĐÁNH GIÁ DỊCH VỤ ================= -->
 <section class="space-y-4">
   <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
-    <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white">⭐ Quản Lý Đánh Giá Dịch Vụ</h2>
+    <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white"><i class="bi bi-star-fill"></i> Quản Lý Đánh Giá Dịch Vụ</h2>
     <span id="adminFeedbackCount" class="text-xs font-bold px-2.5 py-1 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">0 đánh giá</span>
   </div>
   <div id="adminFeedbackList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    <p class="text-gray-500 text-sm col-span-full">⏳ Đang tải đánh giá...</p>
+    <p class="text-gray-500 text-sm col-span-full"><i class="bi bi-hourglass-split"></i> Đang tải đánh giá...</p>
   </div>
 </section>
 
@@ -351,7 +366,7 @@
 
         <!-- TỰ ĐỘNG CHÈN ẢNH VÀO PASSAGE -->
         <div class="p-3 bg-red-50 dark:bg-red-950/40 rounded-xl border border-red-200 dark:border-red-900 space-y-2">
-          <label class="block text-xs font-bold uppercase text-[#cf1717]">📷 Công cụ chèn ảnh vào bài đọc Reading</label>
+          <label class="block text-xs font-bold uppercase text-[#cf1717]"><i class="bi bi-camera-fill"></i> Công cụ chèn ảnh vào bài đọc Reading</label>
           <div class="flex gap-2 items-center">
             <input type="file" accept="image/*" onchange="uploadPassageImage(this)" class="p-1 text-xs border rounded dark:bg-zinc-800">
             <span id="passageImgStatus" class="text-xs text-gray-500 font-medium"></span>
@@ -362,20 +377,20 @@
           <label class="block text-xs font-bold uppercase mb-1">Nội dung đoạn văn Reading (HTML)<button type="button" onclick="openGuideModal('reading_passage', 'Nội dung đoạn văn Reading')" class="w-5 h-5 rounded-full bg-[#cf1717] text-white flex items-center justify-center text-xs font-bold hover:bg-red-700 transition shadow" title="Xem hướng dẫn">?</button></label>
           <div class="flex justify-end mb-2">
             <div class="flex rounded-lg overflow-hidden border dark:border-zinc-700">
-              <button type="button" id="passTabWord" onclick="setPassageMode('word')" class="px-3 py-1.5 font-bold text-xs bg-[#cf1717] text-white">✍️ Soạn kiểu Word</button>
+              <button type="button" id="passTabWord" onclick="setPassageMode('word')" class="px-3 py-1.5 font-bold text-xs bg-[#cf1717] text-white"><i class="bi bi-file-earmark-word-fill"></i> Soạn kiểu Word</button>
               <button type="button" id="passTabHtml" onclick="setPassageMode('html')" class="px-3 py-1.5 font-bold text-xs bg-gray-100 dark:bg-zinc-800">&lt;/&gt; Mã HTML</button>
             </div>
           </div>
           <div id="passageToolbar" class="flex flex-wrap items-center gap-1 p-2 bg-gray-100 dark:bg-zinc-800 rounded-t-lg border border-b-0 dark:border-zinc-700"></div>
           <div id="passageEditor" contenteditable="true" class="post-content min-h-[260px] max-h-[420px] overflow-y-auto p-4 border rounded-b-lg bg-white dark:bg-zinc-800 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-[#cf1717]"></div>
           <textarea id="examPassage" rows="12" placeholder="Đoạn văn Reading (HTML)..." class="hidden w-full p-3 rounded-b-lg border dark:bg-zinc-800 dark:border-zinc-700 font-mono text-xs"></textarea>
-          <p id="passageEditorStatus" class="mt-1 text-xs font-semibold text-gray-500">💡 Dán thẳng từ Word (Ctrl+V) hoặc bấm "Nhập file .docx" — hệ thống tự chuyển thành HTML.</p>
+          <p id="passageEditorStatus" class="mt-1 text-xs font-semibold text-gray-500"><i class="bi bi-lightbulb-fill"></i> Dán thẳng từ Word (Ctrl+V) hoặc bấm "Nhập file .docx" — hệ thống tự chuyển thành HTML.</p>
         </div>
         <div>
           <label class="block text-xs font-bold uppercase mb-1">Danh sách câu hỏi (JSON)<button type="button" onclick="openGuideModal('questions_json', 'Danh sách câu hỏi')" class="w-5 h-5 rounded-full bg-[#cf1717] text-white flex items-center justify-center text-xs font-bold hover:bg-red-700 transition shadow" title="Xem hướng dẫn">?</button></label> 
           <div class="flex justify-end mb-2">
             <div class="flex rounded-lg overflow-hidden border dark:border-zinc-700">
-              <button type="button" id="qbTabBlocks" onclick="qbSetMode('blocks')" class="px-3 py-1.5 font-bold text-xs bg-[#cf1717] text-white">🧩 Soạn theo dạng</button>
+              <button type="button" id="qbTabBlocks" onclick="qbSetMode('blocks')" class="px-3 py-1.5 font-bold text-xs bg-[#cf1717] text-white"><i class="bi bi-puzzle-fill"></i> Soạn theo dạng</button>
               <button type="button" id="qbTabJson" onclick="qbSetMode('json')" class="px-3 py-1.5 font-bold text-xs bg-gray-100 dark:bg-zinc-800">&#123; &#125; JSON</button>
             </div>
           </div>
@@ -393,35 +408,35 @@
               <select onchange="qbCmd('fontSize', this.value); this.selectedIndex=0" class="h-7 rounded border-0 bg-transparent hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs" title="Cỡ chữ">
                 <option value="">Cỡ chữ</option><option value="2">Nhỏ</option><option value="3">Vừa</option><option value="5">Lớn</option><option value="7">Rất lớn</option>
               </select>
-              <button type="button" onmousedown="event.preventDefault()" onclick="qbCmd('insertUnorderedList')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs">•≡</button>
-              <button type="button" onmousedown="event.preventDefault()" onclick="qbCmd('insertOrderedList')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs">1≡</button>
-              <label class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs flex items-center justify-center cursor-pointer" title="Chèn ảnh">🖼️
+              <button type="button" onmousedown="event.preventDefault()" onclick="qbCmd('insertUnorderedList')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs"><i class="bi bi-list-ul"></i></button>
+              <button type="button" onmousedown="event.preventDefault()" onclick="qbCmd('insertOrderedList')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs"><i class="bi bi-list-ol"></i></button>
+              <label class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs flex items-center justify-center cursor-pointer" title="Chèn ảnh"><i class="bi bi-image-fill"></i>
                 <input type="file" accept="image/*" class="hidden" onchange="qbInsertImage(this)">
               </label>
-              <button type="button" onmousedown="event.preventDefault()" onclick="qbInsertTable()" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-sm" title="Chèn bảng">▦</button>
-              <label class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs flex items-center justify-center cursor-pointer" title="Chèn âm thanh (Listening)">🔊
+              <button type="button" onmousedown="event.preventDefault()" onclick="qbInsertTable()" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-sm" title="Chèn bảng"><i class="bi bi-table"></i></button>
+              <label class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs flex items-center justify-center cursor-pointer" title="Chèn âm thanh (Listening)"><i class="bi bi-volume-up-fill"></i>
                 <input type="file" accept="audio/*" class="hidden" onchange="qbInsertAudio(this)">
               </label>
-              <span class="text-[10px] text-gray-400 ml-2">💡 Bấm vào ô câu hỏi/giải thích rồi dùng nút trên như soạn Word.</span>
+              <span class="text-[10px] text-gray-400 ml-2"><i class="bi bi-lightbulb-fill"></i> Bấm vào ô câu hỏi/giải thích rồi dùng nút trên như soạn Word.</span>
             </div>
 
             <div id="qbBlocks" class="space-y-4"></div>
 
             <div class="p-3 bg-gray-50 dark:bg-zinc-800/60 rounded-xl border dark:border-zinc-700">
-              <p class="text-[11px] font-bold uppercase text-gray-500 mb-2">➕ Thêm dạng câu hỏi</p>
+              <p class="text-[11px] font-bold uppercase text-gray-500 mb-2"><i class="bi bi-plus-circle-fill"></i> Thêm dạng câu hỏi</p>
               <div class="flex flex-wrap gap-2 text-xs">
-                <button type="button" onclick="qbAdd('mcq')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">☑️ Trắc nghiệm 1 đáp án</button>
-                <button type="button" onclick="qbAdd('multi')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">☑️☑️ Trắc nghiệm nhiều đáp án</button>
-                <button type="button" onclick="qbAdd('tf')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">✅❌ Đúng / Sai</button>
-                <button type="button" onclick="qbAdd('fill')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">✏️ Điền khuyết</button>
-                <button type="button" onclick="qbAdd('essay')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">📄 Tự luận</button>
-                <button type="button" onclick="qbAdd('text')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">📌 Đoạn văn bản / hướng dẫn (không chấm điểm)</button>
+                <button type="button" onclick="qbAdd('mcq')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition"><i class="bi bi-check2-square"></i> Trắc nghiệm 1 đáp án</button>
+                <button type="button" onclick="qbAdd('multi')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition"><i class="bi bi-check2-square"></i><i class="bi bi-check2-square"></i> Trắc nghiệm nhiều đáp án</button>
+                <button type="button" onclick="qbAdd('tf')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition"><i class="bi bi-check-circle-fill"></i><i class="bi bi-x-circle-fill"></i> Đúng / Sai</button>
+                <button type="button" onclick="qbAdd('fill')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition"><i class="bi bi-pencil-fill"></i> Điền khuyết</button>
+                <button type="button" onclick="qbAdd('essay')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition"><i class="bi bi-file-earmark-text-fill"></i> Tự luận</button>
+                <button type="button" onclick="qbAdd('text')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition"><i class="bi bi-pin-angle-fill"></i> Đoạn văn bản / hướng dẫn (không chấm điểm)</button>
                 <label class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition cursor-pointer">
-                  📥 Nhập câu hỏi từ Word
+                  <i class="bi bi-box-arrow-in-down"></i> Nhập câu hỏi từ Word
                   <input type="file" accept=".docx" class="hidden" onchange="qbImportWord(this)">
                 </label>
               </div>
-              <p class="text-[10px] text-gray-400 mt-2">📄 Nhập từ Word cần trình bày đúng quy ước thẻ <code>[MCQ] [MULTI] [TF] [FILL] [ESSAY]</code>; dòng đáp án đúng thêm dấu * ở cuối, điền khuyết dùng <code>{{1}}</code> rồi dòng <code>Đáp án 1: ...</code>.</p>
+              <p class="text-[10px] text-gray-400 mt-2"><i class="bi bi-file-earmark-text-fill"></i> Nhập từ Word cần trình bày đúng quy ước thẻ <code>[MCQ] [MULTI] [TF] [FILL] [ESSAY]</code>; dòng đáp án đúng thêm dấu * ở cuối, điền khuyết dùng <code>{{1}}</code> rồi dòng <code>Đáp án 1: ...</code>.</p>
             </div>
           </div>
           <textarea id="examQuestions" rows="14" placeholder="Danh sách câu hỏi (JSON)..." class="hidden w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 font-mono text-xs"></textarea>
@@ -492,9 +507,9 @@
           </div>
           <h3 class="font-bold text-sm text-gray-900 dark:text-white">${exam.title}</h3>
           <div class="pt-2 flex gap-2">
-            <button onclick="editExam('${exam.id}')" class="w-1/2 py-1.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-lg hover:bg-blue-100 transition">✏️ Sửa</button>
-            <button onclick="deleteExam('${exam.id}')" class="w-1/2 py-1.5 bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-xs font-bold rounded-lg hover:bg-red-100 transition">🗑️ Xóa</button>
-            <button type="button" onclick="previewExam('${exam.token}')" class="w-1/2 py-1.5 bg-amber-50 dark:bg-red-950/50 text-amber-600 dark:text-amber-400 text-xs font-bold rounded-lg hover:bg-red-100 transition">👁️ Xem thử</button>
+            <button onclick="editExam('${exam.id}')" class="w-1/2 py-1.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-lg hover:bg-blue-100 transition"><i class="bi bi-pencil-fill"></i> Sửa</button>
+            <button onclick="deleteExam('${exam.id}')" class="w-1/2 py-1.5 bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-xs font-bold rounded-lg hover:bg-red-100 transition"><i class="bi bi-trash3-fill"></i> Xóa</button>
+            <button type="button" onclick="previewExam('${exam.token}')" class="w-1/2 py-1.5 bg-amber-50 dark:bg-red-950/50 text-amber-600 dark:text-amber-400 text-xs font-bold rounded-lg hover:bg-red-100 transition"><i class="bi bi-eye-fill"></i> Xem thử</button>
           </div>
         </div>
       `).join('');
@@ -697,7 +712,7 @@
     closeExamModal();
     loadAdminExams();
   } catch (err) { 
-    alert("❌ Dữ liệu JSON không hợp lệ! Vui lòng kiểm tra lại cú pháp ở ô Câu hỏi hoặc Từ vựng."); 
+    alert("Dữ liệu JSON không hợp lệ! Vui lòng kiểm tra lại cú pháp ở ô Câu hỏi hoặc Từ vựng."); 
   }
 }
 
@@ -714,7 +729,7 @@
       const status = document.getElementById(statusId);
       if (!file) return;
 
-      status.innerText = "⏳ Đang tải ảnh lên...";
+      status.innerHTML = "<i class='bi bi-hourglass-split'></i> Đang tải ảnh lên...";
       const formData = new FormData();
       formData.append("image", file);
 
@@ -723,9 +738,9 @@
         const data = await res.json();
         if (data.success) {
           document.getElementById(hiddenInputId).value = data.data.url;
-          status.innerText = "✅ Upload ảnh thành công!";
+          status.innerHTML = "<i class='bi bi-check-circle-fill'></i> Upload ảnh thành công!";
         }
-      } catch (err) { status.innerText = "❌ Lỗi upload ảnh!"; }
+      } catch (err) { status.innerHTML = "<i class='bi bi-x-circle-fill'></i> Lỗi upload ảnh!"; }
     }
 
     async function uploadPassageImage(fileInput) {
@@ -733,7 +748,7 @@
       const status = document.getElementById('passageImgStatus');
       if (!file) return;
 
-      status.innerText = "⏳ Đang upload...";
+      status.innerHTML = "<i class='bi bi-hourglass-split'></i> Đang upload...";
       const formData = new FormData();
       formData.append("image", file);
 
@@ -743,9 +758,9 @@
         if (data.success) {
           const imgTag = `<img src="${data.data.url}" alt="Illustration" class="w-full max-w-lg mx-auto my-4 rounded-xl shadow-md">`;
           insertPassageHtml(imgTag);
-          status.innerText = "✅ Đã tự chèn mã HTML ảnh vào ô Reading Passage!";
+          status.innerHTML = "<i class='bi bi-check-circle-fill'></i> Đã tự chèn mã HTML ảnh vào ô Reading Passage!";
         }
-      } catch (err) { status.innerText = "❌ Lỗi upload!"; }
+      } catch (err) { status.innerHTML = "<i class='bi bi-x-circle-fill'></i> Lỗi upload!"; }
     }
 
     function toggleDarkMode() {
@@ -805,7 +820,7 @@ async function loadAdminTickets() {
           <span class="text-[10px] text-gray-400">${new Date(t.created_at).toLocaleDateString('vi-VN')}</span>
         </div>
         <h3 class="font-bold text-xs text-gray-900 dark:text-white line-clamp-1">${t.title}</h3>
-        <p class="text-[11px] text-gray-500 dark:text-gray-400">👤 ${t.full_name} (${t.email})</p>
+        <p class="text-[11px] text-gray-500 dark:text-gray-400"><i class="bi bi-person-fill"></i> ${t.full_name} (${t.email})</p>
         <p class="p-2 bg-gray-50 dark:bg-zinc-900 rounded-xl text-xs text-gray-700 dark:text-gray-300 border dark:border-zinc-800">${t.content}</p>
       </div>
 
@@ -829,9 +844,9 @@ async function sendAdminReply(ticketId) {
     .update({ admin_reply: replyText, status: 'resolved' })
     .eq('id', ticketId);
 
-  if (error) alert("❌ Lỗi: " + error.message);
+  if (error) alert("Lỗi: " + error.message);
   else {
-    alert("✅ Đã gửi câu trả lời thành công!");
+    alert("Đã gửi câu trả lời thành công!");
     loadAdminTickets();
   }
 }
@@ -861,9 +876,9 @@ async function loadAdminFeedbacks() {
       </div>
 
       <div class="space-y-1 text-[11px] text-gray-700 dark:text-gray-300">
-        <div class="flex justify-between"><span>Giao diện:</span> <strong class="text-amber-400">${'★'.repeat(f.q1_rating)}</strong></div>
-        <div class="flex justify-between"><span>Đề thi & Nội dung:</span> <strong class="text-amber-400">${'★'.repeat(f.q2_rating)}</strong></div>
-        <div class="flex justify-between"><span>Tốc độ hệ thống:</span> <strong class="text-amber-400">${'★'.repeat(f.q3_rating)}</strong></div>
+        <div class="flex justify-between"><span>Giao diện:</span> <strong class="text-amber-400">${'<i class="bi bi-star-fill"></i>'.repeat(f.q1_rating)}</strong></div>
+        <div class="flex justify-between"><span>Đề thi & Nội dung:</span> <strong class="text-amber-400">${'<i class="bi bi-star-fill"></i>'.repeat(f.q2_rating)}</strong></div>
+        <div class="flex justify-between"><span>Tốc độ hệ thống:</span> <strong class="text-amber-400">${'<i class="bi bi-star-fill"></i>'.repeat(f.q3_rating)}</strong></div>
       </div>
 
       ${f.comment ? `
@@ -888,7 +903,7 @@ let currentGuideImageUrl = '';
 async function openGuideModal(sectionKey, sectionTitle) {
   currentSectionKey = sectionKey;
   currentGuideRole = 'admin'; 
-  document.getElementById('guideModalTitle').innerText = `❓ Hướng Dẫn: ${sectionTitle}`;
+  document.getElementById('guideModalTitle').innerHTML = `<i class="bi bi-question-circle-fill"></i> Hướng Dẫn: ${escapeHtml(sectionTitle)}`;
   document.getElementById('guideModal').classList.remove('hidden');
   
   updateTabUI();
@@ -915,11 +930,11 @@ function updateTabUI() {
   if (currentGuideRole === 'admin') {
     btnAdmin.className = "py-2 px-4 font-bold text-sm border-b-2 border-[#cf1717] text-[#cf1717] dark:text-red-400 transition";
     btnStudent.className = "py-2 px-4 font-bold text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 border-b-2 border-transparent transition";
-    if (listTitle) listTitle.innerText = "📋 Danh Sách Hướng Dẫn (Cho Admin)";
+    if (listTitle) listTitle.innerHTML = "<i class='bi bi-clipboard-fill'></i> Danh Sách Hướng Dẫn (Cho Admin)";
   } else {
     btnStudent.className = "py-2 px-4 font-bold text-sm border-b-2 border-[#cf1717] text-[#cf1717] dark:text-red-400 transition";
     btnAdmin.className = "py-2 px-4 font-bold text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 border-b-2 border-transparent transition";
-    if (listTitle) listTitle.innerText = "📋 Danh Sách Hướng Dẫn (Cho Học Sinh)";
+    if (listTitle) listTitle.innerHTML = "<i class='bi bi-clipboard-fill'></i> Danh Sách Hướng Dẫn (Cho Học Sinh)";
   }
 }
 
@@ -959,13 +974,13 @@ async function uploadGuideImage(input) {
         contentInput.value = contentInput.value ? `${contentInput.value}\n${imgTag}` : imgTag;
       }
 
-      statusElem.innerText = '✅ Đã chèn ảnh vào nội dung!';
+      statusElem.innerHTML = '<i class="bi bi-check-circle-fill"></i> Đã chèn ảnh vào nội dung!';
     } else {
-      alert('❌ Tải ảnh thất bại: ' + (result.error ? result.error.message : 'Lỗi kết nối'));
+      alert('Tải ảnh thất bại: ' + (result.error ? result.error.message : 'Lỗi kết nối'));
       statusElem.innerText = '';
     }
   } catch (error) {
-    alert('❌ Tải ảnh thất bại: ' + error.message);
+    alert('Tải ảnh thất bại: ' + error.message);
     statusElem.innerText = '';
   }
 }
@@ -1008,7 +1023,7 @@ async function saveGuide() {
   }
 
   if (error) {
-    alert('❌ Lưu hướng dẫn thất bại: ' + error.message);
+    alert('Lưu hướng dẫn thất bại: ' + error.message);
   } else {
     resetGuideForm();
     await loadGuidesList();
@@ -1061,7 +1076,7 @@ function editGuide(guide) {
     clearGuideImage();
   }
 
-  document.getElementById('guideFormHeading').innerText = '✏️ Chỉnh Sửa Hướng Dẫn';
+  document.getElementById('guideFormHeading').innerHTML = '<i class="bi bi-pencil-fill"></i> Chỉnh Sửa Hướng Dẫn';
   document.getElementById('btnCancelGuideEdit').classList.remove('hidden');
 }
 
@@ -1070,7 +1085,7 @@ async function deleteGuide(id) {
   if (!confirm('Bạn có chắc muốn xóa hướng dẫn này?')) return;
   const { error } = await sbClient.from('guides').delete().eq('id', id);
   if (error) {
-    alert('❌ Xóa thất bại: ' + error.message);
+    alert('Xóa thất bại: ' + error.message);
   } else {
     await loadGuidesList();
   }
@@ -1081,7 +1096,7 @@ function resetGuideForm() {
   document.getElementById('guideEditId').value = '';
   document.getElementById('guideInputTitle').value = '';
   document.getElementById('guideInputContent').value = '';
-  document.getElementById('guideFormHeading').innerText = '➕ Thêm Hướng Dẫn Mới';
+  document.getElementById('guideFormHeading').innerHTML = '<i class="bi bi-plus-circle-fill"></i> Thêm Hướng Dẫn Mới';
   document.getElementById('btnCancelGuideEdit').classList.add('hidden');
   clearGuideImage();
 }
@@ -1106,7 +1121,7 @@ function insertYoutubeVideo() {
     const contentInput = document.getElementById('guideInputContent');
     contentInput.value += iframeTag;
   } else {
-    alert("❌ Đường dẫn YouTube không hợp lệ!");
+    alert("Đường dẫn YouTube không hợp lệ!");
   }
 }
 
@@ -1192,7 +1207,7 @@ async function savePronunPhrase() {
 
   const { error } = await sbClient.from('pronunciation_phrases').insert([{ phrase }]);
   if (error) {
-    alert("❌ Lỗi: " + error.message);
+    alert("Lỗi: " + error.message);
   } else {
     input.value = '';
     await loadAdminPronunPhrases();
@@ -1264,11 +1279,11 @@ async function savePronunPhrase() {
   if (editId) {
     // Đang ở chế độ SỬA
     const { error } = await sbClient.from('pronunciation_phrases').update(payload).eq('id', editId);
-    if (error) alert("❌ Lỗi sửa: " + error.message);
+    if (error) alert("Lỗi sửa: " + error.message);
   } else {
     // Đang ở chế độ THÊM MỚI
     const { error } = await sbClient.from('pronunciation_phrases').insert([payload]);
-    if (error) alert("❌ Lỗi thêm: " + error.message);
+    if (error) alert("Lỗi thêm: " + error.message);
   }
 
   cancelPronunEdit();
@@ -1286,7 +1301,7 @@ function editPronunPhrase(id) {
   document.getElementById('inputPronunMeaning').value = item.meaning || '';
 
   document.getElementById('btnSavePronunText').innerText = "Lưu Cập Nhật";
-  document.getElementById('btnSavePronunIcon').innerText = "💾";
+  document.getElementById('btnSavePronunIcon').innerHTML = "<i class='bi bi-floppy-fill'></i>";
   document.getElementById('btnCancelPronunEdit').classList.remove('hidden');
 }
 
@@ -1321,7 +1336,7 @@ async function deletePronunPhrase(id) {
   tbody.innerHTML = data.map(item => `
     <tr class="hover:bg-gray-50 dark:hover:bg-zinc-700/50">
       <td class="p-3 font-mono font-bold text-gray-900 dark:text-white">#${item.user_id.substring(0, 8)}</td>
-      <td class="p-3 font-black text-[#cf1717] dark:text-red-400">🔥 ${item.streak_count || 0} ngày</td>
+      <td class="p-3 font-black text-[#cf1717] dark:text-red-400"><i class="bi bi-fire"></i> ${item.streak_count || 0} ngày</td>
       <td class="p-3 font-black text-amber-500">${item.total_xp || 0} XP</td>
       <td class="p-3">${item.last_study_date || 'Chưa học'}</td>
       <td class="p-3">
@@ -1367,18 +1382,18 @@ const pel = id => document.getElementById(id);
 /* ---------- THANH CÔNG CỤ KIỂU WORD ---------- */
 function initPostEditor() {
   const B = [['bold','<b>B</b>','In đậm'],['italic','<i>I</i>','In nghiêng'],['underline','<u>U</u>','Gạch chân'],
-    ['insertUnorderedList','• Danh sách','Danh sách chấm'],['insertOrderedList','1. Danh sách','Danh sách số'],
-    ['justifyLeft','⬅','Căn trái'],['justifyCenter','↔','Căn giữa'],['justifyRight','➡','Căn phải'],['justifyFull','☰','Căn đều hai bên'],['removeFormat','🧹','Xóa định dạng']];
+    ['insertUnorderedList','<i class="bi bi-list-ul"></i> Danh sách','Danh sách chấm'],['insertOrderedList','<i class="bi bi-list-ol"></i> Danh sách','Danh sách số'],
+    ['justifyLeft','<i class="bi bi-text-left"></i>','Căn trái'],['justifyCenter','<i class="bi bi-text-center"></i>','Căn giữa'],['justifyRight','<i class="bi bi-text-right"></i>','Căn phải'],['justifyFull','<i class="bi bi-justify"></i>','Căn đều hai bên'],['removeFormat','<i class="bi bi-eraser-fill"></i>','Xóa định dạng']];
   const btn = 'px-2 py-1 rounded bg-white dark:bg-zinc-700 border dark:border-zinc-600 hover:bg-red-50 font-bold';
   pel('postToolbar').innerHTML =
     `<select onchange="pcmd('formatBlock',this.value);this.value=''" class="p-1 rounded border dark:bg-zinc-700 dark:border-zinc-600"><option value="">Kiểu chữ</option><option value="<p>">Đoạn văn</option><option value="<h2>">Tiêu đề lớn</option><option value="<h3>">Tiêu đề nhỏ</option><option value="<blockquote>">Trích dẫn</option></select>` +
     B.map(b => `<button type="button" title="${b[2]}" onmousedown="event.preventDefault()" onclick="pcmd('${b[0]}')" class="${btn}">${b[1]}</button>`).join('') +
     `<input type="color" value="#cf1717" title="Màu chữ" onchange="pcmd('foreColor',this.value)" class="w-7 h-7 p-0 border rounded cursor-pointer">` +
-    `<button type="button" onmousedown="event.preventDefault()" onclick="postLink()" class="${btn}">🔗 Link</button>` +
-    `<label class="${btn} cursor-pointer">📷 Ảnh<input type="file" accept="image/*" class="hidden" onchange="postImage(this)"></label>` +
-    `<button type="button" onmousedown="event.preventDefault()" onclick="postTable()" class="${btn}">▦ Bảng</button>` +
-    `<button type="button" onmousedown="event.preventDefault()" onclick="postVideo()" class="${btn}">📹 YouTube</button>` +
-    `<label class="${btn} cursor-pointer bg-blue-50 text-blue-700">📄 Nhập file .docx<input type="file" accept=".docx" class="hidden" onchange="importDocx(this)"></label>`;
+    `<button type="button" onmousedown="event.preventDefault()" onclick="postLink()" class="${btn}"><i class="bi bi-link-45deg"></i> Link</button>` +
+    `<label class="${btn} cursor-pointer"><i class="bi bi-camera-fill"></i> Ảnh<input type="file" accept="image/*" class="hidden" onchange="postImage(this)"></label>` +
+    `<button type="button" onmousedown="event.preventDefault()" onclick="postTable()" class="${btn}"><i class="bi bi-table"></i> Bảng</button>` +
+    `<button type="button" onmousedown="event.preventDefault()" onclick="postVideo()" class="${btn}"><i class="bi bi-youtube"></i> YouTube</button>` +
+    `<label class="${btn} cursor-pointer bg-blue-50 text-blue-700"><i class="bi bi-file-earmark-text-fill"></i> Nhập file .docx<input type="file" accept=".docx" class="hidden" onchange="importDocx(this)"></label>`;
   const e = ed();
   e.addEventListener('blur', () => { const s = getSelection(); if (s.rangeCount && e.contains(s.getRangeAt(0).commonAncestorContainer)) _sel = s.getRangeAt(0); });
   e.addEventListener('paste', ev => {
@@ -1425,15 +1440,15 @@ async function imgbbUpload(fileOrB64) {
 }
 async function postImage(inp) {
   const f = inp.files[0]; if (!f) return; const st = pel('postEditorStatus');
-  st.innerText = '⏳ Đang tải ảnh...';
+  st.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang tải ảnh...';
   const url = await imgbbUpload(f);
-  st.innerText = url ? '✅ Đã chèn ảnh!' : '❌ Lỗi upload ảnh!';
+  st.innerHTML = url ? '<i class="bi bi-check-circle-fill"></i> Đã chèn ảnh!' : '<i class="bi bi-x-circle-fill"></i> Lỗi upload ảnh!';
   if (url) insertAtCursor(`<img src="${url}" alt="">`); inp.value = '';
 }
 async function importDocx(inp) {
   const f = inp.files[0]; if (!f) return; const st = pel('postEditorStatus');
   if (typeof mammoth === 'undefined') return alert('Không tải được thư viện đọc Word. Hãy thử dán (Ctrl+V) nội dung trực tiếp.');
-  st.innerText = '⏳ Đang chuyển Word → HTML (ảnh trong file sẽ được upload)...';
+  st.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang chuyển Word → HTML (ảnh trong file sẽ được upload)...';
   try {
     const res = await mammoth.convertToHtml({ arrayBuffer: await f.arrayBuffer() }, {
       convertImage: mammoth.images.imgElement(async img => {
@@ -1441,8 +1456,8 @@ async function importDocx(inp) {
         return { src: url || `data:${img.contentType};base64,${b64}` };
       })
     });
-    setPostHtml(res.value); st.innerText = '✅ Đã nhập file Word thành công!';
-  } catch (e) { st.innerText = '❌ Không đọc được file .docx'; }
+    setPostHtml(res.value); st.innerHTML = '<i class="bi bi-check-circle-fill"></i> Đã nhập file Word thành công!';
+  } catch (e) { st.innerHTML = '<i class="bi bi-x-circle-fill"></i> Không đọc được file .docx'; }
   inp.value = '';
 }
 
@@ -1475,8 +1490,8 @@ async function savePost(e) {
   if (!excerpt) excerpt = (new DOMParser().parseFromString(html, 'text/html').body.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 220);
   const row = { title, token, thumbnail_url: pel('postThumb').value || null, excerpt, content_html: html, is_published: pel('postPublished').checked, updated_at: new Date().toISOString() };
   const { error } = id ? await sbClient.from('posts').update(row).eq('id', id) : await sbClient.from('posts').insert([row]);
-  if (error) return alert('❌ Lỗi lưu bài: ' + error.message);
-  alert('✅ Đã lưu bài học! Đường dẫn: post.html?token=' + token);
+  if (error) return alert('Lỗi lưu bài: ' + error.message);
+  alert('Đã lưu bài học! Đường dẫn: post.html?token=' + token);
   resetPostForm(); loadAdminPosts();
 }
 function resetPostForm() {
@@ -1489,7 +1504,7 @@ async function loadAdminPosts() {
   allPosts = data || []; pel('adminPostCount').innerText = allPosts.length + ' bài';
   pel('adminPostList').innerHTML = allPosts.map(p => `
     <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 p-3 rounded-xl flex gap-3 items-center">
-      ${p.thumbnail_url ? `<img src="${pEsc(p.thumbnail_url)}" class="w-16 h-16 rounded-lg object-cover flex-shrink-0">` : '<div class="w-16 h-16 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">📖</div>'}
+      ${p.thumbnail_url ? `<img src="${pEsc(p.thumbnail_url)}" class="w-16 h-16 rounded-lg object-cover flex-shrink-0">` : '<div class="w-16 h-16 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0"><i class="bi bi-book-fill text-[#cf1717] text-2xl"></i></div>'}
       <div class="min-w-0 flex-1">
         <h4 class="font-bold text-sm text-gray-900 dark:text-white truncate">${pEsc(p.title)}</h4>
         <p class="text-xs text-gray-400">${new Date(p.created_at).toLocaleDateString('vi-VN')} ${p.is_published ? '' : '· <b class="text-amber-500">Đang ẩn</b>'}</p>
@@ -1531,18 +1546,18 @@ const pasSt = () => document.getElementById('passageEditorStatus');
 
 function initPassageEditor() {
   const B = [['bold','<b>B</b>','In đậm'],['italic','<i>I</i>','In nghiêng'],['underline','<u>U</u>','Gạch chân'],
-    ['insertUnorderedList','• Danh sách','Danh sách chấm'],['insertOrderedList','1. Danh sách','Danh sách số'],
-    ['justifyLeft','⬅','Căn trái'],['justifyCenter','↔','Căn giữa'],['justifyRight','➡','Căn phải'],['justifyFull','☰','Căn đều hai bên'],['removeFormat','🧹','Xóa định dạng']];
+    ['insertUnorderedList','<i class="bi bi-list-ul"></i> Danh sách','Danh sách chấm'],['insertOrderedList','<i class="bi bi-list-ol"></i> Danh sách','Danh sách số'],
+    ['justifyLeft','<i class="bi bi-text-left"></i>','Căn trái'],['justifyCenter','<i class="bi bi-text-center"></i>','Căn giữa'],['justifyRight','<i class="bi bi-text-right"></i>','Căn phải'],['justifyFull','<i class="bi bi-justify"></i>','Căn đều hai bên'],['removeFormat','<i class="bi bi-eraser-fill"></i>','Xóa định dạng']];
   const btn = 'px-2 py-1 rounded bg-white dark:bg-zinc-700 border dark:border-zinc-600 hover:bg-red-50 font-bold text-xs';
   document.getElementById('passageToolbar').innerHTML =
     `<select onchange="pasCmd('formatBlock',this.value);this.value=''" class="p-1 text-xs rounded border dark:bg-zinc-700 dark:border-zinc-600"><option value="">Kiểu chữ</option><option value="<p>">Đoạn văn</option><option value="<h2>">Tiêu đề lớn</option><option value="<h3>">Tiêu đề nhỏ</option><option value="<blockquote>">Trích dẫn</option></select>` +
     B.map(b => `<button type="button" title="${b[2]}" onmousedown="event.preventDefault()" onclick="pasCmd('${b[0]}')" class="${btn}">${b[1]}</button>`).join('') +
     `<input type="color" value="#cf1717" title="Màu chữ" onchange="pasCmd('foreColor',this.value)" class="w-7 h-7 p-0 border rounded cursor-pointer">` +
-    `<button type="button" onmousedown="event.preventDefault()" onclick="passageLink()" class="${btn}">🔗 Link</button>` +
-    `<label class="${btn} cursor-pointer">📷 Ảnh<input type="file" accept="image/*" class="hidden" onchange="passageImage(this)"></label>` +
-    `<button type="button" onmousedown="event.preventDefault()" onclick="passageTable()" class="${btn}">▦ Bảng</button>` +
-    `<button type="button" onmousedown="event.preventDefault()" onclick="passageVideo()" class="${btn}">📹 YouTube</button>` +
-    `<label class="${btn} cursor-pointer bg-blue-50 text-blue-700">📄 Nhập file .docx<input type="file" accept=".docx" class="hidden" onchange="importPassageDocx(this)"></label>`;
+    `<button type="button" onmousedown="event.preventDefault()" onclick="passageLink()" class="${btn}"><i class="bi bi-link-45deg"></i> Link</button>` +
+    `<label class="${btn} cursor-pointer"><i class="bi bi-camera-fill"></i> Ảnh<input type="file" accept="image/*" class="hidden" onchange="passageImage(this)"></label>` +
+    `<button type="button" onmousedown="event.preventDefault()" onclick="passageTable()" class="${btn}"><i class="bi bi-table"></i> Bảng</button>` +
+    `<button type="button" onmousedown="event.preventDefault()" onclick="passageVideo()" class="${btn}"><i class="bi bi-youtube"></i> YouTube</button>` +
+    `<label class="${btn} cursor-pointer bg-blue-50 text-blue-700"><i class="bi bi-file-earmark-text-fill"></i> Nhập file .docx<input type="file" accept=".docx" class="hidden" onchange="importPassageDocx(this)"></label>`;
 
   const e = pasEd();
   // nhớ vị trí con trỏ trong editor
@@ -1607,9 +1622,9 @@ async function pasUpload(fileOrB64) {
 }
 async function passageImage(inp) {
   const f = inp.files[0]; if (!f) return; const st = pasSt();
-  st.innerText = '⏳ Đang tải ảnh...';
+  st.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang tải ảnh...';
   const url = await pasUpload(f);
-  st.innerText = url ? '✅ Đã chèn ảnh!' : '❌ Lỗi upload ảnh!';
+  st.innerHTML = url ? '<i class="bi bi-check-circle-fill"></i> Đã chèn ảnh!' : '<i class="bi bi-x-circle-fill"></i> Lỗi upload ảnh!';
   if (url) insertPassageHtml(`<img src="${url}" alt="" style="max-width:100%;height:auto;border-radius:12px;display:block;margin:1em auto">`);
   inp.value = '';
 }
@@ -1617,7 +1632,7 @@ async function importPassageDocx(inp) {
   const f = inp.files[0]; if (!f) return; const st = pasSt();
   if (typeof mammoth === 'undefined') { inp.value = ''; return alert('Không tải được thư viện đọc Word. Hãy thử dán (Ctrl+V) nội dung trực tiếp.'); }
   if (getPassageHtml() && !confirm('Nhập file Word sẽ thay thế toàn bộ đoạn văn hiện tại. Tiếp tục?')) { inp.value = ''; return; }
-  st.innerText = '⏳ Đang chuyển Word → HTML (ảnh trong file sẽ được upload)...';
+  st.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang chuyển Word → HTML (ảnh trong file sẽ được upload)...';
   try {
     const res = await mammoth.convertToHtml({ arrayBuffer: await f.arrayBuffer() }, {
       convertImage: mammoth.images.imgElement(async img => {
@@ -1625,8 +1640,8 @@ async function importPassageDocx(inp) {
         return { src: url || `data:${img.contentType};base64,${b64}` };
       })
     });
-    setPassageHtml(res.value); st.innerText = '✅ Đã nhập file Word thành công!';
-  } catch (err) { st.innerText = '❌ Không đọc được file .docx'; }
+    setPassageHtml(res.value); st.innerHTML = '<i class="bi bi-check-circle-fill"></i> Đã nhập file Word thành công!';
+  } catch (err) { st.innerHTML = '<i class="bi bi-x-circle-fill"></i> Không đọc được file .docx'; }
   inp.value = '';
 }
 
@@ -1667,8 +1682,8 @@ const qbEl = id => document.getElementById(id);
 const qbEsc = s => s == null ? '' : String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const qbNewId = () => 'q_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const QB_TYPES = ['mcq', 'multi', 'tf', 'fill', 'essay', 'text'];
-const QB_LABEL = { mcq: '☑️ Trắc nghiệm 1 đáp án', multi: '☑️☑️ Trắc nghiệm nhiều đáp án', tf: '✅❌ Đúng/Sai', fill: '✏️ Điền khuyết', essay: '📄 Tự luận', text: '📌 Văn bản / hướng dẫn' };
-function qbNote(msg) { const p = qbEl('qbStatus'); if (p) p.innerText = msg || ''; }
+const QB_LABEL = { mcq: '<i class="bi bi-check2-square"></i> Trắc nghiệm 1 đáp án', multi: '<i class="bi bi-check2-square"></i><i class="bi bi-check2-square"></i> Trắc nghiệm nhiều đáp án', tf: '<i class="bi bi-check-circle-fill"></i><i class="bi bi-x-circle-fill"></i> Đúng/Sai', fill: '<i class="bi bi-pencil-fill"></i> Điền khuyết', essay: '<i class="bi bi-file-earmark-text-fill"></i> Tự luận', text: '<i class="bi bi-pin-angle-fill"></i> Văn bản / hướng dẫn' };
+function qbNote(msg) { const p = qbEl('qbStatus'); if (p) p.innerHTML = msg || ''; }
 
 /* ---------- Thanh định dạng ---------- */
 document.addEventListener('focusin', e => {
@@ -1688,7 +1703,7 @@ document.addEventListener('paste', e => {
 });
 function qbFocusOk() { return qbFocus && document.body.contains(qbFocus); }
 function qbCmd(cmd, value) {
-  if (!qbFocusOk()) return qbNote('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước.');
+  if (!qbFocusOk()) return qbNote('<i class="bi bi-exclamation-triangle-fill"></i> Hãy bấm vào ô câu hỏi/giải thích trước.');
   qbFocus.focus();
   if (qbRange) { const s = window.getSelection(); s.removeAllRanges(); s.addRange(qbRange); }
   document.execCommand(cmd, false, value === undefined || value === '' ? null : value);
@@ -1696,18 +1711,18 @@ function qbCmd(cmd, value) {
 async function qbInsertImage(input) {
   const file = input.files[0]; input.value = '';
   if (!file) return;
-  if (!qbFocusOk()) return qbNote('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước, rồi chọn ảnh.');
-  const target = qbFocus; qbNote('⏳ Đang tải ảnh...');
+  if (!qbFocusOk()) return qbNote('<i class="bi bi-exclamation-triangle-fill"></i> Hãy bấm vào ô câu hỏi/giải thích trước, rồi chọn ảnh.');
+  const target = qbFocus; qbNote('<i class="bi bi-hourglass-split"></i> Đang tải ảnh...');
   let url = null;
   try { url = await pasUpload(file); } catch (e) {}
   if (!url) url = await new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(file); });
   target.focus();
   if (qbRange) { const s = window.getSelection(); s.removeAllRanges(); s.addRange(qbRange); }
   document.execCommand('insertHTML', false, `<img src="${url}" alt="">`);
-  qbNote('✅ Đã chèn ảnh!');
+  qbNote('<i class="bi bi-check-circle-fill"></i> Đã chèn ảnh!');
 }
 function qbInsertTable() {
-  if (!qbFocusOk()) return qbNote('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước.');
+  if (!qbFocusOk()) return qbNote('<i class="bi bi-exclamation-triangle-fill"></i> Hãy bấm vào ô câu hỏi/giải thích trước.');
   const rows = parseInt(prompt('Bảng bao nhiêu HÀNG?', '2')) || 2;
   const cols = parseInt(prompt('Bảng bao nhiêu CỘT?', '2')) || 2;
   let html = '<table><tbody>';
@@ -1719,8 +1734,8 @@ function qbInsertTable() {
 }
 function qbInsertAudio(input) {
   const file = input.files[0]; input.value = '';
-  if (!file || !qbFocusOk()) return qbNote('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước, sau đó chọn file âm thanh.');
-  if (file.size > 8 * 1024 * 1024) return qbNote('⚠️ File âm thanh quá 8MB, hãy nén nhỏ hơn rồi thử lại.');
+  if (!file || !qbFocusOk()) return qbNote('<i class="bi bi-exclamation-triangle-fill"></i> Hãy bấm vào ô câu hỏi/giải thích trước, sau đó chọn file âm thanh.');
+  if (file.size > 8 * 1024 * 1024) return qbNote('<i class="bi bi-exclamation-triangle-fill"></i> File âm thanh quá 8MB, hãy nén nhỏ hơn rồi thử lại.');
   const target = qbFocus, reader = new FileReader();
   reader.onload = () => {
     target.focus();
@@ -1781,7 +1796,7 @@ function qbFillUI(b) {
       <label class="block text-[10px] font-bold uppercase text-gray-500">Chỗ trống điền khuyết</label>
       <button type="button" onclick="qbInsertGap('${b.id}')" class="text-xs font-bold text-[#cf1717] hover:underline">+ Chèn chỗ trống vào nội dung</button>
     </div>
-    <p class="text-[11px] text-amber-500 italic">⚠️ Đặt con trỏ vào vị trí muốn tạo chỗ trống trong "Nội dung câu hỏi" ở trên, rồi bấm nút này (bấm nhiều lần nếu câu có nhiều chỗ trống).</p>
+    <p class="text-[11px] text-amber-500 italic"><i class="bi bi-exclamation-triangle-fill"></i> Đặt con trỏ vào vị trí muốn tạo chỗ trống trong "Nội dung câu hỏi" ở trên, rồi bấm nút này (bấm nhiều lần nếu câu có nhiều chỗ trống).</p>
   </div>`;
   return `<div class="space-y-2">
     <div class="flex items-center justify-between">
@@ -1805,9 +1820,9 @@ function qbRender() {
         <span class="text-xs font-extrabold text-[#cf1717]">Câu ${b.type === 'text' ? '' : qbBlocks.slice(0, idx + 1).filter(x => x.type !== 'text').length} — ${QB_LABEL[b.type]}</span>
         <div class="flex items-center gap-2 text-xs">
           ${b.type !== 'text' ? `<label class="flex items-center gap-1">Điểm: <input type="number" min="0" step="0.5" value="${b.points}" oninput="qbUpdate('${b.id}','points',this.value,true)" class="w-14 p-1 rounded border dark:bg-zinc-800 dark:border-zinc-700"></label>` : ''}
-          <button type="button" onclick="qbMove('${b.id}',-1)" title="Lên">⬆️</button>
-          <button type="button" onclick="qbMove('${b.id}',1)" title="Xuống">⬇️</button>
-          <button type="button" onclick="qbRemove('${b.id}')" class="text-red-500 font-bold" title="Xóa">🗑️</button>
+          <button type="button" onclick="qbMove('${b.id}',-1)" title="Lên"><i class="bi bi-arrow-up"></i></button>
+          <button type="button" onclick="qbMove('${b.id}',1)" title="Xuống"><i class="bi bi-arrow-down"></i></button>
+          <button type="button" onclick="qbRemove('${b.id}')" class="text-red-500 font-bold" title="Xóa"><i class="bi bi-trash3-fill"></i></button>
         </div>
       </div>
       <div>
@@ -1816,21 +1831,21 @@ function qbRender() {
       </div>
       ${(b.type === 'mcq' || b.type === 'multi' || b.type === 'tf') ? `
         <div class="space-y-2">
-          <label class="block text-[10px] font-bold uppercase text-gray-500">Các lựa chọn (tick ✓ vào đáp án đúng)</label>
+          <label class="block text-[10px] font-bold uppercase text-gray-500">Các lựa chọn (tick <i class="bi bi-check-lg"></i> vào đáp án đúng)</label>
           ${b.options.map(o => `
             <div class="flex items-center gap-2">
               <input type="${b.type === 'multi' ? 'checkbox' : 'radio'}" name="qbcorrect-${b.id}" ${o.correct ? 'checked' : ''}
                 onchange="qbSetCorrect('${b.id}','${o.id}', ${b.type === 'multi'} ? this.checked : true, ${b.type !== 'multi'})">
               <input type="text" value="${qbEsc(o.text)}" placeholder="Nội dung lựa chọn..." ${b.type === 'tf' ? 'readonly' : ''}
                 oninput="qbSetOptText('${b.id}','${o.id}',this.value)" class="flex-1 p-2 rounded border dark:bg-zinc-800 dark:border-zinc-700 text-xs">
-              ${b.type !== 'tf' && b.options.length > 2 ? `<button type="button" onclick="qbRemoveOpt('${b.id}','${o.id}')" class="text-red-400 text-xs">✕</button>` : ''}
+              ${b.type !== 'tf' && b.options.length > 2 ? `<button type="button" onclick="qbRemoveOpt('${b.id}','${o.id}')" class="text-red-400 text-xs"><i class="bi bi-x-lg"></i></button>` : ''}
             </div>`).join('')}
           ${b.type !== 'tf' ? `<button type="button" onclick="qbAddOpt('${b.id}')" class="text-xs font-bold text-[#cf1717] hover:underline">+ Thêm lựa chọn</button>` : ''}
         </div>` : ''}
       ${b.type === 'fill' ? qbFillUI(b) : ''}
       ${b.type !== 'text' ? `
         <div>
-          <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">💡 Đáp án & giải thích (hiện ra sau khi học sinh nộp bài)</label>
+          <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1"><i class="bi bi-lightbulb-fill"></i> Đáp án & giải thích (hiện ra sau khi học sinh nộp bài)</label>
           <div class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700" contenteditable="true" oninput="qbUpdate('${b.id}','explanation',this.innerHTML)">${b.explanation || ''}</div>
         </div>` : ''}
     </div>`).join('') || '<p class="text-xs text-gray-400 italic text-center py-6">Chưa có câu hỏi nào — bấm nút bên dưới để thêm.</p>';
@@ -1869,7 +1884,7 @@ function qbGetData() {
 function qbValidate() {
   if (qbMode !== 'blocks') return '';
   for (const b of qbBlocks) if (b.type === 'fill' && !qbGaps(b.content).length)
-    return '⚠️ Có câu điền khuyết chưa có chỗ trống nào — hãy bấm "+ Chèn chỗ trống" trong câu đó trước khi lưu.';
+    return '<i class="bi bi-exclamation-triangle-fill"></i> Có câu điền khuyết chưa có chỗ trống nào — hãy bấm "+ Chèn chỗ trống" trong câu đó trước khi lưu.';
   return '';
 }
 function qbApplyMode(m) {
@@ -1887,8 +1902,8 @@ function qbSetMode(m) {
     qbApplyMode('json'); qbNote('');
   } else {
     let data;
-    try { data = JSON.parse(qbEl('examQuestions').value.trim() || '[]'); } catch (e) { return alert('❌ JSON đang bị lỗi cú pháp, hãy sửa trước khi chuyển sang chế độ soạn theo dạng.'); }
-    if (!qbCompatible(data)) return alert('⚠️ JSON này có định dạng khác trình soạn (dạng câu hỏi không nằm trong: mcq, multi, tf, fill, essay, text). Để tránh mất dữ liệu, hãy tiếp tục sửa ở chế độ JSON.');
+    try { data = JSON.parse(qbEl('examQuestions').value.trim() || '[]'); } catch (e) { return alert('JSON đang bị lỗi cú pháp, hãy sửa trước khi chuyển sang chế độ soạn theo dạng.'); }
+    if (!qbCompatible(data)) return alert('JSON này có định dạng khác trình soạn (dạng câu hỏi không nằm trong: mcq, multi, tf, fill, essay, text). Để tránh mất dữ liệu, hãy tiếp tục sửa ở chế độ JSON.');
     qbBlocks = qbDenorm(data); qbApplyMode('blocks'); qbRender(); qbNote('');
   }
 }
@@ -1897,22 +1912,22 @@ function qbLoad(data) {
   if (!Array.isArray(data)) data = [];
   qbEl('examQuestions').value = JSON.stringify(data, null, 2);
   if (qbCompatible(data)) { qbBlocks = qbDenorm(data); qbApplyMode('blocks'); qbRender(); qbNote(''); }
-  else { qbBlocks = []; qbRender(); qbApplyMode('json'); qbNote('⚠️ Bài này có định dạng câu hỏi khác trình soạn theo dạng, nên được giữ ở chế độ JSON để không mất dữ liệu.'); }
+  else { qbBlocks = []; qbRender(); qbApplyMode('json'); qbNote('<i class="bi bi-exclamation-triangle-fill"></i> Bài này có định dạng câu hỏi khác trình soạn theo dạng, nên được giữ ở chế độ JSON để không mất dữ liệu.'); }
 }
 
 /* ---------- Nhập câu hỏi từ Word (.docx) ---------- */
 async function qbImportWord(input) {
   const file = input.files[0]; input.value = ''; if (!file) return;
-  if (!window.mammoth) return qbNote('❌ Không tải được thư viện đọc file Word, hãy tải lại trang và thử lại.');
-  qbNote('⏳ Đang đọc file Word...');
+  if (!window.mammoth) return qbNote('<i class="bi bi-x-circle-fill"></i> Không tải được thư viện đọc file Word, hãy tải lại trang và thử lại.');
+  qbNote('<i class="bi bi-hourglass-split"></i> Đang đọc file Word...');
   try {
     const result = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
     const nb = qbParseWord(result.value);
-    if (!nb.length) return qbNote('⚠️ Không nhận diện được câu hỏi nào. Mỗi câu phải bắt đầu bằng thẻ [MCQ] [MULTI] [TF] [FILL] hoặc [ESSAY].');
+    if (!nb.length) return qbNote('<i class="bi bi-exclamation-triangle-fill"></i> Không nhận diện được câu hỏi nào. Mỗi câu phải bắt đầu bằng thẻ [MCQ] [MULTI] [TF] [FILL] hoặc [ESSAY].');
     qbBlocks.push(...nb); qbRender();
     const skipped = nb.filter(b => b._needsCheck).length;
-    qbNote(`🎉 Đã nhập ${nb.length} câu từ Word!${skipped ? ` (${skipped} câu chưa rõ đáp án đúng — đã tạm đánh dấu đáp án A, hãy kiểm tra lại)` : ''}`);
-  } catch (err) { qbNote('❌ Lỗi đọc file Word: ' + (err.message || 'không xác định')); }
+    qbNote(`<i class="bi bi-stars"></i> Đã nhập ${nb.length} câu từ Word!${skipped ? ` (${skipped} câu chưa rõ đáp án đúng — đã tạm đánh dấu đáp án A, hãy kiểm tra lại)` : ''}`);
+  } catch (err) { qbNote('<i class="bi bi-x-circle-fill"></i> Lỗi đọc file Word: ' + escapeHtml(err.message || 'không xác định')); }
 }
 function qbParseWord(text) {
   const rawLines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
@@ -1964,7 +1979,7 @@ document.addEventListener('DOMContentLoaded', () => { qbRender(); });
     <!-- Header Modal -->
     <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
       <h3 id="guideModalTitle" class="font-extrabold text-lg text-[#cf1717] dark:text-red-400 flex items-center gap-2">
-        <span>❓</span> Quản Lý Hướng Dẫn
+        <span><i class="bi bi-question-circle-fill"></i></span> Quản Lý Hướng Dẫn
       </h3>
       <button onclick="closeGuideModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
     </div>
@@ -1972,27 +1987,27 @@ document.addEventListener('DOMContentLoaded', () => { qbRender(); });
     <!-- THANH CHUYỂN TAB: ADMIN vs STUDENT -->
     <div class="flex border-b border-gray-200 dark:border-zinc-700">
       <button id="tabBtnAdmin" onclick="switchGuideTab('admin')" class="py-2 px-4 font-bold text-sm border-b-2 border-[#cf1717] text-[#cf1717] dark:text-red-400 transition">
-        👑 Hướng dẫn cho Admin
+        <i class="bi bi-award-fill"></i> Hướng dẫn cho Admin
       </button>
       <button id="tabBtnStudent" onclick="switchGuideTab('student')" class="py-2 px-4 font-bold text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 border-b-2 border-transparent transition">
-        🎓 Hướng dẫn cho Học Sinh
+        <i class="bi bi-mortarboard-fill"></i> Hướng dẫn cho Học Sinh
       </button>
     </div>
 
     <!-- FORM THÊM / SỬA HƯỚNG DẪN -->
     <div class="bg-gray-50 dark:bg-zinc-800/60 p-4 rounded-xl border border-gray-200 dark:border-zinc-700 space-y-3">
-      <h4 id="guideFormHeading" class="font-bold text-xs uppercase text-gray-700 dark:text-gray-300">➕ Thêm Hướng Dẫn Mới</h4>
+      <h4 id="guideFormHeading" class="font-bold text-xs uppercase text-gray-700 dark:text-gray-300"><i class="bi bi-plus-circle-fill"></i> Thêm Hướng Dẫn Mới</h4>
       <input type="hidden" id="guideEditId" value="">
       
       <input type="text" id="guideInputTitle" placeholder="Tiêu đề hướng dẫn..." class="w-full p-2.5 rounded-lg border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#cf1717] dark:text-white">
       <!-- CÁC NÚT CÔNG CỤ CHÈN NHANH -->
 <div class="flex items-center gap-2 pt-1">
   <button type="button" onclick="insertYoutubeVideo()" class="px-2.5 py-1 bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400 border border-red-200 dark:border-red-900 rounded-lg text-xs font-bold hover:bg-red-200 transition">
-    📹 Chèn Video YouTube</button>
+    <i class="bi bi-youtube"></i> Chèn Video YouTube</button>
 <button type="button" onclick="insertDocFile()" class="px-2.5 py-1 bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-200 dark:border-blue-900 rounded-lg text-xs font-bold hover:bg-blue-200 transition">
-    📄 Chèn File (PDF/Doc/Drive)</button>
+    <i class="bi bi-file-earmark-text-fill"></i> Chèn File (PDF/Doc/Drive)</button>
         <label class="cursor-pointer px-3 py-1.5 bg-red-100 dark:bg-red-950/40 text-[#cf1717] dark:text-red-400 border border-red-200 dark:border-red-900 rounded-lg text-xs font-bold hover:bg-[#cf1717] hover:text-white transition">
-          📷 Tải Ảnh Hướng Dẫn
+          <i class="bi bi-camera-fill"></i> Tải Ảnh Hướng Dẫn
           <input type="file" id="guideImageInput" accept="image/*" class="hidden" onchange="uploadGuideImage(this)">
         </label>
         <span id="guideUploadStatus" class="text-xs text-gray-500 italic"></span>
@@ -2014,7 +2029,7 @@ document.addEventListener('DOMContentLoaded', () => { qbRender(); });
 
     <!-- DANH SÁCH HƯỚNG DẪN HIỆN CÓ -->
     <div class="space-y-3">
-      <h4 id="guideListTitle" class="font-bold text-xs uppercase text-gray-500 dark:text-gray-400">📋 Danh Sách Hướng Dẫn (Admin)</h4>
+      <h4 id="guideListTitle" class="font-bold text-xs uppercase text-gray-500 dark:text-gray-400"><i class="bi bi-clipboard-fill"></i> Danh Sách Hướng Dẫn (Admin)</h4>
       <div id="guideListContainer" class="space-y-3 max-h-80 overflow-y-auto pr-1">
         <p class="text-xs text-gray-400 italic">Đang tải hướng dẫn...</p>
       </div>
