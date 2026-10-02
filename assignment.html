@@ -675,7 +675,7 @@
 
       // Bài tập đã xuất bản của các lớp — hiển thị nhỏ trên lịch theo hạn nộp
       try {
-        scalAssignErr = ''; scalAssign = await scalFetchAll(() => sbClient.from('assignments').select('id, token, title, due_date, class_id').in('class_id', classIds).eq('is_published', true).not('due_date', 'is', null).order('due_date', { ascending: true }));
+        scalAssignErr = ''; scalAssign = await scalFetchAll(() => sbClient.from('assignments').select('id, token, title, due_date, class_id').in('class_id', classIds).eq('is_published', true).not('is_test', 'is', true).not('due_date', 'is', null).order('due_date', { ascending: true }));
       } catch (e) { scalAssignErr = e.message || String(e); console.error('Không tải được hạn nộp bài tập:', e); }
 
       // Trạng thái điểm danh: chỉ lấy của các buổi GV ĐÃ CHỐT (nếu chưa chạy SQL chốt thì coi như chưa chốt)
@@ -936,7 +936,7 @@
     }
 
     const { data, error } = await sbClient.from('assignments').select('id, token, title, description, total_points, created_at, due_date, classes(title, class_code)')
-      .eq('class_id', classId).eq('is_published', true).order('created_at', { ascending: false });
+      .eq('class_id', classId).eq('is_published', true).not('is_test', 'is', true).order('created_at', { ascending: false });
     pel('loadingMsg').classList.add('hidden');
     if (error) { if (!cached) notify('❌ Lỗi tải bài tập: ' + error.message); return; }
     allAssignments = data || [];
@@ -990,7 +990,7 @@
       pel('vipLockBox').classList.remove('hidden');
       return;
     }
-    const { data: a, error } = await sbClient.from('assignments').select('*, classes(title, class_code)').eq('token', token).eq('is_published', true).maybeSingle();
+    const { data: a, error } = await sbClient.from('assignments').select('*, classes(title, class_code)').eq('token', token).eq('is_published', true).not('is_test', 'is', true).maybeSingle();
     if (error || !a) { notify('❌ Không tìm thấy bài tập hoặc bài chưa được xuất bản.'); pel('listView').classList.remove('hidden'); pel('loadingMsg').classList.add('hidden'); pel('emptyMsg').classList.remove('hidden'); return; }
 
     // Kiểm tra học sinh có thuộc lớp này không
