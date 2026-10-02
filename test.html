@@ -116,10 +116,12 @@ async function findClasses(){
 }
 
 /* ---------- MÀN 2: CHỌN LỚP ---------- */
+const meChip=()=>me?`<span class="inline-flex items-center gap-1 text-[11px] text-gray-500 dark:text-gray-400 max-w-full"><i class="bi bi-person-badge"></i><span class="truncate">${esc(me.name)} · ${esc(me.email)}</span></span>`:'';
 function screenClasses(list){
   clearInterval(ticker); sessionStorage.setItem('rt_classes',JSON.stringify(list)); sessionStorage.removeItem('rt_cls');
   $('app').innerHTML = `${logo}<div class="max-w-xl mx-auto">
     <div class="flex justify-between items-center mb-3"><h1 class="text-lg font-extrabold"><i class="bi bi-person-circle text-[#cf1717]"></i> Xin chào, ${esc(me.name)}</h1><button onclick="logout()" class="text-xs font-bold text-[#cf1717] hover:underline">Đổi thí sinh</button></div>
+    <div class="mb-3">${meChip()}</div>
     <p class="text-sm text-gray-500 mb-4">Chọn lớp để xem bài thi:</p>
     <div class="space-y-3">${list.map((c,i)=>`<button onclick='pickClass(${JSON.stringify(c).replace(/'/g,"&#39;")})' class="${card} w-full text-left p-5 hover:border-[#cf1717] hover:-translate-y-0.5 transition">
       <div class="text-xs font-black text-[#cf1717] uppercase">${esc(c.class_code)}</div>
@@ -139,26 +141,36 @@ async function pickClass(c){
 }
 function renderTests(){
   if(!$('testList')) $('app').innerHTML=`${logo}<div class="max-w-xl mx-auto">
-    <button onclick="screenClasses(window._classes)" class="text-xs font-bold text-[#cf1717] mb-3 hover:underline"><i class="bi bi-arrow-left"></i> Chọn lớp khác</button>
+    <div class="flex items-center justify-between gap-3 flex-wrap mb-3"><button onclick="screenClasses(window._classes)" class="text-xs font-bold text-[#cf1717] hover:underline"><i class="bi bi-arrow-left"></i> Chọn lớp khác</button>${meChip()}</div>
     <div class="${card} p-5 mb-4"><div class="text-xs font-black text-[#cf1717] uppercase">${esc(cls.class_code)}</div><div class="text-xl font-extrabold">${esc(cls.title)}</div><div class="text-sm text-gray-500">${esc(cls.info||'')}</div></div>
     <div id="testList" class="space-y-3"></div></div>`;
   $('testList').innerHTML = tests.length ? tests.map(testCard).join('') : '<p class="text-center text-gray-400 italic py-8">Lớp này chưa có bài thi nào.</p>';
 }
 function testCard(t){
   const n=nowMs(), op=new Date(t.open_at).getTime(), cl=new Date(t.close_at).getTime();
+  const hasAtt='attempts_used' in t, used=+t.attempts_used||0, max=+t.max_attempts||0, left=!max||used<max;   // max = 0 / null → không giới hạn
+  const hasBest=t.best_score!=null, bestTxt=hasBest?`${t.best_score} / ${t.best_total??t.total_points??''}`.replace(/ \/ $/,''):'';
+  const inProg=!!t.in_progress||(t.started&&!t.submitted);
+  const gradeBadge=hasBest?`<span class="badge"><i class="bi bi-award-fill text-amber-500"></i> Your grade: <b class="text-[#cf1717]">${esc(bestTxt)}</b>${!max&&used>1?' (highest)':''}</span>`:'';
   let act='';
-  if(t.submitted){
-    act = n>=cl ? (t.show_result?`<button onclick="showResult('${t.id}')" class="btn">View grade</button>`:`<span class="badge">Submitted</span>`)
-                : `<span class="badge"><i class="bi bi-check-circle-fill text-emerald-500"></i> Submitted — grade available at ${fmt(t.close_at).split(', ').slice(1).join(', ')}</span>`;
-  } else if(n<op){ const s=Math.ceil((op-n)/1000); act=`<span class="badge"><i class="bi bi-hourglass-split"></i> Mở sau ${s>86400?Math.floor(s/86400)+' ngày ':''}${String(Math.floor(s%86400/3600)).padStart(2,'0')}:${String(Math.floor(s%3600/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}</span>`; }
+  if(n<op){ const s=Math.ceil((op-n)/1000); act=`<span class="badge"><i class="bi bi-hourglass-split"></i> Mở sau ${s>86400?Math.floor(s/86400)+' ngày ':''}${String(Math.floor(s%86400/3600)).padStart(2,'0')}:${String(Math.floor(s%3600/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}</span>`; }
+  else if(inProg&&n<cl){ act=`<button onclick="askPass('${t.id}')" class="btn">Tiếp tục làm bài</button>`; }
+  else if(t.submitted||used>0){
+    if(n>=cl) act = t.show_result?`<button onclick="showResult('${t.id}')" class="btn">View grade</button>`:(gradeBadge||`<span class="badge">Submitted</span>`);
+    else act = `<div class="flex flex-col items-end gap-2">${gradeBadge||`<span class="badge"><i class="bi bi-check-circle-fill text-emerald-500"></i> Submitted — grade available at ${fmt(t.close_at).split(', ').slice(1).join(', ')}</span>`}${left&&hasAtt?`<button onclick="askPass('${t.id}')" class="btn">Làm lại bài</button>`:''}<span class="text-[11px] text-gray-400">Answers are shown when the test closes.</span></div>`;
+  }
   else if(n>=cl){ act='<span class="badge" style="color:#ef4444"><i class="bi bi-x-octagon-fill"></i> Bạn chưa nộp bài — đề đã đóng</span>'; }
   else act=`<button onclick="askPass('${t.id}')" class="btn">${t.started?'Tiếp tục làm bài':'Vào làm bài'}</button>`;
+  const attTxt=!hasAtt?'':(max?`Attempts: <b>${used} / ${max}</b>`:`Attempts: <b>${used}</b> · Unlimited — highest grade counts`);
+  const note=String(t.note??t.description??'').trim();
   return `<div class="${card} p-5 flex flex-wrap items-center gap-4">
     <div class="w-12 h-12 rounded-xl bg-pink-500 flex items-center justify-center text-white text-2xl flex-shrink-0"><i class="bi bi-ui-checks"></i></div>
     <div class="flex-1 min-w-[12rem]"><div class="text-lg font-semibold">${esc(t.title)}</div>
       <div class="text-sm"><b>Đã mở:</b> ${fmt(t.open_at)}</div><div class="text-sm"><b>Đã đóng:</b> ${fmt(t.close_at)}</div>
-      ${t.time_limit?`<div class="text-xs text-gray-500 mt-1">Thời gian làm bài: ${t.time_limit} phút</div>`:''}</div>
-    <div>${act}</div></div>
+      ${t.time_limit?`<div class="text-xs text-gray-500 mt-1">Thời gian làm bài: ${t.time_limit} phút</div>`:''}
+      ${attTxt?`<div class="text-xs text-gray-500 mt-0.5"><i class="bi bi-arrow-repeat"></i> ${attTxt}</div>`:''}</div>
+    <div>${act}</div>
+    ${note?`<div class="w-full basis-full rounded-xl border border-pink-200 dark:border-pink-900/60 bg-pink-50 dark:bg-pink-950/20 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 whitespace-pre-line"><i class="bi bi-info-circle-fill text-pink-500"></i> ${esc(note)}</div>`:''}</div>
     <style>.btn{padding:.6rem 1.1rem;border-radius:12px;background:#cf1717;color:#fff;font-weight:800;font-size:.85rem}.btn:hover{background:#b01212}.badge{font-size:.78rem;font-weight:700;color:#6b7280}</style>`;
 }
 
