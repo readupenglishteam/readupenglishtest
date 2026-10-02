@@ -2575,7 +2575,13 @@
     renderScoreDistribution(); renderResultsList();
   }
   const attemptStudentId = r => r.student_id ?? r.user_id ?? null;
-  function sessionOfAttempt(r) { const id = attemptStudentId(r); return id ? currentSessions.find(x => x.student_id === id) || null : null; }
+  function sessionOfAttempt(r) { return currentSessions.find(x => x.attempt_id === r.id) || null; }
+  // Mỗi học sinh có thể có nhiều lần làm → lấy lần điểm cao nhất của từng học sinh
+  function bestAttempts() {
+    const m = {};
+    currentAttemptsList.forEach(r => { const k = attemptStudentId(r) || r.id; if (!m[k] || scoreOf(r) > scoreOf(m[k])) m[k] = r; });
+    return Object.values(m);
+  }
   function violBadge(v) {
     const cls = v >= MAX_VIOL_SHOWN ? 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400'
               : v > 0 ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-400'
@@ -2614,10 +2620,11 @@
       box.innerHTML = `<div class="text-xs rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900 text-amber-800 dark:text-amber-300 p-3"><i class="bi bi-exclamation-triangle-fill"></i> Không tải được danh sách đang làm bài: ${esc(sessionsError)} (cần chạy file <b>teacher_test_sessions.sql</b> trong Supabase).</div>`;
       return;
     }
-    const doing = currentSessions.filter(x => !x.submitted_at).length;
-    const done = currentSessions.filter(x => x.submitted_at && !x.cancelled_at).length;
-    const canc = currentSessions.filter(x => x.cancelled_at).length;
-    const warned = currentSessions.filter(x => (x.violations || 0) > 0).length;
+    const stuSet = f => new Set(currentSessions.filter(f).map(x => x.student_id)).size;   // đếm theo học sinh
+    const doing = stuSet(x => !x.submitted_at);
+    const done = stuSet(x => x.submitted_at && !x.cancelled_at);
+    const canc = stuSet(x => x.cancelled_at);
+    const warned = stuSet(x => (x.violations || 0) > 0);
     box.innerHTML = `
       <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl px-3 py-2">
         <span class="inline-flex items-center gap-1.5 font-bold text-blue-600"><span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> Đang làm bài: ${doing}</span>
@@ -2634,7 +2641,8 @@
     if (!currentAttemptsList.length) { box.classList.add('hidden'); return; }
     const total = currentAttemptsList[0]?.total_points || 1;
     const buckets = [0, 0, 0, 0, 0]; // 0-20% 20-40% 40-60% 60-80% 80-100%
-    currentAttemptsList.forEach(r => {
+    const bestList = bestAttempts();
+    bestList.forEach(r => {
       const pct = total > 0 ? scoreOf(r) / total : 0;
       const idx = Math.min(4, Math.floor(pct * 5));
       buckets[idx]++;
@@ -2644,7 +2652,7 @@
     box.classList.remove('hidden');
     box.innerHTML = `
       <div class="bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl p-3 mb-1">
-        <p class="text-[10px] font-bold uppercase text-gray-500 mb-2">📊 Phổ điểm (${currentAttemptsList.length} bài nộp)</p>
+        <p class="text-[10px] font-bold uppercase text-gray-500 mb-2">📊 Phổ điểm (${bestList.length} học sinh${currentAttemptsList.length > bestList.length ? ' · lấy lần cao nhất, ' + currentAttemptsList.length + ' lượt nộp' : ''})</p>
         <div class="flex items-end gap-2 h-20">
           ${buckets.map((c, i) => `
             <div class="flex-1 flex flex-col items-center justify-end gap-1">
@@ -2660,10 +2668,21 @@
     const search = (pel('rmSearchName').value || '').toLowerCase().trim();
     const sort = pel('rmSort').value;
     // Gộp bài đã nộp + phiên làm bài (đang làm / đã hủy) của bài thi
-    const sessBy = {}; currentSessions.forEach(x => { sessBy[x.student_id] = x; });
-    let list = currentAttemptsList.map(r => ({ r, s: sessBy[attemptStudentId(r)] || null, name: r.profiles?.full_name || 'N/A' }));
-    const used = new Set(currentAttemptsList.map(attemptStudentId));
-    currentSessions.forEach(x => { if (!used.has(x.student_id)) list.push({ r: null, s: x, name: x.full_name || 'N/A' }); });
+    const sessByAtt = {}; currentSessions.forEach(x => { if (x.attempt_id) sessByAtt[x.attempt_id] = x; });
+    let list = currentAttemptsList.map(r => ({ r, s: sessByAtt[r.id] || null, name: r.profiles?.full_name || 'N/A' }));
+    const attIds = new Set(currentAttemptsList.map(r => r.id));
+    currentSessions.forEach(x => { if (!x.attempt_id || !attIds.has(x.attempt_id)) list.push({ r: null, s: x, name: x.full_name || 'N/A' }); });
+    // Thông tin theo từng học sinh (nhiều lần làm): lần mới nhất giữ nút thao tác, lần cao nhất được đánh dấu
+    const perStu = {}; currentSessions.forEach(x => { (perStu[x.student_id] = perStu[x.student_id] || []).push(x); });
+    const latestSid = {}; Object.keys(perStu).forEach(k => { latestSid[k] = perStu[k].reduce((m, x) => !m || new Date(x.started_at) > new Date(m.started_at) ? x : m, null).session_id; });
+    const bestOf = {}; currentAttemptsList.forEach(r => { const k = attemptStudentId(r); if (k && (!bestOf[k] || scoreOf(r) > scoreOf(bestOf[k]))) bestOf[k] = r; });
+    const attTag = (ss, r) => {
+      if (!ss) return '';
+      const many = (perStu[ss.student_id] || []).length > 1;
+      let h = many ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded bg-gray-200 dark:bg-zinc-700 text-[10px] font-bold text-gray-600 dark:text-gray-300">Lần ${ss.attempt_no}</span>` : '';
+      if (many && r && bestOf[ss.student_id] === r) h += ' <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/50 text-[10px] font-bold text-amber-700 dark:text-amber-400"><i class="bi bi-trophy-fill"></i> cao nhất</span>';
+      return h;
+    };
     renderLiveSummary();
     const tKey = it => it.r ? new Date(it.r.submitted_at).getTime() : Date.now();   // đang làm bài = mới nhất
     list = list.filter(it => !search || it.name.toLowerCase().includes(search));
@@ -2690,18 +2709,18 @@
         return `
       <div class="${rowCls}">
         <div>
-          <p class="font-bold text-gray-900 dark:text-white">${esc(name)} ${retook}</p>
+          <p class="font-bold text-gray-900 dark:text-white">${esc(name)} ${attTag(ss, null)} ${retook}</p>
           <p class="text-[10px] text-gray-400">${inProg ? 'Bắt đầu lúc ' + fmtT(ss.started_at) : (cancelled ? 'Hủy lúc ' + fmtT(ss.cancelled_at) : 'Đã nộp lúc ' + fmtT(ss.submitted_at))}</p>
         </div>
         <div class="flex items-center gap-3">${warn}${badge}</div>
-        ${actionBtns(ss, name)}
+        ${latestSid[ss.student_id] === ss.session_id ? actionBtns(ss, name) : ''}
       </div>`;
       }
       const finalScore = scoreOf(r);
       return `
       <div class="${rowCls}">
         <div>
-          <p class="font-bold text-gray-900 dark:text-white">${esc(name)} ${retook}</p>
+          <p class="font-bold text-gray-900 dark:text-white">${esc(name)} ${attTag(ss, r)} ${retook}</p>
           <p class="text-[10px] text-gray-400">${fmtT(r.submitted_at)} ${r.has_essay ? '· có câu tự luận cần chấm tay' : ''}</p>
         </div>
         <div class="flex items-center gap-3">
@@ -2709,7 +2728,7 @@
           <button onclick="openGradeAttempt('${r.id}')" class="text-[11px] font-bold text-blue-500 hover:underline">${r.has_essay ? '<i class="bi bi-pencil-square"></i> Chấm tự luận' : '<i class="bi bi-eye"></i> Xem bài làm'}</button>
           <span class="font-extrabold text-[#cf1717]">${finalScore}/${r.total_points}</span>
         </div>
-        ${actionBtns(ss, name)}
+        ${ss && latestSid[ss.student_id] === ss.session_id ? actionBtns(ss, name) : ''}
       </div>`;
     }).join('') || '<p class="text-gray-400 italic">Không có học sinh nào khớp với bộ lọc.</p>';
   }
