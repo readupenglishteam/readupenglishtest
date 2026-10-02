@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ReadUp English - Dashboard</title> 
+    <!-- Font Montserrat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <style>
+      html, body, button, input, select, textarea, optgroup, table, * { font-family: 'Montserrat', sans-serif; }
+    </style>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Thư To mã QR Code -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -11,7 +18,12 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script>// BẮT BUỘC: Bảo Tailwind lắng nghe class "dark" ở thẻ <html>
       tailwind.config = {
-        darkMode: 'class'}
+        darkMode: 'class',
+        theme: { extend: { fontFamily: {
+          sans: ['Montserrat', 'sans-serif'],
+          serif: ['Montserrat', 'sans-serif'],
+          mono: ['Montserrat', 'sans-serif']
+        } } }}
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
@@ -23,6 +35,7 @@
     </script>
     <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>Chart.defaults.font.family = "'Montserrat', sans-serif";</script>
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   </head>
