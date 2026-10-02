@@ -10,6 +10,7 @@
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
+    html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
 
@@ -132,6 +133,13 @@
         <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full shadow-sm">English</span>
       </a>
     </div>
+
+    <!-- (MỚI) MENU ĐIỀU HƯỚNG -->
+    <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-600 dark:text-gray-300">
+      <a href="#incontext" class="hover:text-[#cf1717] transition">Trải nghiệm</a>
+      <a href="#dashboard-features" class="hover:text-[#cf1717] transition">Dashboard</a>
+      <a href="#faq" class="hover:text-[#cf1717] transition">Hỏi đáp</a>
+    </nav>
 
     <!-- 2. KHU VỰC THAO TÁC & NÚT VÀO LUYỆN TẬP -->
     <div class="flex items-center gap-2 sm:gap-3">
@@ -509,6 +517,86 @@
       </div>
     </section>
 
+    <!-- ================= (MỚI) KHÁM PHÁ DASHBOARD ================= -->
+    <section id="dashboard-features" class="space-y-8 max-w-6xl mx-auto px-4 reveal">
+      <div class="text-center space-y-2 max-w-2xl mx-auto">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-100 dark:bg-red-950/80 text-[#cf1717] dark:text-red-400 text-xs font-extrabold border border-red-200 dark:border-red-900">🧭 Bên Trong Dashboard</div>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">Mọi Công Cụ Học Tập Trong Một Nơi</h2>
+        <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Chỉ cần đăng nhập một lần, học viên có đầy đủ lịch học, bài thi, luyện nói, luyện phát âm và thi đấu cùng bạn bè.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+
+        <!-- Lịch học -->
+        <div class="md:col-span-3 p-5 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] hover:shadow-xl transition group">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-2xl bg-red-100 dark:bg-red-950/60 flex items-center justify-center text-xl group-hover:scale-110 transition">📅</div>
+            <h3 class="font-extrabold text-base text-gray-900 dark:text-white">Lịch Học & Bài Thi Reading</h3>
+          </div>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Xem bài thi và thông báo của từng ngày ngay trên lịch tháng, bấm vào ngày để xem chi tiết.</p>
+          <div class="mt-4 grid grid-cols-7 gap-1 text-center text-[11px] font-semibold">
+            <span class="text-gray-400">T2</span><span class="text-gray-400">T3</span><span class="text-gray-400">T4</span><span class="text-gray-400">T5</span><span class="text-gray-400">T6</span><span class="text-gray-400">T7</span><span class="text-gray-400">CN</span>
+            <span class="py-1 rounded-lg bg-gray-100 dark:bg-zinc-800">1</span><span class="py-1 rounded-lg bg-red-100 dark:bg-red-950 text-[#cf1717]">2</span><span class="py-1 rounded-lg bg-gray-100 dark:bg-zinc-800">3</span><span class="py-1 rounded-lg bg-gray-100 dark:bg-zinc-800">4</span><span class="py-1 rounded-lg bg-[#cf1717] text-white">5</span><span class="py-1 rounded-lg bg-gray-100 dark:bg-zinc-800">6</span><span class="py-1 rounded-lg bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400">7</span>
+          </div>
+        </div>
+
+        <!-- AI Speaking -->
+        <div class="md:col-span-3 p-5 bg-gradient-to-br from-red-600 to-[#cf1717] text-white rounded-3xl shadow-xl">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center text-xl">🎙️</div>
+            <h3 class="font-extrabold text-base">AI Speaking Assistant</h3>
+          </div>
+          <p class="text-xs text-red-100 mt-2">Trò chuyện bằng tiếng Anh với trợ lý AI và nhận góp ý ngay trong lúc luyện nói.</p>
+          <div class="mt-4 space-y-2 text-xs">
+            <div class="bg-white/15 rounded-2xl rounded-bl-sm px-3 py-2 max-w-[85%]">Describe a news article you read recently.</div>
+            <div class="bg-white text-gray-900 rounded-2xl rounded-br-sm px-3 py-2 max-w-[85%] ml-auto">I read about AI in education. It is very interesting.</div>
+          </div>
+        </div>
+
+        <!-- Phát âm -->
+        <div class="md:col-span-2 p-5 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] hover:shadow-xl transition group">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-2xl bg-amber-100 dark:bg-amber-950/60 flex items-center justify-center text-xl group-hover:scale-110 transition">🔊</div>
+            <h3 class="font-extrabold text-base text-gray-900 dark:text-white">Luyện Phát Âm</h3>
+          </div>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Từ đọc đúng tô xanh, từ chưa chuẩn tô đỏ, kèm biểu đồ tiến bộ.</p>
+          <p class="mt-3 text-xs font-semibold leading-7">
+            <span class="text-green-600 bg-green-100 dark:bg-green-950/60 px-1 rounded">reading</span>
+            <span class="text-green-600 bg-green-100 dark:bg-green-950/60 px-1 rounded">vital</span>
+            <span class="text-red-600 bg-red-100 dark:bg-red-950/60 px-1 rounded">comprehension</span>
+          </p>
+        </div>
+
+        <!-- Phòng thi đấu -->
+        <div class="md:col-span-4 p-5 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] hover:shadow-xl transition group grid sm:grid-cols-2 gap-5">
+          <div>
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-2xl bg-indigo-100 dark:bg-indigo-950/60 flex items-center justify-center text-xl group-hover:scale-110 transition">👥</div>
+              <h3 class="font-extrabold text-base text-gray-900 dark:text-white">Luyện Tập Cùng Bạn Bè</h3>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Tạo phòng thi đấu, gửi mã cho bạn bè và cùng làm một bài theo thời gian thực. Ai nhanh và đúng hơn sẽ lên bảng xếp hạng.</p>
+            <div class="mt-3 inline-flex items-center gap-2 text-xs font-bold border border-dashed border-[#cf1717] text-[#cf1717] dark:text-red-400 rounded-xl px-3 py-1.5">🔑 Mã phòng: <span class="tracking-widest">K7X2QP</span></div>
+          </div>
+          <ol class="space-y-2 text-xs self-center">
+            <li class="flex items-center gap-2 p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40"><span>🥇</span><b class="flex-1 text-gray-900 dark:text-white">Minh Anh</b><span class="font-extrabold">38/40</span></li>
+            <li class="flex items-center gap-2 p-2 rounded-xl bg-gray-50 dark:bg-zinc-800"><span>🥈</span><b class="flex-1 text-gray-900 dark:text-white">Gia Huy</b><span class="font-extrabold">36/40</span></li>
+            <li class="flex items-center gap-2 p-2 rounded-xl bg-gray-50 dark:bg-zinc-800"><span>🥉</span><b class="flex-1 text-gray-900 dark:text-white">Thu Hà</b><span class="font-extrabold">34/40</span></li>
+          </ol>
+        </div>
+
+        <!-- Các chức năng nhỏ -->
+        <div class="md:col-span-2 p-5 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] hover:shadow-xl transition group"><div class="text-2xl">📚</div><h3 class="font-extrabold text-sm mt-2 text-gray-900 dark:text-white">Danh Sách Bài Thi</h3><p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Kho bài Reading chia trang gọn gàng, chọn bài là làm ngay.</p></div>
+        <div class="md:col-span-2 p-5 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] hover:shadow-xl transition group"><div class="text-2xl">📜</div><h3 class="font-extrabold text-sm mt-2 text-gray-900 dark:text-white">Lịch Sử & Kết Quả</h3><p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Xem lại điểm số và lời giải thích của mọi bài đã làm.</p></div>
+        <div class="md:col-span-2 p-5 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] hover:shadow-xl transition group"><div class="text-2xl">📰</div><h3 class="font-extrabold text-sm mt-2 text-gray-900 dark:text-white">Tin Tức & Thông Báo</h3><p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Thầy cô đăng thông báo, học viên đọc ngay trên dashboard.</p></div>
+        <div class="md:col-span-3 p-5 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] hover:shadow-xl transition group"><div class="text-2xl">🎧</div><h3 class="font-extrabold text-sm mt-2 text-gray-900 dark:text-white">Hỗ Trợ Trực Tuyến</h3><p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Tạo yêu cầu hỗ trợ, nhận mã theo dõi riêng và kiểm tra tình trạng xử lý bất cứ lúc nào.</p></div>
+        <div class="md:col-span-3 p-5 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] hover:shadow-xl transition group"><div class="text-2xl">⭐</div><h3 class="font-extrabold text-sm mt-2 text-gray-900 dark:text-white">Khảo Sát Trải Nghiệm</h3><p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Gửi đánh giá ẩn danh về giao diện và trải nghiệm, không cần nêu tên.</p></div>
+      </div>
+
+      <div class="text-center">
+        <a href="login.html" class="inline-flex items-center gap-2 px-7 py-3 bg-[#cf1717] hover:bg-red-700 text-white font-extrabold text-sm rounded-2xl shadow-xl shadow-red-500/20 transition transform hover:-translate-y-1">Vào Dashboard Ngay →</a>
+      </div>
+    </section>
+
     <!-- TÍNH NĂNG NỔI BẬT -->
     <section id="features" class="space-y-10 max-w-6xl mx-auto px-4 reveal">
   <div class="text-center space-y-2">
@@ -722,6 +810,40 @@
 </section>
 
     
+    <!-- ================= (MỚI) HỎI ĐÁP + CTA ================= -->
+    <section id="faq" class="space-y-6 max-w-3xl mx-auto px-4 reveal">
+      <div class="text-center space-y-2">
+        <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white">Câu Hỏi Thường Gặp</h2>
+        <p class="text-xs text-gray-500 dark:text-gray-400">Những điều học viên hay hỏi trước khi bắt đầu</p>
+      </div>
+      <div class="space-y-3">
+      <details class="group p-4 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-2xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] transition">
+        <summary class="flex justify-between items-center gap-3 cursor-pointer font-bold text-sm text-gray-900 dark:text-white" style="list-style:none">ReadUp English dành cho ai?<span class="text-[#cf1717] transition group-open:rotate-45 text-lg leading-none">+</span></summary>
+        <p class="mt-3 text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Dành cho học viên luyện IELTS Reading và những ai muốn mở rộng vốn từ vựng qua các bài báo thực tế.</p>
+      </details>
+      <details class="group p-4 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-2xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] transition">
+        <summary class="flex justify-between items-center gap-3 cursor-pointer font-bold text-sm text-gray-900 dark:text-white" style="list-style:none">Tôi dùng được trên điện thoại không?<span class="text-[#cf1717] transition group-open:rotate-45 text-lg leading-none">+</span></summary>
+        <p class="mt-3 text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Được. Giao diện làm bài, tra từ và dashboard đều hiển thị tốt trên cả máy tính và điện thoại.</p>
+      </details>
+      <details class="group p-4 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-2xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] transition">
+        <summary class="flex justify-between items-center gap-3 cursor-pointer font-bold text-sm text-gray-900 dark:text-white" style="list-style:none">Luyện phát âm cần chuẩn bị gì?<span class="text-[#cf1717] transition group-open:rotate-45 text-lg leading-none">+</span></summary>
+        <p class="mt-3 text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Bạn chỉ cần có micro và cho phép trình duyệt truy cập micro khi được hỏi.</p>
+      </details>
+      <details class="group p-4 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-2xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] transition">
+        <summary class="flex justify-between items-center gap-3 cursor-pointer font-bold text-sm text-gray-900 dark:text-white" style="list-style:none">Tôi gặp lỗi thì liên hệ thế nào?<span class="text-[#cf1717] transition group-open:rotate-45 text-lg leading-none">+</span></summary>
+        <p class="mt-3 text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Mở mục Hỗ trợ trực tuyến trong dashboard để tạo yêu cầu và theo dõi bằng mã riêng, hoặc gửi email về readupenglish.team@gmail.com.</p>
+      </details>
+      </div>
+    </section>
+
+    <section class="max-w-4xl mx-auto px-4 reveal">
+      <div class="rounded-3xl bg-gradient-to-r from-red-600 to-[#cf1717] text-white text-center p-8 sm:p-12 shadow-2xl shadow-red-500/20 space-y-4">
+        <h2 class="text-2xl sm:text-3xl font-black">Bắt Đầu Bài Đọc Đầu Tiên Hôm Nay</h2>
+        <p class="text-sm text-red-100">Đăng nhập và làm ngay một bài Reading chỉ trong vài phút.</p>
+        <a href="login.html" class="inline-block px-8 py-3.5 bg-white text-[#cf1717] hover:bg-red-50 font-extrabold text-sm rounded-2xl transition transform hover:-translate-y-1">Vào Luyện Tập 🚀</a>
+      </div>
+    </section>
+
   </main>
 
   <!-- SỬ DỤNG LẠI FOOTER BẠN ĐÃ CÓ Ở BÀI TRƯỚC -->
