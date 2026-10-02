@@ -4,9 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ReadUp English - Bài Tập</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script> 
   <script>
-    tailwind.config = { darkMode: 'class' }
+    tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Montserrat', 'ui-sans-serif', 'system-ui', 'sans-serif'] } } } }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
@@ -34,17 +37,19 @@
 <!-- FLOATING ACTION TOOLBAR HIGHLIGHT (lấy từ trang EXAM) -->
 <div id="textSelectionMenu" class="fixed hidden z-50 bg-zinc-900/95 dark:bg-white/95 text-white dark:text-zinc-900 px-2.5 py-1.5 rounded-2xl shadow-2xl border border-zinc-700 dark:border-gray-200 backdrop-blur-md flex items-center gap-1.5 text-xs transition-all duration-150 -translate-x-1/2">
   <button onclick="applyHighlightFromMenu('bg-yellow-300 dark:bg-yellow-500 text-black')" class="px-2 py-1 hover:bg-zinc-800 dark:hover:bg-gray-200 rounded-xl flex items-center gap-1 font-bold whitespace-nowrap">
-    <span>🖍️</span> <span>Tô Vàng</span>
+    <span><i class="bi bi-highlighter"></i></span> <span>Tô Vàng</span>
   </button>
   <button onclick="applyHighlightFromMenu('bg-green-300 dark:bg-green-600 text-black dark:text-white')" class="px-2 py-1 hover:bg-zinc-800 dark:hover:bg-gray-200 rounded-xl flex items-center gap-1 font-bold whitespace-nowrap">
-    <span>🟢</span> <span>Tô Xanh</span>
+    <span><i class="bi bi-circle-fill text-success"></i></span> <span>Tô Xanh</span>
   </button>
   <button id="btnRemoveHighlight" onclick="removeActiveHighlight()" class="hidden px-2 py-1 bg-red-500/20 text-red-400 dark:text-red-600 hover:bg-red-500/30 rounded-xl font-bold flex items-center gap-1 whitespace-nowrap">
-    <span>🧽</span> <span>Xóa Tô</span>
+    <span><i class="bi bi-eraser-fill"></i></span> <span>Xóa Tô</span>
   </button>
 </div>
 
 <style>
+  html, body, button, input, select, textarea { font-family: 'Montserrat', ui-sans-serif, system-ui, sans-serif; }
+  .bi { vertical-align: -0.125em; }
   @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
   .animate-toast-bar { animation: toastProgress 5s linear forwards; }
   @keyframes blob {
@@ -118,7 +123,7 @@
     </div>
     <div class="flex items-center gap-3 relative">
       <a href="dashboard.html" class="px-3 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-xl transition flex items-center gap-1.5">
-        <span>🏠</span> <span class="hidden sm:inline">Trang chủ</span>
+        <span><i class="bi bi-house-door-fill"></i></span> <span class="hidden sm:inline">Trang chủ</span>
       </a>
 
       <!-- Nút Menu 3 Gạch: Dải chọn nhanh tới mục / Bài Post -->
@@ -130,9 +135,9 @@
         </button>
         <div id="sectionNavMenu" class="hidden absolute right-0 mt-2 w-60 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl py-2 z-50 transition-all">
           <p class="px-4 pt-1 pb-2 text-[10px] font-extrabold text-gray-400 uppercase tracking-wide">Chuyển nhanh tới mục</p>
-          <a href="post.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition"><span>📖</span><span>Bài Học (Post)</span></a>
-          <a href="assignment.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-950/30"><span>⭐</span><span>Assignment (VIP)</span></a>
-          <a href="dashboard.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition"><span>🏠</span><span>Trang chủ Dashboard</span></a>
+          <a href="post.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition"><span><i class="bi bi-book"></i></span><span>Bài Học (Post)</span></a>
+          <a href="assignment.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-950/30"><span><i class="bi bi-star-fill"></i></span><span>Assignment (VIP)</span></a>
+          <a href="dashboard.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition"><span><i class="bi bi-house-door-fill"></i></span><span>Trang chủ Dashboard</span></a>
         </div>
       </div>
 
@@ -157,14 +162,14 @@
         <!-- Menu Dropdown Xổ Xuống -->
         <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-52 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl py-2 z-50 transition-all">
           <a href="profile.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
-            <span>👤</span><span id="dropdownUserName">Trang cá nhân</span>
+            <span><i class="bi bi-person-circle"></i></span><span id="dropdownUserName">Trang cá nhân</span>
           </a>
           <button onclick="toggleDarkMode()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
-            <span id="themeIcon">🌙</span> Sáng/Tối
+            <span id="themeIcon"><i class="bi bi-moon-stars-fill"></i></span> Sáng/Tối
           </button>
           <div class="border-t border-gray-100 dark:border-zinc-800 my-1"></div>
           <button onclick="handleLogout()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition">
-            <span>🚪</span> Đăng xuất
+            <span><i class="bi bi-box-arrow-right"></i></span> Đăng xuất
           </button>
         </div>
       </div>
@@ -176,7 +181,7 @@
 
   <!-- Banner nhắc đổi mật khẩu lần đầu (must_change_password = true) -->
   <div id="mustChangePwBanner" class="hidden mb-5 flex items-start sm:items-center gap-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded-2xl p-4">
-    <span class="text-xl flex-shrink-0">🔑</span>
+    <span class="text-xl flex-shrink-0"><i class="bi bi-key-fill"></i></span>
     <p class="flex-1 text-xs sm:text-sm font-semibold text-amber-700 dark:text-amber-300">
       Đây là mật khẩu ban đầu do giáo viên/admin cấp. Vì lý do bảo mật, vui lòng đổi mật khẩu mới trước khi tiếp tục.
     </p>
@@ -254,8 +259,8 @@
     <!-- ===== LỊCH HỌC CỦA TÔI (gộp mọi lớp, hiện ngay ngoài màn hình) ===== -->
     <section id="studentCalendarSection" class="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border dark:border-zinc-800 shadow-sm space-y-4">
       <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
-        <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white">📅 Lịch Học Của Tôi</h2>
-        <button onclick="loadStudentCalendar()" class="text-xs font-bold text-indigo-500 hover:underline">🔄 Làm mới</button>
+        <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white"><i class="bi bi-calendar-event"></i> Lịch Học Của Tôi</h2>
+        <button onclick="loadStudentCalendar()" class="text-xs font-bold text-indigo-500 hover:underline"><i class="bi bi-arrow-clockwise"></i> Làm mới</button>
       </div>
       <p class="text-xs text-gray-400">Tổng hợp lịch học của tất cả các lớp bạn tham gia. Bấm vào một ngày để xem chi tiết.</p>
 
@@ -281,24 +286,24 @@
         <div class="lg:col-span-7 border-t lg:border-t-0 lg:border-l border-gray-100 dark:border-zinc-800 pt-4 lg:pt-0 lg:pl-6 space-y-3">
           <h3 id="scalSelectedTitle" class="font-extrabold text-sm sm:text-base text-gray-900 dark:text-white border-b border-gray-100 dark:border-zinc-800 pb-2">--</h3>
           <div id="scalSelectedContent" class="space-y-3 max-h-[440px] overflow-y-auto pr-1">
-            <p class="text-xs text-gray-400 italic">⏳ Đang tải lịch học...</p>
+            <p class="text-xs text-gray-400 italic"><i class="bi bi-hourglass-split"></i> Đang tải lịch học...</p>
           </div>
         </div>
       </div>
     </section>
     <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
-      <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">🏫 Chọn Lớp Học</h2>
-      <span id="vipBadge0" class="hidden text-xs font-bold px-2.5 py-1 bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-full">⭐ VIP</span>
+      <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white"><i class="bi bi-building"></i> Chọn Lớp Học</h2>
+      <span id="vipBadge0" class="hidden text-xs font-bold px-2.5 py-1 bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-full"><i class="bi bi-star-fill"></i> VIP</span>
     </div>
     <div id="vipLockBox0" class="hidden bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-8 text-center space-y-3 shadow-sm">
-      <div class="text-4xl">🔒</div>
+      <div class="text-4xl"><i class="bi bi-lock-fill"></i></div>
       <h3 class="font-extrabold text-gray-900 dark:text-white">Tính năng dành cho tài khoản VIP</h3>
       <p class="text-sm text-gray-500 max-w-md mx-auto">Bạn cần nâng cấp lên tài khoản VIP để làm bài tập được giáo viên giao. Vui lòng liên hệ ReadUp English hoặc giáo viên của bạn để được hỗ trợ nâng cấp.</p>
       <button onclick="openSupportHint()" class="mt-2 px-5 py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow transition">Liên hệ nâng cấp VIP</button>
     </div>
     <div id="classPickGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     <p id="classPickEmpty" class="hidden text-center text-gray-400 text-sm py-10">Bạn chưa tham gia lớp học nào. Hãy liên hệ giáo viên để được thêm vào lớp nhé!</p>
-    <p id="classPickLoading" class="text-center text-gray-400 text-sm py-10">⏳ Đang tải danh sách lớp...</p>
+    <p id="classPickLoading" class="text-center text-gray-400 text-sm py-10"><i class="bi bi-hourglass-split"></i> Đang tải danh sách lớp...</p>
   </div>
 
   <!-- ============ CHẾ ĐỘ 1: DANH SÁCH BÀI TẬP (của 1 lớp đã chọn) ============ -->
@@ -306,14 +311,14 @@
     <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
       <div>
         <a href="assignment.html" class="text-[11px] font-bold text-gray-400 hover:text-[#cf1717]">← Chọn lớp khác</a>
-        <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">📝 Bài Tập — <span id="listClassTitle" class="text-[#cf1717]"></span></h2>
+        <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white"><i class="bi bi-pencil-square"></i> Bài Tập — <span id="listClassTitle" class="text-[#cf1717]"></span></h2>
       </div>
-      <span id="vipBadge" class="hidden text-xs font-bold px-2.5 py-1 bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-full">⭐ VIP</span>
+      <span id="vipBadge" class="hidden text-xs font-bold px-2.5 py-1 bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-full"><i class="bi bi-star-fill"></i> VIP</span>
     </div>
 
     <!-- Chặn nếu chưa phải VIP -->
     <div id="vipLockBox" class="hidden bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-8 text-center space-y-3 shadow-sm">
-      <div class="text-4xl">🔒</div>
+      <div class="text-4xl"><i class="bi bi-lock-fill"></i></div>
       <h3 class="font-extrabold text-gray-900 dark:text-white">Tính năng dành cho tài khoản VIP</h3>
       <p class="text-sm text-gray-500 max-w-md mx-auto">Bạn cần nâng cấp lên tài khoản VIP để làm bài tập được giáo viên giao. Vui lòng liên hệ ReadUp English hoặc giáo viên của bạn để được hỗ trợ nâng cấp.</p>
       <button onclick="openSupportHint()" class="mt-2 px-5 py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow transition">Liên hệ nâng cấp VIP</button>
@@ -325,7 +330,7 @@
     </div>
 
     <p id="emptyMsg" class="hidden text-center text-gray-400 text-sm py-10">Lớp này chưa có bài tập nào được giao.</p>
-    <p id="loadingMsg" class="text-center text-gray-400 text-sm py-10">⏳ Đang tải bài tập...</p>
+    <p id="loadingMsg" class="text-center text-gray-400 text-sm py-10"><i class="bi bi-hourglass-split"></i> Đang tải bài tập...</p>
   </div>
 
   <!-- ============ CHẾ ĐỘ 2: LÀM BÀI TẬP ============ -->
@@ -336,7 +341,7 @@
           <h2 id="atTitle" class="text-lg font-extrabold text-gray-900 dark:text-white"></h2>
           <p id="atDesc" class="text-xs text-gray-500 mt-1"></p>
         </div>
-        <div id="atTimer" class="hidden flex-shrink-0 text-sm font-extrabold text-[#cf1717] bg-red-50 dark:bg-red-950/40 px-3 py-1.5 rounded-xl">⏱ --:--</div>
+        <div id="atTimer" class="hidden flex-shrink-0 text-sm font-extrabold text-[#cf1717] bg-red-50 dark:bg-red-950/40 px-3 py-1.5 rounded-xl"><i class="bi bi-stopwatch"></i> --:--</div>
       </div>
       <a href="assignment.html" id="backToListLink1" class="inline-block text-xs font-bold text-gray-400 hover:text-[#cf1717]">← Quay lại danh sách bài tập</a>
     </div>
@@ -344,14 +349,14 @@
     <div id="questionArea" class="space-y-4"></div>
 
     <div class="flex justify-end pt-2">
-      <button id="submitBtn" onclick="submitAssignment()" class="bg-[#cf1717] hover:bg-red-700 text-white font-extrabold px-8 py-3 rounded-2xl text-sm shadow-lg transition">✅ Nộp Bài</button>
+      <button id="submitBtn" onclick="submitAssignment()" class="bg-[#cf1717] hover:bg-red-700 text-white font-extrabold px-8 py-3 rounded-2xl text-sm shadow-lg transition"><i class="bi bi-check-circle-fill"></i> Nộp Bài</button>
     </div>
   </div>
 
   <!-- ============ CHẾ ĐỘ 3: KẾT QUẢ ============ -->
   <div id="resultView" class="hidden space-y-5">
     <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 text-center shadow-sm space-y-2">
-      <div class="text-4xl">🎉</div>
+      <div class="text-4xl"><i class="bi bi-stars"></i></div>
       <h2 id="rsTitle" class="text-xl font-extrabold text-gray-900 dark:text-white">Bài làm của bạn</h2>
       <p class="text-sm text-gray-500">Điểm: <b id="rsScore" class="text-[#cf1717]"></b></p>
       <p id="rsEssayNote" class="hidden text-xs text-amber-500">Bài có câu tự luận — giáo viên sẽ chấm và cập nhật điểm sau.</p>
@@ -361,7 +366,7 @@
     <div id="reviewArea" class="space-y-4"></div>
     <div id="rvSaveBar" class="hidden sticky bottom-3 z-30 bg-white dark:bg-zinc-900 border-2 border-[#cf1717] rounded-2xl shadow-xl p-3 flex items-center justify-between gap-3">
       <p class="text-xs font-bold text-gray-700 dark:text-gray-200">Bạn đã sửa <span id="rvSaveCount">0</span> câu chưa lưu</p>
-      <button id="rvSaveBtn" type="button" onclick="rvSave()" class="px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow transition">💾 Lưu chỉnh sửa</button>
+      <button id="rvSaveBtn" type="button" onclick="rvSave()" class="px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow transition"><i class="bi bi-floppy-fill"></i> Lưu chỉnh sửa</button>
     </div>
   </div>
 
@@ -408,26 +413,27 @@
   function notify(rawMessage) {
     const msg = String(rawMessage ?? '');
     const emojiMatch = msg.match(/^(?:\p{Extended_Pictographic}|\uFE0F|\u200D)+\s*/u);
-    let icon = '🔔', text = msg;
-    if (emojiMatch && emojiMatch[0].trim()) { icon = emojiMatch[0].trim(); text = msg.slice(emojiMatch[0].length).trim() || msg; }
+    const BI_MAP = {'🖍':'highlighter','🟢':'circle-fill','🧽':'eraser-fill','🏠':'house-door-fill','⭐':'star-fill','👤':'person-circle','🌙':'moon-stars-fill','🔑':'key-fill','📅':'calendar-event','🔄':'arrow-clockwise','⏳':'hourglass-split','🔒':'lock-fill','📝':'pencil-square','⏱':'stopwatch','✅':'check-circle-fill','🎉':'stars','💾':'floppy-fill','☕':'cup-hot','⚠':'exclamation-triangle-fill','⏰':'alarm','⛔':'slash-circle-fill','✏':'pencil','📄':'file-earmark-text','💡':'lightbulb','❌':'x-circle-fill','🔔':'bell-fill','❤':'heart-fill','💪':'hand-thumbs-up-fill','📋':'clipboard-check','📌':'pin-angle-fill','ℹ':'info-circle-fill'};
+    let icon = 'bell-fill', text = msg;
+    if (emojiMatch && emojiMatch[0].trim()) { const ek = emojiMatch[0].trim().replace(/\uFE0F/g, ''); icon = BI_MAP[ek] || 'bell-fill'; text = msg.slice(emojiMatch[0].length).trim() || msg; }
     let title = 'Thông báo';
     if (/❌/.test(msg) || /lỗi|thất bại|không thể/i.test(msg)) title = 'Lỗi';
     else if (/⚠️/.test(msg)) title = 'Cảnh báo';
     else if (/🎉|✅|❤️|💪|💾|📋/.test(msg)) title = 'Thành công';
     showToastNotification({ title, message: text, icon });
   }
-  function showToastNotification({ title, message, icon = '🔔' }) {
+  function showToastNotification({ title, message, icon = 'bell-fill' }) {
     const container = pel('toastContainer'); if (!container) return;
     const toastId = 'toast-' + Date.now() + Math.random().toString(36).slice(2,6);
     const html = `
       <div id="${toastId}" class="pointer-events-auto bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden transform transition-all duration-300 translate-x-full opacity-0 relative">
         <div class="p-3.5 sm:p-4 flex items-start gap-3">
-          <div class="w-9 h-9 rounded-full bg-red-50 dark:bg-red-950/80 flex-shrink-0 flex items-center justify-center text-[#cf1717] dark:text-red-400 font-bold text-base shadow-sm">${icon}</div>
+          <div class="w-9 h-9 rounded-full bg-red-50 dark:bg-red-950/80 flex-shrink-0 flex items-center justify-center text-[#cf1717] dark:text-red-400 font-bold text-base shadow-sm"><i class="bi bi-${icon}"></i></div>
           <div class="flex-1 pr-4">
             <h4 class="text-xs sm:text-sm font-bold text-gray-900 dark:text-white leading-tight">${title}</h4>
             <p class="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">${message}</p>
           </div>
-          <button onclick="closeToast('${toastId}')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white text-base leading-none p-1">✕</button>
+          <button onclick="closeToast('${toastId}')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white text-base leading-none p-1"><i class="bi bi-x-lg"></i></button>
         </div>
         <div class="h-1 bg-red-100 dark:bg-zinc-800 w-full"><div class="h-full bg-[#cf1717] animate-toast-bar"></div></div>
       </div>`;
@@ -762,7 +768,7 @@
     const box = pel('scalSelectedContent');
     if (!list.length) {
       box.innerHTML = `<div class="p-8 text-center bg-gray-50 dark:bg-zinc-800/40 rounded-2xl border border-dashed border-gray-200 dark:border-zinc-800">
-        <span class="text-2xl block mb-1">☕</span><p class="text-xs text-gray-400 font-medium">Không có buổi học nào trong ngày này.</p></div>` + scalAssignCardsHtml();
+        <span class="text-2xl block mb-1"><i class="bi bi-cup-hot"></i></span><p class="text-xs text-gray-400 font-medium">Không có buổi học nào trong ngày này.</p></div>` + scalAssignCardsHtml();
       return;
     }
 
@@ -825,14 +831,14 @@
   function scalAssignCardsHtml() {
     const todayStr = scalTodayStr();
     let html = '';
-    if (scalAssignErr) html += `<p class="text-[11px] text-red-500 pt-1">⚠️ Không tải được bài tập trên lịch: ${esc(scalAssignErr)}</p>`;
+    if (scalAssignErr) html += `<p class="text-[11px] text-red-500 pt-1"><i class="bi bi-exclamation-triangle-fill"></i> Không tải được bài tập trên lịch: ${esc(scalAssignErr)}</p>`;
     const list = scalAssign.filter(x => String(x.due_date || '').slice(0, 10) === scalSelected);
-    if (list.length) html += `<div class="pt-1 space-y-1.5"><p class="text-[10px] font-bold uppercase text-amber-600 pl-1">📝 Bài tập đến hạn ngày này</p>${list.map(x => scalAssignRowHtml(x, todayStr)).join('')}</div>`;
+    if (list.length) html += `<div class="pt-1 space-y-1.5"><p class="text-[10px] font-bold uppercase text-amber-600 pl-1"><i class="bi bi-pencil-square"></i> Bài tập đến hạn ngày này</p>${list.map(x => scalAssignRowHtml(x, todayStr)).join('')}</div>`;
     // Bài tập sắp đến hạn (mọi tháng) để không phải lật từng tháng mới thấy
     const upcoming = scalAssign
       .filter(x => { const d = String(x.due_date || '').slice(0, 10); return d >= todayStr && d !== scalSelected; })
       .sort((a, b) => String(a.due_date).localeCompare(String(b.due_date))).slice(0, 5);
-    if (upcoming.length) html += `<div class="pt-2 space-y-1.5 border-t border-dashed border-gray-200 dark:border-zinc-800"><p class="text-[10px] font-bold uppercase text-amber-600 pl-1">📌 Bài tập sắp đến hạn</p>${upcoming.map(x => scalAssignRowHtml(x, todayStr)).join('')}</div>`;
+    if (upcoming.length) html += `<div class="pt-2 space-y-1.5 border-t border-dashed border-gray-200 dark:border-zinc-800"><p class="text-[10px] font-bold uppercase text-amber-600 pl-1"><i class="bi bi-pin-angle-fill"></i> Bài tập sắp đến hạn</p>${upcoming.map(x => scalAssignRowHtml(x, todayStr)).join('')}</div>`;
     return html;
   }
 
@@ -855,7 +861,7 @@
     if (soon) parts.push(`<b>${soon}</b> sắp đến hạn`);
     box.classList.remove('hidden');
     box.innerHTML = `<button type="button" onclick="scalJumpToFirstDue()" class="w-full text-left text-[11px] font-bold px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-amber-700 dark:text-amber-400 hover:brightness-105 transition">
-      🔔 Bạn có bài tập ${parts.join(', ')} — bấm để xem
+      <i class="bi bi-bell-fill"></i> Bạn có bài tập ${parts.join(', ')} — bấm để xem
     </button>`;
   }
   function scalJumpToFirstDue() {
@@ -1044,8 +1050,8 @@
     return `
       <div class="space-y-2">
         <div class="rd-tabs rounded-t-2xl overflow-hidden">
-          <button type="button" class="rd-tab-btn active" onclick="switchRdTab('${rid}','passage',this)">📖 Bài đọc</button>
-          <button type="button" class="rd-tab-btn" onclick="switchRdTab('${rid}','questions',this)">❓ Câu hỏi</button>
+          <button type="button" class="rd-tab-btn active" onclick="switchRdTab('${rid}','passage',this)"><i class="bi bi-book"></i> Bài đọc</button>
+          <button type="button" class="rd-tab-btn" onclick="switchRdTab('${rid}','questions',this)"><i class="bi bi-question-circle"></i> Câu hỏi</button>
         </div>
         <div class="rd-split shadow-sm">
           <div id="${rid}-passage" data-rd-passage="${rid}" class="rd-pane rd-passage qcontent text-sm ${q.two_col ? 'qcontent-2col' : ''}" style="flex:1 1 50%">${q.content || ''}</div>
@@ -1286,7 +1292,7 @@
     const box = pel('atTimer'); box.classList.remove('hidden');
     function tick() {
       const m = Math.floor(remain / 60), s = remain % 60;
-      box.innerText = `⏱ ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      box.innerHTML = `<i class="bi bi-stopwatch"></i> ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
       if (remain <= 0) { clearInterval(timerInterval); notify('⚠️ Hết giờ! Bài tập tự động nộp.'); submitAssignment(); return; }
       remain--;
     }
@@ -1361,7 +1367,7 @@
       auto_score, total_points: currentAssignment.total_points || 0, has_essay
     };
     const { data: saved, error } = await sbClient.from('assignment_attempts').insert([row]).select().single();
-    if (error) { notify('❌ Lỗi nộp bài: ' + error.message); btn.disabled = false; btn.innerText = '✅ Nộp Bài'; return; }
+    if (error) { notify('❌ Lỗi nộp bài: ' + error.message); btn.disabled = false; btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Nộp Bài'; return; }
     notify('🎉 Nộp bài thành công!');
     showResult(currentAssignment, saved, { expired: false, used: 1 });
   }
@@ -1392,7 +1398,7 @@
     const manualSum = sumManualScores(attempt.manual_scores);
     const finalScore = Math.round(((attempt.auto_score || 0) + manualSum) * 100) / 100;
     pel('rsScore').innerText = `${finalScore} / ${attempt.total_points}`;
-    pel('rsTitle').innerText = expired ? '⏰ Bài đã hết hạn — kết quả gần nhất' : 'Bài làm của bạn';
+    pel('rsTitle').innerHTML = expired ? '<i class="bi bi-alarm"></i> Bài đã hết hạn — kết quả gần nhất' : 'Bài làm của bạn';
 
     const essayQs = (a.questions || []).filter(q => q.type === 'essay');
     const allEssayGraded = essayQs.length > 0 && essayQs.every(q => attempt.manual_scores && attempt.manual_scores[q.id] !== undefined);
@@ -1400,9 +1406,9 @@
 
     const due = a.due_date ? fmtDueDate(a.due_date) : null;
     let msg, tone;
-    if (expired) { msg = `⏰ Bài tập đã hết hạn (${due}). Bạn không thể làm hoặc sửa nữa — bên dưới là bài làm gần nhất, kèm điểm và nhận xét của giáo viên nếu đã chấm.`; tone = 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-300'; }
-    else if (canEdit) { msg = `✏️ ${due ? 'Bài còn hạn đến ' + due + '. ' : ''}Bên dưới là điểm của từng câu. Đáp án đúng và giải thích sẽ hiện sau khi bài hết hạn. Câu nào chưa đạt điểm tối đa, bấm “Sửa câu này” để làm lại rồi bấm “Lưu chỉnh sửa”.${a.max_attempts ? ' Còn ' + (a.max_attempts - used) + ' lượt lưu.' : ''}`; tone = 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'; }
-    else { msg = `ℹ️ Bạn đã dùng hết ${a.max_attempts} lượt làm/sửa bài — đây là kết quả gần nhất.${rv.reveal ? '' : ' Đáp án đúng và giải thích sẽ hiện khi bài hết hạn' + (due ? ' (' + due + ')' : '') + '.'}`; tone = 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-300'; }
+    if (expired) { msg = `<i class="bi bi-alarm"></i> Bài tập đã hết hạn (${due}). Bạn không thể làm hoặc sửa nữa — bên dưới là bài làm gần nhất, kèm điểm và nhận xét của giáo viên nếu đã chấm.`; tone = 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-300'; }
+    else if (canEdit) { msg = `<i class="bi bi-pencil"></i> ${due ? 'Bài còn hạn đến ' + due + '. ' : ''}Bên dưới là điểm của từng câu. Đáp án đúng và giải thích sẽ hiện sau khi bài hết hạn. Câu nào chưa đạt điểm tối đa, bấm “Sửa câu này” để làm lại rồi bấm “Lưu chỉnh sửa”.${a.max_attempts ? ' Còn ' + (a.max_attempts - used) + ' lượt lưu.' : ''}`; tone = 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'; }
+    else { msg = `<i class="bi bi-info-circle-fill"></i> Bạn đã dùng hết ${a.max_attempts} lượt làm/sửa bài — đây là kết quả gần nhất.${rv.reveal ? '' : ' Đáp án đúng và giải thích sẽ hiện khi bài hết hạn' + (due ? ' (' + due + ')' : '') + '.'}`; tone = 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-300'; }
     const bn = pel('rsBanner'); bn.className = 'text-xs font-semibold rounded-xl p-3 text-left ' + tone; bn.innerText = msg;
 
     rvRenderAll();
@@ -1421,7 +1427,7 @@
   function rvEditBtnHtml(q) {
     if (!rv || !rv.canEdit || q.type === 'text') return '';
     return `<div class="flex items-center gap-2">${rv.dirty.has(q.id) ? '<span class="text-[10px] font-bold text-amber-600">● Đã sửa, chưa lưu</span>' : ''}
-      <button type="button" onclick="rvStartEdit('${q.id}')" class="ml-auto text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-zinc-800 hover:bg-[#cf1717] hover:text-white transition">✏️ Sửa câu này</button></div>`;
+      <button type="button" onclick="rvStartEdit('${q.id}')" class="ml-auto text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-zinc-800 hover:bg-[#cf1717] hover:text-white transition"><i class="bi bi-pencil"></i> Sửa câu này</button></div>`;
   }
 
   function rvStartEdit(qid) {
@@ -1434,7 +1440,7 @@
     wrap.innerHTML = renderQuestionInput(q, rvQNo(qid)) + `
       <div class="flex gap-2 justify-end mt-2">
         <button type="button" onclick="rvCancelEdit('${qid}')" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-zinc-800">↩️ Hủy</button>
-        <button type="button" onclick="rvApplyEdit('${qid}')" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-[#cf1717] text-white">✅ Xong câu này</button>
+        <button type="button" onclick="rvApplyEdit('${qid}')" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-[#cf1717] text-white"><i class="bi bi-check-circle-fill"></i> Xong câu này</button>
       </div>`;
     card.replaceWith(wrap);
     rvPrefill(q, rv.answers[qid]);
@@ -1498,7 +1504,7 @@
     const patch = { answers: rv.answers, auto_score, has_essay, submitted_at: new Date().toISOString() };
     if ('edit_count' in rv.attempt) patch.edit_count = (rv.attempt.edit_count || 0) + 1;
     const { data, error } = await sbClient.from('assignment_attempts').update(patch).eq('id', rv.attempt.id).select().single();
-    btn.disabled = false; btn.innerText = '💾 Lưu chỉnh sửa';
+    btn.disabled = false; btn.innerHTML = '<i class="bi bi-floppy-fill"></i> Lưu chỉnh sửa';
     if (error) { notify('❌ Không lưu được chỉnh sửa: ' + error.message + ' (đã chạy file SQL cập nhật quyền chưa?)'); return; }
     notify('✅ Đã lưu chỉnh sửa!');
     showResult(rv.a, data, { expired: false, used: rv.used + 1 });
@@ -1557,7 +1563,7 @@
           cls = 'border-2 border-indigo-400 bg-indigo-50 dark:bg-indigo-950/30';   // chỉ đánh dấu lựa chọn của HS, không lộ đúng/sai
         }
         return `<div class="p-2.5 rounded-xl ${cls} text-sm flex items-center gap-2">
-          ${givenArr.includes(o.id) ? '👉 ' : ''}${esc(o.text)} ${reveal && o.correct ? ' <span class="text-emerald-600 font-bold text-xs">(Đáp án đúng)</span>' : ''}
+          ${givenArr.includes(o.id) ? '<i class="bi bi-arrow-right-circle-fill"></i> ' : ''}${esc(o.text)} ${reveal && o.correct ? ' <span class="text-emerald-600 font-bold text-xs">(Đáp án đúng)</span>' : ''}
         </div>`;
       }).join('');
     } else if (q.type === 'fill') {
@@ -1585,20 +1591,20 @@
       const comment = (attempt.manual_comments && attempt.manual_comments[q.id]) || '';
       bodyHtml = `<div class="p-2.5 rounded-xl border dark:border-zinc-700 text-sm whitespace-pre-wrap">${esc(given || '(bỏ trống)')}</div>
         ${gradedScore !== null
-          ? `<p class="text-xs font-bold text-emerald-600 mt-1">✅ Giáo viên đã chấm: ${gradedScore}/${q.points} điểm</p>`
-          : `<p class="text-xs text-amber-500 mt-1">📄 Câu tự luận — chờ giáo viên chấm điểm.</p>`}
-        ${comment ? `<div class="mt-2 p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 text-xs"><b class="text-blue-600 dark:text-blue-400">📝 Nhận xét của giáo viên:</b> <span class="whitespace-pre-wrap">${esc(comment)}</span></div>` : ''}`;
+          ? `<p class="text-xs font-bold text-emerald-600 mt-1"><i class="bi bi-check-circle-fill"></i> Giáo viên đã chấm: ${gradedScore}/${q.points} điểm</p>`
+          : `<p class="text-xs text-amber-500 mt-1"><i class="bi bi-file-earmark-text"></i> Câu tự luận — chờ giáo viên chấm điểm.</p>`}
+        ${comment ? `<div class="mt-2 p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 text-xs"><b class="text-blue-600 dark:text-blue-400"><i class="bi bi-pencil-square"></i> Nhận xét của giáo viên:</b> <span class="whitespace-pre-wrap">${esc(comment)}</span></div>` : ''}`;
     }
     return `
       <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm" data-q="${q.id}">
         <div class="flex items-center justify-between gap-2">
           <p class="text-xs font-bold text-[#cf1717]">Câu ${qNo}</p>
-          <span class="text-[11px] font-extrabold px-2.5 py-1 rounded-full ${chipCls}">🎯 ${chipTxt} điểm</span>
+          <span class="text-[11px] font-extrabold px-2.5 py-1 rounded-full ${chipCls}"><i class="bi bi-bullseye"></i> ${chipTxt} điểm</span>
         </div>
         <div class="qcontent text-sm text-gray-900 dark:text-white">${q.content || ''}</div>
         <div class="space-y-2">${bodyHtml}</div>
         ${rvEditBtnHtml(q)}
-        ${reveal && q.explanation ? `<div class="pt-2 border-t dark:border-zinc-800"><p class="text-[10px] font-bold uppercase text-gray-400 mb-1">💡 Giải thích</p><div class="qcontent text-xs text-gray-600 dark:text-gray-300">${q.explanation}</div></div>` : ''}
+        ${reveal && q.explanation ? `<div class="pt-2 border-t dark:border-zinc-800"><p class="text-[10px] font-bold uppercase text-gray-400 mb-1"><i class="bi bi-lightbulb"></i> Giải thích</p><div class="qcontent text-xs text-gray-600 dark:text-gray-300">${q.explanation}</div></div>` : ''}
       </div>`;
   }
 
