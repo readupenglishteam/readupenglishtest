@@ -5,8 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ReadUp English - Phòng Thi Reading</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <script>
-    tailwind.config = { darkMode: 'class' };
+    tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Montserrat', 'ui-sans-serif', 'system-ui', 'sans-serif'] } } } };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
@@ -19,6 +23,8 @@
   <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
 
   <style>
+    html, body, button, input, textarea, select { font-family: 'Montserrat', ui-sans-serif, system-ui, sans-serif; }
+    .bi { line-height: 1; vertical-align: -.125em; }
     @keyframes blob {
       0%, 100% { transform: translate(0px, 0px) scale(1); }
       33% { transform: translate(30px, -50px) scale(1.1); }
@@ -65,7 +71,7 @@
     width: 100%;
     background: #ffffff !important;
     color: #111827 !important;
-    font-family: 'Segoe UI', Arial, sans-serif;
+    font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
     font-size: 13.5px; /* Tăng kích thước chữ tổng thể */
     line-height: 1.6;
   }
@@ -229,7 +235,7 @@
       
       <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
         <a href="dashboard.html" class="px-3 py-2 text-xs font-bold bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] dark:hover:text-red-400 rounded-xl transition border border-gray-200/50 dark:border-zinc-700/50 flex items-center gap-1 flex-shrink-0">
-          <span>←</span>
+          <i class="bi bi-arrow-left"></i>
           <span class="hidden sm:inline">Quay lại</span>
         </a>
 
@@ -244,12 +250,12 @@
 
       <div class="flex items-center gap-2">
         <button onclick="triggerPDFPrint()" class="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5 flex-shrink-0">
-          <span>🖨️</span>
+          <i class="bi bi-printer"></i>
           <span class="hidden sm:inline">In PDF (A4)</span>
         </button>
 
         <div class="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 bg-red-500/10 dark:bg-red-950/50 rounded-xl border border-red-200/60 dark:border-red-900/60 shadow-sm flex-shrink-0">
-          <span class="text-xs font-bold text-[#cf1717] dark:text-red-400">⏱️</span>
+          <i class="bi bi-stopwatch text-sm text-[#cf1717] dark:text-red-400"></i>
           <span id="timerDisplay" class="font-mono font-black text-xs sm:text-sm text-[#cf1717] dark:text-red-400">00:00</span>
         </div>
 
@@ -258,7 +264,7 @@
         </button>
 
         <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50 flex-shrink-0">
-          <span id="themeIcon">🌙</span>
+          <i id="themeIcon" class="bi bi-circle-half"></i>
         </button>
       </div>
 
@@ -268,10 +274,10 @@
   <!-- MOBILE TAB -->
   <div class="lg:hidden flex border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
     <button id="mobileTabReading" onclick="switchMobileTab('reading')" class="w-1/2 py-2.5 text-center font-bold text-xs text-[#cf1717] border-b-2 border-[#cf1717]">
-      📖 Bài Đọc (Passage)
+      <i class="bi bi-book-half mr-1"></i>Bài Đọc (Passage)
     </button>
     <button id="mobileTabQuestions" onclick="switchMobileTab('questions')" class="w-1/2 py-2.5 text-center font-bold text-xs text-gray-400">
-      ✍️ Câu Hỏi (Questions)
+      <i class="bi bi-pencil-square mr-1"></i>Câu Hỏi (Questions)
     </button>
   </div>
 
@@ -281,11 +287,11 @@
     <!-- PASSAGE -->
     <section id="readingSection" class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 h-full overflow-y-auto shadow-sm space-y-4">
       <div class="flex items-center justify-between border-b dark:border-zinc-800 pb-3 sticky top-0 bg-white dark:bg-zinc-900 z-10">
-        <h2 class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white flex items-center gap-2">📖 Reading Passage</h2>
+        <h2 class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white flex items-center gap-2"><i class="bi bi-book-half text-[#cf1717]"></i>Reading Passage</h2>
         <span id="examTopicTag" class="text-xs font-bold px-2.5 py-1 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-full">General</span>
       </div>
       <div id="passageContent" class="prose dark:prose-invert max-w-none text-xs sm:text-sm leading-relaxed text-gray-700 dark:text-gray-300 select-text">
-        <p class="text-gray-400">⏳ Đang tải nội dung đoạn văn...</p>
+        <p class="text-gray-400"><i class="bi bi-hourglass-split mr-1"></i>Đang tải nội dung đoạn văn...</p>
       </div>
     </section>
 
@@ -293,11 +299,11 @@
     <section id="questionsSection" class="hidden lg:block bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 h-full overflow-y-auto shadow-sm">
       <div class="space-y-6">
         <div class="flex items-center justify-between border-b dark:border-zinc-800 pb-3 sticky top-0 bg-white dark:bg-zinc-900 z-10">
-          <h2 class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white flex items-center gap-2">✍️ Questions</h2>
+          <h2 class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white flex items-center gap-2"><i class="bi bi-pencil-square text-[#cf1717]"></i>Questions</h2>
           <span id="questionCountTag" class="text-xs font-bold text-gray-500">0 câu hỏi</span>
         </div>
         <form id="questionsForm" class="space-y-6">
-          <p class="text-gray-400 text-sm">⏳ Đang tải danh sách câu hỏi...</p>
+          <p class="text-gray-400 text-sm"><i class="bi bi-hourglass-split mr-1"></i>Đang tải danh sách câu hỏi...</p>
         </form>
       </div>
     </section>
@@ -307,7 +313,7 @@
   <!-- RESULT MODAL -->
   <div id="resultModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-2xl text-center space-y-5 sm:space-y-6">
-      <div class="w-14 h-14 sm:w-16 sm:h-16 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-full flex items-center justify-center text-2xl sm:text-3xl mx-auto">🏆</div>
+      <div class="w-14 h-14 sm:w-16 sm:h-16 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-full flex items-center justify-center text-2xl sm:text-3xl mx-auto"><i class="bi bi-trophy-fill"></i></div>
       <div>
         <h3 class="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white">Hoàn Thành Bài Thi!</h3>
         <p class="text-xs text-gray-500 mt-1">Kết quả của bạn đã được ghi nhận thành công.</p>
@@ -324,7 +330,7 @@
       </div>
       <div class="space-y-2.5">
         <button onclick="closeResultModal()" class="w-full py-3 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-800 dark:text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5">
-          <span>🔍</span>
+          <i class="bi bi-search"></i>
           <span>Xem Đáp Án & Giải Thích</span>
         </button>
         <button onclick="exitToDashboard()" class="w-full py-2.5 sm:py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-lg transition text-sm shadow">Trở Về Dashboard</button>
@@ -346,13 +352,13 @@
   <!-- FLOATING ACTION TOOLBAR HIGHLIGHT -->
   <div id="textSelectionMenu" class="fixed hidden z-50 bg-zinc-900/95 dark:bg-white/95 text-white dark:text-zinc-900 px-2.5 py-1.5 rounded-2xl shadow-2xl border border-zinc-700 dark:border-gray-200 backdrop-blur-md flex items-center gap-1.5 text-xs transition-all duration-150 -translate-x-1/2">
     <button onclick="applyHighlightFromMenu('bg-yellow-300 dark:bg-yellow-500 text-black')" class="px-2 py-1 hover:bg-zinc-800 dark:hover:bg-gray-200 rounded-xl flex items-center gap-1 font-bold whitespace-nowrap">
-      <span>🖍️</span> <span>Tô Vàng</span>
+      <i class="bi bi-highlighter text-yellow-400"></i> <span>Tô Vàng</span>
     </button>
     <button onclick="applyHighlightFromMenu('bg-green-300 dark:bg-green-600 text-black dark:text-white')" class="px-2 py-1 hover:bg-zinc-800 dark:hover:bg-gray-200 rounded-xl flex items-center gap-1 font-bold whitespace-nowrap">
-      <span>🟢</span> <span>Tô Xanh</span>
+      <i class="bi bi-circle-fill text-green-400"></i> <span>Tô Xanh</span>
     </button>
     <button id="btnRemoveHighlight" onclick="removeActiveHighlight()" class="hidden px-2 py-1 bg-red-500/20 text-red-400 dark:text-red-600 hover:bg-red-500/30 rounded-xl font-bold flex items-center gap-1 whitespace-nowrap">
-      <span>🧽</span> <span>Xóa Tô</span>
+      <i class="bi bi-eraser"></i> <span>Xóa Tô</span>
     </button>
   </div>
 
@@ -540,16 +546,16 @@
       const status = q.status || 'wrong';
       let badge, style;
       if (status === 'essay') {
-        badge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">📝 Tự luận (Đã ghi nhận)</span>`;
+        badge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"><i class="bi bi-pencil mr-1"></i>Tự luận (Đã ghi nhận)</span>`;
         style = 'bg-blue-50/30 border-blue-200 dark:bg-blue-950/10 dark:border-blue-900/40';
       } else if (status === 'correct') {
-        badge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">✓ Đúng</span>`;
+        badge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"><i class="bi bi-check-lg mr-1"></i>Đúng</span>`;
         style = 'bg-green-50/50 border-green-200 dark:bg-green-950/20 dark:border-green-900';
       } else if (status === 'partial') {
-        badge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300">⚡ Đúng ${q.correctSubCount || 0}/${q.totalBlanks || 0} ý (+${q.earnedPoints || 0}đ)</span>`;
+        badge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300"><i class="bi bi-lightning-charge-fill mr-1"></i>Đúng ${q.correctSubCount || 0}/${q.totalBlanks || 0} ý (+${q.earnedPoints || 0}đ)</span>`;
         style = 'bg-amber-50/40 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/60';
       } else {
-        badge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300">✕ Sai</span>`;
+        badge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"><i class="bi bi-x-lg mr-1"></i>Sai</span>`;
         style = 'bg-red-50/50 border-red-200 dark:bg-red-950/20 dark:border-red-900';
       }
       let contentHTML = q.content || '', body = '';
@@ -575,12 +581,12 @@
           let cls = 'text-gray-600 dark:text-gray-400 p-1.5 rounded-lg';
           if (o.correct) cls = 'font-bold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/50 p-1.5 rounded-lg';
           else if (isPicked) cls = 'font-bold text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/50 p-1.5 rounded-lg line-through';
-          return `<div class="${cls}">${isPicked ? '👉 ' : ''}${escHTML(o.text)}${o.correct ? ' ✓' : ''}</div>`;
+          return `<div class="${cls}">${isPicked ? '<i class="bi bi-hand-index-thumb-fill mr-1"></i>' : ''}${escHTML(o.text)}${o.correct ? ' <i class="bi bi-check-lg"></i>' : ''}</div>`;
         }).join('');
       }
       const exp = (typeof q.explanation === 'string' && q.explanation.replace(/<[^>]*>|&nbsp;/g, '').trim()) ? `
         <div class="mt-3 pt-3 border-t border-gray-200/60 dark:border-zinc-700/60 text-xs">
-          <div class="flex items-center gap-1 text-[#cf1717] dark:text-red-400 font-bold mb-1"><span>💡</span><span>Giải thích chi tiết:</span></div>
+          <div class="flex items-center gap-1 text-[#cf1717] dark:text-red-400 font-bold mb-1"><i class="bi bi-lightbulb-fill"></i><span>Giải thích chi tiết:</span></div>
           <div class="qcontent text-gray-700 dark:text-gray-300 leading-relaxed bg-white dark:bg-zinc-800 p-3 rounded-xl border border-gray-100 dark:border-zinc-700">${q.explanation}</div>
         </div>` : '';
       return `<div class="p-4 sm:p-5 rounded-2xl border ${style} space-y-3 mb-4">
@@ -641,7 +647,7 @@
       if (timeElem) timeElem.innerText = Math.floor(timeVal / 60) + 'm ' + (timeVal % 60) + 's';
 
       const timerElem = document.getElementById('timerDisplay');
-      if (timerElem) timerElem.innerText = '✅ Đã nộp';
+      if (timerElem) timerElem.innerHTML = '<i class="bi bi-check-circle-fill mr-1"></i>Đã nộp';
 
       disableSubmitBtn();
 
@@ -932,7 +938,7 @@
       document.getElementById('tooltipIpaType').innerText = ((item.ipa || '') + ' ' + typeStr).trim();
       
       const mElem = document.getElementById('tooltipMeaning');
-      mElem.innerHTML = item.meaning ? '👉 ' + item.meaning : '';
+      mElem.innerHTML = item.meaning ? '<i class="bi bi-arrow-right-circle mr-1"></i>' + item.meaning : '';
       mElem.style.display = item.meaning ? 'block' : 'none';
 
       const cElem = document.getElementById('tooltipContext');
@@ -1085,7 +1091,7 @@
       const { data, error } = await sbClient.from('exam_results').insert([payload]);
 
       if (error) {
-        alert("❌ Lỗi lưu kết quả: " + error.message);
+        alert("Lỗi lưu kết quả: " + error.message);
         return;
       }
       const urlParams = new URLSearchParams(window.location.search);
@@ -1131,17 +1137,17 @@
         let containerStyle = '';
 
         if (status === 'essay') {
-          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">📝 Tự luận (Đã ghi nhận)</span>`;
+          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"><i class="bi bi-pencil mr-1"></i>Tự luận (Đã ghi nhận)</span>`;
           containerStyle = 'bg-blue-50/30 border-blue-200 dark:bg-blue-950/10 dark:border-blue-900/40';
         } else if (status === 'correct') {
-          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">✓ Đúng</span>`;
+          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"><i class="bi bi-check-lg mr-1"></i>Đúng</span>`;
           containerStyle = 'bg-green-50/50 border-green-200 dark:bg-green-950/20 dark:border-green-900';
         } else if (status === 'partial') {
           const earned = q.earnedPoints !== undefined ? q.earnedPoints : 0;
-          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300">⚡ Đúng ${(q.correctSubCount || 0)}/${(q.totalBlanks || 0)} ý (+${earned}đ)</span>`;
+          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300"><i class="bi bi-lightning-charge-fill mr-1"></i>Đúng ${(q.correctSubCount || 0)}/${(q.totalBlanks || 0)} ý (+${earned}đ)</span>`;
           containerStyle = 'bg-amber-50/40 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/60';
         } else {
-          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300">✕ Sai</span>`;
+          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"><i class="bi bi-x-lg mr-1"></i>Sai</span>`;
           containerStyle = 'bg-red-50/50 border-red-200 dark:bg-red-950/20 dark:border-red-900';
         }
 
@@ -1212,7 +1218,7 @@
             explanationHTML = `
               <div class="mt-3 pt-3 border-t border-gray-200/60 dark:border-zinc-700/60 text-xs">
                 <div class="flex items-center gap-1 text-[#cf1717] dark:text-red-400 font-bold mb-1">
-                  <span>💡</span>
+                  <i class="bi bi-lightbulb-fill"></i>
                   <span>Giải thích chi tiết:</span>
                 </div>
                 <div class="text-gray-700 dark:text-gray-300 leading-relaxed bg-white dark:bg-zinc-800 p-3 rounded-xl border border-gray-100 dark:border-zinc-700">
@@ -1229,7 +1235,7 @@
             explanationHTML = `
               <div class="mt-3 pt-3 border-t border-gray-200/60 dark:border-zinc-700/60 text-xs">
                 <div class="flex items-center gap-1 text-[#cf1717] dark:text-red-400 font-bold mb-2">
-                  <span>💡</span>
+                  <i class="bi bi-lightbulb-fill"></i>
                   <span>Giải thích chi tiết từng vị trí:</span>
                 </div>
                 <div class="space-y-2 bg-white dark:bg-zinc-800 p-3 rounded-xl border border-gray-100 dark:border-zinc-700">
@@ -1351,12 +1357,12 @@ function triggerPDFPrint() {
 
     <div class="pdf-grid">
       <div class="pdf-passage-col">
-        <div class="pdf-passage-title">📖 Reading Passage</div>
+        <div class="pdf-passage-title"><i class="bi bi-book-half"></i> Reading Passage</div>
         <div class="pdf-passage">${passageHTML}</div>
       </div>
       <div class="pdf-questions-col">
         ${imageHTML}
-        <div class="pdf-passage-title">✍️ Questions</div>
+        <div class="pdf-passage-title"><i class="bi bi-pencil-square"></i> Questions</div>
         ${questionsPDFHTML}
       </div>
     </div>
@@ -1499,7 +1505,7 @@ async function submitExamInRoom(score, totalQuestions, timeTakenSeconds) {
       .eq('user_id', currentUser.id);
 
     if (!error) {
-      console.log("✅ Đã cập nhật kết quả phòng thành công!");
+      console.log("Đã cập nhật kết quả phòng thành công!");
     }
   }
 }
@@ -1545,7 +1551,7 @@ async function onExamFinished(score, totalQuestions, timeInSeconds) {
 <div id="roomLeaderboardModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
   <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-100 dark:border-zinc-800 space-y-4">
     <div class="text-center space-y-1">
-      <span class="text-3xl">🏆</span>
+      <i class="bi bi-trophy-fill text-3xl text-amber-400"></i>
       <h3 class="text-xl font-black text-gray-900 dark:text-white">Bảng Kết Quả Phòng Thi</h3>
       <p class="text-xs text-gray-500">Cập nhật trực tiếp tiến độ nộp bài của các thành viên</p>
     </div>
