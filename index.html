@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ReadUp English - Nền Tảng Luyện Reading Thông Minh</title>
+  <link rel="preconnect" href="https://i.ibb.co" crossorigin>
+  <link rel="preload" as="image" href="https://i.ibb.co/FLGp4FpT/Secure-Online-Exam-Experience.png" fetchpriority="high">
+  <link rel="preload" as="image" href="https://i.ibb.co/cc3ZGV4H/Read-Up-English-Learning-Dashboard.png">
+  <link rel="preload" as="image" href="https://i.ibb.co/C5wY3dmj/Read-Up-English-Learning-Journey.png">
+  <link rel="preload" as="image" href="https://i.ibb.co/svStdTKW/a5fcdb6f-276f-4d03-ab9c-7e7746597a81.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = { darkMode: 'class' };
@@ -85,6 +90,8 @@
   .dark .ru-dot { background: #52525b; }
   .ru-dot.active { width: 34px; background: #cf1717; }
   @media (max-width: 640px) { .ru-slider { border-radius: 1rem; } .ru-arrow { width: 32px; height: 32px; font-size: 18px; } }
+  .ru-slide { background: linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 50%,#f3f4f6 75%); background-size: 200% 100%; animation: ruShimmer 1.2s infinite; }
+  @keyframes ruShimmer { to { background-position: -200% 0; } }
   @media print { .ru-slider { display: none; } }
   </style>
   <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
@@ -184,10 +191,10 @@
   <div class="max-w-6xl mx-auto px-4 pt-6">
     <div class="ru-slider" id="ruSlider" title="ReadUp English">
       <div class="ru-track" id="ruTrack">
-        <div class="ru-slide"><img src="https://i.ibb.co/FLGp4FpT/Secure-Online-Exam-Experience.png" alt="Secure Online Exam Experience" draggable="false" loading="eager"><div class="ru-shield"></div></div>
-        <div class="ru-slide"><img src="https://i.ibb.co/cc3ZGV4H/Read-Up-English-Learning-Dashboard.png" alt="Read Up English Learning Dashboard" draggable="false" loading="lazy"><div class="ru-shield"></div></div>
-        <div class="ru-slide"><img src="https://i.ibb.co/C5wY3dmj/Read-Up-English-Learning-Journey.png" alt="Read Up English Learning Journey" draggable="false" loading="lazy"><div class="ru-shield"></div></div>
-        <div class="ru-slide"><img src="https://i.ibb.co/svStdTKW/a5fcdb6f-276f-4d03-ab9c-7e7746597a81.png" alt="ReadUp English" draggable="false" loading="lazy"><div class="ru-shield"></div></div>
+        <div class="ru-slide"><img src="https://i.ibb.co/FLGp4FpT/Secure-Online-Exam-Experience.png" alt="Secure Online Exam Experience" draggable="false" loading="eager" fetchpriority="high" decoding="async"><div class="ru-shield"></div></div>
+        <div class="ru-slide"><img src="https://i.ibb.co/cc3ZGV4H/Read-Up-English-Learning-Dashboard.png" alt="Read Up English Learning Dashboard" draggable="false" loading="eager" decoding="async"><div class="ru-shield"></div></div>
+        <div class="ru-slide"><img src="https://i.ibb.co/C5wY3dmj/Read-Up-English-Learning-Journey.png" alt="Read Up English Learning Journey" draggable="false" loading="eager" decoding="async"><div class="ru-shield"></div></div>
+        <div class="ru-slide"><img src="https://i.ibb.co/svStdTKW/a5fcdb6f-276f-4d03-ab9c-7e7746597a81.png" alt="ReadUp English" draggable="false" loading="eager" decoding="async"><div class="ru-shield"></div></div>
       </div>
       <button class="ru-arrow ru-prev" id="ruPrev" aria-label="Ảnh trước">&#8249;</button>
       <button class="ru-arrow ru-next" id="ruNext" aria-label="Ảnh sau">&#8250;</button>
@@ -1041,7 +1048,12 @@
     // Tạm dừng khi chuyển tab để tiết kiệm tài nguyên
     document.addEventListener('visibilitychange', function () { document.hidden ? stop() : start(); });
 
-    go(0); start();
+    go(0);
+    var loaded = 0;
+    document.querySelectorAll('.ru-slide img').forEach(function (im) {
+      function done() { if (++loaded === total) start(); }
+      if (im.complete && im.naturalWidth) done(); else { im.addEventListener('load', done); im.addEventListener('error', done); }
+    });
   })();
   </script>
 </body>
