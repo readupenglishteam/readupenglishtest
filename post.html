@@ -52,11 +52,11 @@ html,body,button,input,textarea,select{font-family:'Montserrat',ui-sans-serif,sy
     
     <!-- 1. KHU VỰC LOGO TRÒN & TIÊU ĐỀ -->
     <div class="flex items-center gap-3">
-      <a href="dashboard.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
+      <a id="logoLink1" href="dashboard.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
         <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
       </a>
       
-      <a href="dashboard.html" class="flex items-center gap-2 hover:opacity-90 transition">
+      <a id="logoLink2" href="dashboard.html" class="flex items-center gap-2 hover:opacity-90 transition">
         <span class="text-2xl font-black text-[#cf1717] tracking-tight">ReadUp</span>
         <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full shadow-sm">English</span>
       </a>
@@ -67,8 +67,13 @@ html,body,button,input,textarea,select{font-family:'Montserrat',ui-sans-serif,sy
       <!-- Tên Sinh Viên -->
       <span id="welcomeUser" class="text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-200 hidden sm:inline-block"><i class="bi bi-person-check mr-1"></i>Chào mừng sinh viên</span>
 
+      <!-- Nút Thoát ra trang chủ (index) -->
+      <a href="index.html" class="px-3 sm:px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-md hover:shadow-lg transition flex items-center gap-1.5" title="Thoát ra trang chủ">
+        <i class="bi bi-box-arrow-left"></i><span>Thoát</span>
+      </a>
+
       <!-- Nút Menu 3 Gạch: Điều Hướng Nhanh Tới Section -->
-      <div class="relative">
+      <div id="sectionNavWrap" class="relative">
         <button onclick="toggleSectionNavMenu(event)" class="w-9 h-9 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-zinc-700 hover:scale-105 transition shadow-md flex items-center justify-center" title="Chuyển nhanh tới mục">
           <i class="bi bi-list text-2xl"></i>
         </button>
@@ -120,10 +125,10 @@ html,body,button,input,textarea,select{font-family:'Montserrat',ui-sans-serif,sy
         <!-- Menu Dropdown Xổ Xuống -->
         <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-52 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl py-2 z-50 transition-all">
           <a href="profile.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
-            <i class="bi bi-person w-4 text-center"></i><span id="dropdownUserName">Trang cá nhân</span>
+            <i class="bi bi-person-fill w-4 text-center"></i><span id="dropdownUserName">Trang cá nhân</span>
           </a>
           <button onclick="toggleDarkMode()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
-            <i id="themeIcon" class="bi bi-circle-half w-4 text-center"></i> Sáng/Tối
+            <i id="themeIcon" class="bi bi-moon-stars-fill w-4 text-center"></i> Sáng/Tối
           </button>
           <div class="border-t border-gray-100 dark:border-zinc-800 my-1"></div>
           <button onclick="handleLogout()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition">
@@ -350,6 +355,7 @@ html,body,button,input,textarea,select{font-family:'Montserrat',ui-sans-serif,sy
 const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
 const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
 const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let HOME = 'dashboard.html';
 let currentUser = null, allPosts = [], page = 1, q = '';
 const PER = 6;
 const $ = id => document.getElementById(id);
@@ -367,7 +373,7 @@ function notify(m, icon='bi-info-circle-fill'){
 }
 function toggleDarkMode(){const d=document.documentElement.classList.toggle('dark');localStorage.theme=d?'dark':'light';}
 async function handleLogout(){await sbClient.auth.signOut();window.location.href='index.html';}
-function toggleUserDropdown(e){if(e)e.stopPropagation();$('userDropdownMenu')?.classList.toggle('hidden');$('sectionNavMenu')?.classList.add('hidden');}
+function toggleUserDropdown(e){if(e)e.stopPropagation();if(!currentUser){window.location.href='login.html';return;}$('userDropdownMenu')?.classList.toggle('hidden');$('sectionNavMenu')?.classList.add('hidden');}
 function toggleSectionNavMenu(e){if(e)e.stopPropagation();$('sectionNavMenu')?.classList.toggle('hidden');$('userDropdownMenu')?.classList.add('hidden');}
 document.addEventListener('click',e=>{['userDropdownMenu','sectionNavMenu'].forEach(id=>{const m=$(id);if(m&&!m.contains(e.target))m.classList.add('hidden');});});
 
@@ -377,7 +383,17 @@ const thumb = (p,cls) => p.thumbnail_url
 
 async function initPost(){
   const {data:{session}} = await sbClient.auth.getSession();
-  if(!session?.user){window.location.href='index.html';return;}
+  if(!session?.user){
+    // Khách chưa đăng nhập: vẫn xem được bài đăng
+    currentUser = null;
+    HOME = 'index.html';
+    $('welcomeUser').classList.add('hidden');
+    $('sectionNavWrap')?.classList.add('hidden');
+    ['logoLink1','logoLink2'].forEach(id=>{const a=$(id); if(a) a.href='index.html';});
+    const t = new URLSearchParams(location.search).get('token');
+    t ? showDetail(t) : showList();
+    return;
+  }
   currentUser = session.user;
   sbClient.from('profiles').select('full_name, avatar_url').eq('id',currentUser.id).maybeSingle().then(({data:p})=>{
     const n = p?.full_name || currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Người dùng';
@@ -389,7 +405,7 @@ async function initPost(){
 }
 
 async function showList(){
-  $('crumb').innerHTML = `<a href="dashboard.html" class="hover:text-[#cf1717]">Trang Chủ</a><span>›</span><span class="text-gray-800 dark:text-gray-200 font-bold">Bài Học</span>`;
+  $('crumb').innerHTML = `<a href="${HOME}" class="hover:text-[#cf1717]">Trang Chủ</a><span>›</span><span class="text-gray-800 dark:text-gray-200 font-bold">Bài Học</span>`;
   $('listView').classList.remove('hidden');
   const {data,error} = await sbClient.from('posts').select('id,title,token,thumbnail_url,excerpt,created_at').eq('is_published',true).order('created_at',{ascending:false});
   if(error) $('postList').innerHTML = `<p class="py-8 text-sm text-red-500"><i class="bi bi-x-circle mr-1"></i>${esc(error.message)}</p>`;
@@ -483,11 +499,11 @@ async function showDetail(token){
   $('detailView').classList.remove('hidden');
   const {data:p} = await sbClient.from('posts').select('*').eq('token',token).eq('is_published',true).maybeSingle();
   if(!p){
-    $('crumb').innerHTML = `<a href="dashboard.html" class="hover:text-[#cf1717]">Trang Chủ</a><span>›</span><a href="post.html" class="hover:text-[#cf1717]">Bài Học</a>`;
+    $('crumb').innerHTML = `<a href="${HOME}" class="hover:text-[#cf1717]">Trang Chủ</a><span>›</span><a href="post.html" class="hover:text-[#cf1717]">Bài Học</a>`;
     $('dTitle').innerText='Không tìm thấy bài học'; $('dContent').innerHTML='<p>Bài học không tồn tại hoặc đã bị gỡ.</p>'; return;
   }
   document.title = p.title + ' | ReadUp English';
-  $('crumb').innerHTML = `<a href="dashboard.html" class="hover:text-[#cf1717]">Trang Chủ</a><span>›</span><a href="post.html" class="hover:text-[#cf1717]">Bài Học</a><span>›</span><span class="text-gray-800 dark:text-gray-200 font-bold">${esc(p.title)}</span>`;
+  $('crumb').innerHTML = `<a href="${HOME}" class="hover:text-[#cf1717]">Trang Chủ</a><span>›</span><a href="post.html" class="hover:text-[#cf1717]">Bài Học</a><span>›</span><span class="text-gray-800 dark:text-gray-200 font-bold">${esc(p.title)}</span>`;
   $('dTitle').innerText = p.title; $('dDate').innerHTML = '<i class="bi bi-calendar-event mr-1"></i>' + fmt(p.created_at);
   $('dContent').innerHTML = (p.content_html||'').replace(/<script[\s\S]*?<\/script>/gi,'');
   const {data:latest} = await sbClient.from('posts').select('title,token,thumbnail_url,excerpt,created_at').eq('is_published',true).neq('token',token).order('created_at',{ascending:false}).limit(LATEST_LIMIT);
@@ -689,6 +705,8 @@ window.onload = initPost;
 
     // Luôn hiển thị tab
     tab.classList.add('show');
+    // Khách chưa đăng nhập -> chuyển tới login
+    sbClient.auth.getSession().then(({data:{session}})=>{ if(!session?.user) tab.href='login.html'; });
 
     // Sơ đồ sự kiện click giữ nguyên
     tab.addEventListener('click', function (e) {
