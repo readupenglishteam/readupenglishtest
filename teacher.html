@@ -12,6 +12,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <script>
     if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       document.documentElement.classList.add('dark');
@@ -81,6 +82,15 @@
   .sc-ribbon.pend{background:#f5b301;color:#3b2a00}
   .sc-alert{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:9px;background:#e53528;color:#fff;font-weight:900;font-size:17px;display:flex;align-items:center;justify-content:center}
   .sc-alert.pend{background:#f5b301;color:#3b2a00}
+  /* ===== Bộ lọc cột ===== */
+  .cf-btn{margin-left:4px;font-size:11px;opacity:.75;background:transparent;color:inherit;border:0;cursor:pointer;padding:0 2px;line-height:1}
+  .cf-btn:hover{opacity:1}.cf-btn.on{opacity:1;color:#fde047}
+  #cfPop{position:fixed;z-index:100001;width:220px;padding:10px;border-radius:12px;background:#fff;color:#111827;border:1px solid #e5e7eb;box-shadow:0 10px 30px rgba(0,0,0,.25);font-size:12px;font-weight:600;display:flex;flex-direction:column;gap:6px}
+  .dark #cfPop{background:#27272a;color:#f4f4f5;border-color:#3f3f46}
+  #cfPop input[type=text],#cfPop input[type=number]{width:100%;padding:6px 8px;border-radius:8px;border:1px solid #d1d5db;background:transparent;color:inherit}
+  #cfPop label{display:flex;align-items:center;gap:6px;cursor:pointer}
+  #cfPop .cf-row{display:flex;gap:6px}#cfPop .cf-act{flex:1;padding:5px 6px;border-radius:8px;border:1px solid #d1d5db;cursor:pointer;font-weight:700;background:transparent;color:inherit}
+  #cfPop .cf-act.on{background:#cf1717;color:#fff;border-color:#cf1717}
 </style>
 
 <!-- ================= HEADER GIÁO VIÊN ================= -->
@@ -263,7 +273,17 @@
     <div id="gradeTableWrap" class="overflow-auto max-h-[70vh] border dark:border-zinc-800 rounded-xl">
       <p class="text-gray-400 text-sm p-4"><i class="bi bi-arrow-up-circle"></i> Hãy chọn một lớp ở trên để xem bảng điểm.</p>
     </div>
-    <p class="text-[11px] text-gray-400"><i class="bi bi-info-circle"></i> Điểm các bài quy về thang 10 (điểm đạt / tổng điểm bài × 10); học sinh làm nhiều lần thì lấy lần cao nhất. Chuyên cần = số buổi có mặt (P + L) / số buổi đã học (không tính buổi tạm ngưng).</p>
+    <p class="text-[11px] text-gray-400"><i class="bi bi-info-circle"></i> Điểm các bài quy về thang 10 (điểm đạt / tổng điểm bài × 10); học sinh làm nhiều lần thì lấy lần cao nhất. Chuyên cần = số buổi có mặt (P + L) / số buổi đã học (không tính buổi tạm ngưng); Điểm danh = chuyên cần quy về thang 10. Bấm biểu tượng <i class="bi bi-funnel"></i> trên đầu cột để lọc / sắp xếp.</p>
+    <div id="gradeCharts" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl p-3">
+        <p class="text-[11px] font-bold uppercase text-gray-500 mb-2"><i class="bi bi-bar-chart-fill"></i> Phân bố xếp loại</p>
+        <div style="height:220px"><canvas id="gbChartRank"></canvas></div>
+      </div>
+      <div class="bg-gray-50 dark:bg-zinc-800/60 border dark:border-zinc-700 rounded-xl p-3">
+        <p class="text-[11px] font-bold uppercase text-gray-500 mb-2"><i class="bi bi-graph-up"></i> Điểm trung bình theo cột</p>
+        <div style="height:220px"><canvas id="gbChartAvg"></canvas></div>
+      </div>
+    </div>
   </section>
 
 </main>
@@ -354,11 +374,12 @@
     </div>
 
     <div class="space-y-2 border-t dark:border-zinc-800 pt-4">
-      <p class="font-extrabold text-sm text-[#cf1717]"><i class="bi bi-3-circle-fill"></i> Điểm tổng kết = ĐQT × % + ĐCK × %</p>
+      <p class="font-extrabold text-sm text-[#cf1717]"><i class="bi bi-3-circle-fill"></i> Điểm tổng kết = Điểm danh × % + ĐQT × % + ĐCK × %</p>
       <div class="flex items-center gap-3 flex-wrap text-sm">
+        <label class="flex items-center gap-2" title="Điểm danh = số buổi có mặt (P + L) / số buổi đã học × 10 — tự động">ĐD <input id="gcAttPct" type="number" min="0" max="100" step="1" oninput="gcSyncPct('att')" class="w-20 p-1.5 rounded border dark:bg-zinc-800 dark:border-zinc-700 text-center"> %</label>
         <label class="flex items-center gap-2">ĐQT <input id="gcQtPct" type="number" min="0" max="100" step="1" oninput="gcSyncPct('qt')" class="w-20 p-1.5 rounded border dark:bg-zinc-800 dark:border-zinc-700 text-center"> %</label>
         <label class="flex items-center gap-2">ĐCK <input id="gcCkPct" type="number" min="0" max="100" step="1" oninput="gcSyncPct('ck')" class="w-20 p-1.5 rounded border dark:bg-zinc-800 dark:border-zinc-700 text-center"> %</label>
-        <span class="text-[11px] text-gray-400">(nhập 1 ô, ô còn lại tự bù cho đủ 100%)</span>
+        <span class="text-[11px] text-gray-400">(điểm danh tự tính từ số buổi, quy về thang 10; ĐCK tự bù cho đủ 100%)</span>
       </div>
       <label class="flex items-center gap-2 text-xs pt-1"><input type="checkbox" id="gcMissingZero"> Bài chưa làm tính 0 điểm (bỏ tích: bỏ qua bài đó khi tính trung bình)</label>
     </div>
@@ -2958,7 +2979,7 @@
 
   function openAttendanceModal(classId) {
     const c = myClasses.find(x => x.id === classId); if (!c) return;
-    attClass = c;
+    attClass = c; CF.att.f = {}; CF.att.sort = null;
     pel('attClassTitle').innerText = c.class_code + ' — ' + c.title;
     pel('attendanceModal').classList.remove('hidden'); pel('attendanceModal').classList.add('flex');
     loadAttendance();
@@ -3038,13 +3059,14 @@
         else tools += ` <span title="Đã chốt — chỉ giáo viên (teacher) mới sửa được" style="${bs};display:inline-block"><i class="bi bi-lock-fill"></i></span>`;
       }
       return `<th title="${esc(s.subject_name || '')}${susp ? ' (Đã tạm ngưng)' : ''}${locked ? ' (Đã chốt)' : ''}" style="min-width:78px">
-        <div>${attDateShort(s.session_date)}</div>
+        <div>${attDateShort(s.session_date)}${cfBtn('att', 's_' + s.id, 'enum', ATT_OPTS)}</div>
         <div style="font-size:10px;font-weight:600;opacity:.85">${esc(s.session_time || '')}${susp ? ' <i class="bi bi-circle-fill" style="color:#dc2626"></i>' : ''}</div>
         ${tools}
       </th>`;
     }).join('');
 
-    const rows = attStudents.map((stu, i) => {
+    const shown = cfRun('att', attStudents, attGet);
+    const rows = shown.map((stu, i) => {
       const cells = attSessions.map(s => {
         const v = attMap[attKey(s.id, stu.student_id)] || '';
         return `<td style="text-align:center"><select class="att-sel att-${v || 'none'}" data-sid="${s.id}" data-stu="${stu.student_id}" ${(s.status === 'suspended' || !attCanEdit(s.id)) ? 'disabled' : ''} onchange="setAttendance(this)">
@@ -3064,12 +3086,12 @@
 
     wrap.innerHTML = `<table id="attTable">
       <thead><tr>
-        <th class="att-sticky1">STT</th><th class="att-sticky2">Họ và tên</th><th style="min-width:200px">Email</th>
+        <th class="att-sticky1">STT</th><th class="att-sticky2">Họ và tên${cfBtn('att', 'name', 'text')}</th><th style="min-width:200px">Email${cfBtn('att', 'email', 'text')}</th>
         ${head}
-        <th class="att-P" style="color:#1B5E20">P</th><th class="att-L" style="color:#7A5B00">L</th>
-        <th class="att-E" style="color:#0D47A1">E</th><th class="att-A" style="color:#B71C1C">A</th>
+        <th class="att-P" style="color:#1B5E20">P${cfBtn('att', 'cP', 'num')}</th><th class="att-L" style="color:#7A5B00">L${cfBtn('att', 'cL', 'num')}</th>
+        <th class="att-E" style="color:#0D47A1">E${cfBtn('att', 'cE', 'num')}</th><th class="att-A" style="color:#B71C1C">A${cfBtn('att', 'cA', 'num')}</th>
       </tr></thead>
-      <tbody>${rows}</tbody></table>`;
+      <tbody>${rows || `<tr><td colspan="${3 + attSessions.length + 4}" class="text-gray-400 italic">Không có học sinh nào khớp bộ lọc.</td></tr>`}</tbody></table>`;
     wrap.scrollLeft = sl; wrap.scrollTop = st;
   }
 
@@ -3263,7 +3285,87 @@
   // QUẢN LÝ ĐIỂM: chuyên cần | Assignment | Test | ĐQT | ĐCK | Tổng kết | Xếp loại | Đạt
   // Cách tính lưu ở bảng class_grade_config (file 2_grades.sql); chưa có bảng thì tạm lưu trong trình duyệt.
   // =====================================================================
-  const GRADE_DEFAULT_CFG = { qtMode: 'all', qtIds: [], ckMode: 'all', ckIds: [], qtPct: 40, ckPct: 60, missingZero: true, attInQt: false };
+  // ---- Bộ lọc cột dùng chung (bảng điểm 'gb' + bảng điểm danh 'att') ----
+  const ATT_OPTS = [['P', 'P'], ['L', 'L'], ['E', 'E'], ['A', 'A'], ['', 'Chưa điểm danh']];
+  const CF = { gb: { f: {}, sort: null, cols: {}, re: () => renderGradebook() }, att: { f: {}, sort: null, cols: {}, re: () => renderAttendance() } };
+  const cfNorm = s => String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd');
+  const cfHas = v => v !== undefined && v !== '';
+  function cfOn(sc, k) {
+    const f = CF[sc].f[k], s = CF[sc].sort;
+    return !!((f && ((f.t || '') !== '' || cfHas(f.min) || cfHas(f.max) || (f.v && f.v.length))) || (s && s.k === k));
+  }
+  function cfBtn(sc, k, type, opts) {
+    CF[sc].cols[k] = { type, opts: opts || [] };
+    const on = cfOn(sc, k);
+    return `<button type="button" onclick="event.stopPropagation();cfOpen('${sc}','${k}',this)" class="cf-btn${on ? ' on' : ''}" title="Lọc / sắp xếp cột"><i class="bi bi-funnel${on ? '-fill' : ''}"></i></button>`;
+  }
+  function cfClose() { const p = document.getElementById('cfPop'); if (p) p.remove(); }
+  function cfOpen(sc, k, btn) {
+    const old = document.getElementById('cfPop'); const same = old && old.dataset.k === sc + k; cfClose(); if (same) return;
+    const c = CF[sc].cols[k]; if (!c) return;
+    const f = CF[sc].f[k] || {}, s = CF[sc].sort, pop = document.createElement('div');
+    pop.id = 'cfPop'; pop.dataset.k = sc + k;
+    let h = '';
+    if (c.type === 'text') h += `<input type="text" placeholder="Tìm trong cột..." value="${esc(f.t || '')}" oninput="cfSet('${sc}','${k}',{t:this.value})">`;
+    else if (c.type === 'num') h += `<div class="cf-row"><input type="number" step="any" placeholder="Từ" value="${f.min == null ? '' : f.min}" oninput="cfSet('${sc}','${k}',{min:this.value})"><input type="number" step="any" placeholder="Đến" value="${f.max == null ? '' : f.max}" oninput="cfSet('${sc}','${k}',{max:this.value})"></div>`;
+    else h += c.opts.map(o => `<label><input type="checkbox" value="${esc(o[0])}" ${(f.v || []).includes(o[0]) ? 'checked' : ''} onchange="cfEnum('${sc}','${k}')"> ${esc(o[1])}</label>`).join('');
+    h += `<div class="cf-row"><button type="button" class="cf-act ${s && s.k === k && s.dir === 'asc' ? 'on' : ''}" onclick="cfSort('${sc}','${k}','asc')"><i class="bi bi-sort-up"></i> Tăng</button><button type="button" class="cf-act ${s && s.k === k && s.dir === 'desc' ? 'on' : ''}" onclick="cfSort('${sc}','${k}','desc')"><i class="bi bi-sort-down"></i> Giảm</button></div>`;
+    h += `<button type="button" class="cf-act" onclick="cfClear('${sc}','${k}')"><i class="bi bi-x-circle"></i> Xóa lọc</button>`;
+    pop.innerHTML = h; document.body.appendChild(pop);
+    const r = btn.getBoundingClientRect();
+    pop.style.left = Math.max(6, Math.min(r.left, window.innerWidth - 232)) + 'px';
+    pop.style.top = Math.min(r.bottom + 4, window.innerHeight - pop.offsetHeight - 6) + 'px';
+    const i = pop.querySelector('input[type=text],input[type=number]'); if (i) i.focus();
+  }
+  document.addEventListener('mousedown', e => { const p = document.getElementById('cfPop'); if (p && !p.contains(e.target) && !e.target.closest('.cf-btn')) cfClose(); });
+  function cfSet(sc, k, patch) { CF[sc].f[k] = Object.assign({}, CF[sc].f[k] || {}, patch); CF[sc].re(); }
+  function cfEnum(sc, k) { const v = [...document.querySelectorAll('#cfPop input[type=checkbox]:checked')].map(x => x.value); cfSet(sc, k, { v }); }
+  function cfSort(sc, k, dir) {
+    const s = CF[sc].sort; CF[sc].sort = (s && s.k === k && s.dir === dir) ? null : { k, dir };
+    CF[sc].re(); const b = document.querySelector(`#cfPop`); if (b) { const keep = b.dataset.k; cfClose(); const btn = [...document.querySelectorAll('.cf-btn')].find(x => x.getAttribute('onclick').includes(`'${sc}','${k}'`)); if (btn) { cfOpen(sc, k, btn); } }
+  }
+  function cfClear(sc, k) { delete CF[sc].f[k]; if (CF[sc].sort && CF[sc].sort.k === k) CF[sc].sort = null; cfClose(); CF[sc].re(); }
+  function cfRun(sc, rows, get) {
+    const F = CF[sc].f, S = CF[sc].sort, C = CF[sc].cols;
+    let out = rows.filter(r => Object.keys(F).every(k => {
+      const f = F[k], c = C[k]; if (!c) return true; const v = get(r, k);
+      if (c.type === 'text') return !f.t || cfNorm(v).includes(cfNorm(f.t));
+      if (c.type === 'num') { if (!cfHas(f.min) && !cfHas(f.max)) return true; if (v == null) return false; return (!cfHas(f.min) || +v >= +f.min) && (!cfHas(f.max) || +v <= +f.max); }
+      return !f.v || !f.v.length || f.v.includes(String(v == null ? '' : v));
+    }));
+    if (S && C[S.k]) {
+      const d = S.dir === 'asc' ? 1 : -1, num = C[S.k].type === 'num', lw = s => (String(s || '').trim().split(/\s+/).pop() || '');
+      out = out.slice().sort((a, b) => {
+        const x = get(a, S.k), y = get(b, S.k);
+        if (num) { if (x == null) return 1; if (y == null) return -1; return (x - y) * d; }
+        if (S.k === 'name') return (lw(x).localeCompare(lw(y), 'vi') || String(x).localeCompare(String(y), 'vi')) * d;
+        return String(x == null ? '' : x).localeCompare(String(y == null ? '' : y), 'vi') * d;
+      });
+    }
+    return out;
+  }
+  const gbPctLabel = () => (gbCfg.attPct > 0 ? 'ĐD ' + gbCfg.attPct + '% · ' : '') + 'QT ' + gbCfg.qtPct + '% · CK ' + gbCfg.ckPct + '%';
+  const gbGet = (r, k) => k === 'name' ? (r.stu.full_name || '') : k === 'pres' ? r.pres : k === 'att' ? r.att10 : k === 'qt' ? r.qt : k === 'ck' ? r.ck : k === 'fin' ? r.fin
+    : k === 'rank' ? (r.rank ? r.rank.t : '—') : k === 'pass' ? (r.fin == null ? 'Chưa có' : r.fin >= 7 ? 'Đạt' : 'Không đạt')
+    : (v => v === undefined ? null : v)(r.sc(k.slice(3)));
+  const attGet = (stu, k) => k === 'name' ? (stu.full_name || '') : k === 'email' ? (stu.email || '') : k.startsWith('s_') ? (attMap[attKey(k.slice(2), stu.student_id)] || '') : attCounts(stu.student_id)[k[1]];
+
+  // ---- Biểu đồ dưới bảng điểm ----
+  let gbCharts = [];
+  function renderGbCharts(rows) {
+    const box = pel('gradeCharts');
+    gbCharts.forEach(c => c.destroy()); gbCharts = [];
+    if (typeof Chart === 'undefined' || !rows.length) { box.classList.add('hidden'); return; }
+    box.classList.remove('hidden');
+    Chart.defaults.color = document.documentElement.classList.contains('dark') ? '#d4d4d8' : '#4b5563';
+    const names = ['Xuất sắc', 'Giỏi', 'Khá', 'Trung bình', 'Yếu', 'Kém'], colors = ['#16a34a', '#65a30d', '#2563eb', '#eab308', '#f97316', '#dc2626'];
+    const opt = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } };
+    gbCharts.push(new Chart(pel('gbChartRank'), { type: 'bar', data: { labels: names, datasets: [{ label: 'Số học sinh', data: names.map(n => rows.filter(r => r.rank && r.rank.t === n).length), backgroundColor: colors }] }, options: { ...opt, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } } }));
+    const av = k => { const a = rows.map(r => r[k]).filter(v => v != null); return a.length ? Math.round(gAvg(a) * 100) / 100 : null; };
+    gbCharts.push(new Chart(pel('gbChartAvg'), { type: 'bar', data: { labels: ['Điểm danh', 'ĐQT', 'ĐCK', 'Tổng kết'], datasets: [{ label: 'Điểm TB (thang 10)', data: [av('att10'), av('qt'), av('ck'), av('fin')], backgroundColor: ['#0d9488', '#0284c7', '#7c3aed', '#cf1717'] }] }, options: { ...opt, scales: { y: { beginAtZero: true, max: 10 } } } }));
+  }
+
+  const GRADE_DEFAULT_CFG = { qtMode: 'all', qtIds: [], ckMode: 'all', ckIds: [], attPct: 0, qtPct: 40, ckPct: 60, missingZero: true, attInQt: false };
   let gbClassId = '', gbData = null, gbCfg = { ...GRADE_DEFAULT_CFG }, gbRows = [];
 
   function gradeRank(s) {
@@ -3290,11 +3392,12 @@
 
   async function loadGradebook(force) {
     const cid = pel('gradeClassFilter').value;
+    if (gbClassId !== cid) { CF.gb.f = {}; CF.gb.sort = null; }
     gbClassId = cid;
     ['btnGradeCfg', 'btnGradeReload', 'btnGradeExport'].forEach(id => pel(id).disabled = !cid);
     pel('btnGradeCfg').classList.toggle('hidden', !isOwnerRole());
     const wrap = pel('gradeTableWrap');
-    if (!cid) { gbData = null; wrap.innerHTML = '<p class="text-gray-400 text-sm p-4"><i class="bi bi-arrow-up-circle"></i> Hãy chọn một lớp ở trên để xem bảng điểm.</p>'; pel('gradeSummaryLine').textContent = ''; return; }
+    if (!cid) { gbData = null; pel('gradeCharts').classList.add('hidden'); wrap.innerHTML = '<p class="text-gray-400 text-sm p-4"><i class="bi bi-arrow-up-circle"></i> Hãy chọn một lớp ở trên để xem bảng điểm.</p>'; pel('gradeSummaryLine').textContent = ''; return; }
     wrap.innerHTML = '<p class="text-xs text-gray-400 italic p-4"><i class="bi bi-hourglass-split"></i> Đang tải bảng điểm...</p>';
     try {
       const [stuRes, sesRes, attRows, asRes, cfg] = await Promise.all([
@@ -3358,9 +3461,10 @@
         return arr;
       };
       const qtArr = pool(asList, qtIds);
-      if (gbCfg.attInQt && att10 != null) qtArr.push(att10);
+      const aw = gbCfg.attPct || 0;
+      if (gbCfg.attInQt && !aw && att10 != null) qtArr.push(att10);
       const qt = gAvg(qtArr), ck = gAvg(pool(testList, ckIds));
-      const fin = (qt != null && ck != null) ? (qt * gbCfg.qtPct + ck * gbCfg.ckPct) / 100 : null;
+      const fin = (qt != null && ck != null && (!aw || att10 != null)) ? ((aw ? att10 * aw : 0) + qt * gbCfg.qtPct + ck * gbCfg.ckPct) / 100 : null;
       const finR = fin == null ? null : Math.round(fin * 100) / 100;
       return { stu, pres, totalDays, att10, sc, qt, ck, fin: finR, rank: gradeRank(finR) };
     });
@@ -3370,45 +3474,49 @@
   function renderGradebook() {
     if (!gbData) return;
     const wrap = pel('gradeTableWrap');
-    if (!gbData.students.length) { wrap.innerHTML = '<p class="text-xs text-gray-400 italic p-4">Lớp chưa có học sinh nào.</p>'; return; }
+    if (!gbData.students.length) { pel('gradeCharts').classList.add('hidden'); wrap.innerHTML = '<p class="text-xs text-gray-400 italic p-4">Lớp chưa có học sinh nào.</p>'; return; }
     const g = computeGradebook(); gbRows = g;
     const sl = wrap.scrollLeft, st = wrap.scrollTop;
     const th = (cls, txt, extra = '') => `<th class="${cls}" ${extra}>${txt}</th>`;
-    const asH = g.asList.map(a => th('g-h-as', esc(a.title), `title="${esc(a.title)}" style="min-width:90px;max-width:140px;overflow:hidden;text-overflow:ellipsis"`)).join('');
-    const teH = g.testList.map(a => th('g-h-test', '<i class="bi bi-lock-fill"></i> ' + esc(a.title), `title="${esc(a.title)} (bài Test)" style="min-width:90px;max-width:140px;overflow:hidden;text-overflow:ellipsis"`)).join('');
+    const hd = (txt, key, type, opts) => `<div style="display:flex;align-items:center;justify-content:center;gap:2px"><span style="overflow:hidden;text-overflow:ellipsis">${txt}</span>${cfBtn('gb', key, type, opts)}</div>`;
+    const asH = g.asList.map(a => th('g-h-as', hd(esc(a.title), 'as_' + a.id, 'num'), `title="${esc(a.title)}" style="min-width:90px;max-width:140px;overflow:hidden;text-overflow:ellipsis"`)).join('');
+    const teH = g.testList.map(a => th('g-h-test', hd('<i class="bi bi-lock-fill"></i> ' + esc(a.title), 'te_' + a.id, 'num'), `title="${esc(a.title)} (bài Test)" style="min-width:90px;max-width:140px;overflow:hidden;text-overflow:ellipsis"`)).join('');
     const nAs = g.asList.length, nTe = g.testList.length;
     const head1 = `<tr>
-      ${th('g-h-fix g-s1', 'STT', 'rowspan="2"')}${th('g-h-fix g-s2', 'Họ và tên', 'rowspan="2"')}
-      ${th('g-h-att', 'Chuyên cần', 'rowspan="2" style="min-width:90px"')}
+      ${th('g-h-fix g-s1', 'STT', 'rowspan="2"')}${th('g-h-fix g-s2', hd('Họ và tên', 'name', 'text'), 'rowspan="2"')}
+      ${th('g-h-att', hd('Chuyên cần', 'pres', 'num'), 'rowspan="2" style="min-width:90px"')}
+      ${th('g-h-att', hd('Điểm danh<div style="font-size:10px;font-weight:600">(thang 10)</div>', 'att', 'num'), 'rowspan="2" style="min-width:90px"')}
       ${nAs ? th('g-h-as', 'Điểm Assignment', `colspan="${nAs}"`) : ''}
       ${nTe ? th('g-h-test', 'Điểm Test', `colspan="${nTe}"`) : ''}
-      ${th('g-h-qt', 'Điểm quá trình', 'rowspan="2" style="min-width:80px"')}
-      ${th('g-h-ck', 'Điểm cuối kỳ', 'rowspan="2" style="min-width:80px"')}
-      ${th('g-h-fin', `Điểm tổng kết<div style="font-size:10px;font-weight:600">QT ${gbCfg.qtPct}% · CK ${gbCfg.ckPct}%</div>`, 'rowspan="2" style="min-width:100px"')}
-      ${th('g-h-fin', 'Xếp loại', 'rowspan="2" style="min-width:100px"')}
-      ${th('g-h-fin', 'Đạt', 'rowspan="2" style="min-width:60px"')}
+      ${th('g-h-qt', hd('Điểm quá trình', 'qt', 'num'), 'rowspan="2" style="min-width:80px"')}
+      ${th('g-h-ck', hd('Điểm cuối kỳ', 'ck', 'num'), 'rowspan="2" style="min-width:80px"')}
+      ${th('g-h-fin', hd(`Điểm tổng kết<div style="font-size:10px;font-weight:600">${gbPctLabel()}</div>`, 'fin', 'num'), 'rowspan="2" style="min-width:100px"')}
+      ${th('g-h-fin', hd('Xếp loại', 'rank', 'enum', ['Xuất sắc', 'Giỏi', 'Khá', 'Trung bình', 'Yếu', 'Kém', '—'].map(x => [x, x])), 'rowspan="2" style="min-width:100px"')}
+      ${th('g-h-fin', hd('Đạt', 'pass', 'enum', [['Đạt', 'Đạt'], ['Không đạt', 'Không đạt'], ['Chưa có', 'Chưa có điểm']]), 'rowspan="2" style="min-width:60px"')}
     </tr>`;
     const head2 = (nAs || nTe) ? `<tr class="g2">${asH}${teH}</tr>` : '';
     const cell = (v, on) => `<td class="${on ? '' : 'g-off'}" title="${on ? '' : 'Không nằm trong cách tính'}">${gFmt(v)}</td>`;
-    const body = g.rows.map((r, i) => {
+    const shown = cfRun('gb', g.rows, gbGet);
+    const body = shown.map((r, i) => {
       const asC = g.asList.map(a => cell(r.sc(a.id), g.qtIds.has(a.id))).join('');
       const teC = g.testList.map(a => cell(r.sc(a.id), g.ckIds.has(a.id))).join('');
       const pass = r.fin == null ? '<span class="text-gray-400">—</span>'
-        : r.fin >= 7 ? '<i class="bi bi-check-lg" style="color:#16a34a;font-size:18px;font-weight:800"></i>'
-                     : '<i class="bi bi-x-lg" style="color:#dc2626;font-size:16px;font-weight:800"></i>';
+        : r.fin >= 7 ? '<i class="bi bi-check-circle-fill" title="Đạt" style="color:#166534;font-size:19px"></i>'
+                     : '<i class="bi bi-x-circle-fill" title="Không đạt" style="color:#991b1b;font-size:19px"></i>';
       return `<tr>
         <td class="g-s1">${i + 1}</td><td class="g-s2">${esc(r.stu.full_name || '(chưa có tên)')}</td>
-        <td title="${r.pres}/${r.totalDays} buổi"><b>${r.pres}/${r.totalDays}</b></td>
+        <td title="${r.pres}/${r.totalDays} buổi"><b>${r.pres}/${r.totalDays}</b></td><td class="g-calc">${gFmt(r.att10)}</td>
         ${asC}${teC}
         <td class="g-calc">${gFmt(r.qt)}</td><td class="g-calc">${gFmt(r.ck)}</td><td class="g-calc" style="color:#cf1717">${gFmt(r.fin)}</td>
         <td>${r.rank ? `<span class="g-rank ${r.rank.c}">${r.rank.t}</span>` : '<span class="text-gray-400">—</span>'}</td>
         <td>${pass}</td>
       </tr>`;
     }).join('');
-    wrap.innerHTML = `<table id="gradeTable"><thead>${head1}${head2}</thead><tbody>${body}</tbody></table>`;
+    wrap.innerHTML = `<table id="gradeTable"><thead>${head1}${head2}</thead><tbody>${body || '<tr><td colspan="40" style="text-align:left" class="text-gray-400 italic">Không có học sinh nào khớp bộ lọc.</td></tr>'}</tbody></table>`;
+    renderGbCharts(shown);
     wrap.scrollLeft = sl; wrap.scrollTop = st;
     const passN = g.rows.filter(r => r.fin != null && r.fin >= 7).length, graded = g.rows.filter(r => r.fin != null).length;
-    pel('gradeSummaryLine').innerHTML = `${g.rows.length} học sinh · ${g.totalDays} buổi đã học · ${nAs} bài Assignment · ${nTe} bài Test · đã có điểm tổng kết: ${graded} · đạt (≥ 7,0): <b>${passN}</b>` +
+    pel('gradeSummaryLine').innerHTML = `${shown.length === g.rows.length ? g.rows.length : shown.length + '/' + g.rows.length} học sinh · ${g.totalDays} buổi đã học · ${nAs} bài Assignment · ${nTe} bài Test · đã có điểm tổng kết: ${graded} · đạt (≥ 7,0): <b>${passN}</b>` +
       (!nTe ? ' · <span class="text-amber-600">Lớp chưa có bài Test nên chưa tính được điểm tổng kết.</span>' : '');
   }
 
@@ -3424,24 +3532,25 @@
     pel('gcCkList').innerHTML = list(teList, gbCfg.ckIds, 'ck');
     document.querySelectorAll('input[name=gcQtMode]').forEach(r => r.checked = r.value === gbCfg.qtMode);
     document.querySelectorAll('input[name=gcCkMode]').forEach(r => r.checked = r.value === gbCfg.ckMode);
-    pel('gcQtPct').value = gbCfg.qtPct; pel('gcCkPct').value = gbCfg.ckPct;
+    pel('gcAttPct').value = gbCfg.attPct || 0; pel('gcQtPct').value = gbCfg.qtPct; pel('gcCkPct').value = gbCfg.ckPct;
     pel('gcAttInQt').checked = !!gbCfg.attInQt; pel('gcMissingZero').checked = !!gbCfg.missingZero;
     pel('gradeCfgModal').classList.remove('hidden'); pel('gradeCfgModal').classList.add('flex');
   }
   function closeGradeCfg() { pel('gradeCfgModal').classList.add('hidden'); pel('gradeCfgModal').classList.remove('flex'); }
   function gcSyncPct(which) {
-    const a = pel(which === 'qt' ? 'gcQtPct' : 'gcCkPct'), b = pel(which === 'qt' ? 'gcCkPct' : 'gcQtPct');
-    let v = parseFloat(a.value); if (isNaN(v)) return; v = Math.max(0, Math.min(100, v)); b.value = Math.round((100 - v) * 100) / 100;
+    const g = id => { const v = parseFloat(pel(id).value); return isNaN(v) ? 0 : Math.max(0, Math.min(100, v)); };
+    if (which === 'ck') pel('gcQtPct').value = Math.max(0, Math.round((100 - g('gcAttPct') - g('gcCkPct')) * 100) / 100);
+    else pel('gcCkPct').value = Math.max(0, Math.round((100 - g('gcAttPct') - g('gcQtPct')) * 100) / 100);
   }
   async function saveGradeCfg() {
-    const qtPct = parseFloat(pel('gcQtPct').value), ckPct = parseFloat(pel('gcCkPct').value);
-    if (isNaN(qtPct) || isNaN(ckPct) || Math.abs(qtPct + ckPct - 100) > 0.001) return notify('⚠️ Tỉ lệ ĐQT + ĐCK phải bằng đúng 100%.');
+    const attPct = parseFloat(pel('gcAttPct').value) || 0, qtPct = parseFloat(pel('gcQtPct').value), ckPct = parseFloat(pel('gcCkPct').value);
+    if (isNaN(qtPct) || isNaN(ckPct) || Math.abs(attPct + qtPct + ckPct - 100) > 0.001) return notify('⚠️ Tỉ lệ Điểm danh + ĐQT + ĐCK phải bằng đúng 100%.');
     const cfg = {
       qtMode: document.querySelector('input[name=gcQtMode]:checked')?.value || 'all',
       ckMode: document.querySelector('input[name=gcCkMode]:checked')?.value || 'all',
       qtIds: [...document.querySelectorAll('[data-qt]:checked')].map(x => x.dataset.qt),
       ckIds: [...document.querySelectorAll('[data-ck]:checked')].map(x => x.dataset.ck),
-      qtPct, ckPct, missingZero: pel('gcMissingZero').checked, attInQt: pel('gcAttInQt').checked,
+      attPct, qtPct, ckPct, missingZero: pel('gcMissingZero').checked, attInQt: attPct > 0 ? false : pel('gcAttInQt').checked,
     };
     if (cfg.qtMode === 'pick' && !cfg.qtIds.length) return notify('⚠️ Chọn ít nhất 1 bài cho điểm quá trình (hoặc chọn "Tất cả").');
     if (cfg.ckMode === 'pick' && !cfg.ckIds.length) return notify('⚠️ Chọn ít nhất 1 bài cho điểm cuối kỳ (hoặc chọn "Tất cả").');
@@ -3462,9 +3571,9 @@
     if (typeof XLSX === 'undefined') return notify('❌ Chưa tải được thư viện SheetJS — kiểm tra mạng rồi tải lại trang.');
     const g = gbRows, c = myClasses.find(x => x.id === gbClassId);
     const n = v => v == null ? '' : Math.round(v * 100) / 100;
-    const header = ['STT', 'Họ và tên', 'Email', 'Chuyên cần (có mặt/tổng)', ...g.asList.map(a => a.title), ...g.testList.map(a => '[Test] ' + a.title),
-      'Điểm quá trình', 'Điểm cuối kỳ', `Điểm tổng kết (QT ${gbCfg.qtPct}% - CK ${gbCfg.ckPct}%)`, 'Xếp loại', 'Đạt'];
-    const data = g.rows.map((r, i) => [i + 1, r.stu.full_name || '', r.stu.email || '', `${r.pres}/${r.totalDays}`,
+    const header = ['STT', 'Họ và tên', 'Email', 'Chuyên cần (có mặt/tổng)', 'Điểm danh (thang 10)', ...g.asList.map(a => a.title), ...g.testList.map(a => '[Test] ' + a.title),
+      'Điểm quá trình', 'Điểm cuối kỳ', `Điểm tổng kết (${gbPctLabel()})`, 'Xếp loại', 'Đạt'];
+    const data = g.rows.map((r, i) => [i + 1, r.stu.full_name || '', r.stu.email || '', `${r.pres}/${r.totalDays}`, n(r.att10),
       ...g.asList.map(a => n(r.sc(a.id))), ...g.testList.map(a => n(r.sc(a.id))), n(r.qt), n(r.ck), n(r.fin), r.rank ? r.rank.t : '', r.fin == null ? '' : (r.fin >= 7 ? 'Đạt' : 'Không đạt')]);
     const ws = XLSX.utils.aoa_to_sheet([[`BẢNG ĐIỂM LỚP ${c ? c.class_code + ' — ' + c.title : ''}`], [], header, ...data]);
     ws['!cols'] = header.map((h, i) => ({ wch: i === 1 ? 26 : i === 2 ? 28 : Math.max(10, Math.min(28, String(h).length + 2)) }));
