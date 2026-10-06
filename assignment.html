@@ -329,13 +329,13 @@
 
     <!-- ===== KẾT QUẢ HỌC TẬP (chọn lớp -> xem bảng điểm của riêng mình) ===== -->
     <section id="gradeReportSection" class="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border dark:border-zinc-800 shadow-sm space-y-4">
-      <div class="flex items-center justify-between border-l-4 border-teal-600 pl-3">
-        <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white"><i class="bi bi-calendar-week-fill text-teal-600"></i> Kết Quả Học Tập</h2>
+      <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
+        <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white"><i class="bi bi-calendar-week-fill text-[#cf1717]"></i> Kết Quả Học Tập</h2>
         <button id="btnGrReload" onclick="loadGradeReport()" disabled class="text-xs font-bold text-indigo-500 hover:underline disabled:opacity-40 disabled:no-underline disabled:cursor-not-allowed"><i class="bi bi-arrow-clockwise"></i> Làm mới</button>
       </div>
       <div class="flex flex-wrap items-center gap-2">
         <label for="grClassSelect" class="text-xs font-bold text-gray-500 dark:text-gray-400">Chọn lớp:</label>
-        <select id="grClassSelect" onchange="loadGradeReport()" class="flex-1 min-w-[220px] sm:flex-none sm:w-96 p-2.5 text-sm font-semibold rounded-xl border bg-white dark:bg-zinc-800 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
+        <select id="grClassSelect" onchange="loadGradeReport()" class="flex-1 min-w-[220px] sm:flex-none sm:w-96 p-2.5 text-sm font-semibold rounded-xl border bg-white dark:bg-zinc-800 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
           <option value="">-- Chọn lớp để xem kết quả học tập --</option>
         </select>
       </div>
@@ -1043,8 +1043,8 @@
     const thead = cols => `<thead><tr>${cols.join('')}</tr></thead>`;
 
     pel('grBody').innerHTML = `
-      <div class="rounded-2xl border border-teal-200 dark:border-teal-900 bg-gradient-to-r from-teal-50 to-sky-50 dark:from-teal-950/40 dark:to-sky-950/30 p-4 space-y-1.5">
-        <h3 class="font-black text-base sm:text-lg uppercase text-teal-800 dark:text-teal-300">${esc(cls.title || '')}</h3>
+      <div class="rounded-2xl border border-red-200 dark:border-red-900/60 bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-950/30 dark:to-rose-950/20 p-4 space-y-1.5">
+        <h3 class="font-black text-base sm:text-lg uppercase text-[#cf1717] dark:text-red-400">${esc(cls.title || '')}</h3>
         <p class="text-sm"><b>Họ và tên:</b> ${esc(studentName)}</p>
         <p class="text-sm"><b>Lớp:</b> ${esc(cls.class_code || '')}</p>
         <p class="text-sm"><b>Chuyên cần:</b> ${totalDays ? `${pres}/${totalDays} buổi` : '<span class="text-gray-400">chưa có buổi nào được chốt điểm danh</span>'}</p>
@@ -1172,7 +1172,7 @@
       <a href="assignment.html?token=${encodeURIComponent(a.token)}" class="block bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 space-y-2 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition">
         <div class="flex items-center justify-between">
           <span class="text-[10px] font-bold px-2 py-0.5 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">${esc(a.classes?.class_code || '')}</span>
-          ${a._attempt ? `<span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 rounded-full">Đã nộp: ${Math.round(((a._attempt.auto_score||0)+sumManualScores(a._attempt.manual_scores))*100)/100}/${a._attempt.total_points}</span>` : `<span class="text-[10px] font-bold px-2 py-0.5 bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-full">Chưa làm</span>`.replace(/^(?=.*)/, '') && (isAssignmentExpired(a) ? `<span class="text-[10px] font-bold px-2 py-0.5 bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-gray-300 rounded-full">Đã hết hạn</span>` : `<span class="text-[10px] font-bold px-2 py-0.5 bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-full">Chưa làm</span>`)}
+          ${a._attempt ? `<span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 rounded-full">Đã nộp: ${Math.round(((a._attempt.auto_score||0)+sumManualScores(a._attempt.manual_scores))*100)/100}/${a._attempt.total_points}</span>` : `<span class="text-[10px] font-bold px-2 py-0.5 bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-full">Chưa làm</span>`.replace(/^(?=.*)/, '') && (isAssignmentExpired(a) ? `<span class="text-[10px] font-bold px-2 py-0.5 bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-gray-300 rounded-full">Đã hết hạn · Chỉ xem</span>` : `<span class="text-[10px] font-bold px-2 py-0.5 bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-full">Chưa làm</span>`)}
         </div>
         <h4 class="font-bold text-sm text-gray-900 dark:text-white line-clamp-2">${esc(a.title)}</h4>
         <p class="text-xs text-gray-400 line-clamp-2">${esc(a.description || '')}</p>
@@ -1216,8 +1216,9 @@
       return;
     }
     if (expired) {
-      notify(`⛔ Bài tập đã hết hạn (${fmtDueDate(a.due_date)}), bạn không thể làm bài này nữa.`);
-      setTimeout(() => { location.href = 'assignment.html?class=' + a.class_id; }, 2500);
+      // Hết hạn mà chưa làm: vẫn cho XEM lại đề (kèm đáp án + giải thích) nhưng KHÔNG cho làm / nộp.
+      notify(`⏰ Bài tập đã hết hạn (${fmtDueDate(a.due_date)}) — bạn chỉ có thể xem lại, không thể làm bài này nữa.`);
+      showResult(a, { answers: {}, auto_score: 0, total_points: a.total_points, manual_scores: {}, _empty: true }, { expired: true, used: 0 });
       return;
     }
 
@@ -1598,8 +1599,8 @@
 
     const manualSum = sumManualScores(attempt.manual_scores);
     const finalScore = Math.round(((attempt.auto_score || 0) + manualSum) * 100) / 100;
-    pel('rsScore').innerText = `${finalScore} / ${attempt.total_points}`;
-    pel('rsTitle').innerHTML = expired ? '<i class="bi bi-alarm"></i> Bài đã hết hạn — kết quả gần nhất' : 'Bài làm của bạn';
+    pel('rsScore').innerText = attempt._empty ? 'Chưa nộp bài' : `${finalScore} / ${attempt.total_points}`;
+    pel('rsTitle').innerHTML = attempt._empty ? '<i class="bi bi-alarm"></i> Bài đã hết hạn — chỉ xem lại' : expired ? '<i class="bi bi-alarm"></i> Bài đã hết hạn — kết quả gần nhất' : 'Bài làm của bạn';
 
     const essayQs = (a.questions || []).filter(q => q.type === 'essay');
     const allEssayGraded = essayQs.length > 0 && essayQs.every(q => attempt.manual_scores && attempt.manual_scores[q.id] !== undefined);
@@ -1607,7 +1608,8 @@
 
     const due = a.due_date ? fmtDueDate(a.due_date) : null;
     let msg, tone;
-    if (expired) { msg = `<i class="bi bi-alarm"></i> Bài tập đã hết hạn (${due}). Bạn không thể làm hoặc sửa nữa — bên dưới là bài làm gần nhất, kèm điểm và nhận xét của giáo viên nếu đã chấm.`; tone = 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-300'; }
+    if (attempt._empty) { msg = `Bài tập đã hết hạn (${due}) và bạn chưa nộp bài. Bạn chỉ có thể xem lại đề, đáp án và giải thích bên dưới — không thể làm hoặc nộp bài nữa.`; tone = 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-300'; }
+    else if (expired) { msg = `<i class="bi bi-alarm"></i> Bài tập đã hết hạn (${due}). Bạn không thể làm hoặc sửa nữa — bên dưới là bài làm gần nhất, kèm điểm và nhận xét của giáo viên nếu đã chấm.`; tone = 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-300'; }
     else if (canEdit) { msg = `<i class="bi bi-pencil"></i> ${due ? 'Bài còn hạn đến ' + due + '. ' : ''}Bên dưới là điểm của từng câu. Đáp án đúng và giải thích sẽ hiện sau khi bài hết hạn. Câu nào chưa đạt điểm tối đa, bấm “Sửa câu này” để làm lại rồi bấm “Lưu chỉnh sửa”.${a.max_attempts ? ' Còn ' + (a.max_attempts - used) + ' lượt lưu.' : ''}`; tone = 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'; }
     else { msg = `<i class="bi bi-info-circle-fill"></i> Bạn đã dùng hết ${a.max_attempts} lượt làm/sửa bài — đây là kết quả gần nhất.${rv.reveal ? '' : ' Đáp án đúng và giải thích sẽ hiện khi bài hết hạn' + (due ? ' (' + due + ')' : '') + '.'}`; tone = 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-300'; }
     const bn = pel('rsBanner'); bn.className = 'text-xs font-semibold rounded-xl p-3 text-left ' + tone; bn.innerText = msg;
@@ -1774,7 +1776,7 @@
           const gv = (givenObj[bl.gap] || '').trim();
           const accepted = bl.accepted_answers || [];
           const isCorrect = accepted.map(x => x.toLowerCase().trim()).includes(gv.toLowerCase());
-          const cls = reveal ? (isCorrect ? 'opt-correct' : 'opt-wrong') : 'dark:border-zinc-700';
+          const cls = (reveal && !attempt._empty) ? (isCorrect ? 'opt-correct' : 'opt-wrong') : 'dark:border-zinc-700';
           return `<div class="p-2.5 rounded-xl border text-sm ${cls}">
             Chỗ trống ${bl.gap}: bạn trả lời <b class="whitespace-pre-wrap">${esc(gv || '(bỏ trống)')}</b>
             ${reveal ? `<span class="block text-xs text-gray-500 mt-0.5">Đáp án chấp nhận: ${esc(accepted.join(', '))}</span>` : ''}
@@ -1783,7 +1785,7 @@
       } else {
         const accepted = (q.accepted_answers || []).join(', ');
         const isCorrect = (q.accepted_answers || []).map(x => x.toLowerCase().trim()).includes((given || '').toLowerCase().trim());
-        const cls = reveal ? (isCorrect ? 'opt-correct' : 'opt-wrong') : 'dark:border-zinc-700';
+        const cls = (reveal && !attempt._empty) ? (isCorrect ? 'opt-correct' : 'opt-wrong') : 'dark:border-zinc-700';
         bodyHtml = `<div class="p-2.5 rounded-xl border text-sm ${cls} whitespace-pre-wrap">Bạn trả lời: <b>${esc(given || '(bỏ trống)')}</b></div>
           ${reveal ? `<p class="text-xs text-gray-500 mt-1">Đáp án chấp nhận: ${esc(accepted)}</p>` : ''}`;
       }
@@ -1791,7 +1793,7 @@
       const gradedScore = attempt.manual_scores && attempt.manual_scores[q.id] !== undefined ? attempt.manual_scores[q.id] : null;
       const comment = (attempt.manual_comments && attempt.manual_comments[q.id]) || '';
       bodyHtml = `<div class="p-2.5 rounded-xl border dark:border-zinc-700 text-sm whitespace-pre-wrap">${esc(given || '(bỏ trống)')}</div>
-        ${gradedScore !== null
+        ${attempt._empty ? '' : gradedScore !== null
           ? `<p class="text-xs font-bold text-emerald-600 mt-1"><i class="bi bi-check-circle-fill"></i> Giáo viên đã chấm: ${gradedScore}/${q.points} điểm</p>`
           : `<p class="text-xs text-amber-500 mt-1"><i class="bi bi-file-earmark-text"></i> Câu tự luận — chờ giáo viên chấm điểm.</p>`}
         ${comment ? `<div class="mt-2 p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 text-xs"><b class="text-blue-600 dark:text-blue-400"><i class="bi bi-pencil-square"></i> Nhận xét của giáo viên:</b> <span class="whitespace-pre-wrap">${esc(comment)}</span></div>` : ''}`;
@@ -1800,7 +1802,7 @@
       <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm" data-q="${q.id}">
         <div class="flex items-center justify-between gap-2">
           <p class="text-xs font-bold text-[#cf1717]">Câu ${qNo}</p>
-          <span class="text-[11px] font-extrabold px-2.5 py-1 rounded-full ${chipCls}"><i class="bi bi-bullseye"></i> ${chipTxt} điểm</span>
+          ${attempt._empty ? `<span class="text-[11px] font-bold text-gray-400">${pts} điểm</span>` : `<span class="text-[11px] font-extrabold px-2.5 py-1 rounded-full ${chipCls}"><i class="bi bi-bullseye"></i> ${chipTxt} điểm</span>`}
         </div>
         <div class="qcontent text-sm text-gray-900 dark:text-white">${q.content || ''}</div>
         <div class="space-y-2">${bodyHtml}</div>
