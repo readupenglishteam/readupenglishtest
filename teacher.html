@@ -2336,6 +2336,7 @@
     if (type === 'reading') { base.points = 0; base.sub_blocks = []; }
     blocks.push(base);
     renderBlocks();
+    revealBlock(base.id);
   }
   function removeBlock(id) { blocks = blocks.filter(b => b.id !== id); renderBlocks(); }
   function moveBlock(id, dir) {
@@ -2355,6 +2356,7 @@
     rb.sub_blocks = rb.sub_blocks || [];
     rb.sub_blocks.push(base);
     renderBlocks();
+    revealBlock(base.id);
   }
   function removeSubBlock(readingId, id) {
     const rb = blocks.find(b => b.id === readingId); if (!rb) return;
@@ -2387,7 +2389,22 @@
     return null;
   }
 
+  // Vẽ lại danh sách câu hỏi NHƯNG giữ nguyên vị trí cuộn (modal, danh sách câu con, ô bài đọc)
   function renderBlocks() {
+    const modal = pel('builderModal');
+    const modalTop = modal ? modal.scrollTop : 0;
+    const saved = {};
+    document.querySelectorAll('#questionBlocks [id^="subList-"], #questionBlocks .qeditor[id^="qc-"]').forEach(el => { saved[el.id] = el.scrollTop; });
+    _renderBlocksRaw();
+    if (modal) modal.scrollTop = modalTop;
+    Object.keys(saved).forEach(id => { const el = document.getElementById(id); if (el) el.scrollTop = saved[id]; });
+  }
+  function revealBlock(id) {
+    const el = document.querySelector('#questionBlocks [data-block="' + id + '"]');
+    if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
+  function _renderBlocksRaw() {
     pel('questionBlocks').innerHTML = blocks.map((b, idx) => `
       <div class="border dark:border-zinc-700 rounded-2xl p-4 space-y-3 bg-white dark:bg-zinc-900" data-block="${b.id}">
         <div class="flex items-center justify-between">
