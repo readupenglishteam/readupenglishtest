@@ -50,6 +50,28 @@
 <style>
   html, body, button, input, select, textarea { font-family: 'Montserrat', ui-sans-serif, system-ui, sans-serif; }
   .bi { vertical-align: -0.125em; }
+  /* ===== Kết quả học tập ===== */
+  .kq-wrap{overflow-x:auto;border-radius:14px;border:1px solid #e5e7eb;-webkit-overflow-scrolling:touch}
+  .dark .kq-wrap{border-color:#3f3f46}
+  .kq-table{width:100%;border-collapse:separate;border-spacing:0;font-size:.85rem}
+  .kq-table th{padding:.7rem .85rem;color:#fff;font-weight:800;text-align:left;white-space:nowrap}
+  .kq-table td{padding:.62rem .85rem;border-top:1px solid #f1f5f9;vertical-align:middle}
+  .dark .kq-table td{border-top-color:#27272a}
+  .kq-table tbody tr:nth-child(even) td{background:rgba(148,163,184,.09)}
+  .kq-table tbody tr:hover td{background:rgba(14,165,233,.08)}
+  .kq-c{text-align:center!important}
+  .kq-r{text-align:right!important}
+  .kq-th-as{background:linear-gradient(90deg,#0369a1,#0ea5e9)}
+  .kq-th-te{background:linear-gradient(90deg,#6d28d9,#8b5cf6)}
+  .kq-th-fin{background:linear-gradient(90deg,#b91c1c,#ef4444)}
+  .kq-table.kq-fin tbody tr:hover td{background:rgba(239,68,68,.07)}
+  .kq-table .kq-total td{background:rgba(207,23,23,.10)!important;font-weight:900;font-size:.95rem}
+  .kq-badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
+  .kq-b-qt{background:#e0f2fe;color:#075985}.dark .kq-b-qt{background:rgba(14,165,233,.18);color:#7dd3fc}
+  .kq-b-ck{background:#ede9fe;color:#5b21b6}.dark .kq-b-ck{background:rgba(139,92,246,.2);color:#c4b5fd}
+  .kq-b-miss{background:#fee2e2;color:#991b1b}.dark .kq-b-miss{background:rgba(239,68,68,.18);color:#fca5a5}
+  .kq-sub{display:flex;align-items:center;gap:.5rem;font-weight:900;font-size:.95rem;letter-spacing:.01em}
+  .kq-sumline{display:inline-flex;align-items:center;gap:.4rem;padding:.4rem .85rem;border-radius:12px;font-weight:800;font-size:.85rem}
   @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
   .animate-toast-bar { animation: toastProgress 5s linear forwards; }
   @keyframes blob {
@@ -304,6 +326,21 @@
     <div id="classPickGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     <p id="classPickEmpty" class="hidden text-center text-gray-400 text-sm py-10">Bạn chưa tham gia lớp học nào. Hãy liên hệ giáo viên để được thêm vào lớp nhé!</p>
     <p id="classPickLoading" class="text-center text-gray-400 text-sm py-10"><i class="bi bi-hourglass-split"></i> Đang tải danh sách lớp...</p>
+
+    <!-- ===== KẾT QUẢ HỌC TẬP (chọn lớp -> xem bảng điểm của riêng mình) ===== -->
+    <section id="gradeReportSection" class="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border dark:border-zinc-800 shadow-sm space-y-4">
+      <div class="flex items-center justify-between border-l-4 border-teal-600 pl-3">
+        <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white"><i class="bi bi-calendar-week-fill text-teal-600"></i> Kết Quả Học Tập</h2>
+        <button id="btnGrReload" onclick="loadGradeReport()" disabled class="text-xs font-bold text-indigo-500 hover:underline disabled:opacity-40 disabled:no-underline disabled:cursor-not-allowed"><i class="bi bi-arrow-clockwise"></i> Làm mới</button>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <label for="grClassSelect" class="text-xs font-bold text-gray-500 dark:text-gray-400">Chọn lớp:</label>
+        <select id="grClassSelect" onchange="loadGradeReport()" class="flex-1 min-w-[220px] sm:flex-none sm:w-96 p-2.5 text-sm font-semibold rounded-xl border bg-white dark:bg-zinc-800 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
+          <option value="">-- Chọn lớp để xem kết quả học tập --</option>
+        </select>
+      </div>
+      <div id="grBody"><p class="text-xs text-gray-400 italic"><i class="bi bi-hourglass-split"></i> Đang tải danh sách lớp...</p></div>
+    </section>
   </div>
 
   <!-- ============ CHẾ ĐỘ 1: DANH SÁCH BÀI TẬP (của 1 lớp đã chọn) ============ -->
@@ -878,11 +915,175 @@
   }
 
   // =====================================================================
+  // KẾT QUẢ HỌC TẬP — học sinh chọn lớp rồi xem bảng điểm của chính mình
+  // Cách tính giống trang teacher (Quản lý điểm): lấy cấu hình từ bảng class_grade_config
+  // Cần: file 4_student_grades.sql (cho học sinh quyền ĐỌC cách tính điểm của lớp mình)
+  // =====================================================================
+  const GR_DEFAULT_CFG = { qtMode: 'all', qtIds: [], ckMode: 'all', ckIds: [], attPct: 0, qtPct: 40, ckPct: 60, missingZero: true, attInQt: false };
+  let grClasses = {}, grSeq = 0;
+
+  const grNum = v => { if (v == null) return '—'; const r = Math.round(v * 100) / 100; return Number.isInteger(r) ? r.toFixed(1) : String(r); };
+  const grNum2 = v => v == null ? '—' : (Math.round(v * 100) / 100).toFixed(2);
+  const grAvg = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+  function grScoreColor(v) { return v == null ? '#9ca3af' : v >= 8 ? '#15803d' : v >= 7 ? '#0369a1' : v >= 5 ? '#b45309' : '#b91c1c'; }
+  function grRank(s) {
+    if (s == null) return null;
+    if (s >= 9) return { t: 'Xuất sắc', bg: '#C8E6C9', fg: '#1B5E20' };
+    if (s >= 8) return { t: 'Giỏi', bg: '#DCEDC8', fg: '#33691E' };
+    if (s >= 7) return { t: 'Khá', bg: '#BBDEFB', fg: '#0D47A1' };
+    if (s >= 5) return { t: 'Trung bình', bg: '#FFF3B0', fg: '#7A5B00' };
+    if (s >= 4) return { t: 'Yếu', bg: '#FFE0B2', fg: '#E65100' };
+    return { t: 'Kém', bg: '#FFCDD2', fg: '#B71C1C' };
+  }
+
+  async function grLoadClasses() {
+    const sel = pel('grClassSelect'), body = pel('grBody');
+    if (!sel || !body) return;
+    const { data, error } = await sbClient.from('class_students').select('class_id, classes(id, title, class_code)').eq('student_id', currentUser.id);
+    if (error) { body.innerHTML = `<p class="text-red-500 text-xs">Lỗi tải danh sách lớp: ${esc(error.message)}</p>`; return; }
+    const rows = (data || []).filter(r => r.classes);
+    grClasses = {}; rows.forEach(r => { grClasses[String(r.classes.id)] = r.classes; });
+    sel.innerHTML = '<option value="">-- Chọn lớp để xem kết quả học tập --</option>' +
+      rows.map(r => `<option value="${esc(r.classes.id)}">${esc(r.classes.class_code)} — ${esc(r.classes.title)}</option>`).join('');
+    if (!rows.length) { body.innerHTML = '<p class="text-xs text-gray-400 italic">Bạn chưa tham gia lớp học nào nên chưa có kết quả học tập.</p>'; return; }
+    body.innerHTML = '<p class="text-gray-400 text-sm"><i class="bi bi-arrow-up-circle"></i> Hãy chọn một lớp ở trên để xem kết quả học tập.</p>';
+    if (rows.length === 1) { sel.value = String(rows[0].classes.id); loadGradeReport(); }   // chỉ có 1 lớp -> xem luôn
+  }
+
+  async function loadGradeReport() {
+    const cid = pel('grClassSelect').value, body = pel('grBody');
+    pel('btnGrReload').disabled = !cid;
+    if (!cid) { body.innerHTML = '<p class="text-gray-400 text-sm"><i class="bi bi-arrow-up-circle"></i> Hãy chọn một lớp ở trên để xem kết quả học tập.</p>'; return; }
+    const seq = ++grSeq;
+    body.innerHTML = '<p class="text-xs text-gray-400 italic"><i class="bi bi-hourglass-split"></i> Đang tải kết quả học tập...</p>';
+    try {
+      const cfgP = (async () => {
+        try {
+          const { data, error } = await sbClient.from('class_grade_config').select('config').eq('class_id', cid).maybeSingle();
+          if (!error && data && data.config) return data.config;
+        } catch (e) { /* chưa có bảng / chưa cấp quyền -> dùng mặc định */ }
+        return null;
+      })();
+      const lockP = scalFetchAll(() => sbClient.from('class_attendance_locks').select('session_id').eq('class_id', cid).order('session_id')).catch(() => []);
+      const attP = scalFetchAll(() => sbClient.from('class_attendance').select('session_id, status').eq('student_id', currentUser.id).eq('class_id', cid).order('id')).catch(() => []);
+      const sesP = scalFetchAll(() => sbClient.from('class_schedule_sessions').select('id, session_date, status').eq('class_id', cid).order('id')).catch(() => []);
+      const asP = sbClient.from('assignments').select('id, title, is_test, total_points, created_at').eq('class_id', cid).eq('is_published', true).order('created_at', { ascending: true });
+      const [cfgRaw, locks, attRows, sessions, asRes] = await Promise.all([cfgP, lockP, attP, sesP, asP]);
+      if (asRes.error) throw asRes.error;
+      const assigns = asRes.data || [];
+      let attempts = [];
+      if (assigns.length) {
+        const { data, error } = await sbClient.from('assignment_attempts').select('assignment_id, auto_score, total_points, manual_scores').eq('student_id', currentUser.id).in('assignment_id', assigns.map(a => a.id));
+        if (error) throw error;
+        attempts = data || [];
+      }
+      if (seq !== grSeq) return;   // người dùng đã đổi lớp khác trong lúc đang tải
+      grRender(cid, { cfg: { ...GR_DEFAULT_CFG, ...(cfgRaw || {}) }, locks, attRows, sessions, assigns, attempts });
+    } catch (err) {
+      if (seq !== grSeq) return;
+      body.innerHTML = `<p class="text-red-500 text-xs">Lỗi tải kết quả học tập: ${esc(err.message || err)}</p>`;
+    }
+  }
+
+  function grRender(cid, d) {
+    const { cfg, locks, attRows, sessions, assigns, attempts } = d;
+    const cls = grClasses[String(cid)] || {};
+    const studentName = myProfile?.full_name || currentUser.user_metadata?.full_name || (currentUser.email || '').split('@')[0] || 'Học sinh';
+
+    // ---- Chuyên cần: học sinh chỉ thấy điểm danh của các buổi GV đã chốt -> chỉ tính các buổi đã chốt & đã học
+    const today = scalTodayStr(), lockedSet = new Set(locks.map(r => r.session_id));
+    const heldIds = new Set(sessions.filter(s => s.status !== 'suspended' && String(s.session_date).slice(0, 10) <= today && lockedSet.has(s.id)).map(s => s.id));
+    const totalDays = heldIds.size;
+    const pres = attRows.filter(r => heldIds.has(r.session_id) && (r.status === 'P' || r.status === 'L')).length;
+    const att10 = totalDays ? pres / totalDays * 10 : null;
+
+    // ---- Điểm từng bài (thang 10, lấy lần làm cao nhất)
+    const asList = assigns.filter(a => !a.is_test), testList = assigns.filter(a => a.is_test);
+    const qtIds = new Set(cfg.qtMode === 'pick' ? cfg.qtIds : asList.map(a => a.id));
+    const ckIds = new Set(cfg.ckMode === 'pick' ? cfg.ckIds : testList.map(a => a.id));
+    const totalOf = Object.fromEntries(assigns.map(a => [a.id, a.total_points]));
+    const best = {};
+    attempts.forEach(r => {
+      const tp = r.total_points || totalOf[r.assignment_id] || 0; if (!tp) return;
+      const score = (r.auto_score || 0) + sumManualScores(r.manual_scores);
+      const v = Math.min(10, score / tp * 10);
+      if (best[r.assignment_id] === undefined || v > best[r.assignment_id]) best[r.assignment_id] = v;
+    });
+    const pool = (list, ids) => { const arr = []; list.forEach(a => { if (!ids.has(a.id)) return; const v = best[a.id]; if (v !== undefined) arr.push(v); else if (cfg.missingZero) arr.push(0); }); return arr; };
+    const aw = cfg.attPct || 0;
+    const qtArr = pool(asList, qtIds);
+    const attInQt = !aw && !!cfg.attInQt && att10 != null;
+    if (attInQt) qtArr.push(att10);
+    const qt = grAvg(qtArr), ck = grAvg(pool(testList, ckIds));
+    const finRaw = (qt != null && ck != null && (!aw || att10 != null)) ? ((aw ? att10 * aw : 0) + qt * cfg.qtPct + ck * cfg.ckPct) / 100 : null;
+    const fin = finRaw == null ? null : Math.round(finRaw * 100) / 100;
+    const rank = grRank(fin);
+
+    // ---- HTML
+    const scoreCell = v => v === undefined ? '<span class="text-gray-400">—</span>' : `<b style="color:${grScoreColor(v)}">${grNum(v)}/10</b>`;
+    const asRows = asList.map((a, i) => {
+      const v = best[a.id], on = qtIds.has(a.id);
+      const st = v === undefined ? `<span class="kq-badge kq-b-miss">Chưa nộp${on && cfg.missingZero ? ' · tính 0 điểm' : ''}</span>` : (on ? '<span class="kq-badge kq-b-qt">Lấy điểm QT</span>' : '');
+      return `<tr><td class="kq-c">${i + 1}</td><td class="font-semibold">${esc(a.title)}</td><td class="kq-c">${scoreCell(v)}</td><td>${st}</td></tr>`;
+    });
+    if (attInQt) asRows.push(`<tr><td class="kq-c">${asList.length + 1}</td><td class="font-semibold">Chuyên cần (${pres}/${totalDays} buổi)</td><td class="kq-c">${scoreCell(att10)}</td><td><span class="kq-badge kq-b-qt">Lấy điểm QT</span></td></tr>`);
+    const asBody = asRows.join('') || '<tr><td colspan="4" class="text-gray-400 italic">Lớp chưa có bài Assignment nào.</td></tr>';
+
+    const teBody = testList.map((a, i) => {
+      const v = best[a.id], on = ckIds.has(a.id);
+      const st = v === undefined ? `<span class="kq-badge kq-b-miss">Chưa làm${on && cfg.missingZero ? ' · tính 0 điểm' : ''}</span>` : (on ? '<span class="kq-badge kq-b-ck">Lấy điểm CK</span>' : '');
+      return `<tr><td class="kq-c">${i + 1}</td><td class="font-semibold">${esc(a.title)}</td><td class="kq-c">${scoreCell(v)}</td><td>${st}</td></tr>`;
+    }).join('') || '<tr><td colspan="4" class="text-gray-400 italic">Lớp chưa có bài Test nào.</td></tr>';
+
+    const attWeight = aw ? aw + '%' : (attInQt ? 'Tính trong ĐQT' : '0%');
+    const rankHtml = rank ? `<span class="kq-badge" style="background:${rank.bg};color:${rank.fg};font-size:13px;padding:3px 14px"><i class="bi bi-circle-fill" style="font-size:10px"></i> ${rank.t}</span>` : '<span class="text-gray-400">—</span>';
+    const passHtml = fin == null ? '<span class="text-gray-400">—</span>'
+      : fin >= 7 ? '<span style="color:#166534" class="font-extrabold"><i class="bi bi-check-circle-fill" style="font-size:20px;vertical-align:-3px"></i> Đạt</span>'
+                 : '<span style="color:#991b1b" class="font-extrabold"><i class="bi bi-x-circle-fill" style="font-size:20px;vertical-align:-3px"></i> Không đạt</span>';
+    const thead = cols => `<thead><tr>${cols.join('')}</tr></thead>`;
+
+    pel('grBody').innerHTML = `
+      <div class="rounded-2xl border border-teal-200 dark:border-teal-900 bg-gradient-to-r from-teal-50 to-sky-50 dark:from-teal-950/40 dark:to-sky-950/30 p-4 space-y-1.5">
+        <h3 class="font-black text-base sm:text-lg uppercase text-teal-800 dark:text-teal-300">${esc(cls.title || '')}</h3>
+        <p class="text-sm"><b>Họ và tên:</b> ${esc(studentName)}</p>
+        <p class="text-sm"><b>Lớp:</b> ${esc(cls.class_code || '')}</p>
+        <p class="text-sm"><b>Chuyên cần:</b> ${totalDays ? `${pres}/${totalDays} buổi` : '<span class="text-gray-400">chưa có buổi nào được chốt điểm danh</span>'}</p>
+      </div>
+
+      <div class="space-y-2 pt-2">
+        <h3 class="kq-sub text-sky-700 dark:text-sky-400"><i class="bi bi-journal-bookmark-fill"></i> 1. ĐIỂM ASSIGNMENT</h3>
+        <div class="kq-wrap"><table class="kq-table">${thead(['<th class="kq-th-as kq-c" style="width:60px">STT</th>', '<th class="kq-th-as">Bài tập</th>', '<th class="kq-th-as kq-c" style="width:110px">Điểm</th>', '<th class="kq-th-as">Trạng thái</th>'])}<tbody>${asBody}</tbody></table></div>
+        <span class="kq-sumline bg-sky-100 dark:bg-sky-950/50 text-sky-800 dark:text-sky-300"><i class="bi bi-bar-chart-fill"></i> Điểm quá trình: ${qt == null ? '—' : grNum(qt) + '/10'}</span>
+      </div>
+
+      <div class="space-y-2 pt-3">
+        <h3 class="kq-sub text-violet-700 dark:text-violet-400"><i class="bi bi-pencil-square"></i> 2. ĐIỂM TEST / KIỂM TRA</h3>
+        <div class="kq-wrap"><table class="kq-table">${thead(['<th class="kq-th-te kq-c" style="width:60px">STT</th>', '<th class="kq-th-te">Bài kiểm tra</th>', '<th class="kq-th-te kq-c" style="width:110px">Điểm</th>', '<th class="kq-th-te">Trạng thái</th>'])}<tbody>${teBody}</tbody></table></div>
+        <span class="kq-sumline bg-violet-100 dark:bg-violet-950/50 text-violet-800 dark:text-violet-300"><i class="bi bi-award-fill"></i> Điểm cuối kỳ: ${ck == null ? '—' : grNum(ck) + '/10'}</span>
+      </div>
+
+      <div class="space-y-2 pt-3">
+        <h3 class="kq-sub text-amber-600 dark:text-amber-400"><i class="bi bi-star-fill"></i> TỔNG KẾT</h3>
+        <div class="kq-wrap"><table class="kq-table kq-fin">${thead(['<th class="kq-th-fin">Nội dung</th>', '<th class="kq-th-fin kq-c">Trọng số</th>', '<th class="kq-th-fin kq-c" style="min-width:130px">Điểm</th>'])}<tbody>
+          <tr><td class="font-semibold">Chuyên cần</td><td class="kq-c">${attWeight}</td><td class="kq-c font-bold">${totalDays ? `${pres}/${totalDays}` : '—'}</td></tr>
+          <tr><td class="font-semibold">Điểm quá trình</td><td class="kq-c">${cfg.qtPct}%</td><td class="kq-c font-bold" style="color:${grScoreColor(qt)}">${qt == null ? '—' : grNum2(qt) + '/10'}</td></tr>
+          <tr><td class="font-semibold">Điểm cuối kỳ</td><td class="kq-c">${cfg.ckPct}%</td><td class="kq-c font-bold" style="color:${grScoreColor(ck)}">${ck == null ? '—' : grNum2(ck) + '/10'}</td></tr>
+          <tr class="kq-total"><td>ĐIỂM TỔNG KẾT</td><td></td><td class="kq-c" style="color:#cf1717">${fin == null ? '—' : grNum2(fin) + '/10'}</td></tr>
+          <tr><td class="font-extrabold">Xếp loại</td><td></td><td class="kq-c">${rankHtml}</td></tr>
+          <tr><td class="font-extrabold">Đạt</td><td></td><td class="kq-c">${passHtml}</td></tr>
+        </tbody></table></div>
+        ${fin == null ? '<p class="text-[11px] text-amber-600"><i class="bi bi-info-circle"></i> Chưa đủ điểm để tính tổng kết (cần có điểm quá trình và điểm cuối kỳ).</p>' : ''}
+        <p class="text-[11px] text-gray-400"><i class="bi bi-info-circle"></i> Điểm các bài quy về thang 10, nếu làm nhiều lần thì lấy lần cao nhất. Chuyên cần chỉ tính các buổi giáo viên đã chốt điểm danh. Đạt khi điểm tổng kết ≥ 7,0.</p>
+      </div>`;
+  }
+
+  // =====================================================================
   // CHẾ ĐỘ 0: CHỌN LỚP — học sinh chọn lớp trước, sau đó mới thấy danh sách bài tập của lớp đó
   // =====================================================================
   async function loadClassPicker() {
     pel('classPickView').classList.remove('hidden');
     loadStudentCalendar();   // lịch học hiện cho mọi học sinh (không cần VIP, không cần chọn lớp)
+    grLoadClasses();         // Kết quả học tập: học sinh chọn lớp rồi xem bảng điểm của mình
     if (myProfile.role !== 'vip') {
       pel('classPickLoading').classList.add('hidden');
       pel('vipLockBox0').classList.remove('hidden');
