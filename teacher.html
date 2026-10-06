@@ -516,7 +516,7 @@
       <label class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 flex flex-col items-center justify-center cursor-pointer relative" title="Màu chữ (bôi đen chữ trước)">
         <span class="pointer-events-none font-bold text-xs leading-none">A</span>
         <span id="qColorBar" class="pointer-events-none w-4 h-1 rounded mt-0.5" style="background:#cf1717"></span>
-        <input type="color" value="#cf1717" onmousedown="qSaveSel()" oninput="document.getElementById('qColorBar').style.background=this.value; qcmd('foreColor', this.value)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+        <input type="color" value="#000000" onmousedown="qSaveSel()" oninput="document.getElementById('qColorBar').style.background=this.value; qcmd('foreColor', this.value)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
       </label>
       <select onchange="qcmd('fontSize', this.value); this.selectedIndex=0" class="h-7 rounded border-0 bg-transparent hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs" title="Cỡ chữ">
         <option value="">Cỡ chữ</option>
