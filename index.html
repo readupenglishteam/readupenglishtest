@@ -19,7 +19,6 @@
     body, button, input, textarea, select, .font-mono { font-family: 'Montserrat', sans-serif !important; }
     html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
     body { font-family: 'Montserrat', sans-serif; }
-    body { font-family: 'Montserrat', sans-serif; }
 
   /* 1. Hiệu ứng hiển thị khi cuộn trang */
   .reveal {
@@ -206,6 +205,105 @@
         <button class="ru-dot" aria-label="Ảnh 4"></button>
     </div>
   </div>
+
+  <style>
+    /* ===== BÀI ĐĂNG TỰ ĐỘNG LƯỚT (nền trong suốt) ===== */
+    .ru-posts{display:grid}
+    .ru-post{grid-area:1/1;display:flex;align-items:center;gap:18px;background:transparent;color:inherit;text-decoration:none;opacity:0;transform:translateX(36px);transition:opacity .6s ease,transform .6s ease;pointer-events:none}
+    .ru-post.active{opacity:1;transform:none;pointer-events:auto}
+    .ru-post.leave{transform:translateX(-36px)}
+    .ru-post-thumb{flex:0 0 150px;width:150px;height:150px;border-radius:20px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.18);background:rgba(207,23,23,.08);display:flex;align-items:center;justify-content:center;font-size:42px}
+    .ru-post-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .ru-post-body{min-width:0;flex:1;text-align:left}
+    .ru-post-meta{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+    .ru-post-badge{font-weight:700;font-size:13px;color:#cf1717;background:rgba(207,23,23,.1);padding:4px 12px;border-radius:8px;text-transform:uppercase}
+    .ru-post-date{display:inline-flex;align-items:center;gap:5px;font-size:14px;color:#9ca3af}
+    .ru-post-title{margin:0;font-weight:700;font-size:24px;line-height:1.3;color:#111827}
+    .dark .ru-post-title{color:#fff}
+    .ru-post-ex{margin-top:6px;font-size:16px;line-height:1.5;color:#6b7280;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+    .dark .ru-post-ex{color:#a1a1aa}
+    .ru-post-more{color:#cf1717;font-weight:700;white-space:nowrap}
+    .ru-posts-wrap{position:relative}
+    .ru-post-arrow{display:none;position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:40px;height:40px;border-radius:9999px;background:rgba(255,255,255,.9);color:#333;font-size:22px;line-height:1;border:0;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);transition:.2s;align-items:center;justify-content:center}
+    .ru-post-arrow:hover{background:#cf1717;color:#fff}
+    .ru-post-prev{left:0}.ru-post-next{right:0}
+    @media (min-width:768px) and (hover:hover){.ru-posts-wrap{padding:0 56px}.ru-post-arrow{display:flex}}
+    .ru-post-dots{display:flex;justify-content:center;gap:8px;margin-top:14px}
+    .ru-post-dot{width:10px;height:10px;border-radius:9999px;background:#d1d5db;border:0;padding:0;cursor:pointer;transition:all .3s}
+    .dark .ru-post-dot{background:#52525b}
+    .ru-post-dot.active{width:34px;background:#cf1717}
+    @media (max-width:640px){.ru-post{gap:12px}.ru-post-thumb{flex-basis:84px;width:84px;height:84px;border-radius:14px;font-size:26px}.ru-post-title{font-size:16px}.ru-post-ex{font-size:13px;margin-top:4px}.ru-post-badge{font-size:11px;padding:3px 9px}.ru-post-date{font-size:12px}}
+  </style>
+  <!-- ================= BÀI ĐĂNG MỚI (1 bài/lần, tự động lướt) ================= -->
+  <div class="max-w-6xl mx-auto px-4 pt-6" id="ruPostsWrap" style="display:none">
+    <div class="ru-posts-wrap">
+      <button class="ru-post-arrow ru-post-prev" id="ruPostPrev" aria-label="Bài trước">&#8249;</button>
+      <div class="ru-posts" id="ruPosts"></div>
+      <button class="ru-post-arrow ru-post-next" id="ruPostNext" aria-label="Bài sau">&#8250;</button>
+    </div>
+    <div class="ru-post-dots" id="ruPostDots"></div>
+  </div>
+  <script>
+  (function(){
+    var URL_='https://klovtvjfvfenhkvifujy.supabase.co/rest/v1/posts?select=title,token,thumbnail_url,excerpt,created_at&is_published=eq.true&order=created_at.desc&limit=5';
+    var KEY_='sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-';
+    var wrap=document.getElementById('ruPostsWrap'), box=document.getElementById('ruPosts');
+    if(!wrap||!box) return;
+    fetch(URL_,{headers:{apikey:KEY_}}).then(function(r){return r.ok?r.json():[];}).then(function(rows){
+      if(!rows||!rows.length) return;
+      var max=window.innerWidth<640?70:140, items=[];
+      rows.forEach(function(p){
+        var a=document.createElement('a'); a.className='ru-post'; a.href='post.html?token='+encodeURIComponent(p.token);
+        var th=document.createElement('div'); th.className='ru-post-thumb';
+        if(p.thumbnail_url){var im=document.createElement('img'); im.src=p.thumbnail_url; im.alt=p.title||''; im.loading='lazy'; im.draggable=false; th.appendChild(im);} else {th.textContent='\uD83D\uDCF0';}
+        var b=document.createElement('div'); b.className='ru-post-body';
+        var m=document.createElement('div'); m.className='ru-post-meta';
+        var bd=document.createElement('span'); bd.className='ru-post-badge'; bd.textContent='Bài học';
+        var dt=document.createElement('span'); dt.className='ru-post-date';
+        dt.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>';
+        dt.appendChild(document.createTextNode(new Date(p.created_at).toLocaleDateString('vi-VN')));
+        m.appendChild(bd); m.appendChild(dt);
+        var t=document.createElement('h3'); t.className='ru-post-title'; t.textContent=p.title||'';
+        var ex=document.createElement('p'); ex.className='ru-post-ex';
+        var txt=(p.excerpt||'').replace(/\s+/g,' ').trim(); if(txt.length>max) txt=txt.slice(0,max).trim();
+        ex.appendChild(document.createTextNode(txt?txt+' ':''));
+        var more=document.createElement('span'); more.className='ru-post-more'; more.textContent='đọc thêm \u2192'; ex.appendChild(more);
+        b.appendChild(m); b.appendChild(t); b.appendChild(ex);
+        a.appendChild(th); a.appendChild(b); box.appendChild(a); items.push(a);
+      });
+      wrap.style.display=''; items[0].classList.add('active');
+      if(items.length<2) return;
+      var dotsBox=document.getElementById('ruPostDots'), dots=[], cur=0, paused=false, timer=null, DELAY=4500;
+      items.forEach(function(_,i){
+        var d=document.createElement('button'); d.className='ru-post-dot'+(i===0?' active':''); d.setAttribute('aria-label','Bài '+(i+1));
+        d.addEventListener('click',function(){go(i);start();}); dotsBox.appendChild(d); dots.push(d);
+      });
+      function go(n){
+        n=(n+items.length)%items.length; if(n===cur) return;
+        var old=items[cur], nw=items[n];
+        old.classList.remove('active'); old.classList.add('leave');
+        nw.classList.remove('leave'); nw.classList.add('active');
+        dots[cur].classList.remove('active'); dots[n].classList.add('active');
+        cur=n; setTimeout(function(){old.classList.remove('leave');},700);
+      }
+      function start(){ stop(); timer=setInterval(function(){ if(!paused&&!document.hidden) go(cur+1); },DELAY); }
+      function stop(){ if(timer){clearInterval(timer);timer=null;} }
+      box.addEventListener('mouseenter',function(){paused=true;});
+      box.addEventListener('mouseleave',function(){paused=false;});
+      box.addEventListener('touchstart',function(){paused=true;},{passive:true});
+      box.addEventListener('touchend',function(){setTimeout(function(){paused=false;},2500);},{passive:true});
+      document.getElementById('ruPostPrev').addEventListener('click',function(){go(cur-1);start();});
+      document.getElementById('ruPostNext').addEventListener('click',function(){go(cur+1);start();});
+      var sx=0, sy=0;
+      box.addEventListener('touchstart',function(e){sx=e.touches[0].clientX; sy=e.touches[0].clientY;},{passive:true});
+      box.addEventListener('touchend',function(e){
+        var dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+        if(Math.abs(dx)>40 && Math.abs(dx)>Math.abs(dy)){ go(dx<0?cur+1:cur-1); start(); }
+      },{passive:true});
+      start();
+    }).catch(function(){});
+  })();
+  </script>
 
   <main class="max-w-6xl mx-auto px-4 pt-12 pb-20 space-y-24">
     
