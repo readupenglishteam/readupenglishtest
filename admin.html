@@ -403,7 +403,7 @@
               <button type="button" onmousedown="event.preventDefault()" onclick="qbCmd('underline')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 underline text-xs">U</button>
               <label class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 flex items-center justify-center cursor-pointer relative" title="Màu chữ">
                 <span class="pointer-events-none font-bold text-xs">A</span>
-                <input type="color" value="#cf1717" onmousedown="event.stopPropagation()" onchange="qbCmd('foreColor', this.value)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                <input type="color" value="#000000" onmousedown="event.stopPropagation()" onchange="qbCmd('foreColor', this.value)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
               </label>
               <select onchange="qbCmd('fontSize', this.value); this.selectedIndex=0" class="h-7 rounded border-0 bg-transparent hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs" title="Cỡ chữ">
                 <option value="">Cỡ chữ</option><option value="2">Nhỏ</option><option value="3">Vừa</option><option value="5">Lớn</option><option value="7">Rất lớn</option>
@@ -1388,7 +1388,7 @@ function initPostEditor() {
   pel('postToolbar').innerHTML =
     `<select onchange="pcmd('formatBlock',this.value);this.value=''" class="p-1 rounded border dark:bg-zinc-700 dark:border-zinc-600"><option value="">Kiểu chữ</option><option value="<p>">Đoạn văn</option><option value="<h2>">Tiêu đề lớn</option><option value="<h3>">Tiêu đề nhỏ</option><option value="<blockquote>">Trích dẫn</option></select>` +
     B.map(b => `<button type="button" title="${b[2]}" onmousedown="event.preventDefault()" onclick="pcmd('${b[0]}')" class="${btn}">${b[1]}</button>`).join('') +
-    `<input type="color" value="#cf1717" title="Màu chữ" onchange="pcmd('foreColor',this.value)" class="w-7 h-7 p-0 border rounded cursor-pointer">` +
+    `<input type="color" value="#000000" title="Màu chữ" onchange="pcmd('foreColor',this.value)" class="w-7 h-7 p-0 border rounded cursor-pointer">` +
     `<button type="button" onmousedown="event.preventDefault()" onclick="postLink()" class="${btn}"><i class="bi bi-link-45deg"></i> Link</button>` +
     `<label class="${btn} cursor-pointer"><i class="bi bi-camera-fill"></i> Ảnh<input type="file" accept="image/*" class="hidden" onchange="postImage(this)"></label>` +
     `<button type="button" onmousedown="event.preventDefault()" onclick="postTable()" class="${btn}"><i class="bi bi-table"></i> Bảng</button>` +
@@ -1552,7 +1552,7 @@ function initPassageEditor() {
   document.getElementById('passageToolbar').innerHTML =
     `<select onchange="pasCmd('formatBlock',this.value);this.value=''" class="p-1 text-xs rounded border dark:bg-zinc-700 dark:border-zinc-600"><option value="">Kiểu chữ</option><option value="<p>">Đoạn văn</option><option value="<h2>">Tiêu đề lớn</option><option value="<h3>">Tiêu đề nhỏ</option><option value="<blockquote>">Trích dẫn</option></select>` +
     B.map(b => `<button type="button" title="${b[2]}" onmousedown="event.preventDefault()" onclick="pasCmd('${b[0]}')" class="${btn}">${b[1]}</button>`).join('') +
-    `<input type="color" value="#cf1717" title="Màu chữ" onchange="pasCmd('foreColor',this.value)" class="w-7 h-7 p-0 border rounded cursor-pointer">` +
+    `<input type="color" value="#000000" title="Màu chữ" onchange="pasCmd('foreColor',this.value)" class="w-7 h-7 p-0 border rounded cursor-pointer">` +
     `<button type="button" onmousedown="event.preventDefault()" onclick="passageLink()" class="${btn}"><i class="bi bi-link-45deg"></i> Link</button>` +
     `<label class="${btn} cursor-pointer"><i class="bi bi-camera-fill"></i> Ảnh<input type="file" accept="image/*" class="hidden" onchange="passageImage(this)"></label>` +
     `<button type="button" onmousedown="event.preventDefault()" onclick="passageTable()" class="${btn}"><i class="bi bi-table"></i> Bảng</button>` +
