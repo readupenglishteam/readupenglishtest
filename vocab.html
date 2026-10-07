@@ -82,6 +82,7 @@
             <a href="post.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition"><span><i class="bi bi-book"></i></span><span>Bài Học (Post)</span></a>
             <a href="assignment.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition"><span><i class="bi bi-star-fill"></i></span><span>Assignment (VIP)</span></a>
             <div class="border-t border-gray-100 dark:border-zinc-800 my-1"></div>
+            <button onclick="openLearn()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition"><span><i class="bi bi-mortarboard-fill"></i></span><span>Học Từ Mới</span></button>
             <a href="#section-on-tap" onclick="scrollToSection(event,'section-on-tap')" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition"><span><i class="bi bi-lightning-charge-fill"></i></span><span>Ôn Tập Hôm Nay</span></a>
             <a href="#section-them-tu" onclick="scrollToSection(event,'section-them-tu')" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition"><span><i class="bi bi-plus-circle-fill"></i></span><span>Thêm Từ Vựng</span></a>
             <a href="#section-danh-sach" onclick="scrollToSection(event,'section-danh-sach')" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition"><span><i class="bi bi-card-list"></i></span><span>Kho Từ Vựng & Tìm Kiếm</span></a>
@@ -252,6 +253,17 @@
         <button onclick="closeQuiz()" class="w-8 h-8 rounded-full hover:bg-white/20 transition" title="Đóng"><i class="bi bi-x-lg"></i></button>
       </div>
       <div id="quizBody" class="p-5 sm:p-6"></div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL HỌC TỪ MỚI ================= -->
+  <div id="learnOverlay" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-xl bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-zinc-800 overflow-hidden max-h-[95vh] overflow-y-auto">
+      <div class="flex items-center justify-between px-5 py-3 bg-[#cf1717] text-white">
+        <p class="font-black"><i class="bi bi-mortarboard-fill"></i> Học từ mới</p>
+        <button onclick="closeLearn()" class="w-8 h-8 rounded-full hover:bg-white/20 transition" title="Đóng"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div id="learnBody" class="p-5 sm:p-6"></div>
     </div>
   </div>
 
@@ -655,12 +667,13 @@ Danh sách: ${JSON.stringify(list)}`;
         <p class="text-sm opacity-90 mt-1">Chỉ cần gõ từ, AI sẽ gợi ý IPA, nghĩa, ví dụ. Mỗi từ sau đó được xếp lịch ôn thông minh.</p>`;
       return;
     }
-    const done = dailyDone(), due = dueList().length, nw = Math.min(words.filter(w => !w.last_reviewed).length, Math.max(0, NEW_LIMIT - newToday()));
+    const done = dailyDone(), due = dueList().length, nw = waitingNew();
     c.innerHTML = `<p class="text-xs font-extrabold uppercase opacity-80">Nhiệm vụ hôm nay</p>
-      <h3 class="text-xl sm:text-2xl font-black mt-1">${done ? '<i class="bi bi-check-circle-fill"></i> Bạn đã hoàn thành ôn tập hôm nay!' : due + nw ? `<i class="bi bi-lightning-charge-fill"></i> ${due} từ đến hạn · ${nw} từ mới` : '<i class="bi bi-emoji-sunglasses"></i> Hôm nay chưa có từ đến hạn!'}</h3>
+      <h3 class="text-xl sm:text-2xl font-black mt-1">${done ? '<i class="bi bi-check-circle-fill"></i> Bạn đã hoàn thành ôn tập hôm nay!' : due + nw ? `<i class="bi bi-lightning-charge-fill"></i> ${due} từ đến hạn · ${nw} từ mới chờ học` : '<i class="bi bi-emoji-sunglasses"></i> Hôm nay chưa có từ đến hạn!'}</h3>
       <p class="text-sm opacity-90 mt-1">Hệ thống chỉ cho ôn đúng lúc bạn sắp quên (lặp lại ngắt quãng). Mỗi ngày tối đa ${NEW_LIMIT} từ mới để nhớ chắc, không bị nhồi.</p>
       <div class="flex flex-wrap gap-2 mt-4">
-        <button onclick="openQuiz()" class="px-5 py-2.5 rounded-xl text-sm font-black bg-white text-[#cf1717] hover:scale-[1.03] shadow-md transition"><i class="bi bi-play-fill"></i> ${done ? 'Ôn thêm' : 'Bắt đầu ôn'}</button>
+        ${nw ? `<button onclick="openLearn()" class="px-5 py-2.5 rounded-xl text-sm font-black bg-white text-[#cf1717] hover:scale-[1.03] shadow-md transition"><i class="bi bi-mortarboard-fill"></i> Học ${nw} từ mới</button>` : ''}
+        <button onclick="openQuiz()" class="px-5 py-2.5 rounded-xl text-sm font-black ${nw ? 'bg-white/20 text-white hover:bg-white/30' : 'bg-white text-[#cf1717] hover:scale-[1.03] shadow-md'} transition"><i class="bi bi-play-fill"></i> ${done ? 'Ôn thêm' : 'Bắt đầu ôn'}</button>
       </div>`;
   }
     function renderStats() {
@@ -681,7 +694,7 @@ Danh sách: ${JSON.stringify(list)}`;
   const isDue = w => w.last_reviewed && new Date(w.due_at || 0).getTime() <= Date.now();
   const dueList = () => words.filter(isDue);
   const newList = () => shuffle(words.filter(w => !w.last_reviewed)).slice(0, Math.max(0, NEW_LIMIT - newToday()));
-  const sessionPool = () => [...dueList(), ...newList()];
+  const sessionPool = () => dueList();   // ôn tập chỉ gồm từ ĐÃ HỌC và đến hạn; từ mới đi qua chế độ Học
   const dueText = w => { if (!w.last_reviewed) return 'Chưa học'; const d = Math.ceil((new Date(w.due_at).getTime() - Date.now()) / 864e5); return d <= 0 ? 'Ôn hôm nay' : `Ôn sau ${d} ngày`; };
   function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
   const meaningOptions = m => String(m || '').replace(/\([^)]*\)/g, ' ').split(/[,;\/]/).map(s => s.trim()).filter(Boolean);
@@ -698,19 +711,19 @@ Danh sách: ${JSON.stringify(list)}`;
   function setCfg(g, v) { quizCfg[g] = g === 'hint' ? v === 'true' : Number(v); renderQuizStart(false); }
 
   function renderQuizStart(auto) {
-    const due = dueList().length, nw = Math.min(words.filter(w => !w.last_reviewed).length, Math.max(0, NEW_LIMIT - newToday()));
+    const due = dueList().length, nw = waitingNew();
     const opt = (g, v, label) => `<button onclick="setCfg('${g}','${v}')" class="px-3 py-2 rounded-xl text-xs font-bold transition ${String(quizCfg[g]) === String(v) ? 'bg-[#cf1717] text-white shadow' : 'bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700'}">${label}</button>`;
     $('quizBody').innerHTML = `
       ${auto ? `<div class="mb-4 rounded-xl bg-red-50 dark:bg-red-950/30 text-[#cf1717] text-xs font-bold p-3"><i class="bi bi-calendar-check"></i> Hôm nay có từ đến hạn ôn. Vài phút thôi, nhớ lâu hơn rất nhiều!</div>` : ''}
       <div class="grid grid-cols-2 gap-3 mb-4 text-center">
         <div class="rounded-2xl bg-red-50 dark:bg-zinc-800 p-3"><p class="text-2xl font-black text-[#cf1717]">${due}</p><p class="text-[11px] font-bold text-gray-500">từ đến hạn ôn</p></div>
-        <div class="rounded-2xl bg-amber-50 dark:bg-zinc-800 p-3"><p class="text-2xl font-black text-amber-500">${nw}</p><p class="text-[11px] font-bold text-gray-500">từ mới hôm nay (tối đa ${NEW_LIMIT})</p></div>
+        <div class="rounded-2xl bg-amber-50 dark:bg-zinc-800 p-3"><p class="text-2xl font-black text-amber-500">${nw}</p><p class="text-[11px] font-bold text-gray-500">từ mới chờ học (tối đa ${NEW_LIMIT}/ngày)</p></div>
       </div>
       <div class="space-y-4">
         <div><p class="text-[11px] font-extrabold uppercase text-gray-400 mb-2">Số câu tối đa</p><div class="flex flex-wrap gap-2">${[10, 15, 25, 50].map(n => opt('size', n, n)).join('')}</div></div>
         <div><p class="text-[11px] font-extrabold uppercase text-gray-400 mb-2">Gợi ý chữ cái (_ _ h _ _ / ran___)</p><div class="flex gap-2">${opt('hint', 'true', 'Hiện sẵn')}${opt('hint', 'false', 'Chỉ khi bấm')}</div></div>
       </div>
-      <button onclick="startQuiz(false)" ${due + nw ? '' : 'disabled'} class="w-full mt-6 py-3 rounded-2xl text-sm font-black bg-[#cf1717] text-white hover:bg-red-700 shadow-lg transition disabled:opacity-40"><i class="bi bi-play-fill"></i> Bắt đầu ôn hôm nay</button>
+      <button onclick="startQuiz(false)" ${due ? '' : 'disabled'} class="w-full mt-6 py-3 rounded-2xl text-sm font-black bg-[#cf1717] text-white hover:bg-red-700 shadow-lg transition disabled:opacity-40"><i class="bi bi-play-fill"></i> Bắt đầu ôn hôm nay</button>
       <button onclick="startQuiz(true)" class="w-full mt-2 py-2.5 rounded-2xl text-xs font-bold bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 transition"><i class="bi bi-shuffle"></i> Ôn tự do (trộn tất cả từ, không đổi lịch ôn)</button>
       ${auto ? `<button onclick="closeQuiz()" class="w-full mt-1 py-2 text-xs font-bold text-gray-400 hover:text-gray-600">Để sau</button>` : ''}`;
   }
@@ -728,8 +741,8 @@ Danh sách: ${JSON.stringify(list)}`;
     const letters = [...answer].map((c, i) => /\s|[-'’.\/]/.test(c) ? -1 : i).filter(i => i >= 0);
     return { w, type, cl, retry: !!retry, hintOn: quizCfg.hint && type !== 'sentence', level: 0, style: Math.random() < 0.5 ? 'prefix' : 'scatter', order: shuffle([...letters]), answer, letters: letters.length };
   }
-  function startQuiz(free) {
-    const pool = free ? shuffle([...words]) : shuffle(sessionPool());
+  function startQuiz(free, custom) {
+    const pool = custom ? shuffle([...custom]) : free ? shuffle([...words]) : shuffle(sessionPool());
     const list = pool.slice(0, quizCfg.size);
     if (!list.length) return toast('Hôm nay chưa có từ cần ôn 🎉', 'warn');
     Q = { free, items: list.map(w => makeItem(w)), i: 0, correct: 0, total: list.length, wrong: [], answered: false };
@@ -866,6 +879,185 @@ Danh sách: ${JSON.stringify(list)}`;
         <button onclick="closeQuiz()" class="px-5 py-3 rounded-2xl text-sm font-bold bg-gray-100 dark:bg-zinc-800">Đóng</button>
       </div>`;
   }
+
+  // ============================================================
+  // HỌC TỪ MỚI: thẻ ghi nhớ → trắc nghiệm → ghép cặp (xong mới vào lịch ôn)
+  // ============================================================
+  let L = null;
+  const learnModes = { flash: true, choice: true, match: true };
+  const GROUP_SIZE = 5;
+  const LEARN_LABEL = { flash: 'Thẻ ghi nhớ', choice: 'Trắc nghiệm', match: 'Ghép cặp' };
+  const learnPool = () => words.filter(w => !w.last_reviewed && w.meaning);
+  const learnRemain = () => Math.max(0, NEW_LIMIT - newToday());
+  const waitingNew = () => Math.min(learnPool().length, learnRemain());
+  const speakW = id => speak(words.find(x => x.id === id)?.word);
+
+  function openLearn() { $('learnOverlay').classList.remove('hidden'); renderLearnStart(); }
+  function closeLearn() { $('learnOverlay').classList.add('hidden'); window.speechSynthesis?.cancel(); L = null; renderAll(); }
+  function toggleLearnMode(k) {
+    if (learnModes[k] && Object.values(learnModes).filter(Boolean).length === 1) return toast('Chọn ít nhất 1 cách học', 'warn');
+    learnModes[k] = !learnModes[k]; renderLearnStart();
+  }
+  function learnHead(label, i, n) {
+    return `<div class="flex items-center justify-between text-xs font-bold text-gray-400 mb-2"><span>Nhóm ${L.g + 1}/${L.groups.length} · Bước ${L.p + 1}/${L.phases.length}: ${label}</span><span>${Math.min(i + 1, n)}/${n}</span></div>
+      <div class="h-2 rounded-full bg-gray-100 dark:bg-zinc-800 overflow-hidden"><div class="h-full bg-[#cf1717] transition-all" style="width:${Math.round(i / n * 100)}%"></div></div>`;
+  }
+
+  function renderLearnStart() {
+    const n = waitingNew(), pool = learnPool().length;
+    const M = [['flash', 'bi-card-text', 'Thẻ ghi nhớ', 'Lật thẻ xem nghĩa, collocation, ví dụ và nghe phát âm'],
+               ['choice', 'bi-ui-checks', 'Trắc nghiệm', 'Chọn nghĩa đúng cho từ, hoặc chọn từ đúng cho nghĩa'],
+               ['match', 'bi-diagram-2', 'Ghép cặp', 'Nối từng từ với nghĩa của nó']];
+    $('learnBody').innerHTML = `
+      <div class="rounded-2xl bg-amber-50 dark:bg-zinc-800 p-4 text-center mb-4">
+        <p class="text-3xl font-black text-amber-500">${n}</p>
+        <p class="text-[11px] font-bold text-gray-500">từ mới học hôm nay (tối đa ${NEW_LIMIT}/ngày${pool > n ? `, còn ${pool - n} từ chờ ngày sau` : ''})</p>
+      </div>
+      <p class="text-[11px] font-extrabold uppercase text-gray-400 mb-2">Cách học (mỗi nhóm ${GROUP_SIZE} từ, học lần lượt từng bước)</p>
+      <div class="space-y-2">${M.map(([k, ic, t, d]) => `
+        <button onclick="toggleLearnMode('${k}')" class="w-full flex items-center gap-3 text-left px-4 py-3 rounded-2xl border-2 transition ${learnModes[k] ? 'border-[#cf1717] bg-red-50 dark:bg-zinc-800' : 'border-gray-200 dark:border-zinc-700 opacity-60'}">
+          <i class="bi ${ic} text-2xl text-[#cf1717]"></i>
+          <span class="flex-1"><b class="text-sm">${t}</b><br><span class="text-xs text-gray-500">${d}</span></span>
+          <i class="bi ${learnModes[k] ? 'bi-check-circle-fill text-[#cf1717]' : 'bi-circle text-gray-400'}"></i>
+        </button>`).join('')}</div>
+      <button onclick="startLearn()" ${n ? '' : 'disabled'} class="w-full mt-6 py-3 rounded-2xl text-sm font-black bg-[#cf1717] text-white hover:bg-red-700 shadow-lg transition disabled:opacity-40"><i class="bi bi-play-fill"></i> Bắt đầu học</button>
+      <p class="text-[11px] text-gray-400 text-center mt-3">${n ? 'Học xong, các từ sẽ vào lịch ôn tập (ôn lần đầu sau 1 ngày).' : pool ? 'Hôm nay bạn đã học đủ số từ mới – quay lại ngày mai nhé!' : 'Chưa có từ mới nào có nghĩa để học. Hãy thêm từ ở bảng nhập phía trên.'}</p>`;
+  }
+
+  function startLearn() {
+    const list = shuffle(learnPool()).slice(0, learnRemain());
+    if (!list.length) return toast('Hôm nay chưa có từ mới để học', 'warn');
+    const groups = []; for (let i = 0; i < list.length; i += GROUP_SIZE) groups.push(list.slice(i, i + GROUP_SIZE));
+    L = { groups, g: 0, learned: 0, learnedWords: [] };
+    startGroup();
+  }
+  function startGroup() {
+    const n = L.groups[L.g].length;
+    L.phases = ['flash', 'choice', 'match'].filter(m => learnModes[m] && (m !== 'match' || n >= 3));
+    if (!L.phases.length) L.phases = ['flash'];
+    L.p = 0; runPhase();
+  }
+  function runPhase() {
+    const ph = L.phases[L.p]; if (!ph) return finishGroup();
+    if (ph === 'flash') { L.f = { i: 0, flipped: false }; renderFlash(); speakW(L.groups[L.g][0].id); }
+    if (ph === 'choice') { L.c = { items: shuffle(L.groups[L.g].map(w => ({ w, dir: Math.random() < 0.5 ? 'w2m' : 'm2w' }))), i: 0, answered: false }; renderChoice(); }
+    if (ph === 'match') { const ws = L.groups[L.g]; L.m = { left: shuffle([...ws]), right: shuffle([...ws]), selL: null, selR: null, done: new Set(), bad: false, lock: false }; renderMatch(); }
+  }
+  function nextPhase() { L.p++; runPhase(); }
+
+  // ---- Dạng 1: thẻ ghi nhớ ----
+  function renderFlash() {
+    const ws = L.groups[L.g], w = ws[L.f.i], f = L.f.flipped;
+    const front = `<p class="text-4xl font-black text-[#cf1717]">${esc(w.word)}</p><p class="text-sm text-gray-500 mt-2">${esc(w.ipa || '')}</p><p class="text-[11px] text-gray-400 mt-6"><i class="bi bi-hand-index"></i> Chạm để lật thẻ</p>`;
+    const back = `<p class="text-xs font-bold text-gray-400">${esc(w.word)} ${esc(w.ipa || '')}</p><p class="text-2xl font-black text-[#cf1717] mt-1">${esc(w.meaning)}</p>
+      ${w.collocation ? `<p class="text-xs mt-3"><b>Collocation:</b> ${esc(w.collocation)}</p>` : ''}
+      ${w.example ? `<p class="text-xs italic mt-2 text-gray-600 dark:text-gray-300">“${esc(w.example)}”</p>` : ''}
+      ${w.note ? `<p class="text-xs mt-2 text-amber-600"><i class="bi bi-lightbulb"></i> ${esc(w.note)}</p>` : ''}`;
+    $('learnBody').innerHTML = learnHead(LEARN_LABEL.flash, L.f.i, ws.length) + `
+      <div onclick="flipCard()" class="cursor-pointer select-none mt-4 min-h-[240px] rounded-3xl p-6 text-center flex flex-col items-center justify-center border border-gray-200 dark:border-zinc-700 transition ${f ? 'bg-amber-50 dark:bg-zinc-800' : 'bg-red-50 dark:bg-zinc-800'}">${f ? back : front}</div>
+      <div class="flex gap-2 mt-4">
+        <button onclick="speakW('${w.id}')" class="px-4 py-3 rounded-2xl text-xs font-bold bg-gray-100 dark:bg-zinc-800" title="Nghe phát âm"><i class="bi bi-volume-up-fill"></i></button>
+        <button onclick="nextFlash()" class="flex-1 py-3 rounded-2xl text-sm font-black bg-[#cf1717] text-white hover:bg-red-700 shadow-md transition">${f ? 'Đã nhớ – từ tiếp theo' : 'Lật thẻ'} <i class="bi bi-arrow-right"></i></button>
+      </div>`;
+  }
+  function flipCard() { L.f.flipped = !L.f.flipped; renderFlash(); }
+  function nextFlash() {
+    if (!L.f.flipped) return flipCard();
+    if (++L.f.i >= L.groups[L.g].length) return nextPhase();
+    L.f.flipped = false; renderFlash(); speakW(L.groups[L.g][L.f.i].id);
+  }
+
+  // ---- Dạng 2: trắc nghiệm (từ → nghĩa, nghĩa → từ). Sai thì hỏi lại ở cuối ----
+  function distractors(w, key) {
+    const seen = new Set([norm(w[key])]), out = [];
+    for (const x of shuffle(words.filter(x => x.id !== w.id && x[key]))) {
+      const k = norm(x[key]); if (seen.has(k)) continue;
+      seen.add(k); out.push(x[key]); if (out.length === 3) break;
+    }
+    return out;
+  }
+  function renderChoice() {
+    const C = L.c; if (C.i >= C.items.length) return nextPhase();
+    const it = C.items[C.i], w = it.w, key = it.dir === 'w2m' ? 'meaning' : 'word'; C.answered = false;
+    if (!it.opts) it.opts = shuffle([w[key], ...distractors(w, key)]);
+    if (it.opts.length < 2) { C.i++; return renderChoice(); }   // kho quá ít từ để tạo đáp án nhiễu
+    const prompt = it.dir === 'w2m'
+      ? `<p class="text-3xl font-black text-[#cf1717]">${esc(w.word)}</p><p class="text-sm text-gray-500 mt-1">${esc(w.ipa || '')}</p>`
+      : `<p class="text-2xl font-black text-[#cf1717]">${esc(w.meaning)}</p>`;
+    $('learnBody').innerHTML = learnHead(LEARN_LABEL.choice, C.i, C.items.length) + `
+      <p class="text-[11px] font-extrabold uppercase text-gray-400 mt-4">${it.dir === 'w2m' ? 'Chọn nghĩa đúng của từ' : 'Chọn từ tiếng Anh đúng với nghĩa'}${it.retry ? ' · làm lại' : ''}</p>
+      <div class="mt-2 p-4 rounded-2xl bg-red-50 dark:bg-zinc-800 text-center">${prompt}</div>
+      <div class="grid gap-2 mt-4">${it.opts.map((o, k) => `<button onclick="pickChoice(${k})" class="choice-opt px-4 py-3 rounded-2xl text-sm font-bold text-left border-2 border-gray-200 dark:border-zinc-700 hover:border-[#cf1717] transition">${esc(o)}</button>`).join('')}</div>
+      <div id="learnResult" class="mt-4"></div>`;
+    if (it.dir === 'w2m') speak(w.word);
+  }
+  function pickChoice(k) {
+    const C = L.c; if (C.answered) return; C.answered = true;
+    const it = C.items[C.i], w = it.w, key = it.dir === 'w2m' ? 'meaning' : 'word', ok = it.opts[k] === w[key];
+    document.querySelectorAll('.choice-opt').forEach((b, j) => {
+      b.disabled = true;
+      if (it.opts[j] === w[key]) b.classList.add('border-emerald-500', 'bg-emerald-50', 'dark:bg-emerald-950/30');
+      else if (j === k) b.classList.add('border-red-500', 'bg-red-50', 'dark:bg-red-950/30');
+    });
+    if (!ok && !it.retry) C.items.push({ w, dir: it.dir, retry: true });
+    $('learnResult').innerHTML = `<p class="font-black ${ok ? 'text-emerald-600' : 'text-[#cf1717]'}"><i class="bi ${ok ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}"></i> ${ok ? 'Chính xác!' : 'Chưa đúng – xem lại nhé'}</p>
+      <p class="text-xs text-gray-500 mt-1">${esc(w.word)} ${esc(w.ipa || '')} — ${esc(w.meaning)}</p>
+      ${w.example ? `<p class="text-xs italic mt-1 text-gray-600 dark:text-gray-300">“${esc(w.example)}”</p>` : ''}
+      <button onclick="nextChoice()" class="w-full mt-3 py-3 rounded-2xl text-sm font-black bg-[#cf1717] text-white hover:bg-red-700 shadow-md transition">Tiếp tục <i class="bi bi-arrow-right"></i></button>`;
+    if (it.dir === 'm2w') speak(w.word);
+  }
+  function nextChoice() { L.c.i++; renderChoice(); }
+
+  // ---- Dạng 3: ghép cặp từ – nghĩa ----
+  function renderMatch() {
+    const m = L.m, ws = L.groups[L.g];
+    const cell = (w, side) => {
+      const done = m.done.has(w.id), sel = m['sel' + side] === w.id;
+      const cls = done ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 text-emerald-700 opacity-60'
+        : sel ? (m.bad ? 'border-red-500 bg-red-50 dark:bg-red-950/30 shake' : 'border-[#cf1717] bg-red-50 dark:bg-zinc-800')
+        : 'border-gray-200 dark:border-zinc-700 hover:border-[#cf1717]';
+      return `<button ${done ? 'disabled' : ''} onclick="pickMatch('${side}','${w.id}')" class="w-full px-3 py-3 rounded-2xl text-sm font-bold border-2 transition ${cls}">${esc(side === 'L' ? w.word : w.meaning)}</button>`;
+    };
+    $('learnBody').innerHTML = learnHead(LEARN_LABEL.match, m.done.size, ws.length) + `
+      <p class="text-[11px] font-extrabold uppercase text-gray-400 mt-4">Chọn một từ, rồi chọn nghĩa tương ứng</p>
+      <div class="grid grid-cols-2 gap-3 mt-3"><div class="space-y-2">${m.left.map(w => cell(w, 'L')).join('')}</div><div class="space-y-2">${m.right.map(w => cell(w, 'R')).join('')}</div></div>
+      ${m.done.size === ws.length ? '<p class="text-center font-black text-emerald-600 mt-4"><i class="bi bi-check-circle-fill"></i> Ghép đúng hết rồi!</p>' : ''}`;
+  }
+  function pickMatch(side, id) {
+    const m = L.m; if (m.lock) return;
+    m['sel' + side] = id;
+    if (m.selL && m.selR) {
+      if (m.selL === m.selR) { m.done.add(id); m.selL = m.selR = null; speakW(id); }
+      else {
+        m.lock = m.bad = true; renderMatch();
+        return setTimeout(() => { if (!L || L.m !== m) return; m.selL = m.selR = null; m.lock = m.bad = false; renderMatch(); }, 600);
+      }
+    }
+    renderMatch();
+    if (m.done.size === L.groups[L.g].length) setTimeout(() => { if (L && L.m === m) nextPhase(); }, 800);
+  }
+
+  // ---- Xong 1 nhóm: đưa các từ vào lịch ôn (ôn lần đầu sau 1 ngày) ----
+  function finishGroup() {
+    const ws = L.groups[L.g], iso = new Date().toISOString(), due = new Date(Date.now() + 864e5 - 4 * 36e5).toISOString();
+    ws.forEach(w => Object.assign(w, { last_reviewed: iso, interval_days: 1, reps: 1, ease: w.ease || 2.5, due_at: due }));
+    localStorage.setItem(newKey(), newToday() + ws.length);
+    L.learned += ws.length; L.learnedWords.push(...ws);
+    Promise.all(ws.map(w => sbClient.from('vocab_words').update({ last_reviewed: iso, interval_days: 1, reps: 1, ease: w.ease, due_at: due }).eq('id', w.id).eq('user_id', currentUser.id)))
+      .then(rs => { if (rs.some(r => r.error)) toast('Chưa lưu được tiến độ học – bạn đã chạy file SQL mới chưa?', 'err'); });
+    const last = L.g >= L.groups.length - 1;
+    $('learnBody').innerHTML = `
+      <div class="text-center"><i class="bi bi-trophy-fill text-5xl text-amber-500"></i>
+        <h3 class="text-xl font-black mt-2">${last ? `Hoàn thành! Bạn đã học ${L.learned} từ mới` : `Xong nhóm ${L.g + 1}/${L.groups.length}`}</h3>
+        <p class="text-sm text-gray-500 mt-1">Các từ này đã vào lịch ôn – ngày mai hệ thống sẽ nhắc bạn ôn lại.</p></div>
+      <ul class="mt-4 space-y-1 text-sm rounded-2xl bg-gray-50 dark:bg-zinc-800 p-4">${ws.map(w => `<li><b>${esc(w.word)}</b> <span class="text-gray-400 text-xs">${esc(w.ipa || '')}</span> — ${esc(w.meaning)}</li>`).join('')}</ul>
+      <div class="flex gap-2 mt-6">
+        ${last ? `<button onclick="quickReview()" class="flex-1 py-3 rounded-2xl text-sm font-black bg-[#cf1717] text-white hover:bg-red-700 transition"><i class="bi bi-lightning-charge-fill"></i> Ôn nhanh các từ vừa học</button>`
+               : `<button onclick="L.g++;startGroup()" class="flex-1 py-3 rounded-2xl text-sm font-black bg-[#cf1717] text-white hover:bg-red-700 transition">Học nhóm tiếp theo <i class="bi bi-arrow-right"></i></button>`}
+        <button onclick="closeLearn()" class="px-5 py-3 rounded-2xl text-sm font-bold bg-gray-100 dark:bg-zinc-800">${last ? 'Đóng' : 'Dừng ở đây'}</button>
+      </div>`;
+  }
+  function quickReview() { const ws = L.learnedWords; closeLearn(); openQuiz(); startQuiz(true, ws); }   // ôn tự do, không đổi lịch ôn
 
   // ============================================================
   // HEADER: dropdown, theme, logout (như Dashboard)
