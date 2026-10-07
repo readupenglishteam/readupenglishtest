@@ -31,7 +31,7 @@
   .qc td,.qc th{border:1px solid #d1d5db;padding:6px 8px}.dark .qc td,.dark .qc th{border-color:#52525b}
   .qc ul{list-style:disc;padding-left:1.6em}.qc ol{list-style:decimal;padding-left:1.6em}
   .qc audio{width:100%}.two{column-count:2;column-gap:1.8rem}@media(max-width:640px){.two{column-count:1}}
-  .gap{display:inline-block;width:7.5rem;margin:0 .25rem;padding:.1rem .5rem;border-bottom:2px solid #cf1717;background:rgba(207,23,23,.06);border-radius:6px 6px 0 0;outline:none;text-align:center;font-weight:700}
+  .gap{display:inline-block;box-sizing:border-box;min-width:7.5rem;max-width:100%;min-height:1.7em;vertical-align:bottom;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;cursor:text;-webkit-user-select:text;user-select:text;margin:0 .25rem;padding:.1rem .5rem;border-bottom:2px solid #cf1717;background:rgba(207,23,23,.06);border-radius:6px 6px 0 0;outline:none;text-align:center;font-weight:700}
   .opt{display:flex;gap:.6rem;align-items:flex-start;padding:.6rem .8rem;border:1.5px solid #e5e7eb;border-radius:12px;cursor:pointer;transition:.15s}
   .dark .opt{border-color:#3f3f46}.opt:hover{border-color:#cf1717}.opt.sel{border-color:#cf1717;background:rgba(207,23,23,.08)}
   .opt.ok{border-color:#10b981;background:rgba(16,185,129,.12)}.opt.bad{border-color:#ef4444;background:rgba(239,68,68,.1)}
@@ -256,7 +256,7 @@ function qHtml(q,next,sub){
   else if(q.type==='multi') body=(q.options||[]).map(o=>`<label class="opt" data-q="${q.id}" data-o="${o.id}"><input type="checkbox" class="mt-1 accent-[#cf1717]" onchange="setMulti('${q.id}')"><span class="qc">${o.text}</span></label>`).join('');
   else if(q.type==='essay') body=`<textarea rows="6" class="${inp}" data-essay="${q.id}" oninput="setAns('${q.id}',this.value)" onpaste="return false" placeholder="Nhập câu trả lời..."></textarea>`;
   else if(q.type==='fill') body=''; 
-  const content = q.type==='fill' ? (q.content||'').replace(GAPRE,(m,g)=>`<input type="text" class="gap" data-fq="${q.id}" data-g="${g}" autocomplete="off" spellcheck="false" onpaste="return false" oninput="setGap('${q.id}','${g}',this.value)">`) : (q.content||'');
+  const content = q.type==='fill' ? (q.content||'').replace(GAPRE,(m,g)=>`<span contenteditable="true" role="textbox" class="gap" data-fq="${q.id}" data-g="${g}" spellcheck="false" autocapitalize="off" onpaste="return false" ondrop="return false" onkeydown="if(event.key==='Enter')return false" oninput="setGap('${q.id}','${g}',this.textContent)"></span>`) : (q.content||'');
   return `<div class="${N}${card} p-5"><div class="flex items-center gap-2 mb-2"><span class="text-xs font-extrabold text-[#cf1717]">Question ${no}</span><span class="text-[11px] text-gray-400">(${q.points||0} ${(+q.points||0)===1?'point':'points'})</span></div>
     <div class="qc mb-3">${content}</div><div class="space-y-2">${body}</div></div>`;
 }
@@ -267,7 +267,7 @@ function setGap(q,g,v){ if(typeof X.ans[q]!=='object'||Array.isArray(X.ans[q])) 
 function restoreAnswers(){
   for(const [q,v] of Object.entries(X.ans)){
     document.querySelectorAll(`[data-q="${q}"]`).forEach(l=>{const i=l.querySelector('input'),on=Array.isArray(v)?v.includes(l.dataset.o):v===l.dataset.o;i.checked=on;l.classList.toggle('sel',on);});
-    if(v&&typeof v==='object'&&!Array.isArray(v)) Object.entries(v).forEach(([g,t])=>{const e=document.querySelector(`[data-fq="${q}"][data-g="${g}"]`);if(e)e.value=t;});
+    if(v&&typeof v==='object'&&!Array.isArray(v)) Object.entries(v).forEach(([g,t])=>{const e=document.querySelector(`[data-fq="${q}"][data-g="${g}"]`);if(e)e.textContent=t;});
     const ta=document.querySelector(`[data-essay="${q}"]`); if(ta&&typeof v==='string') ta.value=v;
   }
 }
@@ -340,7 +340,7 @@ async function showResult(id){
 }
 
 /* ---------- CHỐNG SAO CHÉP ---------- */
-const inField=e=>e.target.matches&&e.target.matches('input[type=text],textarea,input[type=password],input[type=email]');
+const inField=e=>{const t=e.target&&e.target.nodeType===1?e.target:e.target&&e.target.parentElement;return !!(t&&t.matches&&t.matches('input[type=text],textarea,input[type=password],input[type=email],.gap'));};
 ['copy','cut','dragstart','selectstart'].forEach(ev=>document.addEventListener(ev,e=>{ if(!inField(e)||ev==='copy'&&X) e.preventDefault(); }));
 document.addEventListener('paste',e=>{ if(X) e.preventDefault(); });
 document.addEventListener('contextmenu',e=>e.preventDefault());
