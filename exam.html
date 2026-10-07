@@ -165,16 +165,14 @@
     border-radius: 6px;
   }
   .pdf-question-title {
-    display: flex;
-    align-items: flex-start;
-    gap: 5px;
+    display: block;
     font-weight: 700;
     margin-bottom: 4px;
     color: #111827;
     line-height: 1.5;
   }
-  .pdf-question-title .qnum { flex-shrink: 0; white-space: nowrap; }
-  .pdf-question-title .qbody { flex: 1; min-width: 0; }
+  .pdf-question-title .qnum { display: block; color: #cf1717; font-weight: 800; margin-bottom: 2px; }
+  .pdf-question-title .qbody { min-width: 0; }
   .pdf-question-title .qbody, .pdf-question-title .qbody * {
     font-size: 13px !important;
     line-height: 1.5 !important;
@@ -245,6 +243,8 @@
   .qhead .qcontent > *:first-child { margin-top: 0 !important; }
   .qhead .qcontent > *:last-child { margin-bottom: 0 !important; }
   .qhead .qcontent img { max-width: 100%; height: auto; }
+  /* Fill-in blanks grow with the typed text */
+  input.fill-auto { width: 7rem; max-width: 100%; box-sizing: content-box; }
   </style>
 </head>
 <body class="bg-gray-100 dark:bg-zinc-950 dark:text-gray-100 h-screen flex flex-col overflow-hidden transition-colors duration-300">
@@ -539,7 +539,7 @@
 
     /* ---- Hiển thị câu hỏi dạng khối ---- */
     // Question header: fixed-size "Question N:" label + normalized content (aligned on the same line)
-    const qHead = (num, inner, size) => `<div class="qhead flex items-start gap-1.5 font-bold ${size || 'text-xs sm:text-sm'} text-gray-900 dark:text-white"><span class="qnum flex-shrink-0 whitespace-nowrap">Question ${num}:</span><div class="qcontent min-w-0 flex-1">${inner}</div></div>`;
+    const qHead = (num, inner, size) => `<div class="qhead font-bold ${size || 'text-xs sm:text-sm'} text-gray-900 dark:text-white"><div class="qnum text-[#cf1717] dark:text-red-400 font-extrabold mb-1 whitespace-nowrap">Question ${num}:</div><div class="qcontent min-w-0">${inner}</div></div>`;
     function renderBlockQuestionHTML(q, idx) {
       const box = 'p-3 sm:p-4 rounded-xl border border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/40 space-y-2 sm:space-y-3';
       if (q.type === 'text') {
@@ -552,7 +552,7 @@
       }
       if (q.type === 'fill') {
         const html = String(q.content || '').replace(/\{\{\s*(\d+)\s*\}\}/g, (m, n) =>
-          `<input type="text" name="q_idx_${idx}_blank_${n}" data-qidx="${idx}" data-blank="${n}" placeholder="(${n})" autocomplete="off" class="inline-block w-28 sm:w-36 mx-1 px-2 py-0.5 text-xs sm:text-sm rounded border border-gray-300 dark:border-zinc-600 border-b-2 border-b-[#cf1717] bg-white dark:bg-zinc-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#cf1717]">`);
+          `<input type="text" name="q_idx_${idx}_blank_${n}" data-qidx="${idx}" data-blank="${n}" placeholder="(${n})" autocomplete="off" class="fill-auto inline-block mx-1 px-2 py-0.5 text-xs sm:text-sm rounded border border-gray-300 dark:border-zinc-600 border-b-2 border-b-[#cf1717] bg-white dark:bg-zinc-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#cf1717]">`);
         return `<div class="${box}">${head(html)}</div>`;
       }
       const type = q.type === 'multi' ? 'checkbox' : 'radio';
@@ -1024,6 +1024,18 @@
       const form = document.getElementById('questionsForm');
       if (!form) return;
       form.onsubmit = e => e.preventDefault();
+      // Auto-size fill-in inputs to their text (min width = default box)
+      const fitInput = inp => {
+        const probe = fitInput.probe || (fitInput.probe = document.createElement('span'));
+        const cs = getComputedStyle(inp);
+        probe.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;left:-9999px;top:0;font:' + cs.font + ';letter-spacing:' + cs.letterSpacing;
+        probe.textContent = inp.value || '';
+        document.body.appendChild(probe);
+        const w = probe.offsetWidth + 12;
+        document.body.removeChild(probe);
+        inp.style.width = Math.max(112, w) + 'px';
+      };
+      form.addEventListener('input', e => { if (e.target.classList && e.target.classList.contains('fill-auto')) fitInput(e.target); });
 
       form.innerHTML = questions.map((q, idx) => {
         if (isBlockQ(q)) return renderBlockQuestionHTML(q, idx);
