@@ -23,6 +23,57 @@
       mono: ['Montserrat', 'sans-serif']
     } } }}
 </script>
+
+  <script>
+  // ===== PHÂN TRANG DÙNG CHUNG: « ‹ 1 2 3 › » =====
+  const RU_PAGERS = {};
+  function ruPaginate(key, listId, items, perPage, renderItem, emptyHtml) {
+    const list = document.getElementById(listId);
+    if (!list) return;
+    const st = RU_PAGERS[key] || (RU_PAGERS[key] = { page: 1 });
+    Object.assign(st, { listId, items: items || [], perPage, renderItem, emptyHtml: emptyHtml || '' });
+    ruPageRender(key);
+  }
+  function ruPageRender(key) {
+    const st = RU_PAGERS[key]; if (!st) return;
+    const list = document.getElementById(st.listId); if (!list) return;
+    const total = st.items.length;
+    const pages = Math.max(1, Math.ceil(total / st.perPage));
+    st.page = Math.min(Math.max(1, st.page), pages);
+    const slice = st.items.slice((st.page - 1) * st.perPage, st.page * st.perPage);
+    list.innerHTML = slice.length ? slice.map(st.renderItem).join('') : st.emptyHtml;
+
+    // Thanh số trang (tự tạo ngay sau danh sách)
+    const pagerId = st.listId + 'Pager';
+    let pager = document.getElementById(pagerId);
+    if (!pager) {
+      pager = document.createElement('div');
+      pager.id = pagerId;
+      const anchor = list.tagName === 'TBODY' ? (list.closest('div.overflow-x-auto') || list.closest('table')) : list;
+      anchor.parentNode.insertBefore(pager, anchor.nextSibling);
+    }
+    pager.className = 'flex items-center justify-center flex-wrap gap-2 pt-3';
+    const base = 'w-9 h-9 sm:w-10 sm:h-10 rounded-xl text-sm font-extrabold flex items-center justify-center transition select-none';
+    const idle = 'bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-200 hover:border-[#cf1717] hover:text-[#cf1717]';
+    const off = 'text-gray-300 dark:text-zinc-600 cursor-default';
+    let start = Math.max(1, st.page - 2), end = Math.min(pages, start + 4);
+    start = Math.max(1, end - 4);
+    let html = '';
+    html += st.page > 1
+      ? `<button type="button" onclick="ruGoPage('${key}',${st.page - 1})" class="${base} ${idle}" aria-label="Trang trước"><i class="bi bi-chevron-left"></i></button>`
+      : `<span class="${base} ${off}"><i class="bi bi-chevron-left"></i></span>`;
+    for (let p = start; p <= end; p++) {
+      html += p === st.page
+        ? `<span class="${base} bg-[#cf1717] text-white shadow-md shadow-red-500/30">${p}</span>`
+        : `<button type="button" onclick="ruGoPage('${key}',${p})" class="${base} ${idle}">${p}</button>`;
+    }
+    html += st.page < pages
+      ? `<button type="button" onclick="ruGoPage('${key}',${st.page + 1})" class="${base} ${idle}" aria-label="Trang sau"><i class="bi bi-chevron-right"></i></button>`
+      : `<span class="${base} ${off}"><i class="bi bi-chevron-right"></i></span>`;
+    pager.innerHTML = html;
+  }
+  function ruGoPage(key, p) { RU_PAGERS[key].page = p; ruPageRender(key); }
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>Chart.defaults.font.family = "'Montserrat', sans-serif";</script>
@@ -283,7 +334,7 @@
     </div>
 
     <!-- Danh sách câu mẫu -->
-    <div id="adminPronunList" class="space-y-2 max-h-80 overflow-y-auto pr-1">
+    <div id="adminPronunList" class="space-y-2">
       <p class="text-gray-500 text-sm italic"><i class="bi bi-hourglass-split"></i> Đang tải danh sách câu...</p>
     </div>
   </div>
@@ -295,9 +346,9 @@
     <span><i class="bi bi-trophy-fill"></i></span> Quản Lý Chuỗi Học & Điểm XP Học Sinh
   </h3>
   
-  <div class="overflow-x-auto">
+  <div id="adminLeaderboardWrap" class="overflow-x-auto">
     <table class="w-full text-left text-xs text-gray-600 dark:text-gray-300">
-      <thead class="bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-white font-bold uppercase text-[10px]">
+      <thead class="bg-gray-100 dark:bg-zinc-700 text-gray-900 dark:text-white font-bold uppercase text-[10px] sticky top-0 z-10">
         <tr>
           <th class="p-3">Học Sinh ID</th>
           <th class="p-3">Chuỗi <i class="bi bi-fire"></i></th>
@@ -310,6 +361,11 @@
         <!-- Render bằng JS -->
       </tbody>
     </table>
+  </div>
+  <div class="flex items-center justify-center pt-3">
+    <button type="button" id="adminLeaderboardToggle" onclick="toggleLeaderboard()" class="px-4 py-2 rounded-xl text-xs font-extrabold bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-200 hover:border-[#cf1717] hover:text-[#cf1717] transition">
+      <i class="bi bi-arrows-expand"></i> Mở rộng bảng
+    </button>
   </div>
 </div></section>
 
@@ -408,6 +464,7 @@
               <select onchange="qbCmd('fontSize', this.value); this.selectedIndex=0" class="h-7 rounded border-0 bg-transparent hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs" title="Cỡ chữ">
                 <option value="">Cỡ chữ</option><option value="2">Nhỏ</option><option value="3">Vừa</option><option value="5">Lớn</option><option value="7">Rất lớn</option>
               </select>
+              <button type="button" onmousedown="event.preventDefault()" onclick="qbClearFormat()" class="h-7 px-2 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs font-bold flex items-center gap-1" title="Xóa định dạng (in đậm, nghiêng, gạch chân, màu, cỡ chữ, danh sách...)"><i class="bi bi-eraser-fill"></i> Xóa định dạng</button>
               <button type="button" onmousedown="event.preventDefault()" onclick="qbCmd('insertUnorderedList')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs"><i class="bi bi-list-ul"></i></button>
               <button type="button" onmousedown="event.preventDefault()" onclick="qbCmd('insertOrderedList')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs"><i class="bi bi-list-ol"></i></button>
               <label class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs flex items-center justify-center cursor-pointer" title="Chèn ảnh"><i class="bi bi-image-fill"></i>
@@ -499,7 +556,7 @@
       selectFilter.innerHTML = '<option value="">Chọn bài thi để xem...</option>' + 
         allExams.map(e => `<option value="${e.id}">${e.title}</option>`).join('');
 
-      container.innerHTML = allExams.map(exam => `
+      ruPaginate('exams', 'adminExamList', allExams, 6, exam => `
         <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-xl p-4 shadow-sm space-y-3">
           <div class="flex justify-between items-center">
             <span class="text-[10px] font-bold text-[#cf1717] bg-red-50 dark:bg-red-950 px-2 py-0.5 rounded-full">${exam.topic}</span>
@@ -512,7 +569,7 @@
             <button type="button" onclick="previewExam('${exam.token}')" class="w-1/2 py-1.5 bg-amber-50 dark:bg-red-950/50 text-amber-600 dark:text-amber-400 text-xs font-bold rounded-lg hover:bg-red-100 transition"><i class="bi bi-eye-fill"></i> Xem thử</button>
           </div>
         </div>
-      `).join('');
+      `, '<p class="text-gray-500 text-sm col-span-full">Chưa có bài thi nào.</p>');
     }
 
     // JOIN LẤY THÔNG TIN HỌ TÊN VÀ NGÀY SINH TỪ BẢNG PROFILES
@@ -539,9 +596,9 @@
       // Render Bảng điểm sinh viên
       if (tbody) {
         if (filtered.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-gray-400">Chưa có sinh viên nào làm bài thi này.</td></tr>`;
+          ruPaginate('grade', 'adminGradebookBody', [], 10, null, `<tr><td colspan="5" class="p-3 text-center text-gray-400">Chưa có sinh viên nào làm bài thi này.</td></tr>`);
         } else {
-          tbody.innerHTML = filtered.map(r => `
+          ruPaginate('grade', 'adminGradebookBody', filtered, 10, r => `
             <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800">
               <td class="p-3 font-bold text-gray-900 dark:text-white">${r.profiles?.full_name || 'N/A'}</td>
               <td class="p-3 text-gray-500">${r.profiles?.dob || 'N/A'}</td>
@@ -549,7 +606,7 @@
               <td class="p-3 text-gray-500">${Math.floor(r.time_spent / 60)}m ${r.time_spent % 60}s</td>
               <td class="p-3 text-gray-400">${new Date(r.submitted_at).toLocaleString('vi-VN')}</td>
             </tr>
-          `).join('');
+          `);
         }
       }
 
@@ -577,7 +634,7 @@
       const { data: news } = await sbClient.from('news').select('*').order('created_at', { ascending: false });
       const container = document.getElementById('adminNewsList');
 
-      container.innerHTML = (news || []).map(n => `
+      ruPaginate('news', 'adminNewsList', news || [], 4, n => `
         <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 p-4 rounded-xl flex justify-between items-center">
           <div>
             <h4 class="font-bold text-sm text-gray-900 dark:text-white">${n.title}</h4>
@@ -589,7 +646,7 @@
             <button type="button" onclick="previewAnnouncement()" class="text-xs text-amber-500 font-bold hover:underline">Xem thử</button>
           </div>
         </div>
-      `).join('');
+      `, '<p class="text-gray-400 text-sm">Chưa có thông báo nào.</p>');
     }
 
     async function handleSaveNews(e) {
@@ -805,12 +862,12 @@ async function loadAdminTickets() {
 
   if (error || !tickets || tickets.length === 0) {
     countBadge.innerText = '0 yêu cầu';
-    container.innerHTML = '<p class="text-gray-500 text-sm col-span-full">Chưa có yêu cầu hỗ trợ nào.</p>';
+    ruPaginate('tickets', 'adminTicketList', [], 6, null, '<p class="text-gray-500 text-sm col-span-full">Chưa có yêu cầu hỗ trợ nào.</p>');
     return;
   }
 
   countBadge.innerText = `${tickets.length} yêu cầu`;
-  container.innerHTML = tickets.map(t => `
+  ruPaginate('tickets', 'adminTicketList', tickets, 6, t => `
     <div class="p-4 bg-white dark:bg-zinc-800 rounded-2xl border dark:border-zinc-700 shadow-sm flex flex-col justify-between space-y-3">
       <div class="space-y-2">
         <div class="flex items-center justify-between gap-2">
@@ -831,7 +888,7 @@ async function loadAdminTickets() {
         </button>
       </div>
     </div>
-  `).join('');
+  `);
 }
 
 // Gửi phản hồi hỗ trợ
@@ -863,12 +920,12 @@ async function loadAdminFeedbacks() {
 
   if (error || !list || list.length === 0) {
     countBadge.innerText = '0 đánh giá';
-    container.innerHTML = '<p class="text-gray-500 text-sm col-span-full">Chưa có đánh giá nào.</p>';
+    ruPaginate('feedbacks', 'adminFeedbackList', [], 6, null, '<p class="text-gray-500 text-sm col-span-full">Chưa có đánh giá nào.</p>');
     return;
   }
 
   countBadge.innerText = `${list.length} đánh giá`;
-  container.innerHTML = list.map(f => `
+  ruPaginate('feedbacks', 'adminFeedbackList', list, 6, f => `
     <div class="p-4 bg-white dark:bg-zinc-800 rounded-2xl border dark:border-zinc-700 shadow-sm space-y-2 text-xs">
       <div class="flex justify-between items-center text-[10px] text-gray-400">
         <span>Ẩn danh</span>
@@ -887,7 +944,7 @@ async function loadAdminFeedbacks() {
         </div>
       ` : ''}
     </div>
-  `).join('');
+  `);
 }
 
 // Gọi hàm khi tải trang Admin
@@ -1241,11 +1298,11 @@ async function loadAdminPronunPhrases() {
   if (countBadge) countBadge.innerText = `${localPronunPhrases.length} câu`;
 
   if (error || localPronunPhrases.length === 0) {
-    container.innerHTML = '<p class="text-xs text-gray-400 italic p-2">Chưa có câu mẫu nào.</p>';
+    ruPaginate('pronun', 'adminPronunList', [], 5, null, '<p class="text-xs text-gray-400 italic p-2">Chưa có câu mẫu nào.</p>');
     return;
   }
 
-  container.innerHTML = localPronunPhrases.map(item => `
+  ruPaginate('pronun', 'adminPronunList', localPronunPhrases, 5, item => `
     <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 dark:bg-zinc-900/80 rounded-xl border border-gray-100 dark:border-zinc-700/60 hover:border-gray-300 transition gap-2">
       <div class="space-y-0.5">
         <p class="text-sm font-bold text-gray-800 dark:text-gray-100">${escapeHtml(item.phrase)}</p>
@@ -1259,7 +1316,7 @@ async function loadAdminPronunPhrases() {
         <button onclick="deletePronunPhrase(${item.id})" class="text-xs text-red-600 dark:text-red-400 font-bold hover:underline px-2 py-1">Xóa</button>
       </div>
     </div>
-  `).join('');
+  `);
 }
 
 // Lưu (Thêm mới hoặc Cập nhật)
@@ -1332,8 +1389,30 @@ async function deletePronunPhrase(id) {
 
   const tbody = document.getElementById('adminLeaderboardTable');
   if (!tbody || !data) return;
-
-  tbody.innerHTML = data.map(item => `
+  window.__lbData = data;
+  renderLeaderboard();
+}
+let __lbExpanded = false;
+const LB_COLLAPSED_ROWS = 5;
+function toggleLeaderboard() { __lbExpanded = !__lbExpanded; renderLeaderboard(); }
+function renderLeaderboard() {
+  const tbody = document.getElementById('adminLeaderboardTable');
+  const wrap = document.getElementById('adminLeaderboardWrap');
+  const btn = document.getElementById('adminLeaderboardToggle');
+  const data = window.__lbData || [];
+  if (!tbody) return;
+  const rows = __lbExpanded ? data : data.slice(0, LB_COLLAPSED_ROWS);
+  if (wrap) { wrap.classList.toggle('max-h-[26rem]', __lbExpanded); wrap.classList.toggle('overflow-y-auto', __lbExpanded); }
+  if (btn) {
+    btn.innerHTML = __lbExpanded
+      ? '<i class="bi bi-arrows-collapse"></i> Thu gọn bảng'
+      : `<i class="bi bi-arrows-expand"></i> Mở rộng bảng${data.length > LB_COLLAPSED_ROWS ? ' (' + data.length + ' học sinh)' : ''}`;
+  }
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="p-3 text-center text-gray-400">Chưa có dữ liệu chuỗi học.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(item => `
     <tr class="hover:bg-gray-50 dark:hover:bg-zinc-700/50">
       <td class="p-3 font-mono font-bold text-gray-900 dark:text-white">#${item.user_id.substring(0, 8)}</td>
       <td class="p-3 font-black text-[#cf1717] dark:text-red-400"><i class="bi bi-fire"></i> ${item.streak_count || 0} ngày</td>
@@ -1502,7 +1581,7 @@ function resetPostForm() {
 async function loadAdminPosts() {
   const { data } = await sbClient.from('posts').select('*').order('created_at', { ascending: false });
   allPosts = data || []; pel('adminPostCount').innerText = allPosts.length + ' bài';
-  pel('adminPostList').innerHTML = allPosts.map(p => `
+  ruPaginate('posts', 'adminPostList', allPosts, 4, p => `
     <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 p-3 rounded-xl flex gap-3 items-center">
       ${p.thumbnail_url ? `<img src="${pEsc(p.thumbnail_url)}" class="w-16 h-16 rounded-lg object-cover flex-shrink-0">` : '<div class="w-16 h-16 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0"><i class="bi bi-book-fill text-[#cf1717] text-2xl"></i></div>'}
       <div class="min-w-0 flex-1">
@@ -1514,7 +1593,7 @@ async function loadAdminPosts() {
           <a href="post.html?token=${encodeURIComponent(p.token)}" target="_blank" class="text-xs text-amber-500 font-bold hover:underline">Xem</a>
         </div>
       </div>
-    </div>`).join('') || '<p class="text-gray-400 text-sm">Chưa có bài học nào.</p>';
+    </div>`, '<p class="text-gray-400 text-sm">Chưa có bài học nào.</p>');
 }
 function editPost(id) {
   const p = allPosts.find(x => x.id === id); if (!p) return;
@@ -1707,6 +1786,27 @@ function qbCmd(cmd, value) {
   qbFocus.focus();
   if (qbRange) { const s = window.getSelection(); s.removeAllRanges(); s.addRange(qbRange); }
   document.execCommand(cmd, false, value === undefined || value === '' ? null : value);
+}
+function qbClearFormat() {
+  if (!qbFocusOk()) return qbNote('<i class="bi bi-exclamation-triangle-fill"></i> Hãy bấm vào ô câu hỏi/giải thích và bôi đen đoạn cần xóa định dạng trước.');
+  qbFocus.focus();
+  if (qbRange) { const s = window.getSelection(); s.removeAllRanges(); s.addRange(qbRange); }
+  document.execCommand('removeFormat', false, null);
+  document.execCommand('unlink', false, null);
+  // Gỡ luôn danh sách nếu đoạn đang là list
+  if (document.queryCommandState('insertUnorderedList')) document.execCommand('insertUnorderedList', false, null);
+  if (document.queryCommandState('insertOrderedList')) document.execCommand('insertOrderedList', false, null);
+  // Xóa màu/cỡ chữ còn sót dạng <font> hoặc style inline trong vùng đang chọn
+  const sel = window.getSelection();
+  if (sel.rangeCount && !sel.isCollapsed) {
+    const r = sel.getRangeAt(0);
+    qbFocus.querySelectorAll('font, span[style]').forEach(el => {
+      if (r.intersectsNode(el)) {
+        if (el.tagName === 'FONT') { while (el.firstChild) el.parentNode.insertBefore(el.firstChild, el); el.remove(); }
+        else { el.removeAttribute('style'); }
+      }
+    });
+  }
 }
 async function qbInsertImage(input) {
   const file = input.files[0]; input.value = '';
