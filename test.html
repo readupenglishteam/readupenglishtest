@@ -211,16 +211,41 @@ async function enter(id){
 function startExam(d){
   offset=new Date(d.now).getTime()-Date.now();
   const key='rt_ans_'+d.session_id;
-  X={sid:d.session_id,q:d.questions,deadline:new Date(d.deadline).getTime(),viol:d.violations||0,ans:JSON.parse(sessionStorage.getItem(key)||'{}'),key,active:true,lock:false,last:0,done:false};
+  X={sid:d.session_id,q:normQs(d.questions),deadline:new Date(d.deadline).getTime(),viol:d.violations||0,ans:JSON.parse(sessionStorage.getItem(key)||'{}'),key,active:true,lock:false,last:0,done:false};
   $('exTitle').textContent=d.title; $('exWho').textContent=`${me.name} • ${me.email}`; $('exDesc').textContent=d.description||'';
   let n=0; const nx=()=>++n; nx.cur=()=>n; $('exQs').innerHTML=X.q.map(q=>qHtml(q,nx)).join('');
   $('exam').classList.toggle('reading-mode',X.q.some(q=>q.type==='reading'));
   $('exam').classList.remove('hidden'); $('exam').scrollTop=0; updViol();
+  examEmptyNotice(typeof d.questions==='string'?(()=>{try{return JSON.parse(d.questions);}catch(e){return [];}})():d.questions);
   restoreAnswers(); tick(); X.timer=setInterval(tick,500);
 }
 const rng=(a,b)=>b<a?'Questions':(a===b?`Question ${a}`:`Questions ${a}–${b}`);
 const rsplitHtml=(content,qs,a,b)=>`<div class="rsplit"><div class="pane"><div class="rhead"><i class="bi bi-book"></i> Reading passage</div><div class="${card} p-5 qc">${content||''}</div></div><div class="pane"><div class="rhead"><i class="bi bi-list-check"></i> ${rng(a,b)}</div>${qs}</div></div>`;
 const GAPRE=/\{\{(\d+)\}\}/g;
+/* --- Chuẩn hoá dữ liệu đề do máy chủ trả về: chịu được JSON dạng chuỗi, tên trường khác (text/html/question...) --- */
+const _s=v=>typeof v==='string'?v:(typeof v==='number'?String(v):'');
+const _pick=(o,ks)=>{ if(!o||typeof o!=='object') return ''; for(const k of ks){ if(_s(o[k]).trim()) return _s(o[k]); } return ''; };
+const CONTENT_KEYS=['content','text','html','question','stem','body','prompt','q','title'];
+const OPT_KEYS=['text','content','label','html','title','value','answer','name'];
+function normQ(q){
+  if(!q||typeof q!=='object') return q;
+  const src=(q.data&&typeof q.data==='object')?{...q.data,...q}:q, o={...q};
+  o.content=_pick(src,CONTENT_KEYS);
+  const opts=src.options||src.choices||src.answers;
+  if(Array.isArray(opts)) o.options=opts.map((x,i)=>typeof x==='string'?{id:String.fromCharCode(97+i),text:x}:{...x,id:x.id??String.fromCharCode(97+i),text:_pick(x,OPT_KEYS)});
+  const sb=src.sub_blocks||src.subBlocks||src.children||src.items;
+  if(Array.isArray(sb)) o.sub_blocks=sb.map(normQ);
+  return o;
+}
+function normQs(a){ if(typeof a==='string'){ try{a=JSON.parse(a);}catch(e){a=[];} } return Array.isArray(a)?a.map(normQ):[]; }
+function examEmptyNotice(raw){
+  const leaf=q=>q.type==='reading'?(q.sub_blocks||[]).flatMap(leaf):[q];
+  const filled=X.q.some(q=>(q.type==='text'||q.type==='reading')&&_s(q.content).trim()) || X.q.flatMap(leaf).some(q=>q.type!=='text'&&(_s(q.content).trim()||(q.options||[]).some(o=>_s(o.text).trim())));
+  if(filled||!X.q.length) return;
+  const f=(Array.isArray(raw)?raw[0]:null)||{}, fo=(Array.isArray(f.options)&&f.options[0])||{};
+  console.warn('[ReadUp] Máy chủ không trả nội dung câu hỏi. Mẫu khối đầu tiên:',JSON.stringify(f).slice(0,600));
+  $('exQs').insertAdjacentHTML('afterbegin',`<div class="nrm rounded-xl border-2 border-amber-400 bg-amber-50 text-amber-900 p-4 text-sm font-semibold mb-3"><i class="bi bi-exclamation-triangle-fill"></i> Chưa nhận được nội dung câu hỏi từ máy chủ. Hãy chụp màn hình khung này gửi giáo viên.<div class="text-xs font-normal mt-1 break-all">Trường nhận được ở khối: ${esc(Object.keys(f).join(', ')||'(rỗng)')} · ở đáp án: ${esc(Object.keys(fo).join(', ')||'(không có)')}</div></div>`);
+}
 function qHtml(q,next,sub){
   const N=sub?'':'nrm ';
   if(q.type==='text') return `<div class="${N}${card} p-5 qc ${q.two_col?'two':''}">${q.content||''}</div>`;
@@ -310,7 +335,7 @@ async function showResult(id){
     <div class="nrm ${card} p-6 text-center mb-4"><div class="text-sm text-gray-500">Your grade</div><div class="text-5xl font-black text-[#cf1717]">${data.score}<span class="text-xl text-gray-400"> / ${data.total}</span></div>
     ${(data.attempts||0)>1?`<div class="text-xs text-gray-500 mt-1">Highest of ${data.attempts} attempts</div>`:''}
     <div class="text-xs text-gray-500 mt-2">Warnings: ${data.violations||0} • Essay grade (if any) is marked by the teacher</div></div>
-    <div class="space-y-4">${data.review&&data.questions?data.questions.map(q=>rq(q,false)).join(''):'<p class="nrm text-center text-gray-400 italic">The teacher has not allowed reviewing the detailed answers.</p>'}</div></div>`;
+    <div class="space-y-4">${data.review&&data.questions?normQs(data.questions).map(q=>rq(q,false)).join(''):'<p class="nrm text-center text-gray-400 italic">The teacher has not allowed reviewing the detailed answers.</p>'}</div></div>`;
   clearInterval(ticker); scrollTo(0,0); $('exam').classList.remove('reading-mode');
 }
 
