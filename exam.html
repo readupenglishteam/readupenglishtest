@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ReadUp English - Phòng Thi Reading</title>
-  <script src="https://cdn.tailwindcss.com"></script> 
+  <title>ReadUp English - Reading Exam Room</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -165,9 +165,28 @@
     border-radius: 6px;
   }
   .pdf-question-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 5px;
     font-weight: 700;
     margin-bottom: 4px;
     color: #111827;
+    line-height: 1.5;
+  }
+  .pdf-question-title .qnum { flex-shrink: 0; white-space: nowrap; }
+  .pdf-question-title .qbody { flex: 1; min-width: 0; }
+  .pdf-question-title .qbody, .pdf-question-title .qbody * {
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+  }
+  .pdf-question-title .qbody p { margin: 0 !important; }
+  .pdf-question-title .qbody p + p { margin-top: 4px !important; }
+  .pdf-multi-note {
+    font-size: 11px;
+    font-weight: 700;
+    font-style: italic;
+    color: #b91c1c;
+    margin: 0 0 4px 0;
   }
   .pdf-options {
     margin-left: 8px;
@@ -218,6 +237,14 @@
   .qcontent table{border-collapse:collapse;width:100%;margin:.5em 0;font-size:.9em}
   .qcontent td,.qcontent th{border:1px solid #d1d5db;padding:6px 8px}
   .qcontent audio{width:100%;margin:.5em 0}
+  /* Question header: same size / line-height for "Question N:" and its content, whatever the editor pasted in */
+  .qhead .qnum, .qhead .qcontent { line-height: 1.5; }
+  .qhead .qcontent, .qhead .qcontent * { font-size: inherit !important; line-height: 1.5 !important; font-family: inherit !important; }
+  .qhead .qcontent p { margin: 0 !important; }
+  .qhead .qcontent p + p { margin-top: .4em !important; }
+  .qhead .qcontent > *:first-child { margin-top: 0 !important; }
+  .qhead .qcontent > *:last-child { margin-bottom: 0 !important; }
+  .qhead .qcontent img { max-width: 100%; height: auto; }
   </style>
 </head>
 <body class="bg-gray-100 dark:bg-zinc-950 dark:text-gray-100 h-screen flex flex-col overflow-hidden transition-colors duration-300">
@@ -236,7 +263,7 @@
       <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
         <a href="dashboard.html" class="px-3 py-2 text-xs font-bold bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] dark:hover:text-red-400 rounded-xl transition border border-gray-200/50 dark:border-zinc-700/50 flex items-center gap-1 flex-shrink-0">
           <i class="bi bi-arrow-left"></i>
-          <span class="hidden sm:inline">Quay lại</span>
+          <span class="hidden sm:inline">Back</span>
         </a>
 
         <div class="w-9 h-9 rounded-full bg-[#cf1717] hidden md:flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm">
@@ -244,7 +271,7 @@
         </div>
 
         <h1 id="examHeaderTitle" class="font-extrabold text-xs sm:text-base text-gray-900 dark:text-white truncate max-w-[110px] sm:max-w-xs md:max-w-md">
-          Đang tải đề thi...
+          Loading exam...
         </h1>
       </div>
 
@@ -260,11 +287,11 @@
         </div>
 
         <button id="submitBtn" onclick="confirmSubmitExam()" class="px-3 sm:px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5 flex-shrink-0">
-          Nộp Bài
+          Submit
         </button>
 
         <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50 flex-shrink-0">
-          <i id="themeIcon" class="bi bi-circle-half"></i>
+          <i id="themeIcon" class="bi bi-moon-stars-fill"></i>
         </button>
       </div>
 
@@ -274,10 +301,10 @@
   <!-- MOBILE TAB -->
   <div class="lg:hidden flex border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
     <button id="mobileTabReading" onclick="switchMobileTab('reading')" class="w-1/2 py-2.5 text-center font-bold text-xs text-[#cf1717] border-b-2 border-[#cf1717]">
-      <i class="bi bi-book-half mr-1"></i>Bài Đọc (Passage)
+      <i class="bi bi-book-half mr-1"></i>Reading Passage
     </button>
     <button id="mobileTabQuestions" onclick="switchMobileTab('questions')" class="w-1/2 py-2.5 text-center font-bold text-xs text-gray-400">
-      <i class="bi bi-pencil-square mr-1"></i>Câu Hỏi (Questions)
+      <i class="bi bi-pencil-square mr-1"></i>Questions
     </button>
   </div>
 
@@ -291,7 +318,7 @@
         <span id="examTopicTag" class="text-xs font-bold px-2.5 py-1 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-full">General</span>
       </div>
       <div id="passageContent" class="prose dark:prose-invert max-w-none text-xs sm:text-sm leading-relaxed text-gray-700 dark:text-gray-300 select-text">
-        <p class="text-gray-400"><i class="bi bi-hourglass-split mr-1"></i>Đang tải nội dung đoạn văn...</p>
+        <p class="text-gray-400"><i class="bi bi-hourglass-split mr-1"></i>Loading passage...</p>
       </div>
     </section>
 
@@ -300,10 +327,10 @@
       <div class="space-y-6">
         <div class="flex items-center justify-between border-b dark:border-zinc-800 pb-3 sticky top-0 bg-white dark:bg-zinc-900 z-10">
           <h2 class="font-extrabold text-base sm:text-lg text-gray-900 dark:text-white flex items-center gap-2"><i class="bi bi-pencil-square text-[#cf1717]"></i>Questions</h2>
-          <span id="questionCountTag" class="text-xs font-bold text-gray-500">0 câu hỏi</span>
+          <span id="questionCountTag" class="text-xs font-bold text-gray-500">0 questions</span>
         </div>
         <form id="questionsForm" class="space-y-6">
-          <p class="text-gray-400 text-sm"><i class="bi bi-hourglass-split mr-1"></i>Đang tải danh sách câu hỏi...</p>
+          <p class="text-gray-400 text-sm"><i class="bi bi-hourglass-split mr-1"></i>Loading questions...</p>
         </form>
       </div>
     </section>
@@ -315,25 +342,25 @@
     <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-2xl text-center space-y-5 sm:space-y-6">
       <div class="w-14 h-14 sm:w-16 sm:h-16 bg-red-50 dark:bg-red-950 text-[#cf1717] rounded-full flex items-center justify-center text-2xl sm:text-3xl mx-auto"><i class="bi bi-trophy-fill"></i></div>
       <div>
-        <h3 class="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white">Hoàn Thành Bài Thi!</h3>
-        <p class="text-xs text-gray-500 mt-1">Kết quả của bạn đã được ghi nhận thành công.</p>
+        <h3 class="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white">Exam Completed!</h3>
+        <p class="text-xs text-gray-500 mt-1">Your result has been recorded successfully.</p>
       </div>
       <div class="bg-gray-50 dark:bg-zinc-800 p-4 rounded-xl grid grid-cols-2 gap-2 sm:gap-4">
         <div>
-          <span class="block text-[10px] sm:text-xs font-bold text-gray-400 uppercase">Điểm Số</span>
+          <span class="block text-[10px] sm:text-xs font-bold text-gray-400 uppercase">Score</span>
           <span id="finalScore" class="text-xl sm:text-2xl font-black text-[#cf1717]">0/0</span>
         </div>
         <div>
-          <span class="block text-[10px] sm:text-xs font-bold text-gray-400 uppercase">Thời Gian Làm</span>
+          <span class="block text-[10px] sm:text-xs font-bold text-gray-400 uppercase">Time Spent</span>
           <span id="finalTime" class="text-xl sm:text-2xl font-black text-gray-700 dark:text-gray-200">00:00</span>
         </div>
       </div>
       <div class="space-y-2.5">
         <button onclick="closeResultModal()" class="w-full py-3 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-800 dark:text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5">
           <i class="bi bi-search"></i>
-          <span>Xem Đáp Án & Giải Thích</span>
+          <span>View Answers & Explanations</span>
         </button>
-        <button onclick="exitToDashboard()" class="w-full py-2.5 sm:py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-lg transition text-sm shadow">Trở Về Dashboard</button>
+        <button onclick="exitToDashboard()" class="w-full py-2.5 sm:py-3 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-lg transition text-sm shadow">Back to Dashboard</button>
       </div>
     </div>
   </div>
@@ -352,13 +379,13 @@
   <!-- FLOATING ACTION TOOLBAR HIGHLIGHT -->
   <div id="textSelectionMenu" class="fixed hidden z-50 bg-zinc-900/95 dark:bg-white/95 text-white dark:text-zinc-900 px-2.5 py-1.5 rounded-2xl shadow-2xl border border-zinc-700 dark:border-gray-200 backdrop-blur-md flex items-center gap-1.5 text-xs transition-all duration-150 -translate-x-1/2">
     <button onclick="applyHighlightFromMenu('bg-yellow-300 dark:bg-yellow-500 text-black')" class="px-2 py-1 hover:bg-zinc-800 dark:hover:bg-gray-200 rounded-xl flex items-center gap-1 font-bold whitespace-nowrap">
-      <i class="bi bi-highlighter text-yellow-400"></i> <span>Tô Vàng</span>
+      <i class="bi bi-highlighter text-yellow-400"></i> <span>Highlight Yellow</span>
     </button>
     <button onclick="applyHighlightFromMenu('bg-green-300 dark:bg-green-600 text-black dark:text-white')" class="px-2 py-1 hover:bg-zinc-800 dark:hover:bg-gray-200 rounded-xl flex items-center gap-1 font-bold whitespace-nowrap">
-      <i class="bi bi-circle-fill text-green-400"></i> <span>Tô Xanh</span>
+      <i class="bi bi-circle-fill text-green-400"></i> <span>Highlight Green</span>
     </button>
     <button id="btnRemoveHighlight" onclick="removeActiveHighlight()" class="hidden px-2 py-1 bg-red-500/20 text-red-400 dark:text-red-600 hover:bg-red-500/30 rounded-xl font-bold flex items-center gap-1 whitespace-nowrap">
-      <i class="bi bi-eraser"></i> <span>Xóa Tô</span>
+      <i class="bi bi-eraser"></i> <span>Clear Highlight</span>
     </button>
   </div>
 
@@ -511,15 +538,17 @@
     }
 
     /* ---- Hiển thị câu hỏi dạng khối ---- */
+    // Question header: fixed-size "Question N:" label + normalized content (aligned on the same line)
+    const qHead = (num, inner, size) => `<div class="qhead flex items-start gap-1.5 font-bold ${size || 'text-xs sm:text-sm'} text-gray-900 dark:text-white"><span class="qnum flex-shrink-0 whitespace-nowrap">Question ${num}:</span><div class="qcontent min-w-0 flex-1">${inner}</div></div>`;
     function renderBlockQuestionHTML(q, idx) {
       const box = 'p-3 sm:p-4 rounded-xl border border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/40 space-y-2 sm:space-y-3';
       if (q.type === 'text') {
         return `<div class="qcontent p-3 sm:p-4 rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 text-xs sm:text-sm text-gray-800 dark:text-gray-200">${q.content || ''}</div>`;
       }
-      const head = inner => `<div class="flex gap-2 font-bold text-xs sm:text-sm text-gray-900 dark:text-white"><span class="flex-shrink-0">Câu ${q._num}:</span><div class="qcontent min-w-0 flex-1">${inner}</div></div>`;
+      const head = inner => qHead(q._num, inner);
       if (q.type === 'essay') {
         return `<div class="${box}">${head(q.content || '')}
-          <textarea name="q_idx_${idx}" rows="4" placeholder="Viết câu trả lời tự luận tại đây..." class="w-full p-2.5 text-xs sm:text-sm rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-[#cf1717]"></textarea></div>`;
+          <textarea name="q_idx_${idx}" rows="4" placeholder="Write your essay answer here..." class="w-full p-2.5 text-xs sm:text-sm rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-[#cf1717]"></textarea></div>`;
       }
       if (q.type === 'fill') {
         const html = String(q.content || '').replace(/\{\{\s*(\d+)\s*\}\}/g, (m, n) =>
@@ -527,7 +556,7 @@
         return `<div class="${box}">${head(html)}</div>`;
       }
       const type = q.type === 'multi' ? 'checkbox' : 'radio';
-      const hint = q.type === 'multi' ? '<p class="text-[11px] text-gray-400 italic">(Chọn tất cả đáp án đúng)</p>' : '';
+      const hint = q.type === 'multi' ? '<p class="text-[11px] text-gray-400 italic">(Select all correct answers)</p>' : '';
       return `<div class="${box}">${head(q.content || '')}${hint}
         <div class="space-y-1.5 sm:space-y-2">
           ${(q.options || []).map(o => `
@@ -546,33 +575,33 @@
       const status = q.status || 'wrong';
       let badge, style;
       if (status === 'essay') {
-        badge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"><i class="bi bi-pencil mr-1"></i>Tự luận (Đã ghi nhận)</span>`;
+        badge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"><i class="bi bi-pencil mr-1"></i>Essay (Recorded)</span>`;
         style = 'bg-blue-50/30 border-blue-200 dark:bg-blue-950/10 dark:border-blue-900/40';
       } else if (status === 'correct') {
-        badge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"><i class="bi bi-check-lg mr-1"></i>Đúng</span>`;
+        badge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"><i class="bi bi-check-lg mr-1"></i>Correct</span>`;
         style = 'bg-green-50/50 border-green-200 dark:bg-green-950/20 dark:border-green-900';
       } else if (status === 'partial') {
-        badge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300"><i class="bi bi-lightning-charge-fill mr-1"></i>Đúng ${q.correctSubCount || 0}/${q.totalBlanks || 0} ý (+${q.earnedPoints || 0}đ)</span>`;
+        badge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300"><i class="bi bi-lightning-charge-fill mr-1"></i>Correct ${q.correctSubCount || 0}/${q.totalBlanks || 0} items (+${q.earnedPoints || 0} pts)</span>`;
         style = 'bg-amber-50/40 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/60';
       } else {
-        badge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"><i class="bi bi-x-lg mr-1"></i>Sai</span>`;
+        badge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"><i class="bi bi-x-lg mr-1"></i>Wrong</span>`;
         style = 'bg-red-50/50 border-red-200 dark:bg-red-950/20 dark:border-red-900';
       }
       let contentHTML = q.content || '', body = '';
       const userVal = q.userSelected;
       if (q.type === 'essay') {
         body = `<div class="p-3 bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 text-xs">
-          <span class="text-gray-400 font-bold block mb-1">Câu trả lời tự luận của bạn:</span>
-          <p class="text-gray-800 dark:text-gray-200 whitespace-pre-line font-medium">${escHTML(userVal) || 'Chưa nhập nội dung.'}</p></div>`;
+          <span class="text-gray-400 font-bold block mb-1">Your essay answer:</span>
+          <p class="text-gray-800 dark:text-gray-200 whitespace-pre-line font-medium">${escHTML(userVal) || 'No answer entered.'}</p></div>`;
       } else if (q.type === 'fill') {
         contentHTML = contentHTML.replace(/\{\{\s*(\d+)\s*\}\}/g, (m, n) => `<b class="text-[#cf1717]">(${n})</b> ______`);
         const u = (userVal && typeof userVal === 'object') ? userVal : {};
         body = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">` + blockBlanks(q).map(b => {
           const ok = checkSingleMatch(u[b.gap], b.accepted);
           return `<div class="p-2.5 bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 text-xs space-y-1">
-            <div class="font-bold text-[#cf1717] dark:text-red-400">Vị trí (${escHTML(b.gap)}):</div>
-            <div><span class="text-gray-400">Bạn nhập:</span> <strong class="${ok ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${escHTML(u[b.gap]) || 'Chưa trả lời'}</strong></div>
-            <div><span class="text-gray-400">Đáp án chuẩn:</span> <strong class="text-green-600 dark:text-green-400">${escHTML(b.accepted.join(' / '))}</strong></div></div>`;
+            <div class="font-bold text-[#cf1717] dark:text-red-400">Blank (${escHTML(b.gap)}):</div>
+            <div><span class="text-gray-400">Your answer:</span> <strong class="${ok ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${escHTML(u[b.gap]) || 'Not answered'}</strong></div>
+            <div><span class="text-gray-400">Correct answer:</span> <strong class="text-green-600 dark:text-green-400">${escHTML(b.accepted.join(' / '))}</strong></div></div>`;
         }).join('') + `</div>`;
       } else {
         const picked = Array.isArray(userVal) ? userVal.map(String) : (userVal ? [String(userVal)] : []);
@@ -586,12 +615,12 @@
       }
       const exp = (typeof q.explanation === 'string' && q.explanation.replace(/<[^>]*>|&nbsp;/g, '').trim()) ? `
         <div class="mt-3 pt-3 border-t border-gray-200/60 dark:border-zinc-700/60 text-xs">
-          <div class="flex items-center gap-1 text-[#cf1717] dark:text-red-400 font-bold mb-1"><i class="bi bi-lightbulb-fill"></i><span>Giải thích chi tiết:</span></div>
+          <div class="flex items-center gap-1 text-[#cf1717] dark:text-red-400 font-bold mb-1"><i class="bi bi-lightbulb-fill"></i><span>Detailed explanation:</span></div>
           <div class="qcontent text-gray-700 dark:text-gray-300 leading-relaxed bg-white dark:bg-zinc-800 p-3 rounded-xl border border-gray-100 dark:border-zinc-700">${q.explanation}</div>
         </div>` : '';
       return `<div class="p-4 sm:p-5 rounded-2xl border ${style} space-y-3 mb-4">
         <div class="flex justify-between items-start gap-2">
-          <div class="flex gap-2 font-bold text-sm text-gray-900 dark:text-white"><span class="flex-shrink-0">Câu ${q._num}:</span><div class="qcontent min-w-0">${contentHTML}</div></div>
+          <div class="min-w-0 flex-1">${qHead(q._num, contentHTML, 'text-sm')}</div>
           ${badge}
         </div>
         <div class="space-y-1.5 text-xs">${body}</div>
@@ -640,14 +669,14 @@
 
       const finalScoreVal = (savedResult.score ?? participant?.score ?? 0);
       const scoreElem = document.getElementById('finalScore');
-      if (scoreElem) scoreElem.innerText = finalScoreVal + '/10 điểm';
+      if (scoreElem) scoreElem.innerText = finalScoreVal + '/10 points';
 
       const timeVal = savedResult.time_spent ?? participant?.completion_time ?? 0;
       const timeElem = document.getElementById('finalTime');
       if (timeElem) timeElem.innerText = Math.floor(timeVal / 60) + 'm ' + (timeVal % 60) + 's';
 
       const timerElem = document.getElementById('timerDisplay');
-      if (timerElem) timerElem.innerHTML = '<i class="bi bi-check-circle-fill mr-1"></i>Đã nộp';
+      if (timerElem) timerElem.innerHTML = '<i class="bi bi-check-circle-fill mr-1"></i>Submitted';
 
       disableSubmitBtn();
 
@@ -879,7 +908,7 @@
       let range = (selection && !selection.isCollapsed) ? selection.getRangeAt(0) : savedRange;
 
       if (!range || range.collapsed) {
-        alert("Vui lòng bôi đen đoạn văn bản trong bài đọc!");
+        alert("Please select some text in the passage first!");
         return;
       }
 
@@ -983,14 +1012,14 @@
 
       const passageBox = document.getElementById('passageContent');
       if (passageBox) {
-        const rawPassage = currentExam.passage_html || currentExam.passage || '<p>Không có nội dung bài đọc.</p>';
+        const rawPassage = currentExam.passage_html || currentExam.passage || '<p>No passage content.</p>';
         const vocabList = currentExam.vocab_list || currentExam.vocab || currentExam.vocabularies || currentExam.vocabulary || [];
         passageBox.innerHTML = renderPassageWithVocab(rawPassage, vocabList);
       }
 
       const questions = currentExam.questions || [];
       const countTag = document.getElementById('questionCountTag');
-      if (countTag) countTag.innerText = questions.filter(q => !isTextBlock(q)).length + ' câu hỏi';
+      if (countTag) countTag.innerText = questions.filter(q => !isTextBlock(q)).length + ' questions';
 
       const form = document.getElementById('questionsForm');
       if (!form) return;
@@ -1004,15 +1033,15 @@
         if (isEssay) {
           return `
             <div class="p-3 sm:p-4 rounded-xl border border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/40 space-y-2 sm:space-y-3">
-              <p class="font-bold text-xs sm:text-sm text-gray-900 dark:text-white">Câu ${qNum}: ${q.question}</p>
-              <textarea name="q_idx_${idx}" rows="4" placeholder="Viết câu trả lời tự luận tại đây..." class="w-full p-2.5 text-xs sm:text-sm rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-[#cf1717]"></textarea>
+              ${qHead(qNum, q.question)}
+              <textarea name="q_idx_${idx}" rows="4" placeholder="Write your essay answer here..." class="w-full p-2.5 text-xs sm:text-sm rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-[#cf1717]"></textarea>
             </div>`;
         }
 
         if (q.options && Array.isArray(q.options) && q.options.length > 0) {
           return `
             <div class="p-3 sm:p-4 rounded-xl border border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/40 space-y-2 sm:space-y-3">
-              <p class="font-bold text-xs sm:text-sm text-gray-900 dark:text-white">Câu ${qNum}: ${q.question}</p>
+              ${qHead(qNum, q.question)}
               <div class="space-y-1.5 sm:space-y-2">
                 ${q.options.map(opt => `
                   <label class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm p-2 sm:p-2.5 rounded-lg border border-gray-200 dark:border-zinc-700 hover:bg-white dark:hover:bg-zinc-800 cursor-pointer transition">
@@ -1030,7 +1059,7 @@
         if (blankNumbers.length > 0) {
           return `
             <div class="p-3 sm:p-4 rounded-xl border border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/40 space-y-3">
-              <p class="font-bold text-xs sm:text-sm text-gray-900 dark:text-white">Câu ${qNum}: ${q.question}</p>
+              ${qHead(qNum, q.question)}
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 pt-1">
                 ${blankNumbers.map(num => `
                   <div class="flex items-center gap-2 bg-white dark:bg-zinc-800/80 p-1.5 sm:p-2 rounded-lg border border-gray-200 dark:border-zinc-700">
@@ -1039,7 +1068,7 @@
                            name="q_idx_${idx}_blank_${num}" 
                            data-qidx="${idx}" 
                            data-blank="${num}"
-                           placeholder="Nhập đáp án cho (${num})..." 
+                           placeholder="Enter answer for (${num})..." 
                            class="w-full text-xs sm:text-sm bg-transparent focus:outline-none dark:text-white">
                   </div>
                 `).join('')}
@@ -1049,8 +1078,8 @@
 
         return `
           <div class="p-3 sm:p-4 rounded-xl border border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/40 space-y-2 sm:space-y-3">
-            <p class="font-bold text-xs sm:text-sm text-gray-900 dark:text-white">Câu ${qNum}: ${q.question}</p>
-            <input type="text" name="q_idx_${idx}" placeholder="Nhập câu trả lời..." class="w-full p-2 sm:p-2.5 text-xs sm:text-sm rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
+            ${qHead(qNum, q.question)}
+            <input type="text" name="q_idx_${idx}" placeholder="Type your answer..." class="w-full p-2 sm:p-2.5 text-xs sm:text-sm rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-[#cf1717]">
           </div>`;
       }).join('');
     }
@@ -1091,7 +1120,7 @@
       const { data, error } = await sbClient.from('exam_results').insert([payload]);
 
       if (error) {
-        alert("Lỗi lưu kết quả: " + error.message);
+        alert("Error saving result: " + error.message);
         return;
       }
       const urlParams = new URLSearchParams(window.location.search);
@@ -1113,7 +1142,7 @@
       renderResultMode(questions);
 
       const scoreElem = document.getElementById('finalScore');
-      if (scoreElem) scoreElem.innerText = finalScore10 + '/10 điểm';
+      if (scoreElem) scoreElem.innerText = finalScore10 + '/10 points';
       
       const timeElem = document.getElementById('finalTime');
       if (timeElem) timeElem.innerText = Math.floor(timeSpentSeconds / 60) + 'm ' + (timeSpentSeconds % 60) + 's';
@@ -1137,17 +1166,17 @@
         let containerStyle = '';
 
         if (status === 'essay') {
-          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"><i class="bi bi-pencil mr-1"></i>Tự luận (Đã ghi nhận)</span>`;
+          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"><i class="bi bi-pencil mr-1"></i>Essay (Recorded)</span>`;
           containerStyle = 'bg-blue-50/30 border-blue-200 dark:bg-blue-950/10 dark:border-blue-900/40';
         } else if (status === 'correct') {
-          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"><i class="bi bi-check-lg mr-1"></i>Đúng</span>`;
+          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"><i class="bi bi-check-lg mr-1"></i>Correct</span>`;
           containerStyle = 'bg-green-50/50 border-green-200 dark:bg-green-950/20 dark:border-green-900';
         } else if (status === 'partial') {
           const earned = q.earnedPoints !== undefined ? q.earnedPoints : 0;
-          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300"><i class="bi bi-lightning-charge-fill mr-1"></i>Đúng ${(q.correctSubCount || 0)}/${(q.totalBlanks || 0)} ý (+${earned}đ)</span>`;
+          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300"><i class="bi bi-lightning-charge-fill mr-1"></i>Correct ${(q.correctSubCount || 0)}/${(q.totalBlanks || 0)} items (+${earned} pts)</span>`;
           containerStyle = 'bg-amber-50/40 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/60';
         } else {
-          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"><i class="bi bi-x-lg mr-1"></i>Sai</span>`;
+          badgeHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"><i class="bi bi-x-lg mr-1"></i>Wrong</span>`;
           containerStyle = 'bg-red-50/50 border-red-200 dark:bg-red-950/20 dark:border-red-900';
         }
 
@@ -1156,8 +1185,8 @@
         if (status === 'essay') {
           bodyHTML = `
             <div class="p-3 bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 text-xs">
-              <span class="text-gray-400 font-bold block mb-1">Câu trả lời tự luận của bạn:</span>
-              <p class="text-gray-800 dark:text-gray-200 whitespace-pre-line font-medium">${userVal || 'Chưa nhập nội dung.'}</p>
+              <span class="text-gray-400 font-bold block mb-1">Your essay answer:</span>
+              <p class="text-gray-800 dark:text-gray-200 whitespace-pre-line font-medium">${userVal || 'No answer entered.'}</p>
             </div>`;
         } else if (q.options && Array.isArray(q.options) && q.options.length > 0) {
           bodyHTML = q.options.map(opt => {
@@ -1185,7 +1214,7 @@
             ])).sort((a, b) => Number(a) - Number(b));
 
             const subItemsHTML = keys.map(key => {
-              const uSubAns = (userVal && userVal[key]) ? userVal[key] : 'Chưa trả lời';
+              const uSubAns = (userVal && userVal[key]) ? userVal[key] : 'Not answered';
               let cSubAns = correctVal ? correctVal[key] : '';
               if (Array.isArray(cSubAns)) cSubAns = cSubAns.join(' / ');
 
@@ -1193,9 +1222,9 @@
 
               return `
                 <div class="p-2.5 bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 text-xs space-y-1">
-                  <div class="font-bold text-[#cf1717] dark:text-red-400">Vị trí (${key}):</div>
-                  <div><span class="text-gray-400">Bạn nhập:</span> <strong class="${isSubCorrect ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${uSubAns}</strong></div>
-                  <div><span class="text-gray-400">Đáp án chuẩn:</span> <strong class="text-green-600 dark:text-green-400">${cSubAns}</strong></div>
+                  <div class="font-bold text-[#cf1717] dark:text-red-400">Blank (${key}):</div>
+                  <div><span class="text-gray-400">Your answer:</span> <strong class="${isSubCorrect ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${uSubAns}</strong></div>
+                  <div><span class="text-gray-400">Correct answer:</span> <strong class="text-green-600 dark:text-green-400">${cSubAns}</strong></div>
                 </div>`;
             }).join('');
 
@@ -1206,8 +1235,8 @@
 
             bodyHTML = `
               <div class="p-2.5 bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 space-y-1 text-xs">
-                <div><span class="text-gray-400">Bạn nhập:</span> <strong class="${status === 'correct' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${userVal || 'Chưa trả lời'}</strong></div>
-                <div><span class="text-gray-400">Đáp án chuẩn:</span> <strong class="text-green-600 dark:text-green-400">${displayCorrect}</strong></div>
+                <div><span class="text-gray-400">Your answer:</span> <strong class="${status === 'correct' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${userVal || 'Not answered'}</strong></div>
+                <div><span class="text-gray-400">Correct answer:</span> <strong class="text-green-600 dark:text-green-400">${displayCorrect}</strong></div>
               </div>`;
           }
         }
@@ -1219,7 +1248,7 @@
               <div class="mt-3 pt-3 border-t border-gray-200/60 dark:border-zinc-700/60 text-xs">
                 <div class="flex items-center gap-1 text-[#cf1717] dark:text-red-400 font-bold mb-1">
                   <i class="bi bi-lightbulb-fill"></i>
-                  <span>Giải thích chi tiết:</span>
+                  <span>Detailed explanation:</span>
                 </div>
                 <div class="text-gray-700 dark:text-gray-300 leading-relaxed bg-white dark:bg-zinc-800 p-3 rounded-xl border border-gray-100 dark:border-zinc-700">
                   ${q.explanation}
@@ -1228,7 +1257,7 @@
           } else if (typeof q.explanation === 'object') {
             const expItemsHTML = Object.keys(q.explanation).map(key => {
               return '<div class="text-gray-700 dark:text-gray-300 leading-relaxed border-b border-gray-100 dark:border-zinc-700/50 last:border-none pb-1.5 last:pb-0">' +
-                     '<span class="font-black text-[#cf1717] dark:text-red-400">Vị trí (' + key + '):</span> ' + q.explanation[key] +
+                     '<span class="font-black text-[#cf1717] dark:text-red-400">Blank (' + key + '):</span> ' + q.explanation[key] +
                      '</div>';
             }).join('');
 
@@ -1236,7 +1265,7 @@
               <div class="mt-3 pt-3 border-t border-gray-200/60 dark:border-zinc-700/60 text-xs">
                 <div class="flex items-center gap-1 text-[#cf1717] dark:text-red-400 font-bold mb-2">
                   <i class="bi bi-lightbulb-fill"></i>
-                  <span>Giải thích chi tiết từng vị trí:</span>
+                  <span>Detailed explanation for each blank:</span>
                 </div>
                 <div class="space-y-2 bg-white dark:bg-zinc-800 p-3 rounded-xl border border-gray-100 dark:border-zinc-700">
                   ${expItemsHTML}
@@ -1248,7 +1277,7 @@
         return `
           <div class="p-4 sm:p-5 rounded-2xl border ${containerStyle} space-y-3 mb-4">
             <div class="flex justify-between items-start gap-2">
-              <h4 class="font-bold text-sm text-gray-900 dark:text-white">Câu ${idx + 1}: ${q.question || q.title || ''}</h4>
+              <div class="min-w-0 flex-1">${qHead(idx + 1, q.question || q.title || '', 'text-sm')}</div>
               ${badgeHTML}
             </div>
 
@@ -1265,7 +1294,7 @@
 
 function triggerPDFPrint() {
   if (!currentExam) {
-    alert("Đang tải dữ liệu bài thi, vui lòng đợi giây lát!");
+    alert("Loading exam data, please wait a moment!");
     return;
   }
 
@@ -1283,12 +1312,13 @@ function triggerPDFPrint() {
   const questionsPDFHTML = questions.map((q, idx) => {
     if (isBlockQ(q)) {
       if (q.type === 'text') return '<div class="pdf-question-item">' + (q.content || '') + '</div>';
-      let body = q.content || '', bopts = '';
+      let body = q.content || '', bopts = '', note = '';
       if (q.type === 'fill') body = body.replace(/\{\{\s*(\d+)\s*\}\}/g, (m, n) => '<b>(' + n + ')</b> ________');
       if (['mcq', 'multi', 'tf'].includes(q.type) && Array.isArray(q.options)) {
-        bopts = '<div class="pdf-options">' + q.options.map((o, oi) => '<div class="pdf-option"><b>' + String.fromCharCode(65 + oi) + '.</b> ' + escHTML(o.text) + '</div>').join('') + '</div>';
+        bopts = '<div class="pdf-options">' + q.options.map((o, oi) => '<div class="pdf-option"><b>' + (q.type === 'multi' ? '&#9744;' : String.fromCharCode(65 + oi) + '.') + '</b> ' + escHTML(o.text) + '</div>').join('') + '</div>';
       }
-      return '<div class="pdf-question-item"><div class="pdf-question-title">Câu ' + q._num + ': ' + body + '</div>' + bopts + '</div>';
+      if (q.type === 'multi') note = '<div class="pdf-multi-note">(Choose ALL correct answers)</div>';
+      return '<div class="pdf-question-item"><div class="pdf-question-title"><span class="qnum">Question ' + q._num + ':</span><div class="qbody">' + body + '</div></div>' + note + bopts + '</div>';
     }
     let opts = '';
     if (q.options && Array.isArray(q.options)) {
@@ -1297,7 +1327,7 @@ function triggerPDFPrint() {
       '</div>';
     }
     return '<div class="pdf-question-item">' +
-      '<div class="pdf-question-title">Câu ' + (q._num || idx + 1) + ': ' + (q.question || '') + '</div>' +
+      '<div class="pdf-question-title"><span class="qnum">Question ' + (q._num || idx + 1) + ':</span><div class="qbody">' + (q.question || '') + '</div></div>' +
       opts +
     '</div>';
   }).join('');
@@ -1334,9 +1364,9 @@ function triggerPDFPrint() {
         <table class="pdf-vocab-table">
           <thead>
             <tr>
-              <th style="width: 30%;">Từ vựng</th>
-              <th style="width: 30%;">Phiên âm / Từ loại</th>
-              <th style="width: 40%;">Nghĩa tiếng Việt</th>
+              <th style="width: 30%;">Vocabulary</th>
+              <th style="width: 30%;">Pronunciation / Part of speech</th>
+              <th style="width: 40%;">Vietnamese Meaning</th>
             </tr>
           </thead>
           <tbody>
@@ -1417,7 +1447,7 @@ function triggerPDFPrint() {
     }
 
     function confirmSubmitExam() {
-      if (confirm("Bạn có chắc chắn muốn nộp bài thi?")) {
+      if (confirm("Are you sure you want to submit the exam?")) {
         submitExam();
       }
     }
@@ -1426,11 +1456,18 @@ function triggerPDFPrint() {
       const btn = document.getElementById('submitBtn');
       if (btn) {
         btn.disabled = true;
-        btn.innerText = 'Đã Nộp Bài';
+        btn.innerText = 'Submitted';
         btn.className = 'px-3 sm:px-4 py-2 bg-gray-400 dark:bg-zinc-700 text-gray-200 dark:text-gray-400 font-bold text-xs sm:text-sm rounded-xl cursor-not-allowed opacity-75 shadow-none pointer-events-none';
       }
     }
 
+    function updateThemeIcon() {
+      const icon = document.getElementById('themeIcon');
+      if (!icon) return;
+      const isDark = document.documentElement.classList.contains('dark');
+      // Light mode -> moon (click to go dark); dark mode -> sun (click to go light)
+      icon.className = 'bi ' + (isDark ? 'bi-sun-fill text-amber-400' : 'bi-moon-stars-fill');
+    }
     function toggleDarkMode() {
       if (document.documentElement.classList.contains('dark')) {
         document.documentElement.classList.remove('dark');
@@ -1439,7 +1476,9 @@ function triggerPDFPrint() {
         document.documentElement.classList.add('dark');
         localStorage.theme = 'dark';
       }
+      updateThemeIcon();
     }
+    document.addEventListener('DOMContentLoaded', updateThemeIcon);
 
     async function rewardXPAndStreak(addedXp = 20) {
       if (!currentUser) return;
@@ -1552,15 +1591,15 @@ async function onExamFinished(score, totalQuestions, timeInSeconds) {
   <div class="bg-white dark:bg-zinc-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-100 dark:border-zinc-800 space-y-4">
     <div class="text-center space-y-1">
       <i class="bi bi-trophy-fill text-3xl text-amber-400"></i>
-      <h3 class="text-xl font-black text-gray-900 dark:text-white">Bảng Kết Quả Phòng Thi</h3>
-      <p class="text-xs text-gray-500">Cập nhật trực tiếp tiến độ nộp bài của các thành viên</p>
+      <h3 class="text-xl font-black text-gray-900 dark:text-white">Room Results</h3>
+      <p class="text-xs text-gray-500">Live updates on members' submissions</p>
     </div>
 
     <!-- Nơi render danh sách xếp hạng Realtime -->
     <div id="leaderboardContent" class="space-y-2 max-h-64 overflow-y-auto pr-1"></div>
 
     <button onclick="exitToDashboard()" class="w-full py-3 bg-zinc-900 text-white font-extrabold text-sm rounded-xl hover:bg-black transition active:scale-95">
-      Rời Phòng & Trở Về Dashboard
+      Leave Room &amp; Back to Dashboard
     </button>
     
   </div>
