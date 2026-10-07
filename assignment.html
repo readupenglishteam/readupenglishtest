@@ -1612,7 +1612,7 @@
     else if (expired) { msg = `<i class="bi bi-alarm"></i> Bài tập đã hết hạn (${due}). Bạn không thể làm hoặc sửa nữa — bên dưới là bài làm gần nhất, kèm điểm và nhận xét của giáo viên nếu đã chấm.`; tone = 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-300'; }
     else if (canEdit) { msg = `<i class="bi bi-pencil"></i> ${due ? 'Bài còn hạn đến ' + due + '. ' : ''}Bên dưới là điểm của từng câu. Đáp án đúng và giải thích sẽ hiện sau khi bài hết hạn. Câu nào chưa đạt điểm tối đa, bấm “Sửa câu này” để làm lại rồi bấm “Lưu chỉnh sửa”.${a.max_attempts ? ' Còn ' + (a.max_attempts - used) + ' lượt lưu.' : ''}`; tone = 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'; }
     else { msg = `<i class="bi bi-info-circle-fill"></i> Bạn đã dùng hết ${a.max_attempts} lượt làm/sửa bài — đây là kết quả gần nhất.${rv.reveal ? '' : ' Đáp án đúng và giải thích sẽ hiện khi bài hết hạn' + (due ? ' (' + due + ')' : '') + '.'}`; tone = 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-300'; }
-    const bn = pel('rsBanner'); bn.className = 'text-xs font-semibold rounded-xl p-3 text-left ' + tone; bn.innerText = msg;
+    const bn = pel('rsBanner'); bn.className = 'text-xs font-semibold rounded-xl p-3 text-left ' + tone; bn.innerHTML = msg;
 
     rvRenderAll();
     initReadingHighlighting();
