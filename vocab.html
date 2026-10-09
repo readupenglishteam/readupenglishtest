@@ -678,6 +678,7 @@ Danh sách: ${JSON.stringify(list)}`;
     });
     if (s === 'az') list = [...list].sort((a, b) => a.word.localeCompare(b.word));
     if (s === 'weak') list = [...list].sort((a, b) => (b.wrong_count - b.correct_count) - (a.wrong_count - a.correct_count));
+    if (colSort.col && colSort.dir) list = sortByCol(list);
     return list;
   }
 
@@ -716,20 +717,41 @@ Danh sách: ${JSON.stringify(list)}`;
     return true;
   }
   let colOpen = null;
+  const colSort = { col: '', dir: '' };   // dir: 'asc' | 'desc'
+  const STATUS_RANK = { new: 0, learning: 1, weak: 2, done: 3 };
+  function sortKey(w, c) {
+    if (c === 'pos') return posList(w)[0] || '';
+    if (c === 'status') return statusOf(w);
+    return String(w[c] || '').trim();
+  }
+  function sortByCol(list) {
+    const c = colSort.col, m = colSort.dir === 'desc' ? -1 : 1;
+    return [...list].sort((a, b) => {
+      if (c === 'status') return m * (STATUS_RANK[statusOf(a)] - STATUS_RANK[statusOf(b)]) || a.word.localeCompare(b.word, 'en', { sensitivity: 'base' });
+      const x = sortKey(a, c), y = sortKey(b, c);
+      if (!x && !y) return 0; if (!x) return 1; if (!y) return -1;   // ô trống luôn nằm cuối
+      return m * x.localeCompare(y, c === 'meaning' ? 'vi' : 'en', { sensitivity: 'base', numeric: true });
+    });
+  }
+  function setColSort(c, dir) {
+    if (colSort.col === c && colSort.dir === dir) { colSort.col = ''; colSort.dir = ''; } else { colSort.col = c; colSort.dir = dir; }
+    openColFilter(null, c, true); colApply();
+  }
   function paintColBtns() {
     let any = false;
-    document.querySelectorAll('.colf-btn').forEach(b => { const on = colActive(b.dataset.col); any = any || on; b.classList.toggle('on', on); });
+    document.querySelectorAll('.colf-btn').forEach(b => { const c = b.dataset.col, sorted = colSort.col === c && !!colSort.dir, on = colActive(c) || sorted; any = any || on; b.classList.toggle('on', on); b.innerHTML = `<i class="bi ${sorted ? (colSort.dir === 'asc' ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up') : 'bi-filter'}"></i>`; });
     $('colfClear')?.classList.toggle('hidden', !any);
   }
   function colApply() { page = 1; paintColBtns(); renderList(); }
   function clearColFilters() {
     colF.word.text = ''; colF.word.mode = 'contains'; colF.pos.sel.clear(); colF.meaning.text = '';
-    colF.collocation.text = colF.collocation.has = colF.example.text = colF.example.has = ''; colF.status.sel.clear();
+    colF.collocation.text = colF.collocation.has = colF.example.text = colF.example.has = ''; colF.status.sel.clear(); colSort.col = colSort.dir = '';
     closeColFilter(); colApply();
   }
   function closeColFilter() { colOpen = null; $('colFilterPop')?.classList.add('hidden'); }
   function clearOneCol(c) {
     const f = colF[c]; if ('text' in f) f.text = ''; if ('has' in f) f.has = ''; if (f.sel) f.sel.clear(); if (c === 'word') f.mode = 'contains';
+    if (colSort.col === c) colSort.col = colSort.dir = '';
     openColFilter(null, c, true); colApply();
   }
   function colSet(c, k, v) { colF[c][k] = v; colApply(); }
@@ -762,8 +784,11 @@ Danh sách: ${JSON.stringify(list)}`;
       const cnt = {}; words.forEach(w => { const k = statusOf(w); cnt[k] = (cnt[k] || 0) + 1; });
       body = STATUS_OPTS.map(([k, label]) => check(k, colF.status.sel.has(k), label, `colToggle('status','${k}',this.checked)`, cnt[k] || 0)).join('');
     }
+    const lbl = c === 'status' ? ['Mới → Đã thuộc', 'Đã thuộc → Mới'] : ['A → Z', 'Z → A'];
+    const sbtn = (dir, label, icon) => `<button onclick="setColSort('${c}','${dir}')" class="flex-1 px-2 py-2 rounded-xl text-xs font-extrabold transition ${colSort.col === c && colSort.dir === dir ? 'bg-[#cf1717] text-white shadow' : 'bg-gray-100 dark:bg-zinc-800 hover:bg-red-50 dark:hover:bg-zinc-700'}"><i class="bi ${icon}"></i> ${label}</button>`;
+    const sortHtml = `<p class="text-[11px] font-extrabold uppercase text-gray-400 mb-1">Sắp xếp</p><div class="flex gap-2 mb-3">${sbtn('asc', lbl[0], 'bi-sort-alpha-down')}${sbtn('desc', lbl[1], 'bi-sort-alpha-up')}</div><p class="text-[11px] font-extrabold uppercase text-gray-400 mb-1 border-t border-gray-100 dark:border-zinc-800 pt-2">Lọc</p>`;
     pop.innerHTML = `<div class="flex items-center justify-between mb-2"><p class="text-[11px] font-extrabold uppercase text-gray-400"><i class="bi bi-filter"></i> Lọc: ${titles[c]}</p>
-      <button onclick="clearOneCol('${c}')" class="text-[11px] font-extrabold text-[#cf1717] hover:underline">Xóa lọc</button></div>${body}`;
+      <button onclick="clearOneCol('${c}')" class="text-[11px] font-extrabold text-[#cf1717] hover:underline">Xóa lọc &amp; sắp xếp</button></div>${sortHtml}${body}`;
     pop.classList.remove('hidden');
     const btn = document.querySelector(`.colf-btn[data-col="${c}"]`), r = btn.getBoundingClientRect(), pw = pop.offsetWidth || 250;
     pop.style.left = Math.max(8, Math.min(r.left, innerWidth - pw - 8)) + 'px';
