@@ -55,6 +55,11 @@
     mark.hl { background: #fde68a; color: #111; border-radius: 3px; padding: 0 2px; }
     .no-sb { scrollbar-width: none; -webkit-overflow-scrolling: touch; }
     .no-sb::-webkit-scrollbar { display: none; }
+    .colf-btn { display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:8px; font-size:16px; line-height:1; color:#9ca3af; position:relative; transition:background .15s,color .15s; flex-shrink:0; }
+    .colf-btn:hover { background:#fee2e2; color:#cf1717; }
+    .dark .colf-btn:hover { background:rgba(207,23,23,.25); }
+    .colf-btn.on { background:#cf1717; color:#fff; }
+    #colFilterPop { position:fixed; z-index:55; width:250px; max-width:calc(100vw - 16px); max-height:70vh; overflow-y:auto; }
     .pos-tag { display:inline-block; font-size:11px; font-weight:800; font-style:italic; letter-spacing:0; padding:1px 8px; margin-left:6px; border-radius:999px; background:#fee2e2; color:#cf1717; vertical-align:middle; white-space:nowrap; }
     .dark .pos-tag { background:rgba(207,23,23,.25); color:#fca5a5; }
   /* ===== BÉ MÈO NẰM TRÊN THẺ NHIỆM VỤ ===== */
@@ -279,7 +284,7 @@
     <!-- KHO TỪ VỰNG + TÌM KIẾM -->
     <section id="section-danh-sach" class="rounded-3xl bg-white/80 dark:bg-zinc-900/80 backdrop-blur border border-gray-200 dark:border-zinc-800 shadow-lg p-4 sm:p-6">
       <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h2 class="text-lg font-black"><i class="bi bi-card-list text-[#cf1717]"></i> Kho từ vựng <span id="listCount" class="text-xs font-bold text-gray-400"></span></h2>
+        <h2 class="text-lg font-black"><i class="bi bi-card-list text-[#cf1717]"></i> Kho từ vựng <span id="listCount" class="text-xs font-bold text-gray-400"></span> <button id="colfClear" onclick="clearColFilters()" class="hidden ml-1 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-red-50 dark:bg-red-950/40 text-[#cf1717] hover:bg-red-100 transition align-middle"><i class="bi bi-x-circle-fill"></i> Xóa bộ lọc cột</button></h2>
         <div class="flex flex-wrap gap-2 w-full sm:w-auto">
           <div class="relative flex-1 sm:w-72">
             <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
@@ -303,12 +308,12 @@
         <table class="w-full text-sm min-w-[720px]">
           <thead class="bg-gray-50 dark:bg-zinc-800/60 text-[11px] uppercase font-extrabold text-gray-500 dark:text-gray-400">
             <tr>
-              <th class="p-3 text-left">Từ vựng</th>
-              <th class="p-3 text-left">Từ loại</th>
-              <th class="p-3 text-left">Nghĩa</th>
-              <th class="p-3 text-left hidden lg:table-cell">Collocation</th>
-              <th class="p-3 text-left hidden md:table-cell">Ví dụ</th>
-              <th class="p-3 text-center">Trạng thái</th>
+              <th class="p-3 text-left"><div class="flex items-center gap-1 "><span>Từ vựng</span><button type="button" data-col="word" onclick="openColFilter(event,'word')" class="colf-btn" title="Lọc theo từ vựng"><i class="bi bi-filter"></i></button></div></th>
+              <th class="p-3 text-left"><div class="flex items-center gap-1 "><span>Từ loại</span><button type="button" data-col="pos" onclick="openColFilter(event,'pos')" class="colf-btn" title="Lọc theo từ loại"><i class="bi bi-filter"></i></button></div></th>
+              <th class="p-3 text-left"><div class="flex items-center gap-1 "><span>Nghĩa</span><button type="button" data-col="meaning" onclick="openColFilter(event,'meaning')" class="colf-btn" title="Lọc theo nghĩa"><i class="bi bi-filter"></i></button></div></th>
+              <th class="p-3 text-left hidden lg:table-cell"><div class="flex items-center gap-1 "><span>Collocation</span><button type="button" data-col="collocation" onclick="openColFilter(event,'collocation')" class="colf-btn" title="Lọc theo collocation"><i class="bi bi-filter"></i></button></div></th>
+              <th class="p-3 text-left hidden md:table-cell"><div class="flex items-center gap-1 "><span>Ví dụ</span><button type="button" data-col="example" onclick="openColFilter(event,'example')" class="colf-btn" title="Lọc theo ví dụ"><i class="bi bi-filter"></i></button></div></th>
+              <th class="p-3 text-center"><div class="flex items-center gap-1 justify-center"><span>Trạng thái</span><button type="button" data-col="status" onclick="openColFilter(event,'status')" class="colf-btn" title="Lọc theo trạng thái"><i class="bi bi-filter"></i></button></div></th>
               <th class="p-3 w-24"></th>
             </tr>
           </thead>
@@ -360,6 +365,7 @@
 
   <!-- TOAST -->
   <datalist id="posList"><option value="n"><option value="v"><option value="adj"><option value="adv"><option value="prep"><option value="conj"><option value="pron"><option value="det"><option value="interj"><option value="phr"><option value="phr v"><option value="idiom"></datalist>
+  <div id="colFilterPop" class="hidden bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-2xl p-3 text-sm normal-case" onclick="event.stopPropagation()"></div>
   <div id="toastBox" class="fixed bottom-4 right-4 z-[60] space-y-2"></div>
 
 <script>
@@ -665,6 +671,7 @@ Danh sách: ${JSON.stringify(list)}`;
       if (f === 'new' && !isNew(w)) return false;
       if (f === 'weak' && !isWeak(w)) return false;
       if (f === 'done' && !isMastered(w)) return false;
+      if (!colMatch(w)) return false;
       if (!q) return true;
       const ql = strip(q);
       return [w.word, w.meaning, w.pos, w.collocation, w.example, w.note, w.ipa].some(x => strip(x).includes(ql));
@@ -673,6 +680,100 @@ Danh sách: ${JSON.stringify(list)}`;
     if (s === 'weak') list = [...list].sort((a, b) => (b.wrong_count - b.correct_count) - (a.wrong_count - a.correct_count));
     return list;
   }
+
+  // ============================================================
+  // BỘ LỌC THEO CỘT (bấm biểu tượng phễu ở tiêu đề cột)
+  // ============================================================
+  const colF = {
+    word: { mode: 'contains', text: '' }, pos: { sel: new Set() }, meaning: { text: '' },
+    collocation: { text: '', has: '' }, example: { text: '', has: '' }, status: { sel: new Set() }
+  };
+  const STATUS_OPTS = [['new', 'Mới'], ['learning', 'Đang học'], ['weak', 'Cần ôn'], ['done', 'Đã thuộc']];
+  const statusOf = w => isMastered(w) ? 'done' : isNew(w) ? 'new' : isWeak(w) ? 'weak' : 'learning';
+  const posList = w => w.pos ? w.pos.split(', ').filter(Boolean) : [];
+  function colActive(c) {
+    const f = colF[c];
+    return !!(f.text || f.has || (f.sel && f.sel.size) || (c === 'word' && f.text));
+  }
+  function colMatch(w) {
+    const F = colF;
+    if (F.word.text) {
+      const t = strip(F.word.text), v = strip(w.word);
+      if (F.word.mode === 'starts' ? !v.startsWith(t) : F.word.mode === 'ends' ? !v.endsWith(t) : !v.includes(t)) return false;
+    }
+    if (F.pos.sel.size) {
+      const ps = posList(w);
+      if (!(ps.length ? ps.some(p => F.pos.sel.has(p)) : F.pos.sel.has('__none'))) return false;
+    }
+    if (F.meaning.text && !strip(w.meaning).includes(strip(F.meaning.text))) return false;
+    for (const c of ['collocation', 'example']) {
+      const f = F[c], v = w[c] || '';
+      if (f.has === 'yes' && !v.trim()) return false;
+      if (f.has === 'no' && v.trim()) return false;
+      if (f.text && !strip(v).includes(strip(f.text))) return false;
+    }
+    if (F.status.sel.size && !F.status.sel.has(statusOf(w))) return false;
+    return true;
+  }
+  let colOpen = null;
+  function paintColBtns() {
+    let any = false;
+    document.querySelectorAll('.colf-btn').forEach(b => { const on = colActive(b.dataset.col); any = any || on; b.classList.toggle('on', on); });
+    $('colfClear')?.classList.toggle('hidden', !any);
+  }
+  function colApply() { page = 1; paintColBtns(); renderList(); }
+  function clearColFilters() {
+    colF.word.text = ''; colF.word.mode = 'contains'; colF.pos.sel.clear(); colF.meaning.text = '';
+    colF.collocation.text = colF.collocation.has = colF.example.text = colF.example.has = ''; colF.status.sel.clear();
+    closeColFilter(); colApply();
+  }
+  function closeColFilter() { colOpen = null; $('colFilterPop')?.classList.add('hidden'); }
+  function clearOneCol(c) {
+    const f = colF[c]; if ('text' in f) f.text = ''; if ('has' in f) f.has = ''; if (f.sel) f.sel.clear(); if (c === 'word') f.mode = 'contains';
+    openColFilter(null, c, true); colApply();
+  }
+  function colSet(c, k, v) { colF[c][k] = v; colApply(); }
+  function colToggle(c, v, on) { on ? colF[c].sel.add(v) : colF[c].sel.delete(v); colApply(); }
+  function openColFilter(e, c, keep) {
+    if (e) e.stopPropagation();
+    const pop = $('colFilterPop');
+    if (!keep && colOpen === c && !pop.classList.contains('hidden')) return closeColFilter();
+    colOpen = c;
+    const inp = 'w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-sm focus:outline-none focus:ring-2 focus:ring-[#cf1717]';
+    const radio = (name, val, cur, label, fn) => `<label class="flex items-center gap-2 py-1 cursor-pointer text-xs font-bold"><input type="radio" name="${name}" ${cur === val ? 'checked' : ''} onchange="${fn}" class="accent-[#cf1717]"> ${label}</label>`;
+    const check = (val, on, label, fn, extra) => `<label class="flex items-center gap-2 py-1 cursor-pointer text-xs font-bold"><input type="checkbox" ${on ? 'checked' : ''} onchange="${fn}" class="accent-[#cf1717] w-4 h-4"> <span class="flex-1">${label}</span>${extra ? `<span class="text-gray-400 font-semibold">${extra}</span>` : ''}</label>`;
+    const textBox = (col, ph) => `<input id="colfText" type="text" value="${esc(colF[col].text)}" placeholder="${ph}" oninput="colSet('${col}','text',this.value)" class="${inp}">`;
+    const hasBox = col => `<div class="mt-2 border-t border-gray-100 dark:border-zinc-800 pt-2">${radio('colfHas', '', colF[col].has, 'Tất cả', `colSet('${col}','has','')`)}${radio('colfHas', 'yes', colF[col].has, 'Đã có nội dung', `colSet('${col}','has','yes')`)}${radio('colfHas', 'no', colF[col].has, 'Còn trống', `colSet('${col}','has','no')`)}</div>`;
+    const titles = { word: 'Từ vựng', pos: 'Từ loại', meaning: 'Nghĩa', collocation: 'Collocation', example: 'Ví dụ', status: 'Trạng thái' };
+    let body = '';
+    if (c === 'word') body = `${textBox('word', 'Nhập chữ cần lọc...')}<div class="mt-2">${radio('colfMode', 'contains', colF.word.mode, 'Chứa', "colSet('word','mode','contains')")}${radio('colfMode', 'starts', colF.word.mode, 'Bắt đầu bằng', "colSet('word','mode','starts')")}${radio('colfMode', 'ends', colF.word.mode, 'Kết thúc bằng', "colSet('word','mode','ends')")}</div>`;
+    if (c === 'meaning') body = textBox('meaning', 'Nhập nghĩa cần lọc...');
+    if (c === 'collocation') body = textBox('collocation', 'Nhập collocation...') + hasBox('collocation');
+    if (c === 'example') body = textBox('example', 'Nhập từ trong ví dụ...') + hasBox('example');
+    if (c === 'pos') {
+      const cnt = new Map(); let none = 0;
+      words.forEach(w => { const ps = posList(w); if (!ps.length) none++; ps.forEach(p => cnt.set(p, (cnt.get(p) || 0) + 1)); });
+      const items = [...cnt.entries()].sort((a, b) => b[1] - a[1]);
+      body = items.map(([p, n]) => check(p, colF.pos.sel.has(p), `<b class="text-[#cf1717]">${esc(p)}</b> <span class="font-semibold text-gray-500">${esc(POS_VN[p] || '')}</span>`, `colToggle('pos','${esc(p).replace(/'/g, "\\'")}',this.checked)`, n)).join('')
+        + (none ? check('__none', colF.pos.sel.has('__none'), 'Chưa có từ loại', "colToggle('pos','__none',this.checked)", none) : '');
+      if (!body) body = '<p class="text-xs text-gray-400">Chưa có dữ liệu từ loại.</p>';
+    }
+    if (c === 'status') {
+      const cnt = {}; words.forEach(w => { const k = statusOf(w); cnt[k] = (cnt[k] || 0) + 1; });
+      body = STATUS_OPTS.map(([k, label]) => check(k, colF.status.sel.has(k), label, `colToggle('status','${k}',this.checked)`, cnt[k] || 0)).join('');
+    }
+    pop.innerHTML = `<div class="flex items-center justify-between mb-2"><p class="text-[11px] font-extrabold uppercase text-gray-400"><i class="bi bi-filter"></i> Lọc: ${titles[c]}</p>
+      <button onclick="clearOneCol('${c}')" class="text-[11px] font-extrabold text-[#cf1717] hover:underline">Xóa lọc</button></div>${body}`;
+    pop.classList.remove('hidden');
+    const btn = document.querySelector(`.colf-btn[data-col="${c}"]`), r = btn.getBoundingClientRect(), pw = pop.offsetWidth || 250;
+    pop.style.left = Math.max(8, Math.min(r.left, innerWidth - pw - 8)) + 'px';
+    pop.style.top = (r.bottom + 6) + 'px';
+    setTimeout(() => $('colfText')?.focus(), 30);
+  }
+  document.addEventListener('click', e => { if (colOpen && !e.target.closest('#colFilterPop')) closeColFilter(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeColFilter(); });
+  window.addEventListener('resize', closeColFilter);
+  document.addEventListener('scroll', e => { if (colOpen && !(e.target.closest && e.target.closest('#colFilterPop'))) closeColFilter(); }, true);
   function statusBadge(w) {
     if (isMastered(w)) return '<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">Đã thuộc</span>';
     if (isNew(w)) return '<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gray-100 text-gray-500 dark:bg-zinc-800 dark:text-gray-400">Mới</span>';
