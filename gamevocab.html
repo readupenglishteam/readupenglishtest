@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadUp English - Game Từ Vựng</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <style>
+    html, body, button, input, select, textarea, * { font-family: 'Montserrat', sans-serif; }
+  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Montserrat','sans-serif'] } } } }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else { document.documentElement.classList.remove('dark'); }
+  </script>
+  <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    @keyframes blob { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(30px,-50px) scale(1.1)} 66%{transform:translate(-20px,20px) scale(.95)} }
+    .animate-blob { animation: blob 10s infinite ease-in-out; }
+    .animation-delay-2000 { animation-delay: 2s; } .animation-delay-4000 { animation-delay: 4s; }
+    @keyframes toastProgress { from{width:100%} to{width:0%} }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-8px)} 40%,80%{transform:translateX(8px)} }
+    .shake { animation: shake .4s; }
+    @keyframes pop { 0%{transform:scale(.85);opacity:0} 100%{transform:scale(1);opacity:1} }
+    .pop { animation: pop .25s ease-out; }
+    .gcard { transition: transform .2s, box-shadow .2s; }
+    .gcard:hover { transform: translateY(-4px); box-shadow: 0 18px 30px -12px rgba(207,23,23,.35); }
+    .lbox { width: 2.4rem; height: 3rem; display:inline-flex; align-items:center; justify-content:center; border-radius: .75rem; font-weight: 900; font-size: 1.25rem; text-transform: uppercase; }
+    .kb { min-width: 2.1rem; }
+    .no-sb { scrollbar-width: none; } .no-sb::-webkit-scrollbar { display: none; }
+  </style>
+</head>
+<body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen transition-colors duration-300">
+
+  <!-- NỀN ĐỘNG -->
+  <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none select-none bg-slate-50 dark:bg-zinc-950">
+    <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#cf1717]/20 dark:bg-[#cf1717]/15 rounded-full blur-3xl animate-blob"></div>
+    <div class="absolute top-1/3 -right-24 w-[30rem] h-[30rem] bg-indigo-500/15 dark:bg-red-900/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+    <div class="absolute -bottom-24 left-1/3 w-96 h-96 bg-amber-500/15 dark:bg-amber-600/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+  </div>
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-30 backdrop-blur bg-white/80 dark:bg-zinc-900/80 border-b border-gray-200 dark:border-zinc-800">
+    <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+      <a href="vocab.html" class="flex items-center gap-2 text-xs font-extrabold text-[#cf1717] hover:opacity-80"><i class="bi bi-arrow-left-circle-fill text-lg"></i> Từ vựng của tôi</a>
+      <p class="text-sm font-black hidden sm:block"><i class="bi bi-controller text-[#cf1717]"></i> Game Từ Vựng</p>
+      <button onclick="toggleTheme()" class="w-9 h-9 rounded-full bg-gray-100 dark:bg-zinc-800 hover:bg-red-50 dark:hover:bg-zinc-700 transition" title="Sáng / tối"><i class="bi bi-moon-stars-fill dark:hidden"></i><i class="bi bi-sun-fill hidden dark:inline"></i></button>
+    </div>
+  </header>
+
+  <!-- MÀN HÌNH CHỌN GAME -->
+  <main class="max-w-5xl mx-auto px-4 py-6">
+    <section class="rounded-3xl bg-gradient-to-br from-[#cf1717] to-red-700 text-white p-6 shadow-xl">
+      <p class="text-xs font-extrabold uppercase opacity-80">Chọn màn chơi</p>
+      <h1 class="text-2xl sm:text-3xl font-black mt-1">Học từ vựng bằng trò chơi <i class="bi bi-stars"></i></h1>
+      <p class="text-sm opacity-90 mt-1">Dữ liệu lấy trực tiếp từ kho từ vựng của bạn. Chơi xong, tiến độ ôn tập được cập nhật luôn.</p>
+      <div id="heroStats" class="flex flex-wrap gap-2 mt-4 text-xs font-bold"></div>
+    </section>
+    <section id="menu" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6"></section>
+    <p class="text-[11px] text-gray-400 text-center mt-6">Mẹo: chơi 5–10 phút mỗi ngày hiệu quả hơn chơi một buổi dài.</p>
+  </main>
+
+  <!-- KHUNG CHƠI GAME -->
+  <div id="gOverlay" class="hidden fixed inset-0 z-40 bg-gray-50 dark:bg-zinc-950 overflow-y-auto">
+    <div class="max-w-2xl mx-auto px-4 py-4 min-h-full flex flex-col">
+      <div class="flex items-center justify-between gap-3">
+        <button onclick="closeGame()" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-zinc-800 hover:bg-red-50 dark:hover:bg-zinc-700 flex-shrink-0"><i class="bi bi-x-lg"></i></button>
+        <p id="gTitle" class="text-sm font-black truncate"></p>
+        <p id="gScore" class="text-sm font-black text-amber-500 flex-shrink-0"></p>
+      </div>
+      <div class="h-2 rounded-full bg-gray-200 dark:bg-zinc-800 mt-3 overflow-hidden"><div id="gBar" class="h-full bg-[#cf1717] transition-all" style="width:0%"></div></div>
+      <div id="gBody" class="flex-1 py-5"></div>
+    </div>
+  </div>
+
+  <!-- HỘP THOẠI "ĐANG PHÁT TRIỂN" -->
+  <div id="soon" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onclick="this.classList.add('hidden')">
+    <div class="pop bg-white dark:bg-zinc-900 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl" onclick="event.stopPropagation()">
+      <div class="text-5xl mb-2">🚧</div>
+      <h3 id="soonTitle" class="text-lg font-black"></h3>
+      <p class="text-sm text-gray-500 mt-2">Game này đang được phát triển và sẽ sớm ra mắt. Bạn quay lại sau nhé!</p>
+      <button onclick="$('soon').classList.add('hidden')" class="mt-5 px-6 py-2.5 rounded-2xl bg-[#cf1717] text-white text-sm font-black hover:bg-red-700">Đã hiểu</button>
+    </div>
+  </div>
+
+  <div id="toastBox" class="fixed bottom-4 right-4 z-[60] space-y-2"></div>
+
+<script>
+// ============================================================
+// KẾT NỐI & DỮ LIỆU (dùng chung với vocab.html)
+// ============================================================
+const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
+const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
+const WORKER_URL = "https://readupenglishtest.vercel.app/api/dictionary";
+const DEMO = new URLSearchParams(location.search).has('demo');   // ?demo=1 : chạy thử không cần đăng nhập
+const sbClient = (!DEMO && window.supabase) ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const reEsc = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+let user = null, words = [], G = null;
+
+function toggleTheme() {
+  const d = document.documentElement.classList.toggle('dark');
+  localStorage.theme = d ? 'dark' : 'light';
+}
+function toast(msg, type = 'ok') {
+  const colors = type === 'err' ? 'bg-red-600' : type === 'warn' ? 'bg-amber-500' : 'bg-emerald-600';
+  const el = document.createElement('div');
+  el.className = `${colors} text-white text-xs font-bold px-4 py-3 rounded-xl shadow-xl max-w-xs relative overflow-hidden`;
+  el.innerHTML = `${esc(msg)}<div class="absolute bottom-0 left-0 h-1 bg-white/60" style="animation:toastProgress 4s linear forwards"></div>`;
+  $('toastBox').appendChild(el); setTimeout(() => el.remove(), 4000);
+}
+
+// ---- chuẩn hoá chuỗi / chấm bài ----
+const norm = s => String(s || '').toLowerCase().normalize('NFC').replace(/\s+/g, ' ').trim().replace(/[.!?,;:]+$/, '');
+const strip = s => norm(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd');
+const isSym = c => /[^\p{L}\p{N}]/u.test(c);
+const core = s => strip(s).replace(/[^\p{L}\p{N}]/gu, '');
+function lev(a, b) { const d = Array.from({ length: a.length + 1 }, (_, i) => [i]); for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1)); return d[a.length][b.length]; }
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function grade(typed, target) {           // ok | typo | bad | empty
+  const c = core(typed), a = core(target);
+  if (!c) return 'empty'; if (c === a) return 'ok';
+  if (a.length >= 5 && lev(c, a) <= 1) return 'typo';
+  return 'bad';
+}
+
+// ---- từ loại ----
+const POS_MAP = { noun: 'n', verb: 'v', adjective: 'adj', adverb: 'adv', preposition: 'prep', conjunction: 'conj', pronoun: 'pron', determiner: 'det', phrase: 'phr', 'phrasal verb': 'phr v', interjection: 'interj' };
+function normPos(p) { return String(p || '').toLowerCase().replace(/\./g, '').split(/\s*[,\/|]\s*/).map(x => { x = x.trim(); return POS_MAP[x] || x; }).filter(Boolean).join(', '); }
+function splitPos(o) {
+  if (o.pos) o.pos = normPos(o.pos);
+  else if (o.meaning) {
+    const m = String(o.meaning).match(/^\s*\(([^)]{1,24})\)\s*([\s\S]*)$/);
+    if (m && m[2] && /^[a-z][a-z .,\/]*$/i.test(m[1])) { o.pos = normPos(m[1]); o.meaning = m[2]; }
+  }
+  return o;
+}
+const posChip = w => w.pos ? `<span class="inline-block text-[11px] font-extrabold italic px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-950/50 text-[#cf1717] ml-1">${esc(w.pos)}</span>` : '';
+const cleanMeaning = w => String(w.meaning || '').replace(/^\s*\([^)]*\)\s*/, '').trim();
+
+// ---- trạng thái từ (giống vocab.html) ----
+const isNew = w => !w.last_reviewed;
+const isDue = w => w.last_reviewed && new Date(w.due_at || 0).getTime() <= Date.now();
+const isWeak = w => !!w.last_reviewed && (w.wrong_count || 0) > 0 && (w.interval_days || 0) < 3;
+const pool = () => words.filter(w => w.word && cleanMeaning(w));
+
+async function loadWords() {
+  const { data, error } = await sbClient.from('vocab_words').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).range(0, 4999);
+  if (error) { console.error(error); toast('Không tải được từ vựng', 'err'); words = []; return; }
+  words = (data || []).map(w => splitPos({ interval_days: 0, ease: 2.5, reps: 0, correct_count: 0, wrong_count: 0, due_at: new Date().toISOString(), ...w }));
+}
+function demoWords() {
+  const d = [
+    ['abandon','/əˈbændən/','v','từ bỏ, bỏ rơi','They had to abandon the car in the snow.'],
+    ['benefit','/ˈbenɪfɪt/','n','lợi ích','Regular exercise has many health benefits.'],
+    ['challenge','/ˈtʃælɪndʒ/','n','thử thách','Learning a new language is a big challenge.'],
+    ['consume','/kənˈsuːm/','v','tiêu thụ','Cars consume a lot of fuel in the city.'],
+    ['diverse','/daɪˈvɜːs/','adj','đa dạng','The city has a diverse population.'],
+    ['efficient','/ɪˈfɪʃnt/','adj','hiệu quả','She found a more efficient way to study.'],
+    ['fundamental','/ˌfʌndəˈmentl/','adj','cơ bản, nền tảng','Honesty is fundamental to any friendship.'],
+    ['generate','/ˈdʒenəreɪt/','v','tạo ra','Wind turbines generate clean electricity.'],
+    ['hesitate','/ˈhezɪteɪt/','v','do dự','Do not hesitate to ask for help.'],
+    ['improve','/ɪmˈpruːv/','v','cải thiện','Reading every day will improve your vocabulary.'],
+    ['significant','/sɪɡˈnɪfɪkənt/','adj','đáng kể','There was a significant increase in sales.'],
+    ['take advantage of','','phr','tận dụng','You should take advantage of this opportunity.'],
+    ['sustain','/səˈsteɪn/','v','duy trì','It is hard to sustain this level of effort.'],
+    ['reluctant','/rɪˈlʌktənt/','adj','miễn cưỡng','He was reluctant to share his opinion.'],
+    ['obvious','/ˈɒbviəs/','adj','rõ ràng','It was obvious that she was tired.']
+  ];
+  return d.map((x, i) => ({ id: 'demo' + i, word: x[0], ipa: x[1], pos: x[2], meaning: x[3], example: x[4], correct_count: i % 4, wrong_count: i % 3 === 0 ? 2 : 0,
+    last_reviewed: i < 11 ? new Date(Date.now() - 864e5 * 3).toISOString() : null, interval_days: i < 11 ? [1,3,7,1,3,14,3,1,7,3,1][i] : 0, reps: i % 5, ease: 2.5,
+    due_at: new Date(Date.now() + (i % 2 ? -1 : 3) * 864e5).toISOString() }));
+}
+
+// ---- lưu tiến độ (cùng thuật toán SRS với vocab.html) ----
+function srsUpdate(w, good, soft) {
+  const iv = w.interval_days || 0; w.ease = w.ease || 2.5;
+  if (!good) { w.wrong_count++; w.reps = 0; w.interval_days = 1; w.ease = Math.max(1.3, w.ease - 0.2); }
+  else {
+    w.correct_count++; w.reps = (w.reps || 0) + 1;
+    w.interval_days = soft ? Math.max(1, Math.round(iv * 1.2)) : iv < 1 ? 1 : iv < 3 ? 3 : Math.round(iv * w.ease);
+    if (soft) w.ease = Math.max(1.3, w.ease - 0.05);
+  }
+  w.due_at = new Date(Date.now() + w.interval_days * 864e5 - 4 * 36e5).toISOString();
+}
+// srs=true: tính vào lịch ôn (chỉ với từ đã học). srs=false: chỉ ghi đếm đúng/sai.
+function record(w, good, srs = false, soft = false) {
+  w.correct_count = w.correct_count || 0; w.wrong_count = w.wrong_count || 0;
+  let patch;
+  if (srs && w.last_reviewed) {
+    srsUpdate(w, good, soft); w.last_reviewed = new Date().toISOString();
+    patch = { correct_count: w.correct_count, wrong_count: w.wrong_count, last_reviewed: w.last_reviewed, interval_days: w.interval_days, ease: w.ease, reps: w.reps, due_at: w.due_at };
+  } else {
+    w[good ? 'correct_count' : 'wrong_count']++;
+    patch = { correct_count: w.correct_count, wrong_count: w.wrong_count };
+  }
+  if (sbClient && user && !DEMO) sbClient.from('vocab_words').update(patch).eq('id', w.id).eq('user_id', user.id).then(({ error }) => { if (error) console.warn(error); });
+}
+
+// ---- đọc phát âm ----
+function speak(t) {
+  if (!t || !window.speechSynthesis) return;
+  const u = new SpeechSynthesisUtterance(t); u.lang = 'en-US'; u.rate = 0.92;
+  window.speechSynthesis.cancel(); setTimeout(() => window.speechSynthesis.speak(u), 30);
+}
+const spk = w => `<button onclick="speak(${esc(JSON.stringify(w.word)).replace(/"/g, '&quot;')})" class="w-9 h-9 rounded-full bg-red-50 dark:bg-zinc-800 text-[#cf1717] hover:scale-110 transition" title="Nghe"><i class="bi bi-volume-up-fill"></i></button>`;
+
+// ---- AI (cùng worker với vocab.html) ----
+async function askAI(prompt) {
+  const r = await fetch(WORKER_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) });
+  const d = await r.json();
+  if (d.error) throw new Error(typeof d.error === 'object' ? (d.error.message || JSON.stringify(d.error)) : d.error);
+  const t = d?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!t) throw new Error('AI không phản hồi');
+  return t.replace(/```json/g, '').replace(/```/g, '').trim();
+}
+const parseJSON = (t, o) => JSON.parse(t.slice(t.indexOf(o), t.lastIndexOf(o === '[' ? ']' : '}') + 1));
+
+// ============================================================
+// MÀN HÌNH CHỌN GAME
+// ============================================================
+const GAMES = [
+  { id: 1, icon: 'bi-map-fill', color: 'from-emerald-500 to-teal-600', title: 'Phiêu lưu từ vựng', en: 'Word Quest', desc: 'Mỗi câu hỏi là một thử thách trên bản đồ có cốt truyện. Độ khó tự tăng giảm theo kết quả của bạn.', ready: false },
+  { id: 2, icon: 'bi-emoji-angry-fill', color: 'from-purple-500 to-fuchsia-600', title: 'Đánh trùm từ khó', en: 'Boss Battle', desc: 'Từ bạn hay sai biến thành "trùm" có thanh máu. Phải hạ gục qua nhiều ngày, không phải một buổi.', ready: false },
+  { id: 3, icon: 'bi-sunrise-fill', color: 'from-amber-400 to-orange-500', title: 'Khởi động dễ, rồi mới khó', en: 'Warm-up Ladder', desc: 'Bắt đầu bằng câu dễ để nhớ ra thành công trước, sau đó mới tới câu khó và từ cũ.', ready: true, run: () => startWarm() },
+  { id: 4, icon: 'bi-pencil-square', color: 'from-sky-500 to-blue-600', title: 'Điền chỗ trống đổi câu', en: 'Cloze Quest', desc: 'Cùng một từ nhưng mỗi lần xuất hiện trong một câu khác. Học cách dùng từ, không học vẹt.', ready: true, run: () => startCloze() },
+  { id: 5, icon: 'bi-grid-3x3-gap-fill', color: 'from-[#cf1717] to-rose-600', title: 'Hangman & Ô chữ 15 giây', en: 'Recall Games', desc: 'Hai trò nhớ lại kinh điển: đoán từng chữ cái trước khi hết lượt, hoặc đoán ô chữ trong 15 giây.', ready: true, run: () => chooseRecall() },
+  { id: 6, icon: 'bi-4-square-fill', color: 'from-lime-500 to-green-600', title: 'Wordle mỗi ngày', en: 'Daily Wordle', desc: 'Mỗi ngày một từ lấy từ kho của bạn, có gợi ý nghĩa.', ready: false },
+  { id: 7, icon: 'bi-dice-5-fill', color: 'from-indigo-500 to-violet-600', title: 'Cược tự tin', en: 'Confidence Bet', desc: 'Đặt cược mức chắc chắn (thấp, vừa, cao) trước khi trả lời. Đúng mà cược cao thì nhiều điểm.', ready: false }
+];
+const bestKey = id => `gv_best_${user?.id}_${id}`;
+const getBest = id => Number(localStorage.getItem(bestKey(id)) || 0);
+
+function renderMenu() {
+  const p = pool(), due = words.filter(isDue).length, weak = words.filter(isWeak).length;
+  $('heroStats').innerHTML = [
+    ['bi-collection-fill', `${words.length} từ trong kho`], ['bi-alarm-fill', `${due} từ đến hạn ôn`], ['bi-exclamation-triangle-fill', `${weak} từ hay sai`]
+  ].map(x => `<span class="px-3 py-1.5 rounded-full bg-white/20"><i class="bi ${x[0]}"></i> ${x[1]}</span>`).join('');
+  $('menu').innerHTML = GAMES.map(g => {
+    const best = g.ready ? getBest(g.id) : 0;
+    return `<button onclick="pickGame(${g.id})" class="gcard text-left rounded-3xl bg-white/85 dark:bg-zinc-900/85 backdrop-blur border border-gray-200 dark:border-zinc-800 shadow-lg overflow-hidden ${g.ready ? '' : 'opacity-80'}">
+      <div class="bg-gradient-to-br ${g.color} text-white p-4 flex items-center justify-between">
+        <i class="bi ${g.icon} text-4xl"></i>
+        <span class="text-[10px] font-black uppercase px-2.5 py-1 rounded-full ${g.ready ? 'bg-white/25' : 'bg-black/25'}">${g.ready ? 'Chơi ngay' : '<i class=\'bi bi-hammer\'></i> Đang phát triển'}</span>
+      </div>
+      <div class="p-4">
+        <p class="text-[10px] font-extrabold uppercase text-gray-400">Game ${g.id} · ${esc(g.en)}</p>
+        <h3 class="text-base font-black mt-0.5">${esc(g.title)}</h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1.5 leading-relaxed">${esc(g.desc)}</p>
+        ${g.ready ? `<p class="text-[11px] font-bold text-amber-500 mt-3"><i class="bi bi-trophy-fill"></i> Kỷ lục: ${best}</p>` : ''}
+      </div></button>`;
+  }).join('');
+}
+function pickGame(id) {
+  const g = GAMES.find(x => x.id === id);
+  if (!g.ready) { $('soonTitle').textContent = `${g.title} (${g.en})`; $('soon').classList.remove('hidden'); return; }
+  if (pool().length < 5) return needWords();
+  g.run();
+}
+function needWords() { toast('Cần ít nhất 5 từ có nghĩa trong kho để chơi. Hãy thêm từ ở trang Từ vựng nhé!', 'warn'); }
+
+// ============================================================
+// KHUNG GAME CHUNG
+// ============================================================
+function openGame(id, title) {
+  clearTimers(); G = { id, score: 0, correct: 0, total: 0, wrong: [], i: 0, answered: false };
+  $('gOverlay').classList.remove('hidden'); document.body.style.overflow = 'hidden'; $('gOverlay').scrollTop = 0;
+  $('gTitle').textContent = title; setHud();
+}
+function closeGame() { clearTimers(); G = null; $('gOverlay').classList.add('hidden'); document.body.style.overflow = ''; renderMenu(); }
+function clearTimers() { if (G && G.timer) clearInterval(G.timer); if (G && G.timeout) clearTimeout(G.timeout); }
+function setHud() { $('gScore').innerHTML = G ? `<i class="bi bi-star-fill"></i> ${G.score}` : ''; $('gBar').style.width = G && G.items && G.items.length ? `${Math.round(G.i / G.items.length * 100)}%` : '0%'; }
+const body = h => { $('gBody').innerHTML = `<div class="pop">${h}</div>`; $('gOverlay').scrollTop = 0; };
+const card = 'rounded-3xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-lg';
+const btnMain = 'px-6 py-3 rounded-2xl text-sm font-black bg-[#cf1717] text-white hover:bg-red-700 shadow-lg transition';
+const btnSoft = 'px-5 py-2.5 rounded-2xl text-xs font-bold bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 transition';
+
+function feedback(w, good, note) {
+  return `<div class="mt-4 rounded-2xl p-4 pop ${good ? 'bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900' : 'bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900'}">
+    <p class="text-sm font-black ${good ? 'text-emerald-600' : 'text-[#cf1717]'}"><i class="bi ${good ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}"></i> ${esc(note || (good ? 'Chính xác!' : 'Chưa đúng'))}</p>
+    <div class="flex items-center gap-2 mt-2"><p class="text-lg font-black">${esc(w.word)}</p>${posChip(w)}${spk(w)}</div>
+    ${w.ipa ? `<p class="text-xs text-gray-500">${esc(w.ipa)}</p>` : ''}
+    <p class="text-sm font-bold mt-1">${esc(cleanMeaning(w))}</p>
+    ${w.example ? `<p class="text-xs italic text-gray-500 mt-1">${esc(w.example)}</p>` : ''}
+  </div>`;
+}
+const nextBtn = (label = 'Tiếp theo') => `<button onclick="G.next()" class="${btnMain} w-full mt-4">${label} <i class="bi bi-arrow-right"></i></button><p class="text-[11px] text-gray-400 text-center mt-1">hoặc nhấn Enter</p>`;
+
+function showResult(extra = '') {
+  clearTimers(); G.i = G.items ? G.items.length : G.i; setHud();
+  const acc = G.total ? Math.round(G.correct / G.total * 100) : 0, stars = acc >= 90 ? 3 : acc >= 60 ? 2 : acc >= 30 ? 1 : 0;
+  const prev = getBest(G.id), isBest = G.score > prev; if (isBest) localStorage.setItem(bestKey(G.id), G.score);
+  const uniq = [...new Map(G.wrong.map(w => [w.id, w])).values()];
+  G.answered = false; G.next = null; G.onKey = null;
+  body(`<div class="${card} p-6 text-center">
+    <div class="text-4xl text-amber-400">${[0,1,2].map(i => `<i class="bi ${i < stars ? 'bi-star-fill' : 'bi-star'}"></i>`).join(' ')}</div>
+    <h2 class="text-2xl font-black mt-2">${acc >= 90 ? 'Xuất sắc!' : acc >= 60 ? 'Làm tốt lắm!' : 'Cố gắng thêm nhé!'}</h2>
+    <p class="text-sm text-gray-500 mt-1">Đúng <b>${G.correct}/${G.total}</b> (${acc}%) · <b class="text-amber-500">${G.score} điểm</b></p>
+    ${isBest ? '<p class="text-xs font-black text-emerald-600 mt-2"><i class="bi bi-trophy-fill"></i> Kỷ lục mới!</p>' : ''}
+    ${extra}
+    ${uniq.length ? `<div class="text-left mt-5"><p class="text-[11px] font-extrabold uppercase text-gray-400 mb-2">Từ cần ôn lại (${uniq.length})</p><div class="space-y-1.5">${uniq.map(w => `<div class="flex items-center justify-between gap-2 rounded-xl bg-gray-50 dark:bg-zinc-800 px-3 py-2"><span class="text-sm font-black">${esc(w.word)}</span><span class="text-xs text-gray-500 text-right">${esc(cleanMeaning(w))}</span></div>`).join('')}</div></div>` : '<p class="text-sm font-bold text-emerald-600 mt-4">Không sai từ nào!</p>'}
+    <div class="flex gap-2 justify-center mt-6"><button onclick="replay()" class="${btnMain}"><i class="bi bi-arrow-repeat"></i> Chơi lại</button><button onclick="closeGame()" class="${btnSoft}">Về chọn game</button></div>
+  </div>`);
+}
+function replay() { const f = G && G.again; if (f) f(); else closeGame(); }
+
+document.addEventListener('keydown', e => {
+  if (!G) return;
+  if (e.key === 'Enter' && G.answered && G.next) { e.preventDefault(); G.next(); return; }
+  if (G.onKey) G.onKey(e);
+});
+
+// ============================================================
+// GAME 3 — KHỞI ĐỘNG DỄ, RỒI MỚI KHÓ
+// ============================================================
+const TIERS = {
+  1: { name: 'Vòng 1 · Khởi động', desc: 'Câu dễ, chọn đáp án đúng. Mục tiêu: nhớ ra thành công trước!', color: 'text-emerald-600', pts: 10 },
+  2: { name: 'Vòng 2 · Tăng tốc', desc: 'Giờ nhìn nghĩa tiếng Việt, chọn từ tiếng Anh.', color: 'text-amber-500', pts: 15 },
+  3: { name: 'Vòng 3 · Thử thách', desc: 'Từ hay sai và từ cũ. Tự gõ đáp án, không có phương án gợi ý.', color: 'text-[#cf1717]', pts: 25 }
+};
+function startWarm() {
+  const p = pool();
+  const diff = w => (w.wrong_count || 0) * 2 + (isWeak(w) ? 3 : 0) - (w.reps || 0) * 1.5 - Math.min(w.interval_days || 0, 30) / 5;
+  const sorted = [...p].sort((a, b) => diff(a) - diff(b)), used = new Set();
+  const take = (arr, n) => { const out = []; for (const w of arr) { if (out.length >= n) break; if (!used.has(w.id)) { used.add(w.id); out.push(w); } } return out; };
+  const n = p.length >= 12 ? 4 : Math.max(1, Math.floor(p.length / 3));
+  const easy = take(shuffle(sorted.slice(0, Math.max(n * 2, Math.ceil(p.length * .4)))), n);
+  const hard = take([...shuffle(p.filter(w => isWeak(w) || isDue(w))), ...[...sorted].reverse()], n);
+  const mid = take(shuffle([...p]), n);
+  openGame(3, 'Khởi động dễ → khó');
+  G.again = startWarm;
+  G.items = [
+    ...easy.map(w => ({ w, tier: 1, type: 'mc', dir: 'en2vi' })),
+    ...mid.map(w => ({ w, tier: 2, type: 'mc', dir: 'vi2en' })),
+    ...hard.map(w => ({ w, tier: 3, type: 'type' }))
+  ];
+  G.tierStat = { 1: [0, 0], 2: [0, 0], 3: [0, 0] };
+  tierIntro(1);
+}
+function tierIntro(t, prevSummary = '') {
+  const T = TIERS[t]; G.answered = true; G.next = () => { G.answered = false; G.next = null; warmQ(); }; setHud();
+  body(`<div class="${card} p-6 text-center">
+    ${prevSummary}
+    <p class="text-xs font-extrabold uppercase text-gray-400">Sắp bắt đầu</p>
+    <h2 class="text-2xl font-black mt-1 ${T.color}">${T.name}</h2>
+    <p class="text-sm text-gray-500 mt-2">${T.desc}</p>
+    <p class="text-xs text-gray-400 mt-1">${G.items.filter(x => x.tier === t).length} câu</p>
+    <button onclick="G.next()" class="${btnMain} mt-5">Bắt đầu <i class="bi bi-play-fill"></i></button></div>`);
+}
+function mcOptions(w, dir) {
+  const key = x => dir === 'en2vi' ? cleanMeaning(x) : x.word, correct = key(w), opts = [correct];
+  for (const o of shuffle(pool().filter(x => x.id !== w.id))) { const k = key(o); if (k && !opts.some(z => norm(z) === norm(k))) opts.push(k); if (opts.length >= 4) break; }
+  return shuffle(opts).map(t => ({ t, ok: norm(t) === norm(correct) }));
+}
+function warmQ() {
+  const it = G.items[G.i], w = it.w, T = TIERS[it.tier]; G.answered = false; G.next = null; G.hint = 0; setHud();
+  const head = `<div class="flex items-center justify-between mb-3"><span class="text-xs font-black ${T.color}">${T.name}</span><span class="text-xs font-bold text-gray-400">Câu ${G.i + 1}/${G.items.length}</span></div>`;
+  if (it.type === 'mc') {
+    it.opts = mcOptions(w, it.dir);
+    const q = it.dir === 'en2vi'
+      ? `<div class="flex items-center justify-center gap-2"><p class="text-3xl font-black">${esc(w.word)}</p>${spk(w)}</div>${w.ipa ? `<p class="text-sm text-gray-500 mt-1">${esc(w.ipa)}</p>` : ''}<div class="mt-1">${posChip(w)}</div><p class="text-xs text-gray-400 mt-3">Chọn nghĩa đúng</p>`
+      : `<p class="text-2xl font-black">${esc(cleanMeaning(w))}</p><div class="mt-1">${posChip(w)}</div><p class="text-xs text-gray-400 mt-3">Chọn từ tiếng Anh đúng</p>`;
+    body(`${head}<div class="${card} p-6 text-center">${q}</div>
+      <div class="grid gap-2.5 mt-4">${it.opts.map((o, k) => `<button id="opt${k}" onclick="warmPick(${k})" class="text-left px-4 py-3 rounded-2xl border-2 border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm font-bold hover:border-[#cf1717] transition">${esc(o.t)}</button>`).join('')}</div>
+      <div id="fb"></div>`);
+  } else {
+    body(`${head}<div class="${card} p-6 text-center">
+      <p class="text-2xl font-black">${esc(cleanMeaning(w))}</p><div class="mt-1">${posChip(w)}</div>
+      <p id="pat" class="text-2xl font-black tracking-[.25em] mt-4 text-gray-400">${pattern(w.word, 0)}</p>
+      <input id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Gõ từ tiếng Anh..." onkeydown="if(event.key==='Enter'){event.stopPropagation();warmType();}" class="mt-4 w-full text-center text-lg font-bold px-4 py-3 rounded-2xl border-2 border-gray-200 dark:border-zinc-700 bg-transparent focus:outline-none focus:border-[#cf1717]"></div>
+      <div id="qa" class="flex gap-2 mt-3"><button onclick="warmType()" class="${btnMain} flex-1">Kiểm tra</button><button onclick="warmHint()" class="${btnSoft}"><i class="bi bi-lightbulb"></i> Gợi ý (-5)</button><button onclick="warmSkip()" class="${btnSoft}">Bỏ qua</button></div>
+      <div id="fb"></div>`);
+    setTimeout(() => $('ans') && $('ans').focus(), 50);
+  }
+}
+function pattern(word, n) { let idx = 0; return [...word].map(c => isSym(c) ? (c === ' ' ? '\u00a0' : c) : (idx++ < n ? c : '_')).join(' '); }
+function warmHint() { if (G.answered) return; G.hint++; $('pat').innerHTML = pattern(G.items[G.i].w.word, G.hint); $('ans').focus(); }
+function warmPick(k) {
+  if (G.answered) return; const it = G.items[G.i], o = it.opts[k];
+  it.opts.forEach((x, j) => { const b = $('opt' + j); b.disabled = true; if (x.ok) b.className = b.className.replace('border-gray-200 dark:border-zinc-700', 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30'); else if (j === k) b.className = b.className.replace('border-gray-200 dark:border-zinc-700', 'border-red-500 bg-red-50 dark:bg-red-950/30'); });
+  warmDone(o.ok, o.ok ? null : 'Chưa đúng');
+}
+function warmType() {
+  if (G.answered) return; const it = G.items[G.i], r = grade($('ans').value, it.w.word);
+  if (r === 'empty') { $('ans').classList.add('shake'); setTimeout(() => $('ans') && $('ans').classList.remove('shake'), 400); return; }
+  $('ans').disabled = true; warmDone(r !== 'bad', r === 'typo' ? 'Gần đúng, chú ý chính tả nhé!' : null, r === 'typo');
+}
+function warmSkip() { if (G.answered) return; const a = $('ans'); if (a) a.disabled = true; warmDone(false, 'Không sao, xem đáp án và nhớ nhé'); }
+function warmDone(good, note, soft = false) {
+  G.answered = true; const it = G.items[G.i], w = it.w, T = TIERS[it.tier];
+  G.total++; G.tierStat[it.tier][1]++;
+  if (good) { G.correct++; G.tierStat[it.tier][0]++; G.score += Math.max(2, T.pts - G.hint * 5); } else G.wrong.push(w);
+  record(w, good, true, soft || G.hint > 0); setHud();
+  if ($('qa')) $('qa').remove();
+  $('fb').innerHTML = feedback(w, good, note) + nextBtn(G.i + 1 >= G.items.length ? 'Xem kết quả' : 'Tiếp theo');
+  G.next = () => {
+    const cur = it.tier; G.i++;
+    if (G.i >= G.items.length) return showResult(warmSummary());
+    const nt = G.items[G.i].tier;
+    if (nt !== cur) { const [c, t] = G.tierStat[cur]; tierIntro(nt, `<p class="text-sm font-black text-emerald-600 mb-3"><i class="bi bi-check-circle-fill"></i> ${TIERS[cur].name}: ${c}/${t} câu đúng</p>`); }
+    else warmQ();
+  };
+}
+function warmSummary() {
+  return `<div class="grid grid-cols-3 gap-2 mt-4">${[1,2,3].map(t => `<div class="rounded-2xl bg-gray-50 dark:bg-zinc-800 p-2"><p class="text-[10px] font-extrabold uppercase text-gray-400">Vòng ${t}</p><p class="text-lg font-black ${TIERS[t].color}">${G.tierStat[t][0]}/${G.tierStat[t][1]}</p></div>`).join('')}</div>`;
+}
+
+// ============================================================
+// GAME 4 — CLOZE QUEST (cùng từ, câu khác mỗi lần)
+// ============================================================
+const cbKey = () => `gv_cloze_bank_${user?.id}`, cuKey = () => `gv_cloze_last_${user?.id}`;
+const loadLS = k => { try { return JSON.parse(localStorage.getItem(k) || '{}'); } catch (e) { return {}; } };
+function ownSentences(w) {
+  const out = [];
+  if (w.example) { const m = w.example.match(new RegExp('\\b' + reEsc(w.word.trim()) + '\\w*', 'i')); if (m) out.push({ s: w.example, form: m[0] }); }
+  return out;
+}
+async function ensureBank(list) {
+  const bank = loadLS(cbKey()), need = list.filter(w => (bank[norm(w.word)] || []).length < 3);
+  for (let s = 0; s < need.length; s += 6) {
+    const chunk = need.slice(s, s + 6);
+    try {
+      const prompt = `Bạn là giáo viên tiếng Anh. Với MỖI từ/cụm từ dưới đây, viết 3 câu tiếng Anh tự nhiên (10-18 từ), ngữ cảnh KHÁC NHAU (đời sống, học tập, công việc), mỗi câu chứa đúng từ/cụm từ đó với đúng nghĩa đã cho (được phép chia thì/số nhiều). Trả về JSON ARRAY duy nhất (không markdown), đúng thứ tự: [{"word":"từ gốc","sentences":[{"s":"câu đầy đủ","form":"dạng chính xác của từ xuất hiện trong câu"}]}]. Danh sách: ${JSON.stringify(chunk.map(w => ({ word: w.word, pos: w.pos || '', meaning: cleanMeaning(w) })))}`;
+      const out = parseJSON(await askAI(prompt), '[');
+      chunk.forEach((w, k) => { const o = out.find(x => norm(x.word) === norm(w.word)) || out[k]; if (o && Array.isArray(o.sentences)) bank[norm(w.word)] = o.sentences.filter(x => x && x.s && x.form && x.s.toLowerCase().includes(String(x.form).toLowerCase())).slice(0, 4); });
+    } catch (e) { console.warn('AI cloze:', e); }
+  }
+  localStorage.setItem(cbKey(), JSON.stringify(bank)); return bank;
+}
+function pickSentence(w, bank, avoid) {      // chọn câu khác lần trước
+  const all = [...ownSentences(w), ...(bank[norm(w.word)] || [])].filter((x, i, a) => a.findIndex(y => y.s === x.s) === i);
+  if (!all.length) return null;
+  const last = loadLS(cuKey()), prev = last[norm(w.word)];
+  let cands = all.map((x, i) => i).filter(i => i !== prev && i !== avoid);
+  if (!cands.length) cands = all.map((x, i) => i);
+  const idx = cands[Math.floor(Math.random() * cands.length)]; last[norm(w.word)] = idx; localStorage.setItem(cuKey(), JSON.stringify(last));
+  return { ...all[idx], idx };
+}
+async function startCloze() {
+  const p = pool().filter(w => /^[A-Za-z][A-Za-z' \-]*$/.test(w.word));
+  if (p.length < 4) return needWords();
+  const picked = [...shuffle(p.filter(w => isWeak(w) || isDue(w))), ...shuffle([...p])].filter((w, i, a) => a.indexOf(w) === i).slice(0, 8);
+  openGame(4, 'Cloze Quest'); G.again = startCloze;
+  body(`<div class="${card} p-8 text-center"><i class="bi bi-magic text-4xl text-[#cf1717]"></i><p class="text-sm font-black mt-3">AI đang viết câu mới cho từ của bạn...</p><p class="text-xs text-gray-400 mt-1">Lần sau những câu này được lưu lại nên sẽ nhanh hơn.</p></div>`);
+  const bank = await ensureBank(picked); if (!G || G.id !== 4) return;
+  const items = [];
+  picked.forEach(w => { const s = pickSentence(w, bank); if (s) items.push({ w, s: s.s, form: s.form, idx: s.idx }); });
+  if (items.length < 3) { closeGame(); return toast('Chưa tạo được câu. Hãy thêm câu ví dụ cho từ hoặc thử lại sau.', 'warn'); }
+  G.items = items; G.bank = bank; G.retried = new Set(); clozeQ();
+}
+function clozeQ() {
+  const it = G.items[G.i], w = it.w; G.answered = false; G.next = null; G.hint = 0; G.showMeaning = false; setHud();
+  const re = new RegExp('(^|[^A-Za-z])(' + reEsc(it.form) + ')(?![A-Za-z])', 'i');
+  it.parts = re.test(it.s) ? it.s.replace(re, (m, a) => a + '\u0000') .split('\u0000') : [it.s, ''];
+  body(`<div class="flex items-center justify-between mb-3"><span class="text-xs font-black text-sky-600"><i class="bi bi-pencil-square"></i> Điền từ còn thiếu</span><span class="text-xs font-bold text-gray-400">Câu ${G.i + 1}/${G.items.length}</span></div>
+    <div class="${card} p-6">
+      <p class="text-lg sm:text-xl font-bold leading-relaxed text-center">${esc(it.parts[0])}<span id="blank" class="inline-block min-w-[6rem] border-b-4 border-[#cf1717] text-[#cf1717] mx-1 text-center">&nbsp;</span>${esc(it.parts[1])}</p>
+      <div id="mean" class="text-center mt-4"><button onclick="clozeMeaning()" class="${btnSoft}"><i class="bi bi-eye"></i> Xem nghĩa của từ cần điền</button></div>
+      <p id="pat" class="text-center text-xl font-black tracking-[.2em] text-gray-400 mt-3"></p>
+      <input id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Gõ từ còn thiếu..." onkeydown="if(event.key==='Enter'){event.stopPropagation();clozeCheck();}" class="mt-4 w-full text-center text-lg font-bold px-4 py-3 rounded-2xl border-2 border-gray-200 dark:border-zinc-700 bg-transparent focus:outline-none focus:border-[#cf1717]">
+    </div>
+    <div id="qa" class="flex gap-2 mt-3"><button onclick="clozeCheck()" class="${btnMain} flex-1">Kiểm tra</button><button onclick="clozeHint()" class="${btnSoft}"><i class="bi bi-lightbulb"></i> Gợi ý (-5)</button><button onclick="clozeSkip()" class="${btnSoft}">Bỏ qua</button></div>
+    <div id="fb"></div>`);
+  setTimeout(() => $('ans') && $('ans').focus(), 50);
+}
+function clozeMeaning() { const w = G.items[G.i].w; $('mean').innerHTML = `<p class="text-sm font-bold text-gray-500">Nghĩa: <span class="text-gray-900 dark:text-gray-100">${esc(cleanMeaning(w))}</span>${posChip(w)}</p>`; }
+function clozeHint() { if (G.answered) return; G.hint++; $('pat').textContent = pattern(G.items[G.i].form, G.hint); $('ans').focus(); }
+function clozeCheck() {
+  if (G.answered) return; const it = G.items[G.i], v = $('ans').value, r = grade(v, it.form);
+  if (r === 'empty') { $('ans').classList.add('shake'); setTimeout(() => $('ans') && $('ans').classList.remove('shake'), 400); return; }
+  if (r === 'bad' && core(v) === core(it.w.word)) return clozeDone(true, `Đúng từ gốc! Nhưng trong câu này cần dạng "${it.form}"`, true);
+  clozeDone(r !== 'bad', r === 'typo' ? 'Gần đúng, chú ý chính tả nhé!' : null, r === 'typo');
+}
+function clozeSkip() { if (!G.answered) clozeDone(false, 'Không sao, xem đáp án và nhớ nhé'); }
+function clozeDone(good, note, soft = false) {
+  G.answered = true; const it = G.items[G.i], w = it.w; G.total++; $('ans').disabled = true;
+  if (good) { G.correct++; G.score += Math.max(3, 15 - G.hint * 5); } else G.wrong.push(w);
+  record(w, good, true, soft || G.hint > 0); setHud();
+  $('blank').textContent = it.form; $('blank').className = $('blank').className.replace('text-[#cf1717]', good ? 'text-emerald-600' : 'text-[#cf1717]');
+  $('qa').remove(); clozeMeaning();
+  let fb = feedback(w, good, note);
+  if (!good && !G.retried.has(w.id)) {          // hỏi lại cuối phiên với CÂU KHÁC
+    const s = pickSentence(w, G.bank, it.idx);
+    if (s && s.s !== it.s) { G.retried.add(w.id); G.items.push({ w, s: s.s, form: s.form, idx: s.idx }); fb += `<p class="text-[11px] text-gray-400 mt-2"><i class="bi bi-arrow-repeat"></i> Từ này sẽ quay lại ở cuối với một câu khác.</p>`; }
+  }
+  $('fb').innerHTML = fb + nextBtn(G.i + 1 >= G.items.length ? 'Xem kết quả' : 'Tiếp theo');
+  G.next = () => { G.i++; G.i >= G.items.length ? showResult() : clozeQ(); };
+}
+
+// ============================================================
+// GAME 5 — HANGMAN & Ô CHỮ 15 GIÂY
+// ============================================================
+function chooseRecall() {
+  openGame(5, 'Hangman & Ô chữ 15 giây'); G.again = chooseRecall; G.items = []; G.i = 0; setHud();
+  body(`<div class="grid gap-4">
+    <button onclick="startHangman()" class="gcard text-left ${card} p-5 flex gap-4 items-center"><div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-800 text-white flex items-center justify-center text-2xl flex-shrink-0"><i class="bi bi-person-standing"></i></div><div><p class="font-black">Hangman</p><p class="text-xs text-gray-500 mt-0.5">Có nghĩa tiếng Việt làm gợi ý. Đoán từng chữ cái, sai 6 lần là thua. 8 từ mỗi lượt.</p></div></button>
+    <button onclick="startCross()" class="gcard text-left ${card} p-5 flex gap-4 items-center"><div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#cf1717] to-rose-600 text-white flex items-center justify-center text-2xl flex-shrink-0"><i class="bi bi-stopwatch-fill"></i></div><div><p class="font-black">Ô chữ 15 giây</p><p class="text-xs text-gray-500 mt-0.5">Mỗi ô chữ chỉ có 15 giây. Càng nhanh càng nhiều điểm; còn 10 giây và 5 giây sẽ hé lộ chữ cái. 10 từ mỗi lượt.</p></div></button></div>`);
+}
+function recallPicks(n) {
+  const p = pool().filter(w => /[A-Za-z]/.test(w.word) && w.word.length <= 20);
+  return [...shuffle(p.filter(w => isWeak(w) || isDue(w))).slice(0, Math.ceil(n / 2)), ...shuffle([...p])].filter((w, i, a) => a.indexOf(w) === i).slice(0, n);
+}
+// ---- Hangman ----
+const HANG_PARTS = ['<circle cx="150" cy="62" r="16"/>', '<line x1="150" y1="78" x2="150" y2="130"/>', '<line x1="150" y1="90" x2="128" y2="115"/>', '<line x1="150" y1="90" x2="172" y2="115"/>', '<line x1="150" y1="130" x2="132" y2="165"/>', '<line x1="150" y1="130" x2="168" y2="165"/>'];
+function startHangman() {
+  const picks = recallPicks(8); openGame(5, 'Hangman'); G.again = chooseRecall; G.items = picks.map(w => ({ w })); G.sub = 'hang'; hangQ();
+}
+function hangQ() {
+  const it = G.items[G.i], w = it.w; G.answered = false; G.next = null; setHud();
+  it.guessed = new Set(); it.lives = 6; it.hinted = false;
+  G.onKey = e => { if (!G.answered && /^[a-z]$/i.test(e.key) && !e.ctrlKey && !e.metaKey) hangGuess(e.key.toLowerCase()); };
+  hangRender();
+}
+function hangRender() {
+  const it = G.items[G.i], w = it.w, letters = [...w.word.toLowerCase()];
+  const shown = letters.map(c => isSym(c) || it.guessed.has(strip(c)) ? c : '_');
+  const won = letters.every(c => isSym(c) || it.guessed.has(strip(c))), lost = it.lives <= 0;
+  const kb = [...'abcdefghijklmnopqrstuvwxyz'].map(c => { const used = it.guessed.has(c), hit = used && letters.some(x => strip(x) === c);
+    return `<button ${used || won || lost ? 'disabled' : ''} onclick="hangGuess('${c}')" class="kb h-10 rounded-xl text-sm font-black uppercase transition ${used ? (hit ? 'bg-emerald-500 text-white' : 'bg-gray-300 dark:bg-zinc-700 text-gray-500 line-through') : 'bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 hover:border-[#cf1717]'}">${c}</button>`; }).join('');
+  body(`<div class="flex items-center justify-between mb-3"><span class="text-xs font-black text-slate-500"><i class="bi bi-person-standing"></i> Hangman</span><span class="text-xs font-bold text-gray-400">Từ ${G.i + 1}/${G.items.length}</span></div>
+    <div class="${card} p-5 text-center">
+      <div class="flex items-center justify-between"><p class="text-lg tracking-widest">${'❤️'.repeat(Math.max(0, it.lives))}${'🖤'.repeat(6 - Math.max(0, it.lives))}</p><button ${won || lost ? 'disabled' : ''} onclick="hangHint()" class="${btnSoft} ${won || lost ? 'opacity-40' : ''}"><i class="bi bi-lightbulb"></i> Lộ 1 chữ (-1 mạng)</button></div>
+      <svg viewBox="0 0 220 190" class="w-40 h-36 mx-auto mt-2 stroke-slate-500 dark:stroke-slate-300" fill="none" stroke-width="5" stroke-linecap="round"><line x1="20" y1="180" x2="120" y2="180"/><line x1="60" y1="180" x2="60" y2="20"/><line x1="60" y1="20" x2="150" y2="20"/><line x1="150" y1="20" x2="150" y2="46"/>${HANG_PARTS.slice(0, 6 - Math.max(0, it.lives)).join('')}</svg>
+      <p class="text-2xl sm:text-3xl font-black tracking-[.3em] mt-3 break-all ${won ? 'text-emerald-600' : lost ? 'text-[#cf1717]' : ''}">${shown.map(c => c === ' ' ? '\u00a0' : esc(c)).join(' ')}</p>
+      <p class="text-sm font-bold mt-3 text-gray-500">Nghĩa: <span class="text-gray-900 dark:text-gray-100">${esc(cleanMeaning(w))}</span>${posChip(w)}</p>
+    </div>
+    ${won || lost ? '' : `<div class="grid grid-cols-9 sm:grid-cols-13 gap-1.5 mt-4" style="grid-template-columns:repeat(9,minmax(0,1fr))">${kb}</div><p class="text-[11px] text-gray-400 text-center mt-2">Bạn cũng có thể gõ phím trên bàn phím.</p>`}
+    <div id="fb"></div>`);
+  if (won || lost) hangEnd(won);
+}
+function hangGuess(c) {
+  const it = G.items[G.i]; if (G.answered || it.guessed.has(c)) return;
+  it.guessed.add(c); if (!it.w.word.toLowerCase().split('').some(x => strip(x) === c)) it.lives--;
+  hangRender();
+}
+function hangHint() {
+  const it = G.items[G.i]; if (G.answered) return;
+  const left = [...new Set([...it.w.word.toLowerCase()].filter(c => !isSym(c)).map(strip))].filter(c => !it.guessed.has(c));
+  if (left.length <= 1) return; it.guessed.add(left[Math.floor(Math.random() * left.length)]); it.lives--; it.hinted = true; hangRender();
+}
+function hangEnd(won) {
+  if (G.answered) return; G.answered = true; const it = G.items[G.i], w = it.w; G.total++;
+  if (won) { G.correct++; G.score += 10 + it.lives * 2; } else G.wrong.push(w);
+  record(w, won, false); setHud();
+  $('fb').innerHTML = feedback(w, won, won ? (it.lives >= 5 ? 'Tuyệt vời, gần như không sai!' : 'Bạn đã cứu được người treo cổ!') : 'Hết lượt rồi, ghi nhớ từ này nhé') + nextBtn(G.i + 1 >= G.items.length ? 'Xem kết quả' : 'Từ tiếp theo');
+  G.next = () => { G.i++; G.i >= G.items.length ? showResult() : hangQ(); };
+}
+// ---- Ô chữ 15 giây ----
+const CROSS_SEC = 15;
+function startCross() {
+  const picks = recallPicks(10); openGame(5, 'Ô chữ 15 giây'); G.again = chooseRecall; G.items = picks.map(w => ({ w })); G.sub = 'cross'; crossQ();
+}
+function crossQ() {
+  const it = G.items[G.i], w = it.w; G.answered = false; G.next = null; G.onKey = null; setHud();
+  it.t0 = Date.now(); it.left = CROSS_SEC; it.reveal = new Set();
+  const idxs = [...w.word].map((c, i) => isSym(c) ? -1 : i).filter(i => i >= 0); it.idxs = idxs;
+  body(`<div class="flex items-center justify-between mb-3"><span class="text-xs font-black text-[#cf1717]"><i class="bi bi-stopwatch-fill"></i> Ô chữ 15 giây</span><span class="text-xs font-bold text-gray-400">Từ ${G.i + 1}/${G.items.length}</span></div>
+    <div class="${card} p-6 text-center">
+      <div class="flex items-center justify-center gap-3"><div class="relative w-16 h-16"><svg viewBox="0 0 36 36" class="w-16 h-16 -rotate-90"><circle cx="18" cy="18" r="16" fill="none" stroke="currentColor" class="text-gray-200 dark:text-zinc-800" stroke-width="3.5"/><circle id="ring" cx="18" cy="18" r="16" fill="none" stroke="#cf1717" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="100.5" stroke-dashoffset="0"/></svg><span id="sec" class="absolute inset-0 flex items-center justify-center text-xl font-black">15</span></div>
+      <div class="text-left"><p class="text-[10px] font-extrabold uppercase text-gray-400">Gợi ý</p><p class="text-xl font-black">${esc(cleanMeaning(w))}</p>${posChip(w)}</div></div>
+      <div id="boxes" class="flex flex-wrap justify-center gap-1.5 mt-5"></div>
+      <p id="hintline" class="text-xs text-gray-400 mt-3 h-4"></p>
+      <input id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Gõ đáp án rồi nhấn Enter" oninput="crossBoxes()" onkeydown="if(event.key==='Enter'){event.stopPropagation();crossCheck();}" class="mt-3 w-full text-center text-lg font-bold px-4 py-3 rounded-2xl border-2 border-gray-200 dark:border-zinc-700 bg-transparent focus:outline-none focus:border-[#cf1717]">
+    </div>
+    <div id="qa" class="flex gap-2 mt-3"><button onclick="crossCheck()" class="${btnMain} flex-1">Trả lời</button><button onclick="crossEnd(false,'Bạn đã bỏ qua')" class="${btnSoft}">Bỏ qua</button></div>
+    <div id="fb"></div>`);
+  crossBoxes(); setTimeout(() => $('ans') && $('ans').focus(), 50);
+  G.timer = setInterval(crossTick, 100);
+}
+function crossBoxes() {
+  const it = G.items[G.i], typed = [...($('ans') ? $('ans').value : '')].filter(c => !isSym(c)); let k = 0;
+  $('boxes').innerHTML = [...it.w.word].map((c, i) => {
+    if (isSym(c)) return c === ' ' ? '<span class="w-3"></span>' : `<span class="lbox text-gray-400">${esc(c)}</span>`;
+    const t = typed[k++], rev = it.reveal.has(i) && !t;
+    return `<span class="lbox ${t ? 'bg-red-50 dark:bg-red-950/40 border-2 border-[#cf1717] text-[#cf1717]' : rev ? 'bg-amber-100 dark:bg-amber-900/30 border-2 border-amber-400 text-amber-600' : 'bg-gray-100 dark:bg-zinc-800 border-2 border-transparent'}">${esc(t || (rev ? c : ''))}</span>`;
+  }).join('');
+}
+function crossTick() {
+  const it = G.items[G.i]; if (!it || G.answered) return;
+  const left = Math.max(0, CROSS_SEC - (Date.now() - it.t0) / 1000); it.left = left;
+  $('sec').textContent = Math.ceil(left); $('ring').setAttribute('stroke-dashoffset', String(100.5 * (1 - left / CROSS_SEC)));
+  if (left <= 5) $('sec').classList.add('text-[#cf1717]');
+  const reveal = (n) => { const free = it.idxs.filter(i => !it.reveal.has(i)); if (free.length > 1 && it.reveal.size < n) { it.reveal.add(it.reveal.size === 0 ? it.idxs[0] : free[Math.floor(Math.random() * free.length)]); crossBoxes(); } };
+  if (left <= 10 && it.reveal.size < 1) { reveal(1); $('hintline').textContent = 'Còn 10 giây: đã hé lộ chữ cái đầu'; }
+  if (left <= 5 && it.reveal.size < 2) { reveal(2); $('hintline').textContent = 'Còn 5 giây: hé lộ thêm một chữ cái'; }
+  if (left <= 0) crossEnd(false, 'Hết giờ!');
+}
+function crossCheck() {
+  if (G.answered) return; const it = G.items[G.i], r = grade($('ans').value, it.w.word);
+  if (r === 'empty') return;
+  if (r === 'bad') { $('ans').classList.add('shake'); setTimeout(() => $('ans') && $('ans').classList.remove('shake'), 400); $('ans').select(); return; }   // sai thì thử lại khi còn giờ
+  crossEnd(true, r === 'typo' ? 'Gần đúng, chú ý chính tả nhé!' : null);
+}
+function crossEnd(good, note) {
+  if (G.answered) return; G.answered = true; clearInterval(G.timer);
+  const it = G.items[G.i], w = it.w; G.total++;
+  if (good) { G.correct++; G.score += 5 + Math.floor(it.left) * 2; } else G.wrong.push(w);
+  record(w, good, false); setHud();
+  $('ans').disabled = true; $('qa').remove();
+  $('boxes').innerHTML = [...w.word].map(c => isSym(c) ? (c === ' ' ? '<span class="w-3"></span>' : `<span class="lbox text-gray-400">${esc(c)}</span>`) : `<span class="lbox pop ${good ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600' : 'bg-red-100 dark:bg-red-950/40 text-[#cf1717]'}">${esc(c)}</span>`).join('');
+  $('fb').innerHTML = feedback(w, good, good ? (note || `Chính xác! Còn ${Math.ceil(it.left)} giây`) : note) + nextBtn(G.i + 1 >= G.items.length ? 'Xem kết quả' : 'Ô chữ tiếp theo');
+  G.next = () => { G.i++; G.i >= G.items.length ? showResult() : crossQ(); };
+}
+
+// ============================================================
+// KHỞI TẠO
+// ============================================================
+async function init() {
+  if (DEMO) { user = { id: 'demo' }; words = demoWords(); toast('Chế độ demo: dữ liệu mẫu, không lưu tiến độ', 'warn'); }
+  else {
+    const { data: { session } } = await sbClient.auth.getSession();
+    if (!session || !session.user) { location.href = 'index.html'; return; }
+    user = session.user; await loadWords();
+  }
+  renderMenu();
+}
+window.onload = init;
+</script>
+</body>
+</html>
