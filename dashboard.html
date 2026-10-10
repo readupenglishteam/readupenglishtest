@@ -214,6 +214,7 @@
               <p class="px-4 pt-1 pb-2 text-[10px] font-extrabold text-gray-400 uppercase tracking-wide">Chuyển nhanh tới mục</p>
               <a href="post.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-[#cf1717] hover:bg-red-50 dark:hover:bg-red-950/40 transition"><span><i class="bi bi-book"></i></span><span>Bài Học (Post)</span></a>
               <a href="assignment.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition"><span><i class="bi bi-star-fill"></i></span><span>Assignment (VIP)</span></a>
+              <a href="lml.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition"><span><i class="bi bi-collection-fill"></i></span><span>Learning Materials Library</span></a>
               <a href="vocab.html" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-[#9400D3] dark:text-[#b43bf0] hover:bg-[#9400D3]/10 dark:hover:bg-[#9400D3]/20 transition"> <span><i class="bi bi-translate text"></i></span> <span>Vocabulary</span> </a>
               <a href="#section-lich-hoc" onclick="scrollToSection(event, 'section-lich-hoc')" class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#cf1717] transition">
                 <span><i class="bi bi-calendar-event"></i></span><span>Lịch Học & Bài Thi Reading</span>
@@ -610,6 +611,17 @@
         </div>
         <!-- Khung phân trang 3 bài/trang -->
         <div id="newsPagination" class="flex justify-center items-center gap-1.5 pt-2"></div>
+      </section>
+
+      <!-- PHẦN LML: LEARNING MATERIALS LIBRARY (3 bài mới nhất) -->
+      <section id="section-lml" class="space-y-3 sm:space-y-4 reveal reveal-zoom">
+        <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
+          <h2 class="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white"><i class="bi bi-collection-fill"></i> Learning Materials Library</h2>
+          <a href="lml.html" class="text-xs font-bold px-3 py-1.5 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full hover:bg-red-200 dark:hover:bg-red-900 transition">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div id="lmlRecent" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <p class="text-gray-500 text-xs sm:text-sm col-span-full"><i class="bi bi-hourglass-split"></i> Đang tải tài liệu...</p>
+        </div>
       </section>
 
       <!-- PHẦN 2: DANH SÁCH BÀI THI READING -->
@@ -1056,6 +1068,9 @@
           // Tác vụ 2b: Tải Bài học (post) cho Lịch + Dải slider
           typeof loadPosts === 'function' ? loadPosts() : Promise.resolve(),
 
+          // Tác vụ LML: 3 tài liệu mới nhất
+          typeof loadLmlRecent === 'function' ? loadLmlRecent() : Promise.resolve(),
+
           // Tác vụ 3: Tải Bài thi
           typeof loadExams === 'function' ? loadExams() : Promise.resolve(),
 
@@ -1281,6 +1296,27 @@
   const EXAMS_PER_PAGE = 6;
 
   // --- 2. QUẢN LÝ DANH SÁCH BÀI THI ---
+  // ===== LML: hiển thị 3 bài mới nhất (ai cũng xem được) =====
+  async function loadLmlRecent() {
+    const box = document.getElementById('lmlRecent'); if (!box) return;
+    try {
+      const { data, error } = await sbClient.from('lml_materials')
+        .select('title, token, description, created_at, lml_topics(name)')
+        .eq('is_published', true).order('created_at', { ascending: false }).limit(3);
+      if (error) throw error;
+      if (!data || !data.length) { box.innerHTML = '<p class="text-gray-500 text-xs sm:text-sm col-span-full">Chưa có tài liệu nào.</p>'; return; }
+      box.innerHTML = data.map(m => `
+        <a href="lml.html?token=${encodeURIComponent(m.token)}" class="group block bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm hover:shadow-lg hover:-translate-y-0.5 hover:border-[#cf1717]/50 transition">
+          <span class="text-[10px] font-bold px-2 py-0.5 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">${escapeHtml(m.lml_topics?.name || 'LML')}</span>
+          <h3 class="mt-2 font-extrabold text-sm text-gray-900 dark:text-white group-hover:text-[#cf1717] line-clamp-2">${escapeHtml(m.title)}</h3>
+          <p class="mt-1 text-xs text-gray-500 line-clamp-2">${escapeHtml(m.description || '')}</p>
+          <div class="mt-3 text-[11px] text-gray-400 flex items-center justify-between"><span>${new Date(m.created_at).toLocaleDateString('vi-VN')}</span><span class="font-bold text-[#cf1717]">Làm bài <i class="bi bi-arrow-right"></i></span></div>
+        </a>`).join('');
+    } catch (e) {
+      box.innerHTML = '<p class="text-gray-500 text-xs sm:text-sm col-span-full">Không tải được tài liệu LML.</p>';
+    }
+  }
+
   async function loadExams() {
     const examBox = document.getElementById('examsContainer');
     const { data: examList } = await sbClient.from('exams').select('*').order('created_at', { ascending: false });
