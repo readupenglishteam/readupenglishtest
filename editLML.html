@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadUp English - Quản lý LML</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Montserrat', 'ui-sans-serif', 'system-ui', 'sans-serif'] } } } }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script>
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+  </script>
+  <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    html, body, button, input, select, textarea { font-family: 'Montserrat', ui-sans-serif, system-ui, sans-serif; }
+    .bi { vertical-align: -0.125em; }
+    @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
+    .animate-toast-bar { animation: toastProgress 5s linear forwards; }
+    @keyframes blob { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(30px,-50px) scale(1.1)} 66%{transform:translate(-20px,20px) scale(.95)} }
+    .animate-blob { animation: blob 10s infinite ease-in-out; }
+    .animation-delay-2000 { animation-delay: 2s; } .animation-delay-4000 { animation-delay: 4s; }
+  .qeditor{line-height:1.8;font-size:.95rem;color:#374151;word-wrap:break-word;min-height:90px}
+  .dark .qeditor{color:#e4e4e7}
+  .qeditor img{max-width:100%;border-radius:10px;margin:.5em 0}
+  .qeditor:focus{outline:none}
+  .qeditor table{border-collapse:collapse;width:100%;margin:.6em 0;font-size:.9em}
+  .qeditor td,.qeditor th{border:1px solid #d1d5db;padding:6px 8px;min-width:40px}
+  .dark .qeditor td,.dark .qeditor th{border-color:#52525b}
+  .qeditor audio{width:100%;margin:.5em 0}
+  .qeditor ul{list-style:disc;padding-left:1.6em;margin:.6em 0}
+  .qeditor ol{list-style:decimal;padding-left:1.6em;margin:.6em 0}
+  .qeditor li{margin:.2em 0}
+  .qeditor a{color:#cf1717;text-decoration:underline}
+  .qeditor h2{font-size:1.4rem;font-weight:800;margin:.8em 0 .4em}
+  .qeditor h3{font-size:1.15rem;font-weight:800;margin:.8em 0 .4em}
+  .qeditor blockquote{border-left:4px solid #cf1717;background:rgba(207,23,23,.06);padding:.5em 1em;margin:.8em 0;border-radius:0 8px 8px 0}
+  .qeditor .video-wrap{position:relative;padding-top:56.25%;margin:1em 0}
+  .qeditor .video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:12px}
+  .qeditor-2col{column-count:2;column-gap:1.8rem}
+  @media (max-width:640px){.qeditor-2col{column-count:1}}
+  .qeditor-2col img,.qeditor-2col table{break-inside:avoid}
+    .tab-btn{padding:.6rem 1.1rem;font-size:.8rem;font-weight:800;border-radius:.75rem;transition:.15s}
+    .tab-btn.active{background:#cf1717;color:#fff;box-shadow:0 4px 12px rgba(207,23,23,.3)}
+    .tab-btn:not(.active){background:rgba(0,0,0,.04);color:#6b7280}
+    .dark .tab-btn:not(.active){background:rgba(255,255,255,.06);color:#a1a1aa}
+    .inp{width:100%;padding:.6rem .75rem;border-radius:.6rem;border:1px solid #e5e7eb;font-size:.85rem;background:transparent}
+    .dark .inp{border-color:#3f3f46;background:#27272a}
+    .th{padding:.6rem .8rem;text-align:left;font-size:.7rem;text-transform:uppercase;font-weight:800;color:#6b7280}
+    .td{padding:.6rem .8rem;font-size:.82rem}
+  </style>
+</head>
+<body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen transition-colors duration-300 flex flex-col justify-between">
+
+<div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none select-none bg-slate-50 dark:bg-zinc-950">
+  <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#cf1717]/20 dark:bg-[#cf1717]/15 rounded-full blur-3xl animate-blob"></div>
+  <div class="absolute top-1/3 -right-24 w-[30rem] h-[30rem] bg-indigo-500/15 dark:bg-red-900/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+  <div class="absolute -bottom-24 left-1/3 w-96 h-96 bg-amber-500/15 dark:bg-amber-600/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+</div>
+<div id="toastContainer" class="fixed top-5 right-5 z-[100000] flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+<header class="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/60 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-950/60 px-4">
+  <div class="max-w-7xl mx-auto h-16 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+      <a href="dashboard.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
+        <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
+      </a>
+      <a href="editLML.html" class="flex items-center gap-2 hover:opacity-90 transition">
+        <span class="text-2xl font-black text-[#cf1717] tracking-tight">ReadUp</span>
+        <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full shadow-sm">LML<sup>Admin</sup></span>
+      </a>
+    </div>
+    <div class="flex items-center gap-2 sm:gap-3">
+      <a href="lml.html" target="_blank" class="px-3 py-2 text-xs font-bold text-[#cf1717] bg-white/80 dark:bg-zinc-800/80 border border-[#cf1717]/40 hover:bg-red-50 rounded-xl transition flex items-center gap-1.5"><i class="bi bi-eye-fill"></i><span class="hidden sm:inline">Xem trang LML</span></a>
+      <a href="dashboard.html" class="px-3 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-xl transition flex items-center gap-1.5"><i class="bi bi-house-door-fill"></i><span class="hidden sm:inline">Trang chủ</span></a>
+      <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50"><i class="bi bi-moon-stars-fill"></i></button>
+      <button onclick="handleLogout()" class="px-3 py-2 text-xs font-bold bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-red-100 dark:hover:bg-red-950/50 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] rounded-xl transition">Đăng xuất</button>
+    </div>
+  </div>
+</header>
+
+<div id="gate" class="flex-1 flex items-center justify-center text-gray-400 text-sm py-20"><i class="bi bi-hourglass-split mr-2"></i> Đang kiểm tra quyền admin...</div>
+
+<main id="app" class="hidden max-w-7xl mx-auto px-4 py-6 w-full flex-1 space-y-6">
+  <div class="flex flex-wrap gap-2">
+    <button id="tabTopics" class="tab-btn" onclick="switchTab('topics')"><i class="bi bi-grid-fill"></i> Chủ đề</button>
+    <button id="tabMats" class="tab-btn" onclick="switchTab('mats')"><i class="bi bi-journal-text"></i> Bài tập</button>
+    <button id="tabScores" class="tab-btn" onclick="switchTab('scores')"><i class="bi bi-bar-chart-fill"></i> Quản lý điểm</button>
+  </div>
+
+  <!-- ===== CHỦ ĐỀ ===== -->
+  <section id="paneTopics" class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl shadow-sm p-4 sm:p-6 space-y-4">
+    <div class="border-l-4 border-[#cf1717] pl-3"><h2 class="text-base sm:text-lg font-extrabold">Chủ đề (hiển thị ở thanh bên trái của trang LML)</h2></div>
+    <form onsubmit="addTopic(event)" class="flex flex-wrap gap-2">
+      <input id="newTopicName" required placeholder="Tên chủ đề mới, VD: Environment" class="inp flex-1 min-w-[200px]">
+      <button class="bg-[#cf1717] hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-lg text-sm shadow transition"><i class="bi bi-plus-lg"></i> Thêm chủ đề</button>
+    </form>
+    <div id="topicTable"></div>
+  </section>
+
+  <!-- ===== BÀI TẬP ===== -->
+  <section id="paneMats" class="hidden bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl shadow-sm p-4 sm:p-6 space-y-4">
+    <div class="border-l-4 border-[#cf1717] pl-3"><h2 class="text-base sm:text-lg font-extrabold">Bài tập</h2></div>
+    <div class="flex flex-wrap gap-2 items-center">
+      <select id="matTopicSel" onchange="onMatTopicChange()" class="inp max-w-xs"></select>
+      <button id="newMatBtn" onclick="openBuilder()" class="bg-[#cf1717] hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-lg text-sm shadow transition disabled:opacity-40 disabled:cursor-not-allowed" disabled><i class="bi bi-plus-lg"></i> Tạo bài tập mới</button>
+    </div>
+    <div id="matList"><p class="text-xs text-gray-400 italic">Hãy chọn một chủ đề trước.</p></div>
+  </section>
+
+  <!-- ===== QUẢN LÝ ĐIỂM ===== -->
+  <section id="paneScores" class="hidden bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl shadow-sm p-4 sm:p-6 space-y-4">
+    <div class="border-l-4 border-[#cf1717] pl-3"><h2 class="text-base sm:text-lg font-extrabold">Quản lý điểm</h2></div>
+    <div class="flex flex-wrap gap-2 items-center">
+      <select id="scTopicSel" onchange="loadScoreTopic()" class="inp max-w-xs"></select>
+      <button onclick="loadScoreTopic()" class="text-xs font-bold text-indigo-500 hover:underline"><i class="bi bi-arrow-clockwise"></i> Làm mới</button>
+    </div>
+    <div id="scCrumb" class="text-xs text-gray-500"></div>
+    <div id="scBox"><p class="text-xs text-gray-400 italic">Hãy chọn một chủ đề.</p></div>
+  </section>
+</main>
+
+<footer class="text-center text-[11px] text-gray-400 py-5">ReadUp English · LML Admin</footer>
+
+<!-- ================= MODAL: SOẠN BÀI ================= -->
+<div id="builderModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-start justify-center p-2 sm:p-4 z-[9999] overflow-y-auto">
+  <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 w-full max-w-4xl my-4 sm:my-8 shadow-2xl space-y-5">
+    <div class="flex justify-between items-center border-b dark:border-zinc-800 pb-3">
+      <h3 class="font-extrabold text-lg text-[#cf1717] dark:text-red-400 flex items-center gap-2"><i class="bi bi-pencil"></i> <span id="builderModeTitle">Tạo Bài Tập Mới</span></h3>
+      <button onclick="closeBuilder()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
+    </div>
+    <input type="hidden" id="editingId">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+      <div class="sm:col-span-3 text-gray-500">Chủ đề: <b id="bdTopicName" class="text-[#cf1717]"></b></div>
+      <div class="sm:col-span-3">
+        <label class="block font-bold uppercase mb-1">Tiêu đề bài tập (*)</label>
+        <input id="asTitle" placeholder="VD: Reading Unit 5 - Environment" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
+      </div>
+      <div class="sm:col-span-3">
+        <label class="block font-bold uppercase mb-1">Mô tả / hướng dẫn làm bài</label>
+        <textarea id="asDesc" rows="2" placeholder="Hướng dẫn ngắn..." class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></textarea>
+      </div>
+      <div class="sm:col-span-3 text-gray-400 flex items-center gap-2">
+        Đường dẫn: <code id="asTokenPreview" class="text-[#cf1717] font-bold">lml.html?token=...</code>
+        <button type="button" onclick="copyAsToken()" class="text-[11px] font-bold text-blue-500 hover:underline"><i class="bi bi-clipboard"></i> Sao chép</button>
+      </div>
+    </div>
+    <!-- Thanh công cụ định dạng dùng chung (áp dụng lên ô đang focus) -->
+    <div class="flex flex-wrap items-center gap-1 p-2 bg-gray-100 dark:bg-zinc-800 rounded-lg border dark:border-zinc-700 sticky top-0 z-10">
+      <span class="text-[10px] font-bold text-gray-500 px-1">Định dạng (áp dụng vào ô đang chọn):</span>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('bold')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 font-bold text-xs">B</button>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('italic')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 italic text-xs">I</button>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('underline')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 underline text-xs">U</button>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('removeFormat')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs" title="Xóa định dạng"><i class="bi bi-eraser-fill"></i></button>
+      <label class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 flex flex-col items-center justify-center cursor-pointer relative" title="Màu chữ (bôi đen chữ trước)">
+        <span class="pointer-events-none font-bold text-xs leading-none">A</span>
+        <span id="qColorBar" class="pointer-events-none w-4 h-1 rounded mt-0.5" style="background:#cf1717"></span>
+        <input type="color" value="#000000" onmousedown="qSaveSel()" oninput="document.getElementById('qColorBar').style.background=this.value; qcmd('foreColor', this.value)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+      </label>
+      <select onchange="qcmd('fontSize', this.value); this.selectedIndex=0" class="h-7 rounded border-0 bg-transparent hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs" title="Cỡ chữ">
+        <option value="">Cỡ chữ</option>
+        <option value="2">Nhỏ</option>
+        <option value="3">Vừa</option>
+        <option value="5">Lớn</option>
+        <option value="7">Rất lớn</option>
+      </select>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('insertUnorderedList')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs">•≡</button>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('insertOrderedList')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs">1≡</button>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('justifyLeft')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs" title="Căn trái"><i class="bi bi-text-left"></i></button>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('justifyCenter')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs" title="Căn giữa"><i class="bi bi-text-center"></i></button>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qcmd('removeFormat')" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs" title="Xóa định dạng"><i class="bi bi-eraser-fill"></i></button>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qInsertLink()" class="px-2 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs font-bold" title="Gắn link vào chữ đang bôi đen"><i class="bi bi-link-45deg"></i> Link</button>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qInsertYoutube()" class="px-2 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs font-bold" title="Chèn video YouTube"><i class="bi bi-youtube"></i> YouTube</button>
+      <label class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs flex items-center justify-center cursor-pointer" title="Chèn ảnh"><i class="bi bi-image"></i>
+        <input type="file" accept="image/*" class="hidden" onchange="qInsertImage(this)">
+      </label>
+      <button type="button" onmousedown="event.preventDefault()" onclick="qInsertTable()" class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-sm" title="Chèn bảng">▦</button>
+      <label class="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 text-xs flex items-center justify-center cursor-pointer" title="Chèn âm thanh (Listening)"><i class="bi bi-volume-up-fill"></i>
+        <input type="file" accept="audio/*" class="hidden" onchange="qInsertAudio(this)">
+      </label>
+      <span class="text-[10px] text-gray-400 ml-2"><i class="bi bi-lightbulb"></i> Bấm vào ô câu hỏi/giải thích rồi dùng nút trên như soạn Word.</span>
+    </div>
+
+    <!-- Danh sách khối câu hỏi -->
+    <div id="questionBlocks" class="space-y-4"></div>
+
+    <!-- Thêm khối câu hỏi -->
+    <div class="p-3 bg-gray-50 dark:bg-zinc-800/60 rounded-xl border dark:border-zinc-700">
+      <p class="text-[11px] font-bold uppercase text-gray-500 mb-2"><i class="bi bi-plus-lg"></i> Thêm dạng câu hỏi</p>
+      <div class="flex flex-wrap gap-2 text-xs">
+        <button type="button" onclick="addBlock('mcq')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition"><i class="bi bi-check2-square"></i> Trắc nghiệm 1 đáp án</button>
+        <button type="button" onclick="addBlock('multi')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition"><i class="bi bi-check2-all"></i> Trắc nghiệm nhiều đáp án</button>
+        <button type="button" onclick="addBlock('tf')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition"><i class="bi bi-check-lg"></i><i class="bi bi-x-lg"></i> Đúng / Sai</button>
+        <button type="button" onclick="addBlock('fill')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition"><i class="bi bi-pencil-square"></i> Điền khuyết</button>
+        <button type="button" onclick="addBlock('essay')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition"><i class="bi bi-file-earmark-text"></i> Tự luận</button>
+        <button type="button" onclick="addBlock('text')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition"><i class="bi bi-pin-angle-fill"></i> Đoạn văn bản / hướng dẫn (không chấm điểm)</button>
+        <button type="button" onclick="addBlock('reading')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border-2 border-[#cf1717]/50 rounded-lg font-bold text-[#cf1717] hover:bg-red-50 dark:hover:bg-red-950/30 transition"><i class="bi bi-book"></i> Bài đọc (Reading — chia đôi màn hình)</button>
+      </div>
+      <p class="text-[10px] text-gray-400 mt-2"><i class="bi bi-lightbulb"></i> Khối "Bài đọc": bên trái nhập bài văn, bên phải thêm các câu hỏi thuộc riêng bài đọc đó.</p>
+    </div>
+    <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t dark:border-zinc-800">
+      <label class="flex items-center gap-2 font-bold text-xs"><input type="checkbox" id="asPublished" checked> Xuất bản (hiện trên trang LML)</label>
+      <div class="flex flex-wrap gap-2">
+        <button type="button" onclick="saveMaterial()" class="bg-[#cf1717] hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm shadow transition"><i class="bi bi-floppy"></i> Lưu</button>
+        <button type="button" onclick="closeBuilder()" class="bg-gray-200 dark:bg-zinc-700 font-bold px-4 py-2.5 rounded-lg text-sm">Hủy</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
+  const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  function pel(id) { return document.getElementById(id); }
+  function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function slugify(str) {
+    str = (str || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd');
+    str = str.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    return str || 'bai-tap';
+  }
+  function fmtDT(d) { const x = new Date(d); return isNaN(x) ? '' : x.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
+  const rnd = n => Math.round((n || 0) * 100) / 100;
+
+  // ---------- Toast ----------
+  function notify(rawMessage) {
+    const msg = String(rawMessage ?? '');
+    const emojiMatch = msg.match(/^(?:\p{Extended_Pictographic}|️|‍)+\s*/u);
+    let icon = '<i class="bi bi-bell-fill"></i>', text = msg;
+    if (emojiMatch && emojiMatch[0].trim()) { icon = emojiMatch[0].trim(); text = msg.slice(emojiMatch[0].length).trim() || msg; }
+    let title = 'Thông báo';
+    if (/❌/.test(msg) || /lỗi|thất bại|không thể/i.test(msg)) title = 'Lỗi';
+    else if (/⚠️/.test(msg)) title = 'Cảnh báo';
+    else if (/🎉|✅|📋/.test(msg)) title = 'Thành công';
+    const container = pel('toastContainer'); if (!container) return;
+    const id = 'toast-' + Date.now() + Math.random().toString(36).slice(2, 6);
+    container.insertAdjacentHTML('beforeend', `
+      <div id="${id}" class="pointer-events-auto bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden transform transition-all duration-300 translate-x-full opacity-0 relative">
+        <div class="p-3.5 sm:p-4 flex items-start gap-3">
+          <div class="w-9 h-9 rounded-full bg-red-50 dark:bg-red-950/80 flex-shrink-0 flex items-center justify-center text-[#cf1717] dark:text-red-400 font-bold text-base shadow-sm">${icon}</div>
+          <div class="flex-1 pr-4"><h4 class="text-xs sm:text-sm font-bold text-gray-900 dark:text-white leading-tight">${title}</h4><p class="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-3">${esc(text)}</p></div>
+          <button onclick="closeToast('${id}')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white text-base leading-none p-1">✕</button>
+        </div>
+        <div class="h-1 bg-red-100 dark:bg-zinc-800 w-full"><div class="h-full bg-[#cf1717] animate-toast-bar"></div></div>
+      </div>`);
+    const el = pel(id);
+    setTimeout(() => el.classList.remove('translate-x-full', 'opacity-0'), 50);
+    setTimeout(() => closeToast(id), 5000);
+  }
+  function closeToast(id) { const el = pel(id); if (!el) return; el.classList.add('translate-x-full', 'opacity-0'); setTimeout(() => el.remove(), 300); }
+  function toggleDarkMode() {
+    if (document.documentElement.classList.contains('dark')) { document.documentElement.classList.remove('dark'); localStorage.theme = 'light'; }
+    else { document.documentElement.classList.add('dark'); localStorage.theme = 'dark'; }
+  }
+  async function handleLogout() { await sbClient.auth.signOut(); window.location.href = 'index.html'; }
+
+  // ---------- Khởi động + chặn không phải admin ----------
+  let currentUser = null, topics = [], materials = [];
+  async function init() {
+    const { data: { session } } = await sbClient.auth.getSession();
+    if (!session) { window.location.href = 'index.html'; return; }
+    currentUser = session.user;
+    const { data: prof } = await sbClient.from('profiles').select('role').eq('id', currentUser.id).maybeSingle();
+    if (!prof || prof.role !== 'admin') {
+      pel('gate').innerHTML = '<div class="text-center"><div class="text-4xl text-[#cf1717] mb-2"><i class="bi bi-shield-lock-fill"></i></div>Chỉ admin mới vào được trang này. Đang chuyển về trang chủ...</div>';
+      setTimeout(() => window.location.href = 'dashboard.html', 1500);
+      return;
+    }
+    pel('gate').classList.add('hidden'); pel('app').classList.remove('hidden');
+    await loadTopics();
+    switchTab(localStorage.getItem('lmlAdminTab') || 'topics');
+  }
+
+  function switchTab(t) {
+    try { localStorage.setItem('lmlAdminTab', t); } catch (e) {}
+    ['topics', 'mats', 'scores'].forEach(k => {
+      pel('pane' + k[0].toUpperCase() + k.slice(1)).classList.toggle('hidden', k !== t);
+      pel('tab' + k[0].toUpperCase() + k.slice(1)).classList.toggle('active', k === t);
+    });
+    if (t === 'scores') loadScoreTopic();
+  }
+
+  // ---------- CHỦ ĐỀ ----------
+  async function loadTopics() {
+    const { data, error } = await sbClient.from('lml_topics').select('*').order('sort_order').order('created_at');
+    if (error) return notify('❌ Lỗi tải chủ đề: ' + error.message + ' (đã chạy lml_setup.sql chưa?)');
+    topics = data || [];
+    const { data: ms } = await sbClient.from('lml_materials').select('id,topic_id');
+    const cnt = {}; (ms || []).forEach(m => cnt[m.topic_id] = (cnt[m.topic_id] || 0) + 1);
+    topics.forEach(t => t._n = cnt[t.id] || 0);
+    renderTopics(); fillTopicSelects();
+  }
+  function renderTopics() {
+    if (!topics.length) { pel('topicTable').innerHTML = '<p class="text-xs text-gray-400 italic">Chưa có chủ đề nào.</p>'; return; }
+    pel('topicTable').innerHTML = `<div class="overflow-x-auto"><table class="w-full"><thead class="bg-gray-50 dark:bg-zinc-800/60"><tr><th class="th">#</th><th class="th">Tên chủ đề</th><th class="th">Số bài</th><th class="th text-right">Thao tác</th></tr></thead><tbody>` +
+      topics.map((t, i) => `<tr class="border-t dark:border-zinc-800">
+        <td class="td text-gray-400">${i + 1}</td><td class="td font-bold">${esc(t.name)}</td><td class="td">${t._n}</td>
+        <td class="td text-right whitespace-nowrap">
+          <button onclick="moveTopic(${i},-1)" class="px-2 text-gray-500 hover:text-[#cf1717]" title="Lên"><i class="bi bi-arrow-up"></i></button>
+          <button onclick="moveTopic(${i},1)" class="px-2 text-gray-500 hover:text-[#cf1717]" title="Xuống"><i class="bi bi-arrow-down"></i></button>
+          <button onclick="renameTopic('${t.id}')" class="px-2 text-indigo-500 hover:underline text-xs font-bold"><i class="bi bi-pencil"></i> Đổi tên</button>
+          <button onclick="deleteTopic('${t.id}')" class="px-2 text-red-500 hover:underline text-xs font-bold"><i class="bi bi-trash"></i> Xóa</button>
+        </td></tr>`).join('') + '</tbody></table></div>';
+  }
+  function fillTopicSelects() {
+    ['matTopicSel', 'scTopicSel'].forEach(id => {
+      const sel = pel(id), cur = sel.value;
+      sel.innerHTML = '<option value="">— Chọn chủ đề —</option>' + topics.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
+      if (topics.some(t => t.id === cur)) sel.value = cur;
+    });
+    onMatTopicChange(true);
+  }
+  async function addTopic(e) {
+    e.preventDefault();
+    const name = pel('newTopicName').value.trim(); if (!name) return;
+    const max = topics.reduce((m, t) => Math.max(m, t.sort_order || 0), 0);
+    const { error } = await sbClient.from('lml_topics').insert([{ name, sort_order: max + 1 }]);
+    if (error) return notify('❌ Lỗi: ' + error.message);
+    pel('newTopicName').value = ''; notify('✅ Đã thêm chủ đề.'); loadTopics();
+  }
+  async function renameTopic(id) {
+    const t = topics.find(x => x.id === id); const name = prompt('Tên chủ đề mới:', t.name); if (!name || !name.trim()) return;
+    const { error } = await sbClient.from('lml_topics').update({ name: name.trim() }).eq('id', id);
+    if (error) return notify('❌ Lỗi: ' + error.message);
+    notify('✅ Đã đổi tên.'); loadTopics();
+  }
+  async function moveTopic(i, dir) {
+    const j = i + dir; if (j < 0 || j >= topics.length) return;
+    const list = topics.slice(); [list[i], list[j]] = [list[j], list[i]];
+    const res = await Promise.all(list.map((t, k) => sbClient.from('lml_topics').update({ sort_order: k + 1 }).eq('id', t.id)));
+    const err = res.find(r => r.error); if (err) return notify('❌ Lỗi: ' + err.error.message);
+    loadTopics();
+  }
+  async function deleteTopic(id) {
+    const t = topics.find(x => x.id === id);
+    if (!confirm(`Xóa chủ đề "${t.name}"?\nTất cả ${t._n} bài tập trong chủ đề và điểm làm bài liên quan sẽ bị xóa vĩnh viễn.`)) return;
+    const { error } = await sbClient.from('lml_topics').delete().eq('id', id);
+    if (error) return notify('❌ Lỗi: ' + error.message);
+    notify('✅ Đã xóa chủ đề.'); loadTopics();
+  }
+
+  // ---------- BÀI TẬP ----------
+  function curTopicId() { return pel('matTopicSel').value; }
+  async function onMatTopicChange(silent) {
+    const id = curTopicId();
+    pel('newMatBtn').disabled = !id;
+    if (!id) { materials = []; pel('matList').innerHTML = '<p class="text-xs text-gray-400 italic">Hãy chọn một chủ đề trước.</p>'; return; }
+    await loadMaterials();
+  }
+  async function loadMaterials() {
+    const id = curTopicId(); if (!id) return;
+    const { data, error } = await sbClient.from('lml_materials').select('*').eq('topic_id', id).order('created_at', { ascending: false });
+    if (error) return notify('❌ Lỗi tải bài tập: ' + error.message);
+    materials = data || [];
+    const countQ = arr => arr.reduce((s, b) => s + (b.type === 'reading' ? countQ(b.sub_blocks || []) : (['text', 'essay'].includes(b.type) ? (b.type === 'essay' ? 1 : 0) : 1)), 0);
+    if (!materials.length) { pel('matList').innerHTML = '<p class="text-xs text-gray-400 italic">Chủ đề này chưa có bài. Bấm "Tạo bài tập mới".</p>'; return; }
+    pel('matList').innerHTML = `<div class="overflow-x-auto"><table class="w-full"><thead class="bg-gray-50 dark:bg-zinc-800/60"><tr><th class="th">Tiêu đề</th><th class="th">Câu</th><th class="th">Điểm</th><th class="th">Trạng thái</th><th class="th">Ngày tạo</th><th class="th text-right">Thao tác</th></tr></thead><tbody>` +
+      materials.map(m => `<tr class="border-t dark:border-zinc-800">
+        <td class="td font-bold">${esc(m.title)}</td><td class="td">${countQ(m.questions || [])}</td><td class="td">${rnd(m.total_points)}</td>
+        <td class="td">${m.is_published ? '<span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Đã xuất bản</span>' : '<span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">Bản nháp</span>'}</td>
+        <td class="td text-gray-500">${fmtDT(m.created_at)}</td>
+        <td class="td text-right whitespace-nowrap">
+          <a href="lml.html?token=${encodeURIComponent(m.token)}" target="_blank" class="px-2 text-emerald-600 hover:underline text-xs font-bold"><i class="bi bi-eye"></i> Xem</a>
+          <button onclick="editMaterial('${m.id}')" class="px-2 text-indigo-500 hover:underline text-xs font-bold"><i class="bi bi-pencil"></i> Sửa</button>
+          <button onclick="deleteMaterial('${m.id}')" class="px-2 text-red-500 hover:underline text-xs font-bold"><i class="bi bi-trash"></i> Xóa</button>
+        </td></tr>`).join('') + '</tbody></table></div>';
+  }
+  async function deleteMaterial(id) {
+    if (!confirm('Xóa bài tập này? Điểm làm bài liên quan cũng sẽ bị xóa.')) return;
+    const { error } = await sbClient.from('lml_materials').delete().eq('id', id);
+    if (error) return notify('❌ Lỗi: ' + error.message);
+    notify('✅ Đã xóa bài tập.'); loadMaterials(); loadTopics();
+  }
+
+  // ---------- TRÌNH SOẠN BÀI ----------
+  let blocks = []; // mảng câu hỏi hiện tại đang soạn
+  let lastFocusedEditable = null;
+  let savedRange = null;
+
+  document.addEventListener('focusin', (e) => { if (e.target.classList && e.target.classList.contains('qeditor')) lastFocusedEditable = e.target; });
+  document.addEventListener('selectionchange', () => {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount || !lastFocusedEditable) return;
+    const range = sel.getRangeAt(0);
+    if (lastFocusedEditable.contains(range.commonAncestorContainer)) savedRange = range.cloneRange();
+  });
+  function qcmd(cmd, value) {
+    if (!lastFocusedEditable) return notify('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước.');
+    lastFocusedEditable.focus();
+    if (savedRange) { const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedRange); }
+    if (cmd === 'foreColor') document.execCommand('styleWithCSS', false, true);
+    document.execCommand(cmd, false, value === undefined || value === '' ? null : value);
+    if (cmd === 'foreColor') document.execCommand('styleWithCSS', false, false);
+    lastFocusedEditable.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  function qSaveSel() {
+    const sel = window.getSelection();
+    if (lastFocusedEditable && sel && sel.rangeCount && lastFocusedEditable.contains(sel.getRangeAt(0).commonAncestorContainer)) savedRange = sel.getRangeAt(0).cloneRange();
+  }
+  function qRestore() {
+    if (!lastFocusedEditable) { notify('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước.'); return false; }
+    lastFocusedEditable.focus();
+    if (savedRange) { const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedRange); }
+    return true;
+  }
+  function qInsertLink() {
+    if (!lastFocusedEditable) return notify('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước.');
+    const hasSel = savedRange && !savedRange.collapsed;
+    let u = prompt(hasSel ? 'Nhập đường dẫn (https://...) cho đoạn chữ đang bôi đen:' : 'Nhập đường dẫn (https://...):');
+    if (!u) return;
+    if (!/^(https?:|mailto:)/i.test(u)) u = 'https://' + u;
+    if (!qRestore()) return;
+    if (hasSel) document.execCommand('createLink', false, u);
+    else document.execCommand('insertHTML', false, `<a href="${u}" target="_blank" rel="noopener">${u}</a>&nbsp;`);
+    lastFocusedEditable.querySelectorAll('a[href]').forEach(a => { a.target = '_blank'; a.rel = 'noopener'; });
+    lastFocusedEditable.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  function qInsertYoutube() {
+    if (!lastFocusedEditable) return notify('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước.');
+    const u = prompt('Dán link YouTube (watch?v=..., youtu.be/..., shorts/...):'); if (!u) return;
+    const m = u.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/);
+    if (!m) return notify('❌ Link YouTube không hợp lệ.');
+    if (!qRestore()) return;
+    document.execCommand('insertHTML', false, `<div class="video-wrap" contenteditable="false" style="position:relative;padding-top:56.25%;margin:1em 0"><iframe src="https://www.youtube.com/embed/${m[1]}" style="position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:12px" allowfullscreen></iframe></div><p><br></p>`);
+    lastFocusedEditable.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  // Dán từ Word/web: giữ đậm/nghiêng/màu/căn lề, bỏ rác
+  function qClean(h) {
+    const d = new DOMParser().parseFromString(h, 'text/html');
+    d.querySelectorAll('style,meta,link,script,xml').forEach(n => n.remove());
+    d.querySelectorAll('*').forEach(n => {
+      n.removeAttribute('class');
+      const st = (n.getAttribute('style') || '').split(';').filter(x => /^\s*(font-weight|font-style|text-decoration|text-align|color)\s*:/i.test(x)).join(';');
+      st ? n.setAttribute('style', st) : n.removeAttribute('style');
+    });
+    return d.body.innerHTML.replace(/<!--[\s\S]*?-->/g, '').replace(/<\/?o:p>/g, '');
+  }
+  document.addEventListener('paste', (e) => {
+    const t = e.target;
+    if (!t.classList || !t.classList.contains('qeditor')) return;
+    const h = e.clipboardData.getData('text/html'); if (!h) return;
+    e.preventDefault(); document.execCommand('insertHTML', false, qClean(h));
+  });
+  function qInsertImage(input) {
+    const file = input.files[0]; if (!file || !lastFocusedEditable) return;
+    const reader = new FileReader();
+    reader.onload = () => { lastFocusedEditable.focus(); document.execCommand('insertHTML', false, `<img src="${reader.result}">`); };
+    reader.readAsDataURL(file);
+  }
+  function qInsertTable() {
+    if (!lastFocusedEditable) return notify('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước.');
+    const rows = parseInt(prompt('Bảng bao nhiêu HÀNG?', '2')) || 2;
+    const cols = parseInt(prompt('Bảng bao nhiêu CỘT?', '2')) || 2;
+    let html = '<table><tbody>';
+    for (let r = 0; r < Math.max(1, rows); r++) {
+      html += '<tr>';
+      for (let c = 0; c < Math.max(1, cols); c++) html += '<td>&nbsp;</td>';
+      html += '</tr>';
+    }
+    html += '</tbody></table><p><br></p>';
+    lastFocusedEditable.focus();
+    document.execCommand('insertHTML', false, html);
+  }
+  function qInsertAudio(input) {
+    const file = input.files[0]; input.value = '';
+    if (!file || !lastFocusedEditable) return notify('⚠️ Hãy bấm vào ô câu hỏi/giải thích trước, sau đó chọn file âm thanh.');
+    if (file.size > 8 * 1024 * 1024) return notify('⚠️ File âm thanh quá 8MB, hãy nén nhỏ hơn rồi thử lại.');
+    const reader = new FileReader();
+    reader.onload = () => { lastFocusedEditable.focus(); document.execCommand('insertHTML', false, `<audio controls src="${reader.result}"></audio><p><br></p>`); };
+    reader.readAsDataURL(file);
+  }
+
+
+
+  function openBuilder(m) {
+    const tid = curTopicId(); if (!tid && !m) return notify('⚠️ Hãy chọn chủ đề trước.');
+    const t = topics.find(x => x.id === (m ? m.topic_id : tid));
+    pel('bdTopicName').innerText = t ? t.name : '';
+    pel('editingId').value = m ? m.id : '';
+    pel('builderModeTitle').innerText = m ? 'Chỉnh Sửa Bài Tập' : 'Tạo Bài Tập Mới';
+    pel('asTitle').value = m?.title || '';
+    pel('asDesc').value = m?.description || '';
+    pel('asPublished').checked = m ? !!m.is_published : true;
+    const raw = m ? JSON.parse(JSON.stringify(m.questions || [])) : [];
+    // blanks lưu DB dạng mảng [{gap, accepted_answers}] → khung soạn cần dạng {gap: "đáp án; đáp án"}
+    function denormalizeFill(b) {
+      if (b.type === 'fill' && Array.isArray(b.blanks)) {
+        const map = {};
+        b.blanks.forEach(bl => { map[bl.gap] = (bl.accepted_answers || []).join('; '); });
+        b.blanks = map;
+      }
+      return b;
+    }
+    blocks = raw.map(b => { b = denormalizeFill(b); if (b.type === 'reading') b.sub_blocks = (b.sub_blocks || []).map(denormalizeFill); return b; });
+    renderBlocks(); previewAsToken();
+    pel('asTitle').oninput = previewAsToken;
+    pel('builderModal').classList.remove('hidden'); pel('builderModal').classList.add('flex');
+  }
+  function closeBuilder() { pel('builderModal').classList.add('hidden'); pel('builderModal').classList.remove('flex'); }
+  function editMaterial(id) { const m = materials.find(x => x.id === id); if (m) openBuilder(m); }
+  function copyAsToken() {
+    const text = pel('asTokenPreview').innerText;
+    navigator.clipboard?.writeText(text).then(() => notify('📋 Đã sao chép đường dẫn!')).catch(() => notify('⚠️ Không sao chép được, hãy copy thủ công.'));
+  }
+  function previewAsToken() {
+    const id = pel('editingId').value;
+    const ex = id ? materials.find(x => x.id === id) : null;
+    pel('asTokenPreview').innerText = 'lml.html?token=' + (ex ? ex.token : slugify(pel('asTitle').value || 'ten-bai-tap'));
+  }
+
+  function newId() { return 'q_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+  function addBlock(type) {
+    const base = { id: newId(), type, content: '', points: 1, explanation: '' };
+    if (type === 'mcq' || type === 'multi') base.options = [{ id: 'a', text: '', correct: type === 'mcq' }, { id: 'b', text: '', correct: false }];
+    if (type === 'tf') base.options = [{ id: 'true', text: 'True', correct: true }, { id: 'false', text: 'False', correct: false }];
+    if (type === 'fill') { base.blanks = {}; }
+    if (type === 'text') { base.points = 0; }
+    if (type === 'reading') { base.points = 0; base.sub_blocks = []; }
+    blocks.push(base);
+    renderBlocks();
+    revealBlock(base.id);
+  }
+  function removeBlock(id) { blocks = blocks.filter(b => b.id !== id); renderBlocks(); }
+  function moveBlock(id, dir) {
+    const i = blocks.findIndex(b => b.id === id); const j = i + dir;
+    if (i < 0 || j < 0 || j >= blocks.length) return;
+    [blocks[i], blocks[j]] = [blocks[j], blocks[i]]; renderBlocks();
+  }
+
+  // ---- Câu hỏi con bên trong khối Reading ----
+  function addSubBlock(readingId, type) {
+    const rb = blocks.find(b => b.id === readingId); if (!rb) return;
+    const base = { id: newId(), type, content: '', points: 1, explanation: '' };
+    if (type === 'mcq' || type === 'multi') base.options = [{ id: 'a', text: '', correct: type === 'mcq' }, { id: 'b', text: '', correct: false }];
+    if (type === 'tf') base.options = [{ id: 'true', text: 'True', correct: true }, { id: 'false', text: 'Flase', correct: false }];
+    if (type === 'fill') base.blanks = {};
+    if (type === 'text') base.points = 0;
+    rb.sub_blocks = rb.sub_blocks || [];
+    rb.sub_blocks.push(base);
+    renderBlocks();
+    revealBlock(base.id);
+  }
+  function removeSubBlock(readingId, id) {
+    const rb = blocks.find(b => b.id === readingId); if (!rb) return;
+    rb.sub_blocks = (rb.sub_blocks || []).filter(b => b.id !== id); renderBlocks();
+  }
+  function moveSubBlock(readingId, id, dir) {
+    const rb = blocks.find(b => b.id === readingId); if (!rb) return;
+    const arr = rb.sub_blocks || [];
+    const i = arr.findIndex(b => b.id === id); const j = i + dir;
+    if (i < 0 || j < 0 || j >= arr.length) return;
+    [arr[i], arr[j]] = [arr[j], arr[i]]; renderBlocks();
+  }
+
+  const typeLabel = { mcq: '<i class="bi bi-check2-square"></i> Trắc nghiệm 1 đáp án', multi: '<i class="bi bi-check2-all"></i> Trắc nghiệm nhiều đáp án', tf: '<i class="bi bi-check-lg"></i><i class="bi bi-x-lg"></i> Đúng/Sai', fill: '<i class="bi bi-pencil-square"></i> Điền khuyết', essay: '<i class="bi bi-file-earmark-text"></i> Tự luận', text: '<i class="bi bi-pin-angle-fill"></i> Văn bản / hướng dẫn', reading: '<i class="bi bi-book"></i> Bài đọc (Reading)' };
+  // Các dạng câu hỏi con được phép thêm bên trong 1 khối Reading (không cho lồng Reading trong Reading)
+  const subBlockTypes = [
+    ['mcq', '<i class="bi bi-check2-square"></i> 1 đáp án'], ['multi', '<i class="bi bi-check2-all"></i> Nhiều đáp án'], ['tf', '<i class="bi bi-check-lg"></i><i class="bi bi-x-lg"></i> Đúng/Sai'],
+    ['fill', '<i class="bi bi-pencil-square"></i> Điền khuyết'], ['essay', '<i class="bi bi-file-earmark-text"></i> Tự luận'], ['text', '<i class="bi bi-pin-angle-fill"></i> Hướng dẫn']
+  ];
+
+  // Tìm 1 khối theo id, tìm cả trong danh sách chính lẫn bên trong các khối Reading (sub_blocks)
+  function findBlock(id) {
+    for (const b of blocks) {
+      if (b.id === id) return b;
+      if (b.type === 'reading' && Array.isArray(b.sub_blocks)) {
+        const sub = b.sub_blocks.find(x => x.id === id);
+        if (sub) return sub;
+      }
+    }
+    return null;
+  }
+
+  // Vẽ lại danh sách câu hỏi NHƯNG giữ nguyên vị trí cuộn (modal, danh sách câu con, ô bài đọc)
+  function renderBlocks() {
+    const modal = pel('builderModal');
+    const modalTop = modal ? modal.scrollTop : 0;
+    const saved = {};
+    document.querySelectorAll('#questionBlocks [id^="subList-"], #questionBlocks .qeditor[id^="qc-"]').forEach(el => { saved[el.id] = el.scrollTop; });
+    _renderBlocksRaw();
+    if (modal) modal.scrollTop = modalTop;
+    Object.keys(saved).forEach(id => { const el = document.getElementById(id); if (el) el.scrollTop = saved[id]; });
+  }
+  function revealBlock(id) {
+    const el = document.querySelector('#questionBlocks [data-block="' + id + '"]');
+    if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
+  function _renderBlocksRaw() {
+    pel('questionBlocks').innerHTML = blocks.map((b, idx) => `
+      <div class="border dark:border-zinc-700 rounded-2xl p-4 space-y-3 bg-white dark:bg-zinc-900" data-block="${b.id}">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-extrabold text-[#cf1717]">Câu ${b.type === 'text' ? '' : (blocks.slice(0, idx + 1).filter(x => x.type !== 'text').length)} — ${typeLabel[b.type]}</span>
+          <div class="flex items-center gap-2 text-xs">
+            ${b.type !== 'text' ? `<label class="flex items-center gap-1">Điểm: <input type="number" min="0" step="0.5" value="${b.points}" oninput="updateField('${b.id}','points',this.value,true)" class="w-14 p-1 rounded border dark:bg-zinc-800 dark:border-zinc-700"></label>` : ''}
+            <button type="button" onclick="moveBlock('${b.id}',-1)" title="Lên"><i class="bi bi-arrow-up"></i></button>
+            <button type="button" onclick="moveBlock('${b.id}',1)" title="Xuống"><i class="bi bi-arrow-down"></i></button>
+            <button type="button" onclick="removeBlock('${b.id}')" class="text-red-500 font-bold" title="Xóa"><i class="bi bi-trash"></i></button>
+          </div>
+        </div>
+
+        ${b.type !== 'reading' ? `
+        <div>
+          <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">${b.type === 'text' ? 'Nội dung' : 'Nội dung câu hỏi'}</label>
+          ${b.type === 'text' ? `<label class="flex items-center gap-2 text-[11px] font-bold text-gray-600 dark:text-gray-300 mb-1">
+            <input type="checkbox" ${b.two_col ? 'checked' : ''} onchange="updateField('${b.id}','two_col',this.checked); renderBlocks()"> <i class="bi bi-newspaper"></i> Hiển thị bài đọc chia 2 cột (cho bài dài, dễ đọc hơn với học sinh)
+          </label>` : ''}
+          <div id="qc-${b.id}" class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700 ${b.type === 'text' && b.two_col ? 'qeditor-2col' : ''}" contenteditable="true" oninput="updateField('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
+        </div>` : renderReadingBlockBody(b)}
+
+        ${(b.type === 'mcq' || b.type === 'multi' || b.type === 'tf') ? `
+          <div class="space-y-2">
+            <label class="block text-[10px] font-bold uppercase text-gray-500">Các lựa chọn (tick ✓ vào đáp án đúng)</label>
+            ${b.options.map(o => `
+              <div class="flex items-center gap-2">
+                <input type="${b.type === 'multi' ? 'checkbox' : 'radio'}" name="correct-${b.id}" ${o.correct ? 'checked' : ''}
+                  onchange="setCorrect('${b.id}','${o.id}', ${b.type === 'multi'} ? this.checked : true, ${b.type !== 'multi'})">
+                <input type="text" value="${esc(o.text)}" placeholder="Nội dung lựa chọn..." ${b.type === 'tf' ? 'readonly' : ''}
+                  oninput="setOptionText('${b.id}','${o.id}',this.value)" class="flex-1 p-2 rounded border dark:bg-zinc-800 dark:border-zinc-700 text-xs">
+                ${b.type !== 'tf' && b.options.length > 2 ? `<button type="button" onclick="removeOption('${b.id}','${o.id}')" class="text-red-400 text-xs">✕</button>` : ''}
+              </div>`).join('')}
+            ${b.type !== 'tf' ? `<button type="button" onclick="addOption('${b.id}')" class="text-xs font-bold text-[#cf1717] hover:underline">+ Thêm lựa chọn</button>` : ''}
+          </div>` : ''}
+
+        ${b.type === 'fill' ? renderFillGapsUI(b) : ''}
+
+        ${(b.type !== 'text' && b.type !== 'reading') ? `
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1"><i class="bi bi-lightbulb"></i> Đáp án & giải thích (hiện ra sau khi học sinh nộp bài)</label>
+            <div class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700" contenteditable="true" oninput="updateField('${b.id}','explanation',this.innerHTML)">${b.explanation || ''}</div>
+          </div>` : ''}
+      </div>`).join('') || '<p class="text-xs text-gray-400 italic text-center py-6">Chưa có câu hỏi nào — bấm nút bên dưới để thêm.</p>';
+    pel('questionBlocks').querySelectorAll('textarea[oninput*="updateBlankAnswer"]').forEach(autoGrowTextarea);
+  }
+
+  // ---- Render riêng cho khối Reading: chia 2 cột — trái nhập bài văn, phải quản lý câu hỏi con ----
+  function renderReadingBlockBody(b) {
+    const subCount = (b.sub_blocks || []).length;
+    return `
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 border-t dark:border-zinc-700 pt-3">
+        <div>
+          <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1"><i class="bi bi-book"></i> Bài văn (Reading passage)</label>
+          <label class="flex items-center gap-2 text-[11px] font-bold text-gray-600 dark:text-gray-300 mb-1">
+            <input type="checkbox" ${b.two_col ? 'checked' : ''} onchange="updateField('${b.id}','two_col',this.checked); renderBlocks()"> <i class="bi bi-newspaper"></i> Hiển thị bài đọc chia 2 cột chữ (cho bài dài)
+          </label>
+          <div id="qc-${b.id}" class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700 ${b.two_col ? 'qeditor-2col' : ''}" style="min-height:220px;max-height:420px;overflow-y:auto" contenteditable="true" oninput="updateField('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
+        </div>
+        <div class="bg-gray-50 dark:bg-zinc-800/40 rounded-lg border dark:border-zinc-700 p-2 flex flex-col" style="max-height:420px">
+          <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1"><i class="bi bi-question-circle"></i> Câu hỏi thuộc bài đọc này (${subCount})</label>
+          <div class="space-y-2 overflow-y-auto flex-1 pr-1" id="subList-${b.id}">
+            ${renderSubBlocksHtml(b)}
+          </div>
+          <div class="flex flex-wrap gap-1 pt-2 border-t dark:border-zinc-700 mt-2">
+            ${subBlockTypes.map(([t, label]) => `<button type="button" onclick="addSubBlock('${b.id}','${t}')" class="px-2 py-1 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded text-[10px] font-bold hover:border-[#cf1717] hover:text-[#cf1717] transition">${label}</button>`).join('')}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderSubBlocksHtml(rb) {
+    const arr = rb.sub_blocks || [];
+    if (!arr.length) return '<p class="text-[11px] text-gray-400 italic">Chưa có câu hỏi — bấm nút bên dưới để thêm.</p>';
+    return arr.map((b, idx) => `
+      <div class="border dark:border-zinc-700 rounded-xl p-2 space-y-2 bg-white dark:bg-zinc-900 text-xs" data-block="${b.id}">
+        <div class="flex items-center justify-between">
+          <span class="font-extrabold text-[#cf1717]">Câu con ${b.type === 'text' ? '' : (arr.slice(0, idx + 1).filter(x => x.type !== 'text').length)} · ${typeLabel[b.type]}</span>
+          <div class="flex items-center gap-1.5">
+            ${b.type !== 'text' ? `<label class="flex items-center gap-1">Đ: <input type="number" min="0" step="0.5" value="${b.points}" oninput="updateField('${b.id}','points',this.value,true)" class="w-10 p-0.5 rounded border dark:bg-zinc-800 dark:border-zinc-700"></label>` : ''}
+            <button type="button" onclick="moveSubBlock('${rb.id}','${b.id}',-1)" title="Lên"><i class="bi bi-arrow-up"></i></button>
+            <button type="button" onclick="moveSubBlock('${rb.id}','${b.id}',1)" title="Xuống"><i class="bi bi-arrow-down"></i></button>
+            <button type="button" onclick="removeSubBlock('${rb.id}','${b.id}')" class="text-red-500 font-bold"><i class="bi bi-trash"></i></button>
+          </div>
+        </div>
+        <div id="qc-${b.id}" class="qeditor p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700 text-xs" style="min-height:50px" contenteditable="true" oninput="updateField('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
+        ${(b.type === 'mcq' || b.type === 'multi' || b.type === 'tf') ? `
+          <div class="space-y-1">
+            ${b.options.map(o => `
+              <div class="flex items-center gap-1.5">
+                <input type="${b.type === 'multi' ? 'checkbox' : 'radio'}" name="correct-${b.id}" ${o.correct ? 'checked' : ''}
+                  onchange="setCorrect('${b.id}','${o.id}', ${b.type === 'multi'} ? this.checked : true, ${b.type !== 'multi'})">
+                <input type="text" value="${esc(o.text)}" placeholder="Lựa chọn..." ${b.type === 'tf' ? 'readonly' : ''}
+                  oninput="setOptionText('${b.id}','${o.id}',this.value)" class="flex-1 p-1 rounded border dark:bg-zinc-800 dark:border-zinc-700">
+                ${b.type !== 'tf' && b.options.length > 2 ? `<button type="button" onclick="removeOption('${b.id}','${o.id}')" class="text-red-400">✕</button>` : ''}
+              </div>`).join('')}
+            ${b.type !== 'tf' ? `<button type="button" onclick="addOption('${b.id}')" class="text-[11px] font-bold text-[#cf1717] hover:underline">+ Thêm lựa chọn</button>` : ''}
+          </div>` : ''}
+        ${b.type === 'fill' ? renderFillGapsUI(b) : ''}
+        ${b.type !== 'text' ? `<div><label class="block text-[10px] font-bold uppercase text-gray-500 mb-1"><i class="bi bi-lightbulb"></i> Giải thích</label>
+          <div class="qeditor p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700 text-xs" contenteditable="true" oninput="updateField('${b.id}','explanation',this.innerHTML)">${b.explanation || ''}</div></div>` : ''}
+      </div>`).join('');
+  }
+
+  function updateField(id, field, value, isNumber) {
+    const b = findBlock(id); if (!b) return;
+    b[field] = isNumber ? parseFloat(value || 0) : value;
+  }
+  function setOptionText(bid, oid, val) { const b = findBlock(bid); const o = b.options.find(x => x.id === oid); if (o) o.text = val; }
+  function setCorrect(bid, oid, checked, single) {
+    const b = findBlock(bid); if (!b) return;
+    if (single) b.options.forEach(o => o.correct = (o.id === oid));
+    else { const o = b.options.find(x => x.id === oid); if (o) o.correct = checked; }
+  }
+  function addOption(bid) {
+    const b = findBlock(bid); if (!b) return;
+    const nextLetter = String.fromCharCode(97 + b.options.length);
+    b.options.push({ id: nextLetter + Date.now().toString(36).slice(-3), text: '', correct: false });
+    renderBlocks();
+  }
+  function removeOption(bid, oid) {
+    const b = findBlock(bid); if (!b) return;
+    b.options = b.options.filter(o => o.id !== oid); renderBlocks();
+  }
+
+  // ===== ĐIỀN KHUYẾT NHIỀU CHỖ TRỐNG (1 câu có thể có 1 hoặc nhiều chỗ trống {{1}}, {{2}}...) =====
+  function extractGapNumbers(content) {
+    const nums = Array.from((content || '').matchAll(/\{\{(\d+)\}\}/g)).map(m => parseInt(m[1]));
+    return [...new Set(nums)].sort((a, b) => a - b);
+  }
+  function renderFillGapsUI(b) {
+    const gaps = extractGapNumbers(b.content);
+    b.blanks = b.blanks || {};
+    if (!gaps.length) {
+      return `<div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="block text-[10px] font-bold uppercase text-gray-500">Chỗ trống điền khuyết</label>
+          <button type="button" onclick="insertGapAtCursor('${b.id}')" class="text-xs font-bold text-[#cf1717] hover:underline">+ Chèn chỗ trống vào nội dung</button>
+        </div>
+        <p class="text-[11px] text-amber-500 italic"><i class="bi bi-exclamation-triangle-fill"></i> Đặt con trỏ vào vị trí muốn tạo chỗ trống trong "Nội dung câu hỏi" ở trên, rồi bấm nút này (bấm nhiều lần nếu câu có nhiều chỗ trống).</p>
+      </div>`;
+    }
+    return `<div class="space-y-2">
+      <div class="flex items-center justify-between">
+        <label class="block text-[10px] font-bold uppercase text-gray-500">Đáp án cho từng chỗ trống (${gaps.length} chỗ — nhiều đáp án đúng cách nhau bởi dấu ;)</label>
+        <button type="button" onclick="insertGapAtCursor('${b.id}')" class="text-xs font-bold text-[#cf1717] hover:underline">+ Thêm chỗ trống</button>
+      </div>
+      ${gaps.map(n => `
+        <div class="flex items-start gap-2">
+          <span class="text-[10px] font-extrabold text-white bg-[#cf1717] rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-1">${n}</span>
+          <textarea rows="1" placeholder="VD: cost; costs (nhiều đáp án cách nhau bởi dấu ;)"
+            oninput="updateBlankAnswer('${b.id}',${n},this.value); autoGrowTextarea(this)"
+            class="flex-1 p-2 rounded border dark:bg-zinc-800 dark:border-zinc-700 text-xs resize-none overflow-hidden leading-relaxed"
+            style="min-height:34px">${esc(b.blanks[n] || '')}</textarea>
+        </div>`).join('')}
+    </div>`;
+  }
+  function updateBlankAnswer(bid, gapNum, value) {
+    const b = findBlock(bid); if (!b) return;
+    b.blanks = b.blanks || {};
+    b.blanks[gapNum] = value;
+  }
+  function autoGrowTextarea(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
+  function insertGapAtCursor(bid) {
+    const b = findBlock(bid); if (!b) return;
+    const div = pel('qc-' + bid); if (!div) return;
+    div.focus();
+    const nums = extractGapNumbers(b.content);
+    const next = nums.length ? Math.max(...nums) + 1 : 1;
+    document.execCommand('insertText', false, `{{${next}}}`);
+    renderBlocks();
+  }
+
+
+  async function saveMaterial() {
+    const topicId = pel('editingId').value ? materials.find(x => x.id === pel('editingId').value).topic_id : curTopicId();
+    if (!topicId) return notify('⚠️ Vui lòng chọn chủ đề trước.');
+    const title = pel('asTitle').value.trim();
+    if (!title) return notify('⚠️ Vui lòng nhập tiêu đề bài tập.');
+    if (!blocks.length) return notify('⚠️ Vui lòng thêm ít nhất 1 câu hỏi.');
+    const allFillLeaves = [];
+    blocks.forEach(b => {
+      if (b.type === 'fill') allFillLeaves.push(b);
+      if (b.type === 'reading') (b.sub_blocks || []).forEach(sb => { if (sb.type === 'fill') allFillLeaves.push(sb); });
+    });
+    for (const fb of allFillLeaves) {
+      if (extractGapNumbers(fb.content).length === 0) return notify('⚠️ Câu điền khuyết chưa có chỗ trống nào — hãy bấm "+ Chèn chỗ trống" trong câu đó trước khi lưu.');
+    }
+    if (blocks.some(b => b.type === 'reading' && (!b.sub_blocks || !b.sub_blocks.length))) return notify('⚠️ Có khối "Bài đọc" chưa có câu hỏi con nào.');
+    function normalizeFill(nb) {
+      if (nb.type === 'fill') {
+        const gaps = extractGapNumbers(nb.content);
+        nb.blanks = gaps.map(n => ({ gap: n, accepted_answers: ((nb.blanks && nb.blanks[n]) || '').split(';').map(s => s.trim()).filter(Boolean) }));
+      }
+      return nb;
+    }
+    const finalBlocks = blocks.map(b => {
+      const nb = { ...b };
+      if (nb.type === 'reading') { nb.sub_blocks = (nb.sub_blocks || []).map(sb => normalizeFill({ ...sb })); return nb; }
+      return normalizeFill(nb);
+    });
+    const sumPoints = arr => arr.reduce((s, b) => s + (b.type === 'text' ? 0 : (b.type === 'reading' ? sumPoints(b.sub_blocks || []) : (parseFloat(b.points) || 0))), 0);
+    const total_points = sumPoints(finalBlocks);
+
+    const editingId = pel('editingId').value;
+    let token;
+    if (editingId) token = materials.find(a => a.id === editingId).token;
+    else {
+      token = slugify(title);
+      const { data: dup } = await sbClient.from('lml_materials').select('id').eq('token', token).maybeSingle();
+      if (dup) token += '-' + Math.random().toString(36).slice(2, 6);
+    }
+    const row = { topic_id: topicId, token, title, description: pel('asDesc').value.trim() || null, questions: finalBlocks, total_points, is_published: pel('asPublished').checked, updated_at: new Date().toISOString() };
+    const res = editingId ? await sbClient.from('lml_materials').update(row).eq('id', editingId).select('id') : await sbClient.from('lml_materials').insert([row]).select('id');
+    if (res.error) return notify('❌ Lỗi lưu bài tập: ' + res.error.message);
+    if (!res.data || !res.data.length) return notify('❌ Không lưu được (bị chặn bởi RLS). Hãy kiểm tra tài khoản có role admin và đã chạy lml_setup.sql.');
+    notify('🎉 Đã lưu bài tập! Đường dẫn: lml.html?token=' + token);
+    closeBuilder(); loadMaterials(); loadTopics();
+  }
+
+  // ---------- QUẢN LÝ ĐIỂM: chủ đề => từng bài => từng học viên ----------
+  let scMats = [], scAttempts = [], scNames = {}, scCurMat = null;
+  async function fetchAll(build) {
+    let all = [], from = 0;
+    while (true) {
+      const { data, error } = await build().range(from, from + 999);
+      if (error) throw error;
+      all = all.concat(data || []);
+      if (!data || data.length < 1000) break;
+      from += 1000;
+    }
+    return all;
+  }
+  async function loadScoreTopic() {
+    const tid = pel('scTopicSel').value; scCurMat = null;
+    pel('scCrumb').innerHTML = '';
+    if (!tid) { pel('scBox').innerHTML = '<p class="text-xs text-gray-400 italic">Hãy chọn một chủ đề.</p>'; return; }
+    pel('scBox').innerHTML = '<p class="text-xs text-gray-400 italic"><i class="bi bi-hourglass-split"></i> Đang tải...</p>';
+    try {
+      const { data: ms, error } = await sbClient.from('lml_materials').select('id,title,total_points,is_published').eq('topic_id', tid).order('created_at', { ascending: false });
+      if (error) throw error;
+      scMats = ms || [];
+      scAttempts = scMats.length ? await fetchAll(() => sbClient.from('lml_attempts').select('id,material_id,user_id,auto_score,total_points,has_essay,submitted_at').in('material_id', scMats.map(m => m.id)).order('submitted_at', { ascending: false })) : [];
+      const uids = [...new Set(scAttempts.map(a => a.user_id))];
+      scNames = {};
+      for (let i = 0; i < uids.length; i += 200) {
+        const { data: ps } = await sbClient.from('profiles').select('id,full_name').in('id', uids.slice(i, i + 200));
+        (ps || []).forEach(p => scNames[p.id] = p.full_name);
+      }
+    } catch (e) { return pel('scBox').innerHTML = `<p class="text-xs text-red-500">❌ ${esc(e.message || e)}</p>`; }
+    renderScoreMats();
+  }
+  const pct = a => a.total_points ? (a.auto_score / a.total_points) * 10 : 0;
+  function renderScoreMats() {
+    const tname = esc((topics.find(t => t.id === pel('scTopicSel').value) || {}).name || '');
+    pel('scCrumb').innerHTML = `<b class="text-[#cf1717]">${tname}</b>`;
+    if (!scMats.length) return pel('scBox').innerHTML = '<p class="text-xs text-gray-400 italic">Chủ đề này chưa có bài.</p>';
+    const rows = scMats.map(m => {
+      const at = scAttempts.filter(a => a.material_id === m.id);
+      const users = new Set(at.map(a => a.user_id)).size;
+      const avg = at.length ? at.reduce((s, a) => s + pct(a), 0) / at.length : 0;
+      const best = at.length ? Math.max(...at.map(pct)) : 0;
+      return `<tr class="border-t dark:border-zinc-800 hover:bg-red-50/50 dark:hover:bg-zinc-800/50 cursor-pointer" onclick="openScoreMat('${m.id}')">
+        <td class="td font-bold">${esc(m.title)}</td><td class="td">${users}</td><td class="td">${at.length}</td>
+        <td class="td">${at.length ? rnd(avg) + '/10' : '—'}</td><td class="td">${at.length ? rnd(best) + '/10' : '—'}</td>
+        <td class="td text-right text-[#cf1717] text-xs font-bold">Chi tiết <i class="bi bi-chevron-right"></i></td></tr>`;
+    }).join('');
+    pel('scBox').innerHTML = `<div class="overflow-x-auto"><table class="w-full"><thead class="bg-gray-50 dark:bg-zinc-800/60"><tr><th class="th">Bài tập</th><th class="th">Học viên</th><th class="th">Lượt làm</th><th class="th">Điểm TB (thang 10)</th><th class="th">Cao nhất</th><th class="th"></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+  function openScoreMat(id) {
+    scCurMat = scMats.find(m => m.id === id); if (!scCurMat) return;
+    const tname = esc((topics.find(t => t.id === pel('scTopicSel').value) || {}).name || '');
+    pel('scCrumb').innerHTML = `<button onclick="renderScoreMats()" class="font-bold text-[#cf1717] hover:underline">${tname}</button> <i class="bi bi-chevron-right"></i> <b>${esc(scCurMat.title)}</b>`;
+    const at = scAttempts.filter(a => a.material_id === id);
+    const by = {};
+    at.forEach(a => { (by[a.user_id] = by[a.user_id] || []).push(a); });
+    const list = Object.entries(by).map(([uid, arr]) => {
+      const best = Math.max(...arr.map(pct));
+      const last = arr.reduce((m, a) => a.submitted_at > m ? a.submitted_at : m, '');
+      return { uid, name: scNames[uid] || '(không rõ tên)', n: arr.length, best, last, essay: arr.some(a => a.has_essay) };
+    }).sort((a, b) => b.best - a.best);
+    scCurRows = list;
+    if (!list.length) return pel('scBox').innerHTML = '<p class="text-xs text-gray-400 italic">Chưa có ai làm bài này.</p>';
+    pel('scBox').innerHTML = `<div class="flex justify-end mb-2"><button onclick="exportScores()" class="text-xs font-bold text-emerald-600 hover:underline"><i class="bi bi-file-earmark-excel-fill"></i> Xuất Excel</button></div>
+      <div class="overflow-x-auto"><table class="w-full"><thead class="bg-gray-50 dark:bg-zinc-800/60"><tr><th class="th">#</th><th class="th">Học viên</th><th class="th">Điểm cao nhất (thang 10)</th><th class="th">Số lần làm</th><th class="th">Lần làm gần nhất</th></tr></thead><tbody>` +
+      list.map((r, i) => `<tr class="border-t dark:border-zinc-800"><td class="td text-gray-400">${i + 1}</td><td class="td font-bold">${esc(r.name)}${r.essay ? ' <span class="text-[10px] text-amber-600" title="Có câu tự luận chưa chấm">(có tự luận)</span>' : ''}</td><td class="td font-extrabold text-[#cf1717]">${rnd(r.best)}</td><td class="td">${r.n}</td><td class="td text-gray-500">${fmtDT(r.last)}</td></tr>`).join('') + '</tbody></table></div>';
+  }
+  let scCurRows = [];
+  function exportScores() {
+    if (!scCurMat || !scCurRows.length) return;
+    const data = [['STT', 'Học viên', 'Điểm cao nhất (thang 10)', 'Số lần làm', 'Lần làm gần nhất']].concat(scCurRows.map((r, i) => [i + 1, r.name, rnd(r.best), r.n, fmtDT(r.last)]));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(data), 'Diem');
+    XLSX.writeFile(wb, 'LML_' + slugify(scCurMat.title) + '.xlsx');
+  }
+
+  init();
+
+</script>
+</body>
+</html>
