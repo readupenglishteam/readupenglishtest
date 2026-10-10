@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadUp English - Learning Materials Library</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Montserrat', 'ui-sans-serif', 'system-ui', 'sans-serif'] } } } }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+  </script>
+  <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    html, body, button, input, select, textarea { font-family: 'Montserrat', ui-sans-serif, system-ui, sans-serif; }
+    .bi { vertical-align: -0.125em; }
+    @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
+    .animate-toast-bar { animation: toastProgress 5s linear forwards; }
+    @keyframes blob { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(30px,-50px) scale(1.1)} 66%{transform:translate(-20px,20px) scale(.95)} }
+    .animate-blob { animation: blob 10s infinite ease-in-out; }
+    .animation-delay-2000 { animation-delay: 2s; } .animation-delay-4000 { animation-delay: 4s; }
+    .qcontent{line-height:1.8}
+    .qcontent img{max-width:100%;border-radius:10px;margin:.5em 0}
+    .qcontent ul{list-style:disc;padding-left:1.4em}.qcontent ol{list-style:decimal;padding-left:1.4em}
+    .qcontent table{border-collapse:collapse;width:100%;margin:.6em 0;font-size:.85em}
+    .qcontent td,.qcontent th{border:1px solid #d1d5db;padding:6px 8px}
+    .dark .qcontent td,.dark .qcontent th{border-color:#3f3f46}
+    .qcontent audio{width:100%;margin:.5em 0}
+    .qcontent a{color:#cf1717;text-decoration:underline}
+    .qcontent .video-wrap{position:relative;padding-top:56.25%;margin:1em 0}
+    .qcontent .video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:12px}
+    .qcontent-2col{column-count:2;column-gap:2rem}
+    @media (max-width:640px){.qcontent-2col{column-count:1}}
+    .opt-correct{background:rgba(16,185,129,.12)!important;border-color:#10b981!important}
+    .opt-wrong{background:rgba(239,68,68,.12)!important;border-color:#ef4444!important}
+    .fillbox{display:inline-block;vertical-align:middle;resize:none;overflow:hidden;line-height:1.4}
+    .rd-split{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    .rd-pane{overflow-y:auto;max-height:70vh;padding:1rem;border:1px solid #e5e7eb;border-radius:1rem;background:#fff}
+    .dark .rd-pane{border-color:#3f3f46;background:#18181b}
+    @media(max-width:768px){.rd-split{grid-template-columns:1fr}.rd-pane{max-height:none}}
+    .topic-btn{display:flex;align-items:center;gap:.6rem;width:100%;text-align:left;padding:.7rem 1rem;font-size:.85rem;font-weight:600;border-bottom:1px solid #f1f5f9;transition:.15s}
+    .dark .topic-btn{border-color:#27272a}
+    .topic-btn:hover{background:rgba(207,23,23,.06);color:#cf1717}
+    .topic-btn.active{background:rgba(207,23,23,.1);color:#cf1717;font-weight:800}
+  </style>
+</head>
+<body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen transition-colors duration-300 flex flex-col justify-between">
+
+<div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none select-none bg-slate-50 dark:bg-zinc-950">
+  <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#cf1717]/20 dark:bg-[#cf1717]/15 rounded-full blur-3xl animate-blob"></div>
+  <div class="absolute top-1/3 -right-24 w-[30rem] h-[30rem] bg-indigo-500/15 dark:bg-red-900/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+  <div class="absolute -bottom-24 left-1/3 w-96 h-96 bg-amber-500/15 dark:bg-amber-600/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+</div>
+
+<div id="toastContainer" class="fixed top-5 right-5 z-[100000] flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+<!-- ================= HEADER ================= -->
+<header class="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/60 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-950/60 px-4">
+  <div class="max-w-7xl mx-auto h-16 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+      <a href="dashboard.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
+        <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
+      </a>
+      <a href="lml.html" class="flex items-center gap-2 hover:opacity-90 transition">
+        <span class="text-2xl font-black text-[#cf1717] tracking-tight">ReadUp</span>
+        <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full shadow-sm">LML</span>
+      </a>
+    </div>
+    <div class="flex items-center gap-2 sm:gap-3">
+      <a id="adminLink" href="editLML.html" class="hidden px-3 py-2 text-xs font-bold text-[#cf1717] bg-white/80 dark:bg-zinc-800/80 border border-[#cf1717]/40 hover:bg-red-50 rounded-xl transition items-center gap-1.5"><i class="bi bi-pencil-square"></i><span class="hidden sm:inline">Edit LML</span></a>
+      <a href="dashboard.html" class="px-3 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-xl transition flex items-center gap-1.5"><i class="bi bi-house-door-fill"></i><span class="hidden sm:inline">Trang chủ</span></a>
+      <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50"><i class="bi bi-moon-stars-fill"></i></button>
+      <a id="loginLink" href="index.html" class="hidden px-3 py-2 text-xs font-bold text-white bg-[#cf1717] hover:bg-red-700 rounded-xl transition"><i class="bi bi-box-arrow-in-right"></i> Đăng nhập</a>
+      <button id="logoutBtn" onclick="handleLogout()" class="hidden px-3 py-2 text-xs font-bold bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-red-100 dark:hover:bg-red-950/50 text-gray-700 dark:text-gray-300 hover:text-[#cf1717] rounded-xl transition">Đăng xuất</button>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 py-6 w-full flex-1">
+
+  <!-- ============ CHẾ ĐỘ 1: DANH SÁCH ============ -->
+  <div id="listView" class="space-y-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <!-- Thanh bên: chủ đề -->
+      <aside class="lg:col-span-3 bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden lg:sticky lg:top-20">
+        <div class="bg-[#cf1717] text-white font-extrabold text-sm px-5 py-3.5 uppercase tracking-wide"><i class="bi bi-grid-fill"></i> Chủ đề</div>
+        <div id="topicList"><p class="text-xs text-gray-400 italic p-4"><i class="bi bi-hourglass-split"></i> Đang tải...</p></div>
+      </aside>
+
+      <!-- Khu vực chính: bài trong chủ đề -->
+      <section class="lg:col-span-9 bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden">
+        <div class="bg-[#cf1717] text-white px-5 py-3.5 flex items-center justify-between gap-3">
+          <h2 id="listTitle" class="font-extrabold text-sm uppercase tracking-wide"><i class="bi bi-stars"></i> Bài mới</h2>
+          <span id="listCount" class="text-[11px] font-bold bg-white/20 px-2.5 py-0.5 rounded-full">0 bài</span>
+        </div>
+        <div class="p-4 sm:p-6">
+          <div id="matGrid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+          <p id="matEmpty" class="hidden text-center text-gray-400 text-sm py-10">Chủ đề này chưa có bài nào.</p>
+          <div id="pager" class="flex items-center justify-center gap-2 pt-5"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Lịch sử điểm -->
+    <section class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl shadow-sm p-4 sm:p-6 space-y-3">
+      <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
+        <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white"><i class="bi bi-clock-history"></i> Lịch Sử Điểm Làm Bài</h2>
+        <button onclick="loadHistory()" class="text-xs font-bold text-indigo-500 hover:underline"><i class="bi bi-arrow-clockwise"></i> Làm mới</button>
+      </div>
+      <div id="historyBox"><p class="text-xs text-gray-400 italic">Đang tải...</p></div>
+      <div id="histPager" class="flex items-center justify-center gap-2"></div>
+    </section>
+  </div>
+
+  <!-- ============ CHẾ ĐỘ 2: LÀM BÀI ============ -->
+  <div id="attemptView" class="hidden space-y-5 max-w-5xl mx-auto">
+    <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 shadow-sm space-y-1 sticky top-16 z-20">
+      <span id="atTopic" class="text-[10px] font-bold px-2 py-0.5 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full"></span>
+      <h2 id="atTitle" class="text-lg font-extrabold text-gray-900 dark:text-white"></h2>
+      <p id="atDesc" class="text-xs text-gray-500"></p>
+      <a id="backLink1" href="lml.html" class="inline-block text-xs font-bold text-gray-400 hover:text-[#cf1717]">← Quay lại thư viện</a>
+    </div>
+    <div id="questionArea" class="space-y-4"></div>
+    <div class="flex justify-end pt-2">
+      <button id="submitBtn" onclick="submitMaterial()" class="bg-[#cf1717] hover:bg-red-700 text-white font-extrabold px-8 py-3 rounded-2xl text-sm shadow-lg transition"><i class="bi bi-check-circle-fill"></i> Nộp Bài</button>
+    </div>
+  </div>
+
+  <!-- ============ CHẾ ĐỘ 3: KẾT QUẢ ============ -->
+  <div id="resultView" class="hidden space-y-5 max-w-5xl mx-auto">
+    <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-6 text-center shadow-sm space-y-2">
+      <div class="text-4xl text-[#cf1717]"><i class="bi bi-stars"></i></div>
+      <h2 id="rsTitle" class="text-xl font-extrabold text-gray-900 dark:text-white">Kết quả</h2>
+      <p class="text-sm text-gray-500">Điểm: <b id="rsScore" class="text-[#cf1717]"></b></p>
+      <p id="rsNote" class="hidden text-xs text-amber-500"></p>
+      <div class="flex flex-wrap justify-center gap-2 pt-1">
+        <button onclick="retryMaterial()" class="px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow transition"><i class="bi bi-arrow-repeat"></i> Làm lại</button>
+        <a id="backLink2" href="lml.html" class="px-4 py-2 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 font-bold rounded-xl text-xs transition">← Quay lại thư viện</a>
+      </div>
+    </div>
+    <div id="reviewArea" class="space-y-4"></div>
+  </div>
+</main>
+
+<footer class="mt-auto pt-6">
+  <div class="max-w-6xl mx-auto px-4 pb-4 text-center text-gray-400 dark:text-gray-600 text-[11px]">© 2026 ReadUp English. All rights reserved.</div>
+</footer>
+
+<script>
+  const SUPABASE_URL = "https://klovtvjfvfenhkvifujy.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
+  const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const pel = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  // ---------- Toast ----------
+  function notify(msg, title) {
+    const container = pel('toastContainer'); if (!container) return;
+    const t = title || (/lỗi|thất bại|không thể/i.test(msg) ? 'Lỗi' : 'Thông báo');
+    const id = 'toast-' + Date.now() + Math.random().toString(36).slice(2, 6);
+    container.insertAdjacentHTML('beforeend', `
+      <div id="${id}" class="pointer-events-auto bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden transform transition-all duration-300 translate-x-full opacity-0">
+        <div class="p-3.5 flex items-start gap-3">
+          <div class="w-9 h-9 rounded-full bg-red-50 dark:bg-red-950/80 flex-shrink-0 flex items-center justify-center text-[#cf1717]"><i class="bi bi-bell-fill"></i></div>
+          <div class="flex-1 pr-4"><h4 class="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">${esc(t)}</h4><p class="text-xs text-gray-600 dark:text-gray-300 mt-1">${esc(msg)}</p></div>
+          <button onclick="this.closest('[id^=toast-]').remove()" class="text-gray-400 hover:text-gray-600 p-1"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="h-1 bg-red-100 dark:bg-zinc-800"><div class="h-full bg-[#cf1717] animate-toast-bar"></div></div>
+      </div>`);
+    const el = pel(id);
+    setTimeout(() => el.classList.remove('translate-x-full', 'opacity-0'), 50);
+    setTimeout(() => { el.classList.add('translate-x-full', 'opacity-0'); setTimeout(() => el.remove(), 300); }, 5000);
+  }
+  function toggleDarkMode() {
+    const d = document.documentElement.classList.toggle('dark');
+    localStorage.theme = d ? 'dark' : 'light';
+  }
+  async function handleLogout() { await sbClient.auth.signOut(); window.location.href = 'lml.html'; }
+
+  // ---------- Trạng thái ----------
+  let currentUser = null, isAdmin = false;
+  let topics = [], materials = [];
+  let activeTopic = '';      // '' = tất cả
+  let page = 1;
+  const PAGE_SIZE = 8;
+  let currentMaterial = null;
+  let histPage = 1, histRows = [];
+  const HIST_SIZE = 6;
+  let bestByMaterial = {};
+
+  async function init() {
+    const { data: { session } } = await sbClient.auth.getSession();
+    currentUser = session ? session.user : null;
+    pel('loginLink').classList.toggle('hidden', !!currentUser);
+    pel('logoutBtn').classList.toggle('hidden', !currentUser);
+    if (currentUser) {
+      const { data: prof } = await sbClient.from('profiles').select('role').eq('id', currentUser.id).maybeSingle();
+      isAdmin = prof && String(prof.role || '').toLowerCase() === 'admin';
+      if (isAdmin) { pel('adminLink').classList.remove('hidden'); pel('adminLink').classList.add('flex'); }
+    }
+    const params = new URLSearchParams(location.search);
+    activeTopic = params.get('topic') || '';
+    await loadLibrary();
+    const token = params.get('token');
+    if (token) { openMaterialByToken(token); return; }
+    renderTopics(); renderList();
+    loadHistory();
+  }
+
+  async function loadLibrary() {
+    const [t, m] = await Promise.all([
+      sbClient.from('lml_topics').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: true }),
+      sbClient.from('lml_materials').select('id, token, title, description, topic_id, total_points, created_at').eq('is_published', true).order('created_at', { ascending: false })
+    ]);
+    if (t.error || m.error) { notify('Lỗi tải thư viện: ' + (t.error || m.error).message + ' (đã chạy lml_setup.sql chưa?)'); }
+    topics = t.data || []; materials = m.data || [];
+    if (currentUser) {
+      const { data } = await sbClient.from('lml_attempts').select('material_id, auto_score, total_points').eq('user_id', currentUser.id);
+      bestByMaterial = {};
+      (data || []).forEach(a => {
+        const v = a.total_points ? Math.round(a.auto_score / a.total_points * 1000) / 100 : 0;
+        if (bestByMaterial[a.material_id] === undefined || v > bestByMaterial[a.material_id]) bestByMaterial[a.material_id] = v;
+      });
+    }
+  }
+
+  // ---------- Danh sách ----------
+  function countOf(tid) { return materials.filter(m => m.topic_id === tid).length; }
+  function renderTopics() {
+    const btn = (id, name, n, icon) => `<button class="topic-btn ${activeTopic === id ? 'active' : ''}" onclick="selectTopic('${id}')"><i class="bi ${icon} text-[#cf1717]"></i><span class="flex-1">${esc(name)}</span><span class="text-[10px] text-gray-400">${n}</span></button>`;
+    pel('topicList').innerHTML = btn('', 'Tất cả chủ đề', materials.length, 'bi-collection') +
+      topics.map(t => btn(t.id, t.name, countOf(t.id), 'bi-bookmark-fill')).join('') ||
+      '<p class="text-xs text-gray-400 italic p-4">Chưa có chủ đề nào.</p>';
+  }
+  function selectTopic(id) {
+    activeTopic = id; page = 1;
+    history.replaceState(null, '', id ? 'lml.html?topic=' + id : 'lml.html');
+    renderTopics(); renderList();
+  }
+  function filtered() { return activeTopic ? materials.filter(m => m.topic_id === activeTopic) : materials; }
+  function renderList() {
+    const list = filtered();
+    const tp = topics.find(t => t.id === activeTopic);
+    pel('listTitle').innerHTML = tp ? `<i class="bi bi-bookmark-fill"></i> ${esc(tp.name)}` : '<i class="bi bi-stars"></i> Bài mới';
+    pel('listCount').innerText = list.length + ' bài';
+    pel('matEmpty').classList.toggle('hidden', !!list.length);
+    const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+    if (page > totalPages) page = totalPages;
+    const items = list.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+    pel('matGrid').innerHTML = items.map(m => {
+      const tn = (topics.find(t => t.id === m.topic_id) || {}).name || '';
+      const best = bestByMaterial[m.id];
+      return `<a href="lml.html?token=${encodeURIComponent(m.token)}" class="group block bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-3 text-center shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition">
+        <div class="aspect-[3/4] rounded-xl bg-gradient-to-br from-[#cf1717] via-red-500 to-orange-500 flex flex-col items-center justify-center text-white p-3 mb-3 shadow-inner">
+          <i class="bi bi-journal-richtext text-4xl mb-2"></i>
+          <span class="text-[10px] font-bold uppercase tracking-wider opacity-90 line-clamp-2">${esc(tn)}</span>
+        </div>
+        <h4 class="font-bold text-xs sm:text-sm text-gray-900 dark:text-white line-clamp-2 group-hover:text-[#cf1717] transition-colors">${esc(m.title)}</h4>
+        <p class="text-[11px] text-gray-400 italic mt-1">${m.total_points || 0} điểm · ${new Date(m.created_at).toLocaleDateString('vi-VN')}</p>
+        ${best !== undefined ? `<span class="inline-block mt-1.5 text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 rounded-full">Cao nhất: ${best}/10</span>` : ''}
+      </a>`;
+    }).join('');
+    pel('pager').innerHTML = pagerHtml(page, totalPages, 'goPage');
+  }
+  function pagerHtml(cur, total, fn) {
+    if (total <= 1) return '';
+    let h = '';
+    for (let i = 1; i <= total; i++) h += `<button onclick="${fn}(${i})" class="w-8 h-8 rounded-lg text-xs font-bold transition ${i === cur ? 'bg-[#cf1717] text-white' : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-700'}">${i}</button>`;
+    return h;
+  }
+  function goPage(p) { page = p; renderList(); }
+
+  // ---------- Lịch sử điểm ----------
+  async function loadHistory() {
+    const box = pel('historyBox');
+    if (!currentUser) {
+      box.innerHTML = '<p class="text-xs text-gray-400 italic"><i class="bi bi-info-circle"></i> <a href="index.html" class="font-bold text-[#cf1717] hover:underline">Đăng nhập</a> để lưu và xem lịch sử điểm các bài đã làm.</p>';
+      pel('histPager').innerHTML = ''; return;
+    }
+    const { data, error } = await sbClient.from('lml_attempts').select('id, auto_score, total_points, has_essay, submitted_at, lml_materials(title, token, topic_id)').eq('user_id', currentUser.id).order('submitted_at', { ascending: false }).limit(200);
+    if (error) { box.innerHTML = `<p class="text-xs text-red-500">Lỗi: ${esc(error.message)}</p>`; return; }
+    histRows = data || []; renderHistory();
+  }
+  function renderHistory() {
+    const box = pel('historyBox');
+    if (!histRows.length) { box.innerHTML = '<p class="text-xs text-gray-400 italic">Bạn chưa làm bài nào.</p>'; pel('histPager').innerHTML = ''; return; }
+    const total = Math.ceil(histRows.length / HIST_SIZE);
+    if (histPage > total) histPage = total;
+    const rows = histRows.slice((histPage - 1) * HIST_SIZE, histPage * HIST_SIZE);
+    box.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-xs">
+      <thead><tr class="bg-[#cf1717] text-white text-left"><th class="p-2.5 rounded-tl-xl">Bài</th><th class="p-2.5">Chủ đề</th><th class="p-2.5 text-center">Điểm</th><th class="p-2.5">Thời gian</th><th class="p-2.5 rounded-tr-xl"></th></tr></thead><tbody>` +
+      rows.map(r => {
+        const m = r.lml_materials || {};
+        const tn = (topics.find(t => t.id === m.topic_id) || {}).name || '—';
+        const s10 = r.total_points ? Math.round(r.auto_score / r.total_points * 1000) / 100 : 0;
+        return `<tr class="border-b dark:border-zinc-800 hover:bg-red-50/40 dark:hover:bg-zinc-800/40">
+          <td class="p-2.5 font-bold">${esc(m.title || '(bài đã bị xóa)')}</td><td class="p-2.5 text-gray-500">${esc(tn)}</td>
+          <td class="p-2.5 text-center"><b class="text-[#cf1717]">${r.auto_score}/${r.total_points}</b> <span class="text-gray-400">(${s10}/10)</span>${r.has_essay ? '<i class="bi bi-file-earmark-text text-amber-500 ml-1" title="Có câu tự luận không chấm điểm"></i>' : ''}</td>
+          <td class="p-2.5 text-gray-400">${new Date(r.submitted_at).toLocaleString('vi-VN')}</td>
+          <td class="p-2.5 text-right">${m.token ? `<a href="lml.html?token=${encodeURIComponent(m.token)}" class="font-bold text-[#cf1717] hover:underline whitespace-nowrap">Làm lại</a>` : ''}</td></tr>`;
+      }).join('') + '</tbody></table></div>';
+    pel('histPager').innerHTML = pagerHtml(histPage, total, 'goHist');
+  }
+  function goHist(p) { histPage = p; renderHistory(); }
+
+  // ---------- Làm bài ----------
+  async function openMaterialByToken(token) {
+    let { data: m, error } = await sbClient.from('lml_materials').select('*').eq('token', token).eq('is_published', true).maybeSingle();
+    if (error || !m) { notify('Không tìm thấy bài hoặc bài chưa xuất bản.'); renderTopics(); renderList(); loadHistory(); return; }
+    currentMaterial = m;
+    const tp = topics.find(t => t.id === m.topic_id);
+    const back = 'lml.html' + (m.topic_id ? '?topic=' + m.topic_id : '');
+    pel('backLink1').href = back; pel('backLink2').href = back;
+    pel('atTopic').innerText = tp ? tp.name : 'LML';
+    pel('atTitle').innerText = m.title;
+    pel('atDesc').innerText = m.description || '';
+    pel('listView').classList.add('hidden'); pel('resultView').classList.add('hidden'); pel('attemptView').classList.remove('hidden');
+    pel('submitBtn').disabled = false; pel('submitBtn').innerHTML = '<i class="bi bi-check-circle-fill"></i> Nộp Bài';
+    const counter = { n: 0 };
+    pel('questionArea').innerHTML = (m.questions || []).map(q => renderBlock(q, counter, 'attempt')).join('');
+    window.scrollTo({ top: 0 });
+  }
+  function retryMaterial() { if (currentMaterial) openMaterialByToken(currentMaterial.token); }
+
+  function renderBlock(q, counter, mode, answers) {
+    if (q.type === 'text') return `<div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-2xl p-4 qcontent text-sm ${q.two_col ? 'qcontent-2col' : ''}">${q.content || ''}</div>`;
+    if (q.type === 'reading') {
+      const inner = (q.sub_blocks || []).map(sb => renderBlock(sb, counter, mode, answers)).join('<div class="h-3"></div>');
+      return `<div class="rd-split"><div class="rd-pane qcontent text-sm ${q.two_col ? 'qcontent-2col' : ''}">${q.content || ''}</div><div class="rd-pane space-y-3">${inner}</div></div>`;
+    }
+    counter.n++;
+    return mode === 'attempt' ? renderInput(q, counter.n) : renderReview(q, counter.n, answers);
+  }
+
+  function renderInput(q, n) {
+    let body = '';
+    if (q.type === 'fill') {
+      let c;
+      if (q.blanks && q.blanks.length) {
+        c = (q.content || '').replace(/\{\{(\d+)\}\}/g, (m, g) => {
+          const bl = q.blanks.find(b => String(b.gap) === g);
+          const len = (bl && bl.accepted_answers && bl.accepted_answers.length) ? Math.max(...bl.accepted_answers.map(a => String(a).length)) : 6;
+          return `<textarea id="ans-${q.id}-${g}" rows="1" placeholder="…" oninput="growFill(this)" style="width:${Math.min(Math.max(len + 3, 5), 28)}ch" class="fillbox mx-1 px-2 py-1 rounded-lg border-2 border-[#cf1717]/40 dark:bg-zinc-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#cf1717]"></textarea>`;
+        });
+      } else c = `${q.content || ''}<div class="mt-3"><textarea id="ans-${q.id}" rows="2" class="w-full p-2.5 rounded-xl border dark:bg-zinc-800 dark:border-zinc-700 text-sm" placeholder="Nhập câu trả lời..."></textarea></div>`;
+      return card(q, n, `<div class="qcontent text-sm leading-loose">${c}</div>`);
+    }
+    if (q.type === 'mcq' || q.type === 'tf' || q.type === 'multi') {
+      const t = q.type === 'multi' ? 'checkbox' : 'radio';
+      body = (q.options || []).map(o => `<label class="flex items-center gap-2 p-2.5 border dark:border-zinc-700 rounded-xl cursor-pointer hover:border-[#cf1717] transition"><input type="${t}" name="ans-${q.id}" value="${esc(o.id)}"> <span class="text-sm">${esc(o.text)}</span></label>`).join('');
+    } else if (q.type === 'essay') body = `<textarea id="ans-${q.id}" rows="5" placeholder="Viết câu trả lời của bạn..." class="w-full p-2.5 rounded-xl border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></textarea>`;
+    return card(q, n, `<div class="qcontent text-sm">${q.content || ''}</div><div class="space-y-2">${body}</div>`);
+  }
+  const card = (q, n, inner, extra) => `<div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm" data-q="${q.id}"><div class="flex items-center justify-between"><p class="text-xs font-bold text-[#cf1717]">Câu ${n} · ${q.points} điểm</p>${extra || ''}</div>${inner}</div>`;
+  function growFill(el) { const l = Math.max(...el.value.split('\n').map(x => x.length), 5); el.style.width = Math.min(Math.max(l + 3, 5), 34) + 'ch'; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
+
+  function flatQs(list) { const out = []; (list || []).forEach(q => { if (q.type === 'reading') (q.sub_blocks || []).forEach(s => out.push(s)); else out.push(q); }); return out; }
+  const norm = x => String(x ?? '').toLowerCase().trim();
+
+  // Điểm 1 câu (essay không chấm tự động -> null)
+  function earnedOf(q, g) {
+    const pts = parseFloat(q.points) || 0;
+    if (q.type === 'mcq' || q.type === 'tf') { const c = (q.options || []).find(o => o.correct); return g && c && g === c.id ? pts : 0; }
+    if (q.type === 'multi') { const ids = (q.options || []).filter(o => o.correct).map(o => o.id).sort(); const gv = Array.isArray(g) ? [...g].sort() : []; return ids.length && JSON.stringify(ids) === JSON.stringify(gv) ? pts : 0; }
+    if (q.type === 'fill') {
+      if (q.blanks && q.blanks.length) { const go = (g && typeof g === 'object') ? g : {}; let ok = 0; q.blanks.forEach(bl => { const v = norm(go[bl.gap]); if (v && (bl.accepted_answers || []).map(norm).includes(v)) ok++; }); return pts / q.blanks.length * ok; }
+      const v = norm(g); return v && (q.accepted_answers || []).map(norm).includes(v) ? pts : 0;
+    }
+    return null;
+  }
+  function readAnswer(q) {
+    if (q.type === 'mcq' || q.type === 'tf') { const e = document.querySelector(`input[name="ans-${q.id}"]:checked`); return e ? e.value : null; }
+    if (q.type === 'multi') return Array.from(document.querySelectorAll(`input[name="ans-${q.id}"]:checked`)).map(x => x.value);
+    if (q.type === 'fill') {
+      if (q.blanks && q.blanks.length) { const o = {}; q.blanks.forEach(bl => { o[bl.gap] = (pel(`ans-${q.id}-${bl.gap}`)?.value || '').trim(); }); return o; }
+      return (pel('ans-' + q.id)?.value || '').trim();
+    }
+    if (q.type === 'essay') return pel('ans-' + q.id)?.value || '';
+    return null;
+  }
+
+  async function submitMaterial() {
+    const m = currentMaterial; if (!m) return;
+    const btn = pel('submitBtn'); btn.disabled = true; btn.innerText = 'Đang nộp...';
+    const answers = {}; let score = 0, hasEssay = false;
+    flatQs(m.questions).forEach(q => {
+      if (q.type === 'text') return;
+      answers[q.id] = readAnswer(q);
+      const e = earnedOf(q, answers[q.id]);
+      if (e === null) hasEssay = true; else score += e;
+    });
+    score = Math.round(score * 100) / 100;
+    const total = m.total_points || 0;
+    let saved = false;
+    if (currentUser) {
+      const { error } = await sbClient.from('lml_attempts').insert([{ material_id: m.id, user_id: currentUser.id, answers, auto_score: score, total_points: total, has_essay: hasEssay }]);
+      if (error) notify('Không lưu được điểm: ' + error.message); else saved = true;
+      if (saved) { const v = total ? Math.round(score / total * 1000) / 100 : 0; if (bestByMaterial[m.id] === undefined || v > bestByMaterial[m.id]) bestByMaterial[m.id] = v; }
+    }
+    showResult(m, answers, score, total, hasEssay, saved);
+  }
+
+  function showResult(m, answers, score, total, hasEssay, saved) {
+    pel('attemptView').classList.add('hidden'); pel('resultView').classList.remove('hidden');
+    pel('rsTitle').innerText = m.title;
+    pel('rsScore').innerText = `${score} / ${total}`;
+    const notes = [];
+    if (hasEssay) notes.push('Câu tự luận không được chấm điểm — hãy tự đối chiếu với đáp án/giải thích.');
+    if (!currentUser) notes.push('Bạn chưa đăng nhập nên điểm không được lưu vào lịch sử.');
+    pel('rsNote').classList.toggle('hidden', !notes.length); pel('rsNote').innerText = notes.join(' ');
+    const counter = { n: 0 };
+    pel('reviewArea').innerHTML = (m.questions || []).map(q => renderBlock(q, counter, 'review', answers)).join('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function renderReview(q, n, answers) {
+    const g = answers[q.id];
+    const pts = parseFloat(q.points) || 0;
+    const e = earnedOf(q, g);
+    let chip = 'bg-gray-100 text-gray-500', txt = `Tự luận / ${pts}`;
+    if (e !== null) { const r = Math.round(e * 100) / 100; txt = `${r} / ${pts}`; chip = r >= pts ? 'bg-emerald-100 text-emerald-700' : r > 0 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'; }
+    let body = '';
+    if (q.type === 'mcq' || q.type === 'tf' || q.type === 'multi') {
+      const ga = Array.isArray(g) ? g : (g ? [g] : []);
+      body = (q.options || []).map(o => `<div class="p-2.5 rounded-xl border text-sm ${o.correct ? 'opt-correct' : (ga.includes(o.id) ? 'opt-wrong' : 'dark:border-zinc-700')}">${ga.includes(o.id) ? '<i class="bi bi-arrow-right-circle-fill"></i> ' : ''}${esc(o.text)}${o.correct ? ' <span class="text-emerald-600 font-bold text-xs">(Đáp án đúng)</span>' : ''}</div>`).join('');
+    } else if (q.type === 'fill') {
+      if (q.blanks && q.blanks.length) {
+        const go = (g && typeof g === 'object') ? g : {};
+        body = q.blanks.map(bl => { const v = (go[bl.gap] || '').trim(); const ok = (bl.accepted_answers || []).map(norm).includes(norm(v)); return `<div class="p-2.5 rounded-xl border text-sm ${ok ? 'opt-correct' : 'opt-wrong'}">Chỗ trống ${bl.gap}: bạn trả lời <b>${esc(v || '(bỏ trống)')}</b><span class="block text-xs text-gray-500">Đáp án chấp nhận: ${esc((bl.accepted_answers || []).join(', '))}</span></div>`; }).join('');
+      } else body = `<div class="p-2.5 rounded-xl border text-sm">Bạn trả lời: <b>${esc(g || '(bỏ trống)')}</b></div>`;
+    } else if (q.type === 'essay') body = `<div class="p-2.5 rounded-xl border dark:border-zinc-700 text-sm whitespace-pre-wrap">${esc(g || '(bỏ trống)')}</div>`;
+    const expl = q.explanation ? `<div class="pt-2 border-t dark:border-zinc-800"><p class="text-[10px] font-bold uppercase text-gray-400 mb-1"><i class="bi bi-lightbulb"></i> Giải thích</p><div class="qcontent text-xs text-gray-600 dark:text-gray-300">${q.explanation}</div></div>` : '';
+    return card(q, n, `<div class="qcontent text-sm">${q.content || ''}</div><div class="space-y-2">${body}</div>${expl}`, `<span class="text-[11px] font-extrabold px-2.5 py-1 rounded-full ${chip}">${txt} điểm</span>`)
+      .replace(`Câu ${n} · ${q.points} điểm`, `Câu ${n}`);
+  }
+
+  window.onload = init;
+</script>
+</body>
+</html>
