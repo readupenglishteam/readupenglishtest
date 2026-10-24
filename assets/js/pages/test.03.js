@@ -133,11 +133,70 @@ function startExam(d){
   let n=0; const nx=()=>++n; nx.cur=()=>n; $('exQs').innerHTML=X.q.map(q=>qHtml(q,nx)).join('');
   $('exam').classList.toggle('reading-mode',X.q.some(q=>q.type==='reading'));
   $('exam').classList.remove('hidden'); $('exam').scrollTop=0; updViol();
+  initTestReadingSplits($('exQs'));
   examEmptyNotice(typeof d.questions==='string'?(()=>{try{return JSON.parse(d.questions);}catch(e){return [];}})():d.questions);
   restoreAnswers(); tick(); X.timer=setInterval(tick,500);
 }
 const rng=(a,b)=>b<a?'Questions':(a===b?`Question ${a}`:`Questions ${a}–${b}`);
-const rsplitHtml=(content,qs,a,b)=>`<div class="rsplit"><div class="pane"><div class="rhead"><i class="bi bi-book"></i> Reading passage</div><div class="${card} p-5 qc">${content||''}</div></div><div class="pane"><div class="rhead"><i class="bi bi-list-check"></i> ${rng(a,b)}</div>${qs}</div></div>`;
+// Khung kéo chia cột bài đọc: dùng chung lúc làm bài và khi xem kết quả.
+const rsplitHtml=(content,qs,a,b)=>`<div class="rsplit-frame" data-test-reading-split>
+  <div class="r-reading-tabs" role="tablist" aria-label="Reading passage and questions">
+    <button type="button" class="r-reading-tab active" aria-selected="true" onclick="switchTestReadingTab(this,'passage')"><i class="bi bi-book"></i> Reading passage</button>
+    <button type="button" class="r-reading-tab" aria-selected="false" onclick="switchTestReadingTab(this,'questions')"><i class="bi bi-list-check"></i> ${rng(a,b)}</button>
+  </div>
+  <div class="rsplit">
+    <div class="pane r-passage r-is-active"><div class="rhead"><i class="bi bi-book"></i> Reading passage</div><div class="${card} p-5 qc">${content||''}</div></div>
+    <div class="r-resizer" role="separator" tabindex="0" aria-orientation="vertical" aria-label="Resize reading passage and questions" aria-valuemin="25" aria-valuemax="75" aria-valuenow="50"></div>
+    <div class="pane r-questions"><div class="rhead"><i class="bi bi-list-check"></i> ${rng(a,b)}</div>${qs}</div>
+  </div>
+</div>`;
+function switchTestReadingTab(button, which){
+  const frame=button.closest('[data-test-reading-split]');
+  if(!frame) return;
+  frame.querySelectorAll('.r-reading-tab').forEach(tab=>{
+    const selected=tab===button;
+    tab.classList.toggle('active',selected);
+    tab.setAttribute('aria-selected',String(selected));
+  });
+  frame.querySelector('.r-passage').classList.toggle('r-is-active',which==='passage');
+  frame.querySelector('.r-questions').classList.toggle('r-is-active',which==='questions');
+}
+function initTestReadingSplits(root){
+  root.querySelectorAll('.r-resizer').forEach(resizer=>{
+    if(resizer.dataset.bound) return;
+    resizer.dataset.bound='1';
+    const frame=resizer.closest('.rsplit');
+    const passage=frame.querySelector('.r-passage');
+    let dragging=false;
+    function setPercent(pct){
+      pct=Math.max(25,Math.min(75,pct));
+      passage.style.flex=`0 0 ${pct}%`;
+      resizer.setAttribute('aria-valuenow',String(Math.round(pct)));
+    }
+    function setFromPointer(e){
+      const rect=frame.getBoundingClientRect();
+      if(rect.width) setPercent((e.clientX-rect.left)/rect.width*100);
+    }
+    resizer.addEventListener('pointerdown',e=>{
+      if(window.matchMedia('(max-width: 860px)').matches) return;
+      dragging=true;
+      resizer.setPointerCapture(e.pointerId);
+      e.preventDefault();
+      setFromPointer(e);
+    });
+    resizer.addEventListener('pointermove',e=>{ if(dragging) setFromPointer(e); });
+    const stop=()=>{dragging=false;};
+    resizer.addEventListener('pointerup',stop);
+    resizer.addEventListener('pointercancel',stop);
+    resizer.addEventListener('lostpointercapture',stop);
+    resizer.addEventListener('keydown',e=>{
+      if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight') return;
+      e.preventDefault();
+      setPercent(Number(resizer.getAttribute('aria-valuenow'))+(e.key==='ArrowRight'?5:-5));
+    });
+  });
+}
+
 const GAPRE=/\{\{(\d+)\}\}/g;
 /* --- Chuẩn hoá dữ liệu đề do máy chủ trả về: chịu được JSON dạng chuỗi, tên trường khác (text/html/question...) --- */
 const _s=v=>typeof v==='string'?v:(typeof v==='number'?String(v):'');
@@ -236,7 +295,7 @@ async function showResult(id){
   const {data,error}=await SB.rpc('test_result',{p_assignment_id:id,p_name:me.name,p_email:me.email});
   if(error) return toast(error.message,'exclamation-triangle-fill');
   if(data.hidden) return toast('The teacher has not released the grade for this test yet');
-  $('app').classList.remove('info-wide');
+  $('app').classList.add('info-wide');
   const given=data.answers||{}; let n=0;
   const rq=(q,sub)=>{
     const N=sub?'':'nrm ';
@@ -248,11 +307,12 @@ async function showResult(id){
     else b=`<div class="text-sm whitespace-pre-wrap p-3 rounded-xl bg-gray-50 dark:bg-zinc-800">${esc(g||'(left blank)')}</div>${data.comments?.[q.id]?`<div class="text-xs mt-2 text-indigo-600"><i class="bi bi-chat-left-text"></i> ${esc(data.comments[q.id])}</div>`:''}`;
     return `<div class="${N}${card} p-5"><div class="text-xs font-extrabold text-[#cf1717] mb-1">Question ${n}</div><div class="qc mb-2">${q.type==='fill'?(q.content||'').replace(GAPRE,'[$1]'):(q.content||'')}</div><div class="space-y-2">${b}</div>${q.explanation?`<div class="text-xs mt-2 text-gray-500"><i class="bi bi-lightbulb-fill text-amber-500"></i> ${q.explanation}</div>`:''}</div>`;
   };
-  $('app').innerHTML=`${logo}<div class="max-w-5xl mx-auto"><button onclick="pickClass(cls)" class="text-xs font-bold text-[#cf1717] mb-3 hover:underline"><i class="bi bi-arrow-left"></i> Danh sách bài thi</button>
+  $('app').innerHTML=`${logo}<div class="max-w-6xl mx-auto"><button onclick="pickClass(cls)" class="text-xs font-bold text-[#cf1717] mb-3 hover:underline"><i class="bi bi-arrow-left"></i> Danh sách bài thi</button>
     <div class="nrm ${card} p-6 text-center mb-4"><div class="text-sm text-gray-500">Your grade</div><div class="text-5xl font-black text-[#cf1717]">${data.score}<span class="text-xl text-gray-400"> / ${data.total}</span></div>
     ${(data.attempts||0)>1?`<div class="text-xs text-gray-500 mt-1">Highest of ${data.attempts} attempts</div>`:''}
     <div class="text-xs text-gray-500 mt-2">Warnings: ${data.violations||0} • Essay grade (if any) is marked by the teacher</div></div>
     <div class="space-y-4">${data.review&&data.questions?normQs(data.questions).map(q=>rq(q,false)).join(''):'<p class="nrm text-center text-gray-400 italic">The teacher has not allowed reviewing the detailed answers.</p>'}</div></div>`;
+  initTestReadingSplits($('app'));
   clearInterval(ticker); scrollTo(0,0); $('exam').classList.remove('reading-mode');
 }
 
