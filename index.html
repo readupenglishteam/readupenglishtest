@@ -10,139 +10,26 @@
   <link rel="preload" as="image" href="https://i.ibb.co/C5wY3dmj/Read-Up-English-Learning-Journey.png">
   <link rel="preload" as="image" href="https://i.ibb.co/svStdTKW/a5fcdb6f-276f-4d03-ab9c-7e7746597a81.png">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = { darkMode: 'class' };
-  </script>
+  <script src="assets/js/pages/index.01.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <style>
-        /* Ép toàn bộ chữ dùng Montserrat (kể cả phiên âm font-mono) */
-    body, button, input, textarea, select, .font-mono { font-family: 'Montserrat', sans-serif !important; }
-    html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
-    body { font-family: 'Montserrat', sans-serif; }
-
-  /* 1. Hiệu ứng hiển thị khi cuộn trang */
-  .reveal {
-    opacity: 0;
-    transform: translateY(40px);
-    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-    will-change: opacity, transform;
-  }
-  .reveal.active {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  /* Đường bay 1: Trái dưới -> Phải trên */
-@keyframes flyPlane1 {
-  0% { transform: translate(-10vw, 85vh) rotate(15deg) scale(0.6); opacity: 0; }
-  15% { opacity: 0.6; }
-  85% { opacity: 0.6; }
-  100% { transform: translate(105vw, -10vh) rotate(15deg) scale(0.6); opacity: 0; }
-}
-
-/* Đường bay 2: Trái trên -> Phải dưới */
-@keyframes flyPlane2 {
-  0% { transform: translate(-10vw, 15vh) rotate(45deg) scale(0.5); opacity: 0; }
-  20% { opacity: 0.5; }
-  80% { opacity: 0.5; }
-  100% { transform: translate(105vw, 90vh) rotate(45deg) scale(0.8); opacity: 0; }
-}
-
-/* Đường bay 3: Phải dưới -> Trái trên */
-@keyframes flyPlane3 {
-  0% { transform: translate(105vw, 80vh) rotate(-135deg) scale(0.7); opacity: 0; }
-  20% { opacity: 0.4; }
-  80% { opacity: 0.4; }
-  100% { transform: translate(-10vw, 5vh) rotate(-135deg) scale(0.5); opacity: 0; }
-}
-
-/* Đường bay 4: Trái -> Phải (Ngang giữa màn hình) */
-@keyframes flyPlane4 {
-  0% { transform: translate(-10vw, 50vh) rotate(5deg) scale(0.6); opacity: 0; }
-  15% { opacity: 0.5; }
-  85% { opacity: 0.5; }
-  100% { transform: translate(105vw, 40vh) rotate(5deg) scale(0.6); opacity: 0; }
-}
-
-/* Các lớp kích hoạt chuyển động kèm thời gian trễ (delay) */
-.animate-plane-1 { animation: flyPlane1 16s ease-in-out infinite; }
-.animate-plane-2 { animation: flyPlane2 22s ease-in-out infinite 3s; }
-  .animate-plane-3 { animation: flyPlane3 18s ease-in-out infinite 7s; }
-.animate-plane-4 { animation: flyPlane4 15s ease-in-out infinite 11s; }
-.animate-plane-5 { animation: flyPlane1 13s ease-in-out infinite 6s; }
-
-  /* ===== SLIDER ĐẦU TRANG ===== */
-  .ru-slider { position: relative; overflow: hidden; border-radius: 1.5rem; aspect-ratio: 16 / 9; background: #f3f4f6;
-    box-shadow: 0 10px 30px rgba(0,0,0,.12); -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; cursor: pointer; }
-  .dark .ru-slider { background: #18181b; }
-  .ru-track { display: flex; height: 100%; transition: transform .7s cubic-bezier(.22,.61,.36,1); will-change: transform; }
-  .ru-slide { position: relative; flex: 0 0 100%; height: 100%; }
-  .ru-slide img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; -webkit-user-drag: none; user-drag: none; }
-  /* Lớp phủ trong suốt: chặn chuột phải/giữ ảnh, bấm vào sẽ về trang index */
-  .ru-shield { position: absolute; inset: 0; z-index: 2; background: transparent; }
-  .ru-arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 5; width: 40px; height: 40px; border-radius: 9999px;
-    background: rgba(255,255,255,.9); color: #333; font-size: 22px; line-height: 1; border: 0; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.2); transition: .2s; }
-  .ru-arrow:hover { background: #cf1717; color: #fff; }
-  .ru-prev { left: 10px; } .ru-next { right: 10px; }
-  .ru-dots { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
-  .ru-dot { width: 10px; height: 10px; border-radius: 9999px; background: #d1d5db; border: 0; padding: 0; cursor: pointer; transition: all .3s; }
-  .dark .ru-dot { background: #52525b; }
-  .ru-dot.active { width: 34px; background: #cf1717; }
-  @media (max-width: 640px) { .ru-slider { border-radius: 1rem; } .ru-arrow { width: 32px; height: 32px; font-size: 18px; } }
-  .ru-slide { background: linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 50%,#f3f4f6 75%); background-size: 200% 100%; animation: ruShimmer 1.2s infinite; }
-  @keyframes ruShimmer { to { background-position: -200% 0; } }
-  @media print { .ru-slider { display: none; } }
-  
-  /* ===== MÈO MASCOT READUP ===== */
-  html.ru-lock, html.ru-intro { overflow: hidden; }
-  .ru-cat-slot { width: 3rem; height: 3rem; z-index: 5; flex-shrink: 0; position: relative; }
-  @media (min-width: 640px) { .ru-cat-slot { width: 3.5rem; height: 3.5rem; } }
-  html.ru-intro .ru-cat-slot { visibility: hidden; }
-  #ruCat { width: 100%; height: 100%; display: block; filter: drop-shadow(0 3px 6px rgba(207,23,23,.35)); }
-  #ruCat svg { width: 100%; height: 100%; display: block; overflow: visible; }
-  #ruCat.floating { position: fixed; left: 0; top: 0; z-index: 10000; transform-origin: 0 0; will-change: transform;
-    filter: drop-shadow(0 18px 30px rgba(0,0,0,.45)); }
-  .ru-lid { transform-box: fill-box; transform-origin: 50% 0; transform: scaleY(0); animation: ruBlink 3.6s infinite; }
-  .ru-lidline { opacity: 0; animation: ruBlinkLine 3.6s infinite; }
-  @keyframes ruBlink { 0%,36%,46%,100% { transform: scaleY(0); } 40%,42% { transform: scaleY(1); } }
-  @keyframes ruBlinkLine { 0%,37%,45%,100% { opacity: 0; } 40%,42% { opacity: 1; } }
-  #ruIntro { display: none; position: fixed; inset: 0; z-index: 9990; background: rgba(15,15,22,.5);
-    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); cursor: pointer; animation: ruFade .7s ease-out both; }
-  html.ru-intro #ruIntro { display: block; }
-  #ruIntro .ru-skip { position: absolute; bottom: 24px; left: 0; right: 0; text-align: center; color: rgba(255,255,255,.7); font-size: 12px; font-weight: 600; }
-  @keyframes ruFade { from { opacity: 0; } to { opacity: 1; } }
-  .ru-bubble { position: absolute; left: 50%; bottom: 100%; margin-bottom: 6px; white-space: nowrap; background: #fff; color: #cf1717;
-    font-weight: 800; font-size: 15px; padding: 10px 18px; border-radius: 18px; box-shadow: 0 8px 24px rgba(0,0,0,.25);
-    opacity: 0; transform: translateX(-50%) scale(.3); transform-origin: 50% 100%; pointer-events: none; }
-  .ru-bubble::after { content: ""; position: absolute; left: 50%; bottom: -7px; width: 14px; height: 14px; background: #fff; transform: translateX(-50%) rotate(45deg); border-radius: 3px; }
-  .ru-bubble.show { animation: ruPop .6s cubic-bezier(.34,1.56,.64,1) forwards; }
-  .ru-bubble.hide { animation: ruOut .3s ease-in forwards; }
-  @keyframes ruPop { to { opacity: 1; transform: translateX(-50%) scale(1); } }
-  @keyframes ruOut { from { opacity: 1; transform: translateX(-50%) scale(1); } to { opacity: 0; transform: translateX(-50%) scale(.6); } }
-  .ru-wave { display: inline-block; transform-origin: 70% 70%; animation: ruWave 1s ease-in-out 3; }
-  @keyframes ruWave { 0%,100% { transform: rotate(0); } 25% { transform: rotate(18deg); } 60% { transform: rotate(-12deg); } }
-  
-  .ru-cat-slot #ruCat:not(.floating) { cursor: pointer; -webkit-tap-highlight-color: transparent; }
-  .ru-tip { position: absolute; top: calc(100% + 10px); left: 0; z-index: 60; width: max-content; max-width: min(240px, 70vw);
-    background: #fff; color: #cf1717; font-weight: 700; font-size: 13px; line-height: 1.35; padding: 8px 14px; border-radius: 14px;
-    box-shadow: 0 8px 22px rgba(0,0,0,.18); border: 1px solid rgba(207,23,23,.15); pointer-events: none;
-    opacity: 0; transform: translateY(-6px) scale(.92); transform-origin: 20px 0; transition: opacity .3s ease, transform .35s cubic-bezier(.34,1.56,.64,1); }
-  .ru-tip::before { content: ""; position: absolute; top: -6px; left: 18px; width: 12px; height: 12px; background: #fff; transform: rotate(45deg);
-    border-left: 1px solid rgba(207,23,23,.15); border-top: 1px solid rgba(207,23,23,.15); border-radius: 3px 0 0 0; }
-  .ru-tip.show { opacity: 1; transform: translateY(0) scale(1); }
-  .dark .ru-tip, .dark .ru-tip::before { background: #27272a; color: #fca5a5; }
-  </style>
+  <link rel="stylesheet" href="assets/css/pages/index.01.css">
   <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
-<script>
-  /* Mèo ReadUp: chỉ chào 1 lần mỗi phiên (thêm ?intro=1 vào link để xem lại) */
-  (function(){try{
-    var seen=sessionStorage.getItem('ruCatSeen'),re=/[?&]intro=1/.test(location.search);
-    var rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if((!seen||re)&&!rm)document.documentElement.classList.add('ru-intro');
-  }catch(e){}})();
-</script>
+<script src="assets/js/pages/index.02.js"></script>
+  <link rel="stylesheet" href="assets/css/page-loader.css">
 </head>
 <body class="text-gray-900 dark:text-gray-100 min-h-screen flex flex-col justify-between antialiased">
+<!-- Màn hình chờ: kiểm tra phiên trước khi hiển thị giao diện -->
+<div id="ru-page-loader" class="ru-page-loader" role="status" aria-live="polite" aria-label="Đang kiểm tra phiên đăng nhập">
+  <div class="ru-page-loader__center">
+    <div class="ru-page-loader__brand">
+      <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp English Logo" width="64" height="64">
+      <div class="ru-page-loader__name"><strong>ReadUp</strong><span>English</span></div>
+    </div>
+    <div class="ru-page-loader__track" aria-hidden="true"><span class="ru-page-loader__bar"></span></div>
+    <span class="ru-page-loader__sr">Đang kiểm tra phiên đăng nhập...</span>
+  </div>
+</div>
+
 
   <!-- NỀN ĐỘNG -->
   <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none select-none transition-colors duration-500 bg-slate-50 dark:bg-zinc-950">
@@ -285,34 +172,7 @@
     </div>
   </div>
 
-  <style>
-    /* ===== BÀI ĐĂNG TỰ ĐỘNG LƯỚT (nền trong suốt) ===== */
-    .ru-posts{display:grid}
-    .ru-post{grid-area:1/1;display:flex;align-items:center;gap:18px;background:transparent;color:inherit;text-decoration:none;opacity:0;transform:translateX(36px);transition:opacity .6s ease,transform .6s ease;pointer-events:none}
-    .ru-post.active{opacity:1;transform:none;pointer-events:auto}
-    .ru-post.leave{transform:translateX(-36px)}
-    .ru-post-thumb{flex:0 0 150px;width:150px;height:150px;border-radius:20px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.18);background:rgba(207,23,23,.08);display:flex;align-items:center;justify-content:center;font-size:42px}
-    .ru-post-thumb img{width:100%;height:100%;object-fit:cover;display:block}
-    .ru-post-body{min-width:0;flex:1;text-align:left}
-    .ru-post-meta{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-    .ru-post-badge{font-weight:700;font-size:13px;color:#cf1717;background:rgba(207,23,23,.1);padding:4px 12px;border-radius:8px;text-transform:uppercase}
-    .ru-post-date{display:inline-flex;align-items:center;gap:5px;font-size:14px;color:#9ca3af}
-    .ru-post-title{margin:0;font-weight:700;font-size:24px;line-height:1.3;color:#111827}
-    .dark .ru-post-title{color:#fff}
-    .ru-post-ex{margin-top:6px;font-size:16px;line-height:1.5;color:#6b7280;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-    .dark .ru-post-ex{color:#a1a1aa}
-    .ru-post-more{color:#cf1717;font-weight:700;white-space:nowrap}
-    .ru-posts-wrap{position:relative}
-    .ru-post-arrow{display:none;position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:40px;height:40px;border-radius:9999px;background:rgba(255,255,255,.9);color:#333;font-size:22px;line-height:1;border:0;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);transition:.2s;align-items:center;justify-content:center}
-    .ru-post-arrow:hover{background:#cf1717;color:#fff}
-    .ru-post-prev{left:0}.ru-post-next{right:0}
-    @media (min-width:768px) and (hover:hover){.ru-posts-wrap{padding:0 56px}.ru-post-arrow{display:flex}}
-    .ru-post-dots{display:flex;justify-content:center;gap:8px;margin-top:14px}
-    .ru-post-dot{width:10px;height:10px;border-radius:9999px;background:#d1d5db;border:0;padding:0;cursor:pointer;transition:all .3s}
-    .dark .ru-post-dot{background:#52525b}
-    .ru-post-dot.active{width:34px;background:#cf1717}
-    @media (max-width:640px){.ru-post{gap:12px}.ru-post-thumb{flex-basis:84px;width:84px;height:84px;border-radius:14px;font-size:26px}.ru-post-title{font-size:16px}.ru-post-ex{font-size:13px;margin-top:4px}.ru-post-badge{font-size:11px;padding:3px 9px}.ru-post-date{font-size:12px}}
-  </style>
+  <link rel="stylesheet" href="assets/css/pages/index.02.css">
   <!-- ================= BÀI ĐĂNG MỚI (1 bài/lần, tự động lướt) ================= -->
   <div class="max-w-6xl mx-auto px-4 pt-6" id="ruPostsWrap" style="display:none">
     <div class="ru-posts-wrap">
@@ -322,67 +182,7 @@
     </div>
     <div class="ru-post-dots" id="ruPostDots"></div>
   </div>
-  <script>
-  (function(){
-    var URL_='https://klovtvjfvfenhkvifujy.supabase.co/rest/v1/posts?select=title,token,thumbnail_url,excerpt,created_at&is_published=eq.true&order=created_at.desc&limit=5';
-    var KEY_='sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-';
-    var wrap=document.getElementById('ruPostsWrap'), box=document.getElementById('ruPosts');
-    if(!wrap||!box) return;
-    fetch(URL_,{headers:{apikey:KEY_}}).then(function(r){return r.ok?r.json():[];}).then(function(rows){
-      if(!rows||!rows.length) return;
-      var max=window.innerWidth<640?70:140, items=[];
-      rows.forEach(function(p){
-        var a=document.createElement('a'); a.className='ru-post'; a.href='post.html?token='+encodeURIComponent(p.token);
-        var th=document.createElement('div'); th.className='ru-post-thumb';
-        if(p.thumbnail_url){var im=document.createElement('img'); im.src=p.thumbnail_url; im.alt=p.title||''; im.loading='lazy'; im.draggable=false; th.appendChild(im);} else {th.textContent='\uD83D\uDCF0';}
-        var b=document.createElement('div'); b.className='ru-post-body';
-        var m=document.createElement('div'); m.className='ru-post-meta';
-        var bd=document.createElement('span'); bd.className='ru-post-badge'; bd.textContent='Bài học';
-        var dt=document.createElement('span'); dt.className='ru-post-date';
-        dt.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>';
-        dt.appendChild(document.createTextNode(new Date(p.created_at).toLocaleDateString('vi-VN')));
-        m.appendChild(bd); m.appendChild(dt);
-        var t=document.createElement('h3'); t.className='ru-post-title'; t.textContent=p.title||'';
-        var ex=document.createElement('p'); ex.className='ru-post-ex';
-        var txt=(p.excerpt||'').replace(/\s+/g,' ').trim(); if(txt.length>max) txt=txt.slice(0,max).trim();
-        ex.appendChild(document.createTextNode(txt?txt+' ':''));
-        var more=document.createElement('span'); more.className='ru-post-more'; more.textContent='đọc thêm \u2192'; ex.appendChild(more);
-        b.appendChild(m); b.appendChild(t); b.appendChild(ex);
-        a.appendChild(th); a.appendChild(b); box.appendChild(a); items.push(a);
-      });
-      wrap.style.display=''; items[0].classList.add('active');
-      if(items.length<2) return;
-      var dotsBox=document.getElementById('ruPostDots'), dots=[], cur=0, paused=false, timer=null, DELAY=4500;
-      items.forEach(function(_,i){
-        var d=document.createElement('button'); d.className='ru-post-dot'+(i===0?' active':''); d.setAttribute('aria-label','Bài '+(i+1));
-        d.addEventListener('click',function(){go(i);start();}); dotsBox.appendChild(d); dots.push(d);
-      });
-      function go(n){
-        n=(n+items.length)%items.length; if(n===cur) return;
-        var old=items[cur], nw=items[n];
-        old.classList.remove('active'); old.classList.add('leave');
-        nw.classList.remove('leave'); nw.classList.add('active');
-        dots[cur].classList.remove('active'); dots[n].classList.add('active');
-        cur=n; setTimeout(function(){old.classList.remove('leave');},700);
-      }
-      function start(){ stop(); timer=setInterval(function(){ if(!paused&&!document.hidden) go(cur+1); },DELAY); }
-      function stop(){ if(timer){clearInterval(timer);timer=null;} }
-      box.addEventListener('mouseenter',function(){paused=true;});
-      box.addEventListener('mouseleave',function(){paused=false;});
-      box.addEventListener('touchstart',function(){paused=true;},{passive:true});
-      box.addEventListener('touchend',function(){setTimeout(function(){paused=false;},2500);},{passive:true});
-      document.getElementById('ruPostPrev').addEventListener('click',function(){go(cur-1);start();});
-      document.getElementById('ruPostNext').addEventListener('click',function(){go(cur+1);start();});
-      var sx=0, sy=0;
-      box.addEventListener('touchstart',function(e){sx=e.touches[0].clientX; sy=e.touches[0].clientY;},{passive:true});
-      box.addEventListener('touchend',function(e){
-        var dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
-        if(Math.abs(dx)>40 && Math.abs(dx)>Math.abs(dy)){ go(dx<0?cur+1:cur-1); start(); }
-      },{passive:true});
-      start();
-    }).catch(function(){});
-  })();
-  </script>
+  <script src="assets/js/pages/index.03.js"></script>
 
   <main class="max-w-6xl mx-auto px-4 pt-12 pb-20 space-y-24">
     
@@ -660,69 +460,7 @@
   </div>
 </section>
 
-<script>
-  const stepsData = [
-    {
-      title: "READ",
-      desc: "Đọc bài báo thực tế mỗi ngày được tinh chỉnh theo đúng chuẩn cấu trúc đề thi IELTS & TOEIC."
-    },
-    {
-      title: "LEARN",
-      desc: "Tra từ trong ngữ cảnh bài đọc, lưu bộ Collocation chuẩn xác kèm giải thích đáp án chi tiết."
-    },
-    {
-      title: "GROW",
-      desc: "Theo dõi sự tăng trưởng tốc độ đọc hiểu và Band điểm qua hệ thống báo cáo trực quan."
-    }
-  ];
-
-  // Tọa độ 3 vị trí trên đường tròn bán kính R = 95px
-  // Vị trí 0 (Đỉnh giữa), Vị trí 1 (Phải dưới), Vị trí 2 (Trái dưới)
-  const slots = [
-    { x: 0, y: -95, scale: 1.25, opacity: 1 },
-    { x: 82, y: 48, scale: 0.85, opacity: 0.5 },
-    { x: -82, y: 48, scale: 0.85, opacity: 0.5 }
-  ];
-
-  let currentActive = 0;
-
-  function updateCircleLayout() {
-    stepsData.forEach((_, index) => {
-      const node = document.getElementById(`step-node-${index}`);
-      // Tính toán vị trí tương đối của node dựa trên nút đang active
-      const slotIndex = (index - currentActive + 3) % 3;
-      const pos = slots[slotIndex];
-
-      // Áp dụng vị trí và hiệu ứng phóng to/thu nhỏ
-      node.style.transform = `translate(${pos.x}px, ${pos.y}px) scale(${pos.scale})`;
-      node.style.opacity = pos.opacity;
-
-      // Nút ở trên cùng sẽ ưu tiên hiển thị đè lên (z-index)
-      if (slotIndex === 0) {
-        node.classList.add("z-10");
-        node.classList.remove("z-0");
-      } else {
-        node.classList.add("z-0");
-        node.classList.remove("z-10");
-      }
-    });
-
-    // Cập nhật text nội dung ở hộp bên dưới
-    const titleEl = document.getElementById("active-title");
-    const descEl = document.getElementById("active-desc");
-    
-    titleEl.innerText = stepsData[currentActive].title;
-    descEl.innerText = stepsData[currentActive].desc;
-  }
-
-  function setActiveStep(index) {
-    currentActive = index;
-    updateCircleLayout();
-  }
-
-  // Khởi tạo vị trí ban đầu
-  updateCircleLayout();
-</script>
+<script src="assets/js/pages/index.04.js"></script>
 
     <!-- KHOẢNG TỔNG QUAN / STATS -->
     <section class="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md rounded-3xl border border-gray-200/50 dark:border-zinc-800/50 text-center reveal">
@@ -1153,99 +891,11 @@
 </footer>
 
 
-  <script>
-    function toggleDarkMode() {
-      if (document.documentElement.classList.contains('dark')) {
-        document.documentElement.classList.remove('dark');
-        localStorage.theme = 'light';
-      } else {
-        document.documentElement.classList.add('dark');
-        localStorage.theme = 'dark';
-      }
-    }
-
-
-    document.addEventListener("DOMContentLoaded", function () {
-    const reveals = document.querySelectorAll(".reveal");
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("active");
-        }
-      });
-    }, { threshold: 0.1 });
-
-    reveals.forEach((el) => observer.observe(el));
-  });
-    
-  </script>
-  <script>
-  (function () {
-    var slider = document.getElementById('ruSlider');
-    var track  = document.getElementById('ruTrack');
-    var dots   = document.querySelectorAll('#ruDots .ru-dot');
-    var total  = dots.length, idx = 0, timer = null, DELAY = 4000;
-
-    function go(n) {
-      idx = (n + total) % total;
-      track.style.transform = 'translateX(' + (-idx * 100) + '%)';
-      dots.forEach(function (d, i) { d.classList.toggle('active', i === idx); });
-    }
-    function start() { stop(); timer = setInterval(function () { go(idx + 1); }, DELAY); }
-    function stop()  { if (timer) { clearInterval(timer); timer = null; } }
-
-    document.getElementById('ruPrev').addEventListener('click', function (e) { e.stopPropagation(); go(idx - 1); start(); });
-    document.getElementById('ruNext').addEventListener('click', function (e) { e.stopPropagation(); go(idx + 1); start(); });
-    dots.forEach(function (d, i) { d.addEventListener('click', function () { go(i); start(); }); });
-
-    slider.addEventListener('mouseenter', stop);
-    slider.addEventListener('mouseleave', start);
-
-    // Vuốt trên điện thoại (vuốt = chuyển ảnh, chạm = về index)
-    var sx = 0, moved = false;
-    slider.addEventListener('touchstart', function (e) { sx = e.touches[0].clientX; moved = false; stop(); }, { passive: true });
-    slider.addEventListener('touchend', function (e) {
-      var dx = e.changedTouches[0].clientX - sx;
-      if (Math.abs(dx) > 40) { moved = true; go(dx < 0 ? idx + 1 : idx - 1); }
-      start();
-    });
-
-    // Bấm vào ảnh -> quay về trang index
-    slider.addEventListener('click', function () {
-      if (moved) { moved = false; return; }
-      window.location.href = 'index.html';
-    });
-
-    // Chặn chuột phải, kéo thả, chọn, giữ ảnh
-    ['contextmenu', 'dragstart', 'selectstart', 'copy', 'cut'].forEach(function (ev) {
-      slider.addEventListener(ev, function (e) { e.preventDefault(); });
-    });
-
-    // Tạm dừng khi chuyển tab để tiết kiệm tài nguyên
-    document.addEventListener('visibilitychange', function () { document.hidden ? stop() : start(); });
-
-    go(0);
-    var loaded = 0;
-    document.querySelectorAll('.ru-slide img').forEach(function (im) {
-      function done() { if (++loaded === total) start(); }
-      if (im.complete && im.naturalWidth) done(); else { im.addEventListener('load', done); im.addEventListener('error', done); }
-    });
-  })();
-  </script>
+  <script src="assets/js/pages/index.05.js"></script>
+  <script src="assets/js/pages/index.06.js"></script>
 
   <!-- ================= DẢI "BÀI ĐĂNG" CẠNH PHẢI + NÚT EMAIL & TIKTOK NỔI ================= -->
-  <style>
-    #postSideTab{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:45;display:flex;align-items:center;justify-content:center;padding:22px 10px;background:#cf1717;border:2.5px solid rgba(255,255,255,.7);border-right:0;border-radius:18px 0 0 18px;color:#fff;text-decoration:none;box-shadow:-4px 6px 20px rgba(207,23,23,.45);transition:padding .25s ease,filter .25s ease}
-    #postSideTab:hover{filter:brightness(1.1);padding-right:16px}
-    #postSideTab:active{filter:brightness(.9)}
-    #postSideTab .side-text{writing-mode:vertical-rl;font-weight:900;font-size:15px;letter-spacing:.22em;text-transform:uppercase;white-space:nowrap;user-select:none}
-    .float-btn{position:fixed;right:16px;z-index:45;width:56px;height:56px;border-radius:9999px;background:#cf1717;border:2.5px solid rgba(255,255,255,.8);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(207,23,23,.45);transition:transform .2s ease,filter .2s ease}
-    .float-btn:hover{transform:scale(1.08);filter:brightness(1.1)}
-    #tiktokFloat{bottom:24px}
-    #emailFloat{bottom:92px}
-    @media (max-width:640px){#postSideTab{padding:16px 7px;border-radius:14px 0 0 14px}#postSideTab .side-text{font-size:12px}.float-btn{width:50px;height:50px}#tiktokFloat{bottom:20px}#emailFloat{bottom:82px}}
-  </style>
+  <link rel="stylesheet" href="assets/css/pages/index.03.css">
   <a id="postSideTab" href="post.html" aria-label="Xem Bài Đăng"><span class="side-text">Bài Đăng</span></a>
   <a id="emailFloat" class="float-btn" href="mailto:readupenglish.team@gmail.com" aria-label="Gửi email cho ReadUp English">
     <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
@@ -1256,121 +906,7 @@
 
   <!-- ===== LỚP MỜ CHÀO MỪNG ===== -->
   <div id="ruIntro" aria-hidden="true"><div class="ru-skip">Bấm để bỏ qua</div></div>
-  <script>
-  (function(){
-    var cat=document.getElementById('ruCat'), slot=document.getElementById('ruCatSlot'),
-        ov=document.getElementById('ruIntro'), bub=document.getElementById('ruBubble'), root=document.documentElement;
-    if(!cat||!slot)return;
-    var tip=null, tipT=null, idleT=null, running=false, docked=false;
-    var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var TIPS=['Chào bạn! Hôm nay luyện Reading nhé 📖','Cố lên, bạn làm được mà! 💪','Mỗi ngày một bài, giỏi lên thấy rõ! 🔥',
-              'Gặp từ mới thì ghi lại nha ✍️','Meow~ mình ở đây cổ vũ bạn! 🐾','Sẵn sàng chưa? Bấm "Vào Luyện Tập" nào! 🚀'];
-
-    function showTip(t,ms){
-      if(!tip)return; tip.textContent=t; tip.classList.add('show');
-      clearTimeout(tipT); tipT=setTimeout(hideTip,ms||3600);
-    }
-    function hideTip(){ if(tip)tip.classList.remove('show'); }
-    function randTip(){ return TIPS[Math.floor(Math.random()*TIPS.length)]; }
-    function hop(){
-      if(running||!cat.animate)return;
-      cat.animate([{transform:'translateY(0)'},{transform:'translateY(-14px) rotate(-4deg)'},{transform:'translateY(0)'},
-                   {transform:'translateY(-6px) rotate(3deg)'},{transform:'translateY(0)'}],{duration:650,easing:'ease-out'});
-    }
-    function schedule(){
-      idleT=setTimeout(function(){ if(!running&&!document.hidden){showTip(randTip(),3400);hop();} schedule(); },13000+Math.random()*8000);
-    }
-    function reset(){
-      running=false;
-      if(cat.getAnimations)cat.getAnimations().forEach(function(x){x.cancel();});
-    }
-
-    function dock(){
-      root.classList.remove('ru-intro','ru-lock');
-      /* QUAN TRỌNG: huỷ mọi animation còn "dính" (fill:forwards) để mèo về đúng kích thước/vị trí trong header */
-      if(cat.getAnimations)cat.getAnimations().forEach(function(x){x.cancel();});
-      cat.classList.remove('floating'); cat.removeAttribute('style'); slot.appendChild(cat);
-      if(bub)bub.remove(); if(ov)ov.remove();
-      docked=true;
-      tip=document.createElement('div'); tip.className='ru-tip'; cat.appendChild(tip);
-      setTimeout(function(){ showTip('Chào bạn! Sẵn sàng luyện Reading chưa? 📖',4200); },1200);
-      schedule();
-    }
-
-    /* Tương tác với mèo trong header */
-    cat.addEventListener('click',function(){ if(!docked||running)return; showTip(randTip(),3200); hop(); });
-    cat.addEventListener('mouseenter',function(){ if(!docked||running)return; if(!tip.classList.contains('show'))showTip(randTip(),2800); });
-
-    /* Bấm "Vào Luyện Tập": mèo chạy dọc header tới nút rồi mới chuyển trang */
-    var btn=document.querySelector('header a[href="login.html"]');
-    if(btn){
-      btn.addEventListener('click',function(e){
-        if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;
-        if(!docked||reduce||!cat.animate)return;
-        e.preventDefault(); if(running)return; running=true;
-        var href=btn.href; clearTimeout(idleT);
-        var go=function(){location.href=href;}; setTimeout(go,3000);
-        try{
-          var cr=cat.getBoundingClientRect(), br=btn.getBoundingClientRect();
-          var dx=Math.max(24,br.left-cr.width-8-cr.left);
-          var n=Math.max(2,Math.min(9,Math.round(dx/80))), kf=[];
-          for(var i=0;i<n;i++){
-            kf.push({transform:'translate('+(dx*i/n)+'px,0)',offset:i/n});
-            kf.push({transform:'translate('+(dx*(i+.5)/n)+'px,-13px)',offset:(i+.5)/n});
-          }
-          kf.push({transform:'translate('+dx+'px,0)',offset:1});
-          showTip('Đi thôi! Mình dẫn bạn vào luyện tập 🚀',2600);
-          cat.animate(kf,{duration:Math.min(1700,550+dx*1.1),easing:'ease-in-out',fill:'forwards'}).finished.then(function(){
-            btn.animate([{transform:'scale(1)'},{transform:'scale(.9)'},{transform:'scale(1.07)'},{transform:'scale(1)'}],{duration:380});
-            setTimeout(go,380);
-          }).catch(go);
-        }catch(err){go();}
-      });
-    }
-    /* Quay lại trang bằng nút Back (bfcache): đưa mèo về chỗ cũ */
-    window.addEventListener('pageshow',function(ev){ if(ev.persisted&&docked){reset(); hideTip(); schedule();} });
-
-    if(!root.classList.contains('ru-intro')||!cat.animate){dock();return;}
-    try{sessionStorage.setItem('ruCatSeen','1');}catch(e){}
-    var skip=false, wake=null, skipP=new Promise(function(r){wake=r;});
-    ov.addEventListener('click',function(){skip=true;wake();});
-    function sleep(ms){return Promise.race([new Promise(function(r){setTimeout(r,ms);}),skipP]);}
-    try{
-      var vw=innerWidth, vh=innerHeight, W=Math.round(Math.min(280,Math.min(vw,vh)*0.58));
-      var cx=(vw-W)/2, cy=(vh-W)/2+30;
-      document.body.appendChild(cat); cat.classList.add('floating');
-      cat.style.width=cat.style.height=W+'px';
-      var T=function(x,y,s){return 'translate('+x+'px,'+y+'px) scale('+(s||1)+')';};
-      var enter=cat.animate([
-        {transform:T(-W-40,cy),offset:0},
-        {transform:T(cx*.28,cy-38),offset:.2},
-        {transform:T(cx*.5,cy),offset:.36},
-        {transform:T(cx*.76,cy-30),offset:.56},
-        {transform:T(cx,cy),offset:.76},
-        {transform:T(cx,cy-16),offset:.88},
-        {transform:T(cx,cy),offset:1}
-      ],{duration:1800,easing:'ease-in-out',fill:'forwards'});
-      enter.finished.catch(function(){}).then(function(){
-        if(skip)return;
-        bub.style.fontSize=Math.max(12,Math.round(W*.055))+'px';
-        bub.classList.add('show');
-        return sleep(2600);
-      }).then(function(){
-        bub.classList.remove('show'); bub.classList.add('hide');
-        var r=slot.getBoundingClientRect(), s=r.width/W, ms=(1+s)/2;
-        var mx=(cx+r.left)/2, my=Math.max(10,Math.min(cy,r.top)-70);
-        ov.animate([{opacity:1},{opacity:0}],{duration:900,easing:'ease-in-out',fill:'forwards'});
-        return cat.animate([
-          {transform:T(cx,cy,1),offset:0},
-          {transform:T(mx,my,ms),offset:.5},
-          {transform:T(r.left,r.top,s),offset:1}
-        ],{duration:1200,easing:'cubic-bezier(.6,0,.3,1)',fill:'forwards'}).finished;
-      }).then(function(){
-        dock();
-        cat.animate([{transform:'scale(1)'},{transform:'scale(1.18)'},{transform:'scale(1)'}],{duration:450,easing:'ease-out'});
-      }).catch(dock);
-    }catch(e){dock();}
-  })();
-  </script>
+  <script src="assets/js/pages/index.07.js"></script>
+<script src="assets/js/page-loader.js"></script>
 </body>
 </html>
