@@ -1,0 +1,19 @@
+
+    #gradeTable { border-collapse: separate; border-spacing: 0; font-size: 12px; }
+    #gradeTable th, #gradeTable td { border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; padding: 6px 8px; background: #fff; white-space: nowrap; text-align: center; }
+    .dark #gradeTable th, .dark #gradeTable td { background: #18181b; border-color: #3f3f46; }
+    #gradeTable thead th { position: sticky; top: 0; z-index: 3; color: #fff; font-weight: 800; }
+    #gradeTable thead tr.g2 th { top: 30px; }
+    #gradeTable .g-h-fix { background: #374151; } #gradeTable .g-h-att { background: #0d9488; }
+    #gradeTable .g-h-as { background: #4f46e5; } #gradeTable .g-h-test { background: #d97706; }
+    #gradeTable .g-h-qt { background: #0284c7; } #gradeTable .g-h-ck { background: #7c3aed; } #gradeTable .g-h-fin { background: #cf1717; }
+    #gradeTable .g-s1 { position: sticky; left: 0; z-index: 2; min-width: 40px; max-width: 40px; }
+    #gradeTable .g-s2 { position: sticky; left: 40px; z-index: 2; min-width: 170px; text-align: left; font-weight: 700; }
+    #gradeTable thead .g-s1, #gradeTable thead .g-s2 { z-index: 4; }
+    #gradeTable td.g-off { opacity: .45; }
+    #gradeTable td.g-calc { font-weight: 800; background: #f8fafc; } .dark #gradeTable td.g-calc { background: #1f1f23; }
+    .g-rank { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; }
+    .g-rank-xs { background: #C8E6C9; color: #1B5E20; } .g-rank-g { background: #DCEDC8; color: #33691E; }
+    .g-rank-k { background: #BBDEFB; color: #0D47A1; } .g-rank-tb { background: #FFF3B0; color: #7A5B00; }
+    .g-rank-y { background: #FFE0B2; color: #E65100; } .g-rank-km { background: #FFCDD2; color: #B71C1C; }
+  

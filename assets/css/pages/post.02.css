@@ -1,0 +1,7 @@
+
+          .latest-slider{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch}
+          .latest-slider::-webkit-scrollbar{display:none}
+          .latest-dot{height:8px;border-radius:9999px;transition:all .35s ease}
+          @keyframes latestIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+          .latest-anim{animation:latestIn .5s ease both}
+        

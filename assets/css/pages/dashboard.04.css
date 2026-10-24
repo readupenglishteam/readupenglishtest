@@ -1,0 +1,35 @@
+
+        #assignmentSideTab {
+          position: fixed; right: 0; top: 50%;
+          z-index: 45;
+          transform: translate(110%, -50%);
+          opacity: 0; pointer-events: none;
+          transition: transform .45s cubic-bezier(.34,1.56,.64,1), opacity .3s ease;
+          display: flex; align-items: center; justify-content: center;
+          padding: 22px 10px;
+          overflow: hidden;
+          background: linear-gradient(180deg, #cf1717 0%, #ef4444 50%, #f97316 100%);
+          border: 2.5px solid rgba(255,255,255,.6); border-right: 0;
+          border-radius: 18px 0 0 18px;
+          color: #fff; text-decoration: none;
+          box-shadow: -4px 6px 20px rgba(239, 68, 68, .45);
+          cursor: pointer;
+        }
+        #assignmentSideTab.show {
+          transform: translate(0, -50%);
+          opacity: 1; pointer-events: auto;
+        }
+        #assignmentSideTab:hover { filter: brightness(1.08); padding-right: 16px; }
+        #assignmentSideTab:active { filter: brightness(.9); }
+        #assignmentSideTab .side-text {
+          writing-mode: vertical-rl;
+          font-weight: 900; font-size: 15px; letter-spacing: .22em;
+          text-transform: uppercase; user-select: none; white-space: nowrap;
+          position: relative; z-index: 1; text-shadow: 0 1px 3px rgba(0,0,0,.25);
+        }
+        @media (max-width: 640px) {
+          #assignmentSideTab { padding: 16px 7px; border-radius: 14px 0 0 14px; }
+          #assignmentSideTab .side-text { font-size: 12px; }
+        }
+        @media (prefers-reduced-motion: reduce) { #assignmentSideTab { transition: none; } }
+      

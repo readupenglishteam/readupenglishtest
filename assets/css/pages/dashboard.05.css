@@ -1,0 +1,7 @@
+
+          .post-slider{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch}
+          .post-slider::-webkit-scrollbar{display:none}
+          .post-dot{height:8px;border-radius:9999px;transition:all .35s ease}
+          @keyframes postSlideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+          .post-card-anim{animation:postSlideIn .5s ease both}
+        

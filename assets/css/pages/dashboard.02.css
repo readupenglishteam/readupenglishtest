@@ -1,0 +1,115 @@
+
+      @keyframes toastProgress {
+        from { width: 100%; }
+        to { width: 0%; }
+      }
+      .animate-toast-bar {
+        animation: toastProgress 5s linear forwards;
+      }
+      @keyframes blob {
+        0%, 100% { transform: translate(0px, 0px) scale(1); }
+        33% { transform: translate(30px, -50px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.95); }
+      }
+      .animate-blob { animation: blob 10s infinite ease-in-out; }
+      .animation-delay-2000 { animation-delay: 2s; }
+      .animation-delay-4000 { animation-delay: 4s; }
+
+      /* HIỆU ỨNG LỬA CHÁY STREAK & GLOW */
+      @keyframes flameGlow {
+        0%, 100% { filter: drop-shadow(0 0 6px rgba(207, 23, 23, 0.8)) drop-shadow(0 0 12px rgba(255, 140, 0, 0.6)); transform: scale(1); }
+        50% { filter: drop-shadow(0 0 12px rgba(207, 23, 23, 1)) drop-shadow(0 0 20px rgba(255, 69, 0, 0.9)); transform: scale(1.1); }
+      }
+
+      .animate-flame {
+        animation: flameGlow 1.8s infinite ease-in-out;
+      }
+
+      .streak-card-bg {
+        background: linear-gradient(135deg, rgba(207, 23, 23, 0.08) 0%, rgba(255, 107, 0, 0.05) 100%);
+      }
+
+      /* Chừa khoảng trống phía trên khi cuộn nhanh tới section, tránh bị header che mất tiêu đề */
+      #section-lich-hoc, #section-tin-tuc, #section-bai-thi, #section-lich-su, #section-speaking, #section-luyen-am, #section-nhom {
+        scroll-margin-top: 84px;
+      }
+      /* Trạng thái mặc định của hiệu ứng */
+      .reveal {
+        opacity: 0;
+        transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+        will-change: opacity, transform;
+      }
+
+      /* Các hướng xuất hiện */
+      .reveal-up { transform: translateY(50px); }       /* Từ dưới lên */
+      .reveal-down { transform: translateY(-50px); }   /* Từ trên xuống */
+      .reveal-left { transform: translateX(-50px); }   /* Từ trái sang */
+      .reveal-right { transform: translateX(50px); }   /* Từ phải sang */
+      .reveal-zoom { transform: scale(0.85); }         /* Phóng to dần */
+
+      /* Trạng thái khi lướt tới (Kích hoạt) */
+      .reveal.active {
+        opacity: 1;
+        transform: translate(0, 0) scale(1);
+      }
+    /* ===== BÉ MÈO NẰM TRÊN THANH HEADER ===== */
+    .ru-lie { position: absolute; z-index: 3; bottom: calc(100% - 32px); right: 8%; width: var(--cw);
+    cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .ru-lie svg { display: block; width: 100%; height: auto; overflow: visible; transform-origin: 50% 100%;
+    filter: drop-shadow(0 6px 8px rgba(0,0,0,.14)); animation: ruBreathe 4s ease-in-out infinite; }
+  @keyframes ruBreathe { 0%,100% { transform: scale(1,1); } 50% { transform: scale(1.012,1.04); } }
+  .ru-eyeopen { transform-box: fill-box; transform-origin: 50% 50%; transform: scaleY(0); animation: ruEyeOpen 9s infinite; }
+  .ru-arc { animation: ruEyeArc 9s infinite; }
+  @keyframes ruEyeOpen { 0%,70%,100% { transform: scaleY(0); } 72.4%,77.3% { transform: scaleY(1); } 79.2% { transform: scaleY(.08); } 81%,85.3% { transform: scaleY(1); } 87.7% { transform: scaleY(0); } }
+  @keyframes ruEyeArc { 0%,70%,100% { opacity: 1; } 71.8%,87.1% { opacity: 0; } }
+  /* Zzz */
+  .ru-z { position: absolute; top: -2px; font-weight: 800; font-size: 14px; color: #6b7280; opacity: 0; pointer-events: none; animation: ruZ 3.2s ease-in-out infinite; }
+  .ru-z2 { font-size: 18px; animation-delay: 1.4s; }
+  @keyframes ruZ { 0% { opacity: 0; transform: translate(0,10px) scale(.7); } 30% { opacity: .85; } 100% { opacity: 0; transform: translate(10px,-22px) scale(1.15); } }
+  /* Phản ứng khi báo lỗi / thành công / vuốt ve */
+  .ru-lie.ru-alert .ru-eyeopen, .ru-lie.ru-ok .ru-eyeopen, .ru-lie.ru-pet .ru-eyeopen { animation: none; transform: scaleY(1); }
+  .ru-lie.ru-alert .ru-arc, .ru-lie.ru-ok .ru-arc, .ru-lie.ru-pet .ru-arc { animation: none; opacity: 0; }
+  .ru-lie.ru-alert .ru-z, .ru-lie.ru-ok .ru-z, .ru-lie.ru-pet .ru-z { display: none; }
+  .ru-lie.ru-alert svg { animation: ruShake .6s ease both; }
+  .ru-lie.ru-ok svg { animation: ruJoy .75s ease both; }
+  .ru-lie.ru-pet svg { animation: ruJoy .6s ease both; }
+  @keyframes ruShake { 0%,100% { transform: translateX(0); } 15% { transform: translateX(-9px) rotate(-3deg); } 35% { transform: translateX(8px) rotate(3deg); }
+    55% { transform: translateX(-6px) rotate(-2deg); } 75% { transform: translateX(4px); } }
+  @keyframes ruJoy { 0%,100% { transform: translateY(0) scale(1,1); } 25% { transform: translateY(-16px) scale(.97,1.05); }
+    50% { transform: translateY(0) scale(1.04,.95); } 70% { transform: translateY(-8px); } }
+  /* Bong bóng thông báo của mèo */
+  .ru-say { position: absolute; left: 50%; bottom: calc(100% + 8px); z-index: 4; width: max-content; max-width: min(300px, 86vw); text-align: center;
+    font-size: 13px; font-weight: 700; line-height: 1.35; padding: 8px 14px; border-radius: 14px; border: 1px solid transparent;
+    background: #fff; color: #352E35; box-shadow: 0 8px 22px rgba(0,0,0,.16); pointer-events: none;
+    opacity: 0; transform: translateX(-50%) translateY(8px) scale(.85); transform-origin: 50% 100%;
+    transition: opacity .25s ease, transform .4s cubic-bezier(.34,1.56,.64,1); }
+  .ru-say::after { content: ""; position: absolute; left: 50%; bottom: -6px; width: 12px; height: 12px; background: inherit; border-radius: 3px;
+    transform: translateX(-50%) rotate(45deg); border-right: 1px solid transparent; border-bottom: 1px solid transparent; border-color: inherit; }
+  .ru-say.show { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  .ru-say.err { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+  .ru-say.ok { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+  .dark .ru-say.err { background: #3b1414; color: #fca5a5; border-color: #7f1d1d; }
+  .dark .ru-say.ok { background: #0f2a1a; color: #86efac; border-color: #14532d; }
+  .dark .ru-say { background: #27272a; color: #e5e7eb; }
+  .dark .ru-z { color: #9ca3af; }
+  @media (prefers-reduced-motion: reduce) { .ru-lie svg, .ru-eyeopen, .ru-arc, .ru-z { animation: none !important; } }
+    /* --- Đặt mèo trong header, cạnh chữ ReadUp English --- */
+  .ru-brand { align-self: stretch; }
+  .ru-hdr.ru-lie { --hw: 54px; position: relative; bottom: auto; right: auto; width: var(--hw); flex-shrink: 0; align-self: flex-end; margin-bottom: calc(var(--hw) * -0.1); }
+  @media (min-width: 640px)  { .ru-hdr.ru-lie { --hw: 72px; } }
+  @media (min-width: 1024px) { .ru-hdr.ru-lie { --hw: 88px; } }
+  @media (max-width: 639px) {
+    .ru-brand { gap: .4rem; }
+    .ru-brand > a:first-child { width: 2.5rem; height: 2.5rem; }
+    .ru-brand span.text-2xl { font-size: 1.2rem; }
+    .ru-brand span.text-xs { font-size: 10px; padding: 1px 6px; }
+  }
+  @media (max-width: 399px) { .ru-brand span.text-xs { display: none; } }
+  .ru-hdr .ru-z { top: -6px; }
+  .ru-hdr .ru-say { left: 0; right: auto; bottom: auto; top: calc(100% + 10px); width: max-content; max-width: min(250px, calc(100vw - 20px));
+    text-align: left; font-size: 13px; padding: 8px 13px; border-radius: 14px; transform: translateY(-8px) scale(.9); transform-origin: 0 0; }
+  .ru-hdr .ru-say.show { transform: translateY(0) scale(1); }
+  .ru-hdr .ru-say::after { left: var(--ax, 24px); right: auto; bottom: auto; top: -6px; transform: translateX(-50%) rotate(45deg); }
+  .ru-hdr .ru-say.go { cursor: pointer; pointer-events: auto; }
+  .ru-hdr .ru-say .ru-more { display: block; margin-top: 3px; font-size: 11px; font-weight: 800; color: #cf1717; text-decoration: underline; }
+  .dark .ru-hdr .ru-say .ru-more { color: #fca5a5; }
