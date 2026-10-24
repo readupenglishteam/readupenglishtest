@@ -1,0 +1,1 @@
+Chart.defaults.font.family = "'Montserrat', sans-serif";

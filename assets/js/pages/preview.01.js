@@ -1,0 +1,50 @@
+
+    window.onload = function() {
+      const rawData = sessionStorage.getItem('preview_data');
+      if (!rawData) {
+        document.getElementById('previewContainer').innerHTML = `<p class="text-red-500 text-center">Không tìm thấy dữ liệu xem thử!</p>`;
+        return;
+      }
+
+      const { type, payload } = JSON.parse(rawData);
+      const container = document.getElementById('previewContainer');
+
+      if (type === 'announcement') {
+        renderAnnouncementPreview(container, payload);
+      } else if (type === 'exam') {
+        renderExamPreview(container, payload);
+      }
+    };
+
+    // Dựng giao diện Thông báo
+    // Dựng giao diện Thông báo (Tối ưu Dark Mode & HTML)
+function renderAnnouncementPreview(container, data) {
+  container.innerHTML = `
+    <div class="border-l-4 border-[#cf1717] bg-red-50/50 dark:bg-red-950/30 p-4 rounded-r-xl space-y-3">
+      <span class="text-xs font-bold text-[#cf1717] bg-red-100 dark:bg-red-900/50 dark:text-red-300 px-2 py-0.5 rounded-full inline-block">
+        ${data.tag || 'THÔNG BÁO'}
+      </span>
+      <h3 class="font-bold text-lg sm:text-xl text-gray-900 dark:text-white">
+        ${data.title || 'Tiêu đề thông báo'}
+      </h3>
+      <div class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed prose dark:prose-invert max-w-none">
+        ${data.content || 'Nội dung...'}
+      </div>
+    </div>`;
+}
+
+    // Dựng giao diện Đề thi / Bài đọc (Tối ưu giao diện khung chứa)
+function renderExamPreview(container, data) {
+  container.innerHTML = `
+    <h2 class="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white mb-4">
+      ${data.title || 'Đề thi xem thử'}
+    </h2>
+    <div class="prose dark:prose-invert max-w-none mb-6 p-4 sm:p-6 bg-gray-50 dark:bg-zinc-900/50 border dark:border-zinc-700 rounded-xl">
+      ${data.passage_html || '<p class="italic text-gray-400">Nội dung bài đọc chưa được nhập...</p>'}
+    </div>
+    <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 border-t dark:border-zinc-700 pt-3">
+      <span>Số câu hỏi: <strong>${data.questions?.length || 0}</strong> câu</span>
+      <span>Thời gian tạo: ${new Date().toLocaleDateString('vi-VN')}</span>
+    </div>`;
+}
+  

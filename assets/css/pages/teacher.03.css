@@ -1,0 +1,21 @@
+
+  #attTable { border-collapse: separate; border-spacing: 0; font-size: 12px; }
+  #attTable th, #attTable td { border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; padding: 4px 6px; background: #fff; white-space: nowrap; }
+  .dark #attTable th, .dark #attTable td { background: #18181b; border-color: #3f3f46; }
+  #attTable thead th { position: sticky; top: 0; z-index: 3; background: #cf1717; color: #fff; font-weight: 800; text-align: center; }
+  .dark #attTable thead th { background: #cf1717; }
+  #attTable .att-sticky1 { position: sticky; left: 0; z-index: 2; min-width: 44px; max-width: 44px; text-align: center; }
+  #attTable .att-sticky2 { position: sticky; left: 44px; z-index: 2; min-width: 170px; font-weight: 700; }
+  #attTable thead .att-sticky1, #attTable thead .att-sticky2 { z-index: 4; }
+
+  .att-sel { appearance: none; -webkit-appearance: none; width: 46px; height: 32px; text-align: center; text-align-last: center;
+             font-weight: 800; font-size: 13px; border-radius: 8px; border: 1px solid rgba(0,0,0,.12); cursor: pointer; outline: none; }
+  .att-sel:focus { box-shadow: 0 0 0 2px rgba(207,23,23,.35); }
+  .att-sel:disabled { opacity: .45; cursor: not-allowed; }
+  .att-sel option { background: #fff; color: #111827; font-weight: 700; }
+  .att-none { background: transparent; color: #9ca3af; }
+  .att-P { background: #C8E6C9; color: #1B5E20; }   /* Present  – xanh lá pastel   */
+  .att-L { background: #FFF3B0; color: #7A5B00; }   /* Late     – vàng pastel      */
+  .att-E { background: #BBDEFB; color: #0D47A1; }   /* Excused  – xanh dương pastel */
+  .att-A { background: #FFCDD2; color: #B71C1C; }   /* Absent   – đỏ pastel        */
+  .att-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; }

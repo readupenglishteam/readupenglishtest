@@ -1,0 +1,1 @@
+tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Montserrat','ui-sans-serif','system-ui','sans-serif']}}}}
