@@ -1,9 +1,0 @@
-
-.qeditor{line-height:1.8;font-size:.95rem;color:#374151;word-wrap:break-word;min-height:90px}
-.dark .qeditor{color:#e4e4e7}
-.qeditor img{max-width:100%;border-radius:10px;margin:.5em 0}
-.qeditor:focus{outline:none}
-.qeditor table{border-collapse:collapse;width:100%;margin:.6em 0;font-size:.9em}
-.qeditor td,.qeditor th{border:1px solid #d1d5db;padding:6px 8px;min-width:40px}
-.dark .qeditor td,.dark .qeditor th{border-color:#52525b}
-.qeditor audio{width:100%;margin:.5em 0}
