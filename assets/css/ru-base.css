@@ -1,0 +1,9 @@
+/* ReadUp UI baseline v1: consistent typography, accessibility and loading transitions. */
+:root{--ru-brand:#cf1717;--ru-font:Montserrat,'Segoe UI',Arial,ui-sans-serif,system-ui,sans-serif}
+html,body,button,input,textarea,select,optgroup,table{font-family:var(--ru-font)}
+#ru-page-loader .ru-page-loader__brand{font-family:var(--ru-font)}
+a,button,input,textarea,select{touch-action:manipulation}
+:where(a,button,input,textarea,select):focus-visible{outline:2px solid var(--ru-brand);outline-offset:2px}
+:where(button):disabled{cursor:not-allowed}
+:where(main,section,article) img{max-width:100%}
+@media(prefers-reduced-motion:reduce){.animate-blob{animation:none!important}}
