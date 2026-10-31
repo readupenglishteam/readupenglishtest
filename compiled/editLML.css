@@ -1,0 +1,157 @@
+/* assets/css/pages/editLML.01.css */
+
+    html, body, button, input, select, textarea { font-family: 'Montserrat', ui-sans-serif, system-ui, sans-serif; }
+    .bi { vertical-align: -0.125em; }
+    @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
+    .animate-toast-bar { animation: toastProgress 5s linear forwards; }
+    @keyframes blob { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(30px,-50px) scale(1.1)} 66%{transform:translate(-20px,20px) scale(.95)} }
+    .animate-blob { animation: blob 10s infinite ease-in-out; }
+    .animation-delay-2000 { animation-delay: 2s; } .animation-delay-4000 { animation-delay: 4s; }
+  .qeditor{line-height:1.8;font-size:.95rem;color:#374151;word-wrap:break-word;min-height:90px}
+  .dark .qeditor{color:#e4e4e7}
+  .qeditor img{max-width:100%;border-radius:10px;margin:.5em 0}
+  .qeditor:focus{outline:none}
+  .qeditor table{border-collapse:collapse;width:100%;margin:.6em 0;font-size:.9em}
+  .qeditor td,.qeditor th{border:1px solid #d1d5db;padding:6px 8px;min-width:40px}
+  .dark .qeditor td,.dark .qeditor th{border-color:#52525b}
+  .qeditor audio{width:100%;margin:.5em 0}
+  .qeditor ul{list-style:disc;padding-left:1.6em;margin:.6em 0}
+  .qeditor ol{list-style:decimal;padding-left:1.6em;margin:.6em 0}
+  .qeditor li{margin:.2em 0}
+  .qeditor a{color:#cf1717;text-decoration:underline}
+  .qeditor h2{font-size:1.4rem;font-weight:800;margin:.8em 0 .4em}
+  .qeditor h3{font-size:1.15rem;font-weight:800;margin:.8em 0 .4em}
+  .qeditor blockquote{border-left:4px solid #cf1717;background:rgba(207,23,23,.06);padding:.5em 1em;margin:.8em 0;border-radius:0 8px 8px 0}
+  .qeditor .video-wrap{position:relative;padding-top:56.25%;margin:1em 0}
+  .qeditor .video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:12px}
+  .qeditor-2col{column-count:2;column-gap:1.8rem}
+  @media (max-width:640px){.qeditor-2col{column-count:1}}
+  .qeditor-2col img,.qeditor-2col table{break-inside:avoid}
+    .tab-btn{padding:.6rem 1.1rem;font-size:.8rem;font-weight:800;border-radius:.75rem;transition:.15s}
+    .tab-btn.active{background:#cf1717;color:#fff;box-shadow:0 4px 12px rgba(207,23,23,.3)}
+    .tab-btn:not(.active){background:rgba(0,0,0,.04);color:#6b7280}
+    .dark .tab-btn:not(.active){background:rgba(255,255,255,.06);color:#a1a1aa}
+    .inp{width:100%;padding:.6rem .75rem;border-radius:.6rem;border:1px solid #e5e7eb;font-size:.85rem;background:transparent}
+    .dark .inp{border-color:#3f3f46;background:#27272a}
+    .th{padding:.6rem .8rem;text-align:left;font-size:.7rem;text-transform:uppercase;font-weight:800;color:#6b7280}
+    .td{padding:.6rem .8rem;font-size:.82rem}
+  
+/* assets/css/page-loader.css */
+/* Màn hình chờ dùng chung — không ghi đè CSS hiện có của các trang. */
+#ru-page-loader.ru-page-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 24px;
+  overflow: hidden;
+  background: #edf0f3;
+  color: #cb171e;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 160ms ease, visibility 160ms ease;
+  isolation: isolate;
+}
+#ru-page-loader.ru-page-loader.ru-page-loader--done {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+#ru-page-loader .ru-page-loader__center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  max-width: 100%;
+}
+#ru-page-loader .ru-page-loader__brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+#ru-page-loader .ru-page-loader__brand img {
+  display: block;
+  flex: 0 0 auto;
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  border-radius: 14px;
+  background: #cf1717;
+}
+#ru-page-loader .ru-page-loader__name {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  font-weight: 800;
+  font-size: 26px;
+  line-height: 1.1;
+  letter-spacing: -.7px;
+}
+#ru-page-loader .ru-page-loader__name strong { font-weight: 900; }
+#ru-page-loader .ru-page-loader__name span {
+  align-self: flex-start;
+  padding: 3px 10px 4px;
+  border-radius: 20px;
+  background: #cf1717;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+#ru-page-loader .ru-page-loader__track {
+  position: relative;
+  width: 182px;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #d9dbdf;
+}
+#ru-page-loader .ru-page-loader__bar {
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 62px;
+  height: 4px;
+  border-radius: 8px;
+  background: #cf1717;
+  animation: ru-page-loader-slide 850ms ease-in-out infinite alternate;
+}
+@keyframes ru-page-loader-slide {
+  from { transform: translateX(0); }
+  to { transform: translateX(120px); }
+}
+#ru-page-loader .ru-page-loader__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  #ru-page-loader .ru-page-loader__bar { animation-duration: 2s; }
+}
+
+/* assets/css/ru-base.css */
+/* ReadUp UI baseline v1: consistent typography, accessibility and loading transitions. */
+:root{--ru-brand:#cf1717;--ru-font:Montserrat,'Segoe UI',Arial,ui-sans-serif,system-ui,sans-serif}
+html,body,button,input,textarea,select,optgroup,table{font-family:var(--ru-font)}
+#ru-page-loader .ru-page-loader__brand{font-family:var(--ru-font)}
+a,button,input,textarea,select{touch-action:manipulation}
+:where(a,button,input,textarea,select):focus-visible{outline:2px solid var(--ru-brand);outline-offset:2px}
+:where(button):disabled{cursor:not-allowed}
+:where(main,section,article) img{max-width:100%}
+@media(prefers-reduced-motion:reduce){.animate-blob{animation:none!important}}
