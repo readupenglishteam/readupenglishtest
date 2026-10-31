@@ -1,0 +1,9 @@
+/* Compact accessible SVG flag language switcher. */
+#ru-lang-switch{display:inline-flex;align-items:center;gap:4px;flex:none;padding:3px;background:#f5f6f9;border:1px solid #e7eaf0;border-radius:999px;vertical-align:middle;white-space:nowrap;z-index:50}
+#ru-lang-switch button{display:grid;place-items:center;width:32px;height:32px;padding:4px;border:2px solid transparent;border-radius:50%;background:transparent;cursor:pointer;transition:background .16s,border-color .16s}
+#ru-lang-switch button svg{width:23px;height:23px;border-radius:50%;display:block;box-shadow:0 0 0 1px #b4b8bf50}
+#ru-lang-switch button.active{background:#fff;border-color:#cf1717;box-shadow:0 2px 7px #9a121b1a}
+#ru-lang-switch button:focus-visible{outline:2px solid #cf1717;outline-offset:2px}
+#ru-lang-switch.ru-lang-fixed{position:fixed;top:10px;right:12px;z-index:10050;background:#fff}
+.dark #ru-lang-switch{background:#30323a;border-color:#4a4d59}.dark #ru-lang-switch button.active{background:#454957}
+@media(max-width:600px){#ru-lang-switch{padding:2px;gap:0}#ru-lang-switch button{width:29px;height:29px;padding:4px}#ru-lang-switch button svg{width:20px;height:20px}header #ru-lang-switch{margin-right:2px}}
