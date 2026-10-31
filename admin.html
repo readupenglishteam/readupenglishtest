@@ -28,6 +28,7 @@
 
   
   <link rel="stylesheet" href="assets/compiled/admin.css">
+  <link rel="stylesheet" href="assets/css/ru-refined.css">
 </head>
 <body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen transition-colors duration-300">
 <!-- Màn hình chờ: kiểm tra phiên trước khi hiển thị giao diện -->
@@ -157,11 +158,21 @@
             <label class="block text-xs font-bold uppercase mb-1">Tiêu đề thông báo</label>
             <input type="text" id="newsTitle" required placeholder="Tiêu đề..." class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700">
           </div>
-          <div>
-            <label class="block text-xs font-bold uppercase mb-1">Tải ảnh lên ImgBB</label>
-            <input type="file" accept="image/*" onchange="uploadImageToImgBB(this, 'newsImageUrl', 'newsImgStatus')" class="w-full p-2 text-xs border rounded-lg dark:bg-zinc-800 dark:border-zinc-700">
+          <div class="ru-editor-image-field">
+            <label class="block text-xs font-bold uppercase mb-2">Ảnh nền / ảnh minh họa thông báo</label>
+            <div class="ru-media-grid">
+              <div id="ruNewsPaste" class="ru-media-zone" role="textbox" tabindex="0" contenteditable="true" spellcheck="false" aria-label="Dán ảnh nền thông báo từ clipboard">
+                <i class="bi bi-clipboard2-image" aria-hidden="true"></i>
+                <div><strong>Nhấn vào đây rồi Ctrl+V</strong><small>Dán ảnh hoặc PNG base64; có thể kéo-thả hay dán URL HTTPS (nếu được phép).</small></div>
+              </div>
+              <div class="ru-media-preview"><i class="bi bi-image ru-media-empty" aria-hidden="true"></i><img id="ruNewsPreview" alt="Xem trước ảnh nền thông báo" hidden></div>
+            </div>
+            <div class="ru-media-actions">
+              <label><i class="bi bi-folder2-open"></i> Chọn ảnh <input id="ruNewsFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden></label>
+              <button id="ruNewsRemove" type="button"><i class="bi bi-x-circle"></i> Xóa ảnh</button>
+            </div>
             <input type="hidden" id="newsImageUrl">
-            <p id="newsImgStatus" class="text-xs font-semibold mt-1 text-gray-500"></p>
+            <p id="newsImgStatus" class="text-[11px] font-semibold mt-2 text-gray-500" role="status" aria-live="polite">Ảnh sẽ được chuyển thành PNG base64, không cần ImgBB.</p>
           </div>
         </div>
         <div>
@@ -206,11 +217,20 @@
         <input id="postTitle" required oninput="previewToken()" placeholder="VD: Oxford Read & Discover – Unit 30" class="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
         <p class="mt-1 text-gray-400">Đường dẫn: <code id="postTokenPreview" class="text-[#cf1717] font-bold">post.html?token=...</code></p>
       </div>
-      <div>
-        <label class="block font-bold uppercase mb-1">Ảnh đại diện (hiện ở danh sách)</label>
-        <input type="file" accept="image/*" onchange="uploadImageToImgBB(this,'postThumb','postThumbStatus');setTimeout(showThumb,2500)" class="w-full p-2 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700">
-        <p id="postThumbStatus" class="mt-1 font-semibold text-gray-500"></p>
-        <img id="postThumbPrev" class="hidden mt-2 h-20 rounded-lg border object-cover">
+      <div class="ru-editor-image-field">
+        <label class="block font-bold uppercase mb-2">Ảnh bìa bài học (hiện ở danh sách)</label>
+        <div class="ru-media-grid">
+          <div id="ruPostPaste" class="ru-media-zone" role="textbox" tabindex="0" contenteditable="true" spellcheck="false" aria-label="Dán ảnh bìa bài học từ clipboard">
+            <i class="bi bi-clipboard2-image" aria-hidden="true"></i>
+            <div><strong>Nhấn vào đây rồi Ctrl+V</strong><small>Dán ảnh / PNG base64, kéo-thả hoặc dán link ảnh.</small></div>
+          </div>
+          <div class="ru-media-preview"><i class="bi bi-image ru-media-empty" aria-hidden="true"></i><img id="postThumbPrev" alt="Xem trước ảnh bìa bài học" hidden></div>
+        </div>
+        <div class="ru-media-actions">
+          <label><i class="bi bi-folder2-open"></i> Chọn ảnh <input id="ruPostFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden></label>
+          <button id="ruPostRemove" type="button"><i class="bi bi-x-circle"></i> Xóa ảnh</button>
+        </div>
+        <p id="postThumbStatus" class="mt-2 font-semibold text-gray-500" role="status" aria-live="polite">Ảnh được chuyển thành PNG base64, không cần ImgBB.</p>
       </div>
     </div>
     <div>
@@ -466,6 +486,7 @@
     </div>
   </div>
 
+  <script src="assets/js/ru-image-clipboard.js"></script>
   <script src="assets/js/pages/admin.05.js"></script>
 <!-- ============ POST: MODAL XEM THỬ + SCRIPT ============ -->
 <div id="postPreviewModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-start justify-center p-4 z-[9998] overflow-y-auto">
@@ -563,5 +584,6 @@
 
 
 <script src="assets/compiled/admin.part3.js"></script>
+  <script src="assets/js/ru-navigation.js"></script>
 </body>
 </html>

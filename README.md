@@ -50,3 +50,34 @@ Ví dụ dùng ở tab HTML:
 - **Chưa** xác minh end-to-end với tài khoản Supabase thật hoặc dữ liệu production; sau khi deploy cần kiểm tra đăng nhập, tạo/lưu/xem thử bài thi, làm bài, xem lại đáp án và quyền truy cập trước khi dùng chính thức.
 - Dịch tự động phụ thuộc dịch vụ MyMemory và kết nối. Bootstrap Icons, font và Tailwind vẫn phụ thuộc các nguồn CDN đang có; hiệu năng tải trên mạng thực tế chưa benchmark.
 - Cấu trúc các menu lớn của toàn bộ website và những bất cập chức năng ngoài yêu cầu lần này chưa được thiết kế lại.
+
+---
+
+## Cập nhật 31/10/2026 — Clipboard PNG, menu thống nhất, UI tinh gọn
+
+### 1. Ảnh bài học & thông báo (Admin)
+
+Trong `admin.html`, hai ô **Ảnh bìa bài học** và **Ảnh nền/ảnh minh họa thông báo** hỗ trợ:
+
+- Click vào vùng dán → **Ctrl+V** ảnh vừa sao chép (hoặc chuỗi `data:image/png;base64,...`).
+- Kéo thả ảnh vào vùng dán; hoặc nhấn **Chọn ảnh** để lấy ảnh từ máy.
+- Đường dẫn HTTPS sẽ được thử tải và chuyển sang PNG; nếu máy chủ chặn CORS, hãy sao chép *hình ảnh* trực tiếp thay vì sao chép *địa chỉ hình ảnh*.
+- Tự xem trước và nhấn **Xóa ảnh** để xóa. Khi lưu, giá trị `data:image/png;base64,...` đi vào trường `posts.thumbnail_url` / `news.image_url` như trước (không thêm cột mới).
+- Ảnh trong nội dung bài học/thông báo được chèn bằng nút **Ảnh**, Ctrl+V hoặc nhập DOCX cũng được chuyển về PNG base64. Ảnh có sẵn từ phiên bản cũ vẫn hiển thị bình thường.
+
+Hệ thống tự thu nhỏ ảnh lớn, tối đa khoảng **1 MB cho mỗi chuỗi PNG base64** để tránh làm chậm tải. Nếu hình quá lớn/chi tiết, cần cắt hoặc thu nhỏ và dán lại. Dữ liệu ảnh lưu trong database nên có thể làm tăng dung lượng truy vấn hơn ảnh lưu ở Storage/CDN. **Các cột `posts.thumbnail_url` và `news.image_url` trong Supabase phải thuộc kiểu TEXT** (hoặc kiểu tương đương có đủ dung lượng); nếu đang là `VARCHAR(255)`, cần đổi sang `TEXT` trước khi sử dụng. Không nhúng ảnh mật khẩu/tài liệu riêng tư vào nội dung công khai.
+
+Đã sửa sửa-thông-báo: không chèn chuỗi base64 dài vào HTML `onclick`, mà lấy từ dữ liệu bản ghi theo `id`. Khi lưu lỗi, form giữ nguyên nội dung và hiển thị thông báo để xử lý.
+
+### 2. Menu & giao diện
+
+- Thứ tự menu chính dùng chung: **Bài Học (Post) → Assignment (VIP) → Learning Materials Library → Vocabulary**; các shortcut trong trang được giữ riêng phía dưới. Nút về Dashboard hiển thị trên trang con.
+- Đã thêm nút Menu cho các trang thiếu menu nhanh: Admin, Teacher, LML, Edit LML, Room; giữ nguyên các chức năng riêng của các trang.
+- Tinh chỉnh bố cục nhẹ: tiêu đề, khoảng trắng, nền tĩnh bớt hiệu ứng, viền nhẹ, trạng thái focus rõ ràng, menu đơn giản. Vẫn giữ nhận diện đỏ ReadUp và cấu trúc cũ.
+- Tài nguyên bổ sung dùng chung có cache: `assets/js/ru-navigation.js`, `assets/js/ru-image-clipboard.js`, `assets/css/ru-refined.css`. Không tách thêm một bộ JS/CSS riêng cho từng trang; file JS xử lý ảnh chỉ tải ở Admin.
+
+### 3. Kiểm tra & giới hạn
+
+- Đã kiểm tra cú pháp JavaScript, các đường dẫn file local, tương tác paste PNG/base64, xóa ảnh, thứ tự điều hướng, và hàm sửa/lưu thông báo với dữ liệu giả trong Chromium.
+- Chưa thể kiểm tra quyền đăng nhập, việc lưu với Supabase thật, RLS, kích thước/kiểu cột thật hoặc hiệu năng production; cần kiểm thử với bản sao dữ liệu trước khi cập nhật website chính.
+- Sau khi thay thế file, bấm **Ctrl+Shift+R** hoặc tăng cache version khi deploy.

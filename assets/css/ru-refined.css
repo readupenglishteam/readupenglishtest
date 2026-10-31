@@ -1,0 +1,32 @@
+/* Restrained ReadUp UI polish: do not change feature colors or page structures. */
+.ru-refined header { background-color:rgba(255,255,255,.91)!important; backdrop-filter:blur(16px);border-color:#e6e8ef!important; }
+.dark .ru-refined header { background-color:rgba(25,25,28,.93)!important;border-color:#35353b!important; }
+.ru-refined .animate-blob { animation:none!important;opacity:.26!important; }
+.ru-refined .fixed.inset-0.-z-10 > div[class*="blur-3xl"] {opacity:.32!important;}
+.ru-refined main .shadow-sm {box-shadow:0 2px 10px rgba(20,26,35,.04)}
+.ru-refined :is(a,button,input,select,textarea):focus-visible {outline:2px solid rgba(207,23,23,.65);outline-offset:2px;}
+.ru-refined section {scroll-margin-top:86px;}
+.ru-nav-menu {width:min(298px,calc(100vw - 20px))!important;max-height:75vh!important;overflow-y:auto!important;padding:8px!important;border-radius:15px!important;box-shadow:0 16px 36px rgba(18,24,36,.14)!important;background:#fff!important;border:1px solid #e6e8ed!important;z-index:80!important;text-align:left;}
+.dark .ru-nav-menu {background:#252529!important;border-color:#3a3a42!important;}
+.ru-nav-label {font-size:10px!important;font-weight:700!important;color:#9299a5!important;text-transform:uppercase;letter-spacing:.07em;padding:8px 10px 6px!important;}
+.ru-nav-item {display:flex!important;align-items:center!important;gap:11px!important;min-height:40px;width:100%!important;padding:9px 10px!important;border-radius:9px!important;color:#303847!important;font-size:12px!important;line-height:1.4!important;font-weight:650!important;text-decoration:none!important;}
+.dark .ru-nav-item {color:#ebebee!important;}
+.ru-nav-item .bi {width:19px;font-size:16px;flex:none;text-align:center;}
+.ru-nav-post .bi{color:#cf1717}.ru-nav-assignment .bi{color:#d67d06}.ru-nav-lml .bi{color:#04956d}.ru-nav-vocab .bi{color:#823ad7}
+.ru-nav-item:hover,.ru-nav-item:focus-visible{background:#f3f4f6!important;color:#222a35!important;}
+.dark .ru-nav-item:hover,.dark .ru-nav-item:focus-visible{background:#35353d!important;color:#fff!important;}
+.ru-nav-current{background:#fff0f0!important;color:#b81419!important;}.dark .ru-nav-current{background:#442328!important;color:#fff!important;}
+.ru-nav-sep{height:1px;background:#edf0f3;margin:7px 8px}.dark .ru-nav-sep{background:#42424a;}
+.ru-nav-local {min-height:39px!important;padding:9px 11px!important;border-radius:9px!important;font-weight:600!important;line-height:1.4!important;}
+.ru-nav-holder{position:relative;flex:none;}.ru-nav-trigger{border:1px solid #e0e3e9;border-radius:10px;background:#fff;color:#343d4a;font-size:12px;font-weight:700;padding:9px 12px;display:flex;gap:7px;align-items:center;white-space:nowrap}.ru-nav-trigger .bi{font-size:18px}.ru-nav-trigger:hover{background:#f5f5f7}.dark .ru-nav-trigger{background:#27272b;color:#fff;border-color:#484851}.ru-nav-flyout{position:absolute;right:0;top:calc(100% + 10px)}
+.ru-media-grid{display:grid;grid-template-columns:minmax(0,1fr) 140px;gap:10px}.ru-media-zone{min-height:91px;padding:13px;display:flex;gap:10px;align-items:center;background:#fafbfc;border:1px dashed #cdd3de;border-radius:12px;cursor:text;color:#626c7b;font-size:12px}.ru-media-zone:focus-visible,.ru-media-zone--drag{border-color:#cf1717;background:#fff6f6;outline:2px solid rgba(207,23,23,.2)}.ru-media-zone--ready{background:#f3faf5;border-color:#96c8aa}.ru-media-zone>.bi{color:#cf1717;font-size:22px}.ru-media-zone strong{display:block;font-size:12px;color:#202733;margin-bottom:4px}.ru-media-zone small{font-size:10px;color:#737e8f;line-height:1.4}.ru-media-preview{min-height:91px;background:#f5f6f8;border:1px solid #e7e9ef;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center}.ru-media-preview>img{width:100%;height:100%;max-height:114px;object-fit:cover}.ru-media-preview .ru-media-empty{color:#adb4bf;font-size:25px}.ru-media-preview:has(img:not([hidden]):not(.hidden)) .ru-media-empty{display:none}.ru-media-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}.ru-media-actions label,.ru-media-actions button{display:inline-flex;gap:6px;align-items:center;border:1px solid #e0e3e9;border-radius:9px;padding:7px 10px;font-size:11px;font-weight:700;cursor:pointer;background:#fff;color:#3d4655}.ru-media-actions label:hover,.ru-media-actions button:hover{border-color:#cf1717;color:#cf1717}.ru-media-error{color:#b91c1c!important}.dark .ru-media-zone{background:#26262c;border-color:#4a4a52;color:#e2e2e6}.dark .ru-media-zone strong{color:#fff}.dark .ru-media-preview{background:#27272d;border-color:#494951}.dark .ru-media-actions label,.dark .ru-media-actions button{background:#29292e;color:#ddd;border-color:#4a4a53}
+@media(max-width:490px){.ru-media-grid{grid-template-columns:minmax(0,1fr) 92px;gap:8px}.ru-media-zone{padding:8px;gap:7px}.ru-media-zone small{display:none}.ru-nav-trigger span{display:none}.ru-nav-trigger{padding:9px}}
+@media(prefers-reduced-motion:reduce){.ru-refined .animate-blob{animation:none!important}}
+
+/* Subtle typographic rhythm and gentler motion without redesigning layouts. */
+.ru-refined main :is(h1,h2,h3){letter-spacing:-.018em;text-wrap:pretty;}
+.ru-refined main [class*="rounded-2xl"][class*="border"]{border-color:rgba(215,220,227,.86);}
+.dark .ru-refined main [class*="rounded-2xl"][class*="border"]{border-color:rgba(70,70,77,.72);}
+.ru-refined header .animate-ping{animation:none!important;opacity:0!important;}
+.ru-refined main :is(input,textarea,select):not([type="color"]){transition:border-color .15s,box-shadow .15s;}
+.ru-refined main :is(input,textarea,select):not([type="color"]):focus{border-color:#ca3537;}

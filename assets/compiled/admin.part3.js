@@ -22,7 +22,20 @@ function initPostEditor() {
     `<label class="${btn} cursor-pointer bg-blue-50 text-blue-700"><i class="bi bi-file-earmark-text-fill"></i> Nhập file .docx<input type="file" accept=".docx" class="hidden" onchange="importDocx(this)"></label>`;
   const e = ed();
   e.addEventListener('blur', () => { const s = getSelection(); if (s.rangeCount && e.contains(s.getRangeAt(0).commonAncestorContainer)) _sel = s.getRangeAt(0); });
-  e.addEventListener('paste', ev => {
+  e.addEventListener('paste', async ev => {
+    const image = Array.from(ev.clipboardData?.items || []).find(i => i.kind === 'file' && i.type.startsWith('image/'));
+    if (image) {
+      ev.preventDefault();
+      const sel = window.getSelection();
+      const saved = sel && sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null;
+      try {
+        const url = await RUImageClipboard.toPng(image.getAsFile(), 1100);
+        e.focus();
+        if (saved) { sel.removeAllRanges(); sel.addRange(saved); }
+        document.execCommand('insertHTML', false, `<img src="${url}" alt="Ảnh được dán">`);
+      } catch(err) { pel('postEditorStatus').textContent = err.message; }
+      return;
+    }
     const h = ev.clipboardData.getData('text/html'); if (!h) return;
     ev.preventDefault(); document.execCommand('insertHTML', false, cleanWordHtml(h));
   });
@@ -67,9 +80,12 @@ async function imgbbUpload(fileOrB64) {
 async function postImage(inp) {
   const f = inp.files[0]; if (!f) return; const st = pel('postEditorStatus');
   st.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang tải ảnh...';
-  const url = await imgbbUpload(f);
-  st.innerHTML = url ? '<i class="bi bi-check-circle-fill"></i> Đã chèn ảnh!' : '<i class="bi bi-x-circle-fill"></i> Lỗi upload ảnh!';
-  if (url) insertAtCursor(`<img src="${url}" alt="">`); inp.value = '';
+  try {
+    const url = await RUImageClipboard.toPng(f, 1100);
+    insertAtCursor(`<img src="${url}" alt="">`);
+    st.textContent = 'Đã chèn ảnh PNG base64 vào bài học.';
+  } catch(err) { st.textContent = 'Không chèn được ảnh: ' + err.message; }
+  inp.value = '';
 }
 async function importDocx(inp) {
   const f = inp.files[0]; if (!f) return; const st = pel('postEditorStatus');
@@ -78,8 +94,9 @@ async function importDocx(inp) {
   try {
     const res = await mammoth.convertToHtml({ arrayBuffer: await f.arrayBuffer() }, {
       convertImage: mammoth.images.imgElement(async img => {
-        const b64 = await img.read('base64'); const url = await imgbbUpload(b64);
-        return { src: url || `data:${img.contentType};base64,${b64}` };
+        const b64 = await img.read('base64');
+        const url = await RUImageClipboard.fromDataUrl(`data:${img.contentType};base64,${b64}`, 1100);
+        return { src: url };
       })
     });
     setPostHtml(res.value); st.innerHTML = '<i class="bi bi-check-circle-fill"></i> Đã nhập file Word thành công!';
@@ -102,7 +119,7 @@ function setPostMode(m) {
 
 /* ---------- LƯU / SỬA / XÓA ---------- */
 function previewToken() { pel('postTokenPreview').innerText = 'post.html?token=' + (pel('postToken').value || createSlug(pel('postTitle').value) || '...'); }
-function showThumb() { const u = pel('postThumb').value, i = pel('postThumbPrev'); if (u) { i.src = u; i.classList.remove('hidden'); } else i.classList.add('hidden'); }
+function showThumb() { const u = pel('postThumb').value; if (window.RUImageClipboard) RUImageClipboard.setPost(u); else { const i = pel('postThumbPrev'); if(u){ i.src=u;i.hidden=false;i.classList.remove('hidden'); }else{i.hidden=true;i.classList.add('hidden');} } }
 async function savePost(e) {
   e.preventDefault();
   const id = pel('editingPostId').value, title = pel('postTitle').value.trim(), html = getPostHtml();
@@ -857,7 +874,18 @@ function initNewsEditor() {
     `<button type="button" id="newsJsonSample" onclick="nJsonSample()" class="${btn} hidden bg-amber-50 text-amber-700"><i class="bi bi-braces"></i> Chèn mẫu JSON</button>`;
   const e = nEd();
   e.addEventListener('blur', () => { const s = getSelection(); if (s.rangeCount && e.contains(s.getRangeAt(0).commonAncestorContainer)) _nSel = s.getRangeAt(0); });
-  e.addEventListener('paste', ev => {
+  e.addEventListener('paste', async ev => {
+    const image = Array.from(ev.clipboardData?.items || []).find(i => i.kind === 'file' && i.type.startsWith('image/'));
+    if (image) {
+      ev.preventDefault();
+      const sel = window.getSelection(); const saved = sel && sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null;
+      try {
+        const url = await RUImageClipboard.toPng(image.getAsFile(), 1100);
+        e.focus(); if (saved) { sel.removeAllRanges(); sel.addRange(saved); }
+        document.execCommand('insertHTML', false, `<img src="${url}" alt="Ảnh thông báo">`);
+      } catch(err) { nSt(err.message); }
+      return;
+    }
     const h = ev.clipboardData.getData('text/html'); if (!h) return;
     ev.preventDefault(); document.execCommand('insertHTML', false, cleanWordHtml(h));
   });
@@ -880,9 +908,9 @@ function nVideo() {
 async function nImage(inp) {
   const f = inp.files[0]; if (!f) return;
   nSt('<i class="bi bi-hourglass-split"></i> Đang tải ảnh...');
-  const url = await imgbbUpload(f);
-  nSt(url ? '<i class="bi bi-check-circle-fill"></i> Đã chèn ảnh!' : '<i class="bi bi-x-circle-fill"></i> Lỗi upload ảnh!');
-  if (url) nInsert(`<img src="${url}" alt="">`); inp.value = '';
+  try { const url = await RUImageClipboard.toPng(f, 1100); nInsert(`<img src="${url}" alt="">`); nSt('Đã chèn ảnh PNG base64 vào thông báo.'); }
+  catch(err) { nSt('Không chèn được ảnh: ' + err.message); }
+  inp.value = '';
 }
 async function nImportDocx(inp) {
   const f = inp.files[0]; if (!f) return;
@@ -892,8 +920,9 @@ async function nImportDocx(inp) {
   try {
     const res = await mammoth.convertToHtml({ arrayBuffer: await f.arrayBuffer() }, {
       convertImage: mammoth.images.imgElement(async img => {
-        const b64 = await img.read('base64'); const url = await imgbbUpload(b64);
-        return { src: url || `data:${img.contentType};base64,${b64}` };
+        const b64 = await img.read('base64');
+        const url = await RUImageClipboard.fromDataUrl(`data:${img.contentType};base64,${b64}`, 1100);
+        return { src: url };
       })
     });
     nEd().innerHTML = res.value; nSt('<i class="bi bi-check-circle-fill"></i> Đã nhập file Word thành công!');

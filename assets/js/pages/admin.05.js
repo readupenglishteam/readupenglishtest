@@ -119,7 +119,7 @@
             <p class="text-xs text-gray-400">${new Date(n.created_at).toLocaleDateString('vi-VN')}</p>
           </div>
           <div class="flex gap-2">
-            <button onclick="editNews('${n.id}', '${encodeURIComponent(n.title)}', '${encodeURIComponent(n.content)}', '${n.image_url || ''}')" class="text-xs text-blue-500 font-bold hover:underline">Sửa</button>
+            <button onclick="editNews('${n.id}')" class="text-xs text-blue-500 font-bold hover:underline">Sửa</button>
             <button onclick="deleteNews('${n.id}')" class="text-xs text-red-500 font-bold hover:underline">Xóa</button>
             <button type="button" onclick="previewAnnouncement('${n.id}')" class="text-xs text-amber-500 font-bold hover:underline">Xem thử</button>
           </div>
@@ -139,22 +139,25 @@
         image_url: document.getElementById('newsImageUrl').value
       };
 
-      if (id) {
-        await sbClient.from('news').update(newsData).eq('id', id);
-      } else {
-        await sbClient.from('news').insert([newsData]);
-      }
-
+      const { error } = id
+        ? await sbClient.from('news').update(newsData).eq('id', id)
+        : await sbClient.from('news').insert([newsData]);
+      if (error) return alert('Không thể lưu thông báo: ' + error.message + '\nNếu ảnh quá lớn, hãy thử ảnh nhỏ hơn.');
       resetNewsForm();
       loadAdminNews();
     }
 
-    function editNews(id, title, content, imgUrl) {
+    function editNews(id) {
+      // Look up local news model instead of inserting a potentially 1 MB base64
+      // image directly inside an onclick HTML attribute.
+      const news = (window.__adminNews || []).find(n => String(n.id) === String(id));
+      if (!news) return alert('Không tìm thấy thông báo. Vui lòng tải lại trang.');
       document.getElementById('editingNewsId').value = id;
-      document.getElementById('newsTitle').value = decodeURIComponent(title);
-      setNewsContent(decodeURIComponent(content));
+      document.getElementById('newsTitle').value = news.title || '';
+      setNewsContent(news.content || '');
       document.getElementById('newsTitle').scrollIntoView({ behavior: 'smooth', block: 'center' });
-      document.getElementById('newsImageUrl').value = imgUrl;
+      if (window.RUImageClipboard) RUImageClipboard.setNews(news.image_url || '');
+      else document.getElementById('newsImageUrl').value = news.image_url || '';
       document.getElementById('newsSubmitBtn').innerText = 'Cập Nhật Thông Báo';
     }
 
