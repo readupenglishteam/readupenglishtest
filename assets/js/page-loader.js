@@ -28,7 +28,8 @@
     dismiss();
   }
   async function verifyAndReveal() {
-    var begin = Date.now();
+    // Các trang công khai không cần đợi Supabase để hiện nội dung.
+    if (!requiresLogin) { dismiss(); return; }
     if (typeof sbClient === 'undefined' || !sbClient || !sbClient.auth) {
       // Trang công khai hoặc phòng thi không dùng sbClient.
       if (requiresLogin) { fail(); return; }
@@ -41,9 +42,6 @@
       var user = authResult && authResult.data && authResult.data.session && authResult.data.session.user;
       if (requiresLogin && !user) { fail(); return; }
       // Trang quyền hạn giáo viên/admin tiếp tục được kiểm tra role bằng logic có sẵn.
-      if (Date.now() - begin < 140) {
-        await new Promise(function (resolve) { setTimeout(resolve, 140 - (Date.now() - begin)); });
-      }
       dismiss();
     } catch (error) {
       console.warn('Không kiểm tra được phiên đăng nhập:', error);

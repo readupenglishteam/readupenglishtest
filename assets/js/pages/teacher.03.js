@@ -661,7 +661,7 @@
   async function uploadScheduleExcel(input) {
     const file = input.files[0]; input.value = '';
     if (!file || !currentClassForSchedule) return;
-    if (!window.XLSX) return notify('❌ Không tải được thư viện đọc Excel, hãy tải lại trang.');
+    try { await RUAssets.load('xlsx'); } catch(e) { return notify('❌ Không tải được thư viện đọc Excel.'); }
     try {
       const buf = await file.arrayBuffer();
       const wb = XLSX.read(buf, { type: 'array', cellDates: false });
@@ -1274,6 +1274,7 @@
           <span class="text-[10px] text-gray-400">${countGradable(a.questions || [])} câu · ${a.total_points || 0} điểm</span>
         </div>
         <h4 class="font-bold text-sm text-gray-900 dark:text-white">${esc(a.title)}</h4>
+        ${a.is_test ? '<span class="inline-block text-[10px] font-bold rounded-full px-2 py-0.5 bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200">BÀI TEST · Phòng thi</span>' : ''}
         ${dueBadgeHtml(a.due_date)}
         <p class="text-[11px] text-gray-400 truncate flex items-center gap-1">token: ${esc(a.token)}
           <button onclick="copyTokenOf('${esc(a.token)}')" title="Sao chép token" class="text-blue-400 hover:text-blue-600"><i class="bi bi-clipboard"></i></button>
@@ -1282,10 +1283,26 @@
           <button onclick="editAssignment('${a.id}')" class="text-xs font-bold text-blue-500 hover:underline">Sửa</button>
           <button onclick="openResultsModal('${a.id}')" class="text-xs font-bold text-amber-500 hover:underline">Kết quả</button>
           <button onclick="openCopyToClassPrompt('${a.id}')" class="text-xs font-bold text-indigo-500 hover:underline">Sao chép sang lớp khác</button>
-          <a href="assignment.html?token=${encodeURIComponent(a.token)}" target="_blank" class="text-xs font-bold text-[#cf1717] hover:underline">Xem thử ↗</a>
+          <button type="button" onclick="previewTeacherAssignment('${a.id}')" class="text-xs font-bold text-[#cf1717] hover:underline">Xem thử · Đề / Đáp án</button>
           <button onclick="deleteAssignment('${a.id}')" class="text-xs font-bold text-red-500 hover:underline">Xóa</button>
         </div>
       </div>`).join('') || '<p class="text-gray-400 text-sm col-span-full">Lớp này chưa có bài tập nào.</p>';
+  }
+
+  // Xem trực tiếp dữ liệu giáo viên đang quản lý — không gửi bài, không ghi điểm.
+  function previewTeacherAssignment(id) {
+    const a = currentAssignments.find(x => String(x.id) === String(id));
+    if (!a) return notify('⚠️ Không tìm thấy bài để xem thử.');
+    RUPreview.open({ title:a.title, description:a.description, is_test:!!a.is_test,
+      questions:(() => { try { const q = typeof a.questions === 'string' ? JSON.parse(a.questions) : a.questions; return Array.isArray(q) ? q : []; } catch(e){ return []; } })(), total_points:a.total_points,
+      time_limit:a.time_limit_minutes });
+  }
+  // Xem bản đang soạn trước khi lưu, bao gồm bài Test chưa mở giờ.
+  function previewTeacherDraft() {
+    RUPreview.open({title:pel('asTitle').value || 'Bài tập chưa đặt tên',
+      description:pel('asDesc').value, is_test:pel('asIsTest').checked,
+      time_limit:pel('asTimeLimit').value,questions:blocks,
+      total_points:blocks.reduce((n,b)=> n+(b.type==='reading'?(b.sub_blocks||[]).reduce((s,q)=>s+(Number(q.points)||0),0):Number(b.points)||0),0)});
   }
 
   async function loadAssignmentsForClass() {
@@ -1464,7 +1481,7 @@
   async function importFromWord(input) {
     const file = input.files[0]; input.value = '';
     if (!file) return;
-    if (!window.mammoth) return notify('❌ Không tải được thư viện đọc file Word, hãy tải lại trang và thử lại.');
+    try { await RUAssets.load('mammoth'); } catch(e) { return notify('❌ Không tải được thư viện đọc Word.'); }
     notify('⏳ Đang đọc file Word...');
     try {
       const arrayBuffer = await file.arrayBuffer();
@@ -1701,7 +1718,7 @@
           ${b.type === 'text' ? `<label class="flex items-center gap-2 text-[11px] font-bold text-gray-600 dark:text-gray-300 mb-1">
             <input type="checkbox" ${b.two_col ? 'checked' : ''} onchange="updateField('${b.id}','two_col',this.checked); renderBlocks()"> <i class="bi bi-newspaper"></i> Hiển thị bài đọc chia 2 cột (cho bài dài, dễ đọc hơn với học sinh)
           </label>` : ''}
-          <div id="qc-${b.id}" class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700 ${b.type === 'text' && b.two_col ? 'qeditor-2col' : ''}" contenteditable="true" oninput="updateField('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
+          ${RUEditor.button(b.id)}<div id="qc-${b.id}" class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700 ${b.type === 'text' && b.two_col ? 'qeditor-2col' : ''}" contenteditable="true" oninput="updateField('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
         </div>` : renderReadingBlockBody(b)}
 
         ${(b.type === 'mcq' || b.type === 'multi' || b.type === 'tf') ? `
@@ -1739,7 +1756,7 @@
           <label class="flex items-center gap-2 text-[11px] font-bold text-gray-600 dark:text-gray-300 mb-1">
             <input type="checkbox" ${b.two_col ? 'checked' : ''} onchange="updateField('${b.id}','two_col',this.checked); renderBlocks()"> <i class="bi bi-newspaper"></i> Hiển thị bài đọc chia 2 cột chữ (cho bài dài)
           </label>
-          <div id="qc-${b.id}" class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700 ${b.two_col ? 'qeditor-2col' : ''}" style="min-height:220px;max-height:420px;overflow-y:auto" contenteditable="true" oninput="updateField('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
+          ${RUEditor.button(b.id)}<div id="qc-${b.id}" class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700 ${b.two_col ? 'qeditor-2col' : ''}" style="min-height:220px;max-height:420px;overflow-y:auto" contenteditable="true" oninput="updateField('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
         </div>
         <div class="bg-gray-50 dark:bg-zinc-800/40 rounded-lg border dark:border-zinc-700 p-2 flex flex-col" style="max-height:420px">
           <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1"><i class="bi bi-question-circle"></i> Câu hỏi thuộc bài đọc này (${subCount})</label>
@@ -1767,7 +1784,7 @@
             <button type="button" onclick="removeSubBlock('${rb.id}','${b.id}')" class="text-red-500 font-bold"><i class="bi bi-trash"></i></button>
           </div>
         </div>
-        <div id="qc-${b.id}" class="qeditor p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700 text-xs" style="min-height:50px" contenteditable="true" oninput="updateField('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
+        ${RUEditor.button(b.id)}<div id="qc-${b.id}" class="qeditor p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700 text-xs" style="min-height:50px" contenteditable="true" oninput="updateField('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
         ${(b.type === 'mcq' || b.type === 'multi' || b.type === 'tf') ? `
           <div class="space-y-1">
             ${b.options.map(o => `
@@ -1788,7 +1805,7 @@
 
   function updateField(id, field, value, isNumber) {
     const b = findBlock(id); if (!b) return;
-    b[field] = isNumber ? parseFloat(value || 0) : value;
+    b[field] = isNumber ? parseFloat(value || 0) : ((field === 'content' || field === 'explanation') ? RUEditor.sanitize(value) : value);
   }
   function setOptionText(bid, oid, val) { const b = findBlock(bid); const o = b.options.find(x => x.id === oid); if (o) o.text = val; }
   function setCorrect(bid, oid, checked, single) {
@@ -2470,7 +2487,7 @@
   // Xuất Excel có màu pastel cho từng ô (dùng ExcelJS — SheetJS bản free không tô màu được)
   async function exportAttendanceExcel() {
     if (!attClass) return;
-    if (typeof ExcelJS === 'undefined') return notify('❌ Chưa tải được thư viện ExcelJS — kiểm tra mạng rồi tải lại trang.');
+    try { await RUAssets.load('exceljs'); } catch(e) { return notify('❌ Chưa tải được thư viện ExcelJS.'); }
     if (!attStudents.length) return notify('⚠️ Lớp chưa có học sinh.');
     if (!attSessions.length) return notify('⚠️ Lớp chưa có buổi học nào.');
 
@@ -2861,9 +2878,9 @@
   }
 
   // ---- Xuất Excel bảng điểm ----
-  function exportGradebookExcel() {
+  async function exportGradebookExcel() {
     if (!gbData || !gbRows.rows) return notify('⚠️ Hãy chọn lớp trước.');
-    if (typeof XLSX === 'undefined') return notify('❌ Chưa tải được thư viện SheetJS — kiểm tra mạng rồi tải lại trang.');
+    try { await RUAssets.load('xlsx'); } catch(e) { return notify('❌ Chưa tải được thư viện Excel.'); }
     const g = gbRows, c = myClasses.find(x => x.id === gbClassId);
     const n = v => v == null ? '' : Math.round(v * 100) / 100;
     const header = ['STT', 'Họ và tên', 'Email', 'Chuyên cần (có mặt/tổng)', 'Điểm danh (thang 10)', ...g.asList.map(a => a.title), ...g.testList.map(a => '[Test] ' + a.title),

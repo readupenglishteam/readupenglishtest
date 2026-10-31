@@ -105,7 +105,7 @@ function qbMove(id, dir) {
   [qbBlocks[i], qbBlocks[j]] = [qbBlocks[j], qbBlocks[i]]; qbRender();
 }
 const qbFind = id => qbBlocks.find(b => b.id === id) || null;
-function qbUpdate(id, field, value, isNumber) { const b = qbFind(id); if (b) b[field] = isNumber ? parseFloat(value || 0) : value; }
+function qbUpdate(id, field, value, isNumber) { const b = qbFind(id); if (b) b[field] = isNumber ? parseFloat(value || 0) : ((field === 'content' || field === 'explanation') ? RUEditor.sanitize(value) : value); }
 function qbSetOptText(bid, oid, val) { const b = qbFind(bid); const o = b && b.options.find(x => x.id === oid); if (o) o.text = val; }
 function qbSetCorrect(bid, oid, checked, single) {
   const b = qbFind(bid); if (!b) return;
@@ -171,7 +171,7 @@ function qbRender() {
       </div>
       <div>
         <label class="block text-[10px] font-bold uppercase text-gray-500 mb-1">${b.type === 'text' ? 'Nội dung' : 'Nội dung câu hỏi'}</label>
-        <div id="qb-${b.id}" class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700" contenteditable="true" oninput="qbUpdate('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
+        ${RUEditor.button(b.id,'qb-')}<div id="qb-${b.id}" class="qeditor p-3 border rounded-lg dark:bg-zinc-800 dark:border-zinc-700" contenteditable="true" oninput="qbUpdate('${b.id}','content',this.innerHTML)">${b.content || ''}</div>
       </div>
       ${(b.type === 'mcq' || b.type === 'multi' || b.type === 'tf') ? `
         <div class="space-y-2">
