@@ -129,14 +129,14 @@ async function enter(id){
 function startExam(d){
   offset=new Date(d.now).getTime()-Date.now();
   const key='rt_ans_'+d.session_id;
-  X={sid:d.session_id,q:normQs(d.questions),deadline:new Date(d.deadline).getTime(),viol:d.violations||0,ans:JSON.parse(sessionStorage.getItem(key)||'{}'),key,active:true,lock:false,last:0,done:false};
+  X={sid:d.session_id,q:normQs(d.questions),deadline:new Date(d.deadline).getTime(),viol:d.violations||0,ans:JSON.parse(sessionStorage.getItem(key)||'{}'),key,active:true,lock:false,last:0,done:false,flags:JSON.parse(sessionStorage.getItem('rt_flag_'+d.session_id)||'{}'),nav:[],cur:1,seen:{}};
   $('exTitle').textContent=d.title; $('exWho').textContent=`${me.name} • ${me.email}`; $('exDesc').textContent=d.description||'';
   let n=0; const nx=()=>++n; nx.cur=()=>n; $('exQs').innerHTML=X.q.map(q=>qHtml(q,nx)).join('');
   $('exam').classList.toggle('reading-mode',X.q.some(q=>q.type==='reading'));
   $('exam').classList.remove('hidden'); $('exam').scrollTop=0; updViol();
   initTestReadingSplits($('exQs'));
   examEmptyNotice(typeof d.questions==='string'?(()=>{try{return JSON.parse(d.questions);}catch(e){return [];}})():d.questions);
-  restoreAnswers(); tick(); X.timer=setInterval(tick,500);
+  restoreAnswers(); buildNav(); applyZoom(); guardStart(); tick(); X.timer=setInterval(tick,500);
 }
 const rng=(a,b)=>b<a?'Questions':(a===b?`Question ${a}`:`Questions ${a}–${b}`);
 // Khung kéo chia cột bài đọc: dùng chung lúc làm bài và khi xem kết quả.
@@ -234,10 +234,10 @@ function qHtml(q,next,sub){
   else if(q.type==='essay') body=`<textarea rows="6" class="${inp}" data-essay="${q.id}" oninput="setAns('${q.id}',this.value)" onpaste="return false" placeholder="Nhập câu trả lời..."></textarea>`;
   else if(q.type==='fill') body=''; 
   const content = q.type==='fill' ? (q.content||'').replace(GAPRE,(m,g)=>`<span contenteditable="true" role="textbox" class="gap" data-fq="${q.id}" data-g="${g}" spellcheck="false" autocapitalize="off" onpaste="return false" ondrop="return false" onkeydown="if(event.key==='Enter')return false" oninput="setGap('${q.id}','${g}',this.textContent)"></span>`) : (q.content||'');
-  return `<div class="${N}${card} p-5"><div class="flex items-center gap-2 mb-2"><span class="text-xs font-extrabold text-[#cf1717]">Question ${no}</span><span class="text-[11px] text-gray-400">(${q.points||0} ${(+q.points||0)===1?'point':'points'})</span></div>
+  return `<div id="qn_${no}" data-qn="${no}" data-qid="${esc(q.id)}" class="${N}${card} qcard p-5"><div class="flex items-center gap-2 mb-2"><span class="text-xs font-extrabold text-[#cf1717]">Question ${no}</span><span class="text-[11px] text-gray-400">(${q.points||0} ${(+q.points||0)===1?'point':'points'})</span><button type="button" class="qflag" data-flagq="${esc(q.id)}" onclick="toggleFlag('${esc(q.id)}')" aria-pressed="false"><i class="bi bi-flag"></i><span>Gắn cờ</span></button></div>
     <div class="qc mb-3">${content}</div><div class="space-y-2">${body}</div></div>`;
 }
-function save(){ sessionStorage.setItem(X.key,JSON.stringify(X.ans)); }
+function save(){ sessionStorage.setItem(X.key,JSON.stringify(X.ans)); updNav(); }
 function setAns(q,v){ X.ans[q]=v; if(document.querySelector(`[data-q="${q}"]`)) document.querySelectorAll(`[data-q="${q}"]`).forEach(l=>l.classList.toggle('sel',l.dataset.o===v)); save(); }
 function setMulti(q){ const v=[...document.querySelectorAll(`[data-q="${q}"]`)].filter(l=>l.querySelector('input').checked).map(l=>(l.classList.add('sel'),l.dataset.o)); document.querySelectorAll(`[data-q="${q}"]`).forEach(l=>l.classList.toggle('sel',l.querySelector('input').checked)); X.ans[q]=v; save(); }
 function setGap(q,g,v){ if(typeof X.ans[q]!=='object'||Array.isArray(X.ans[q])) X.ans[q]={}; X.ans[q][g]=v; save(); }
@@ -274,10 +274,110 @@ document.addEventListener('fullscreenchange',()=>{ if(X&&!X.done&&!document.full
 document.addEventListener('visibilitychange',()=>{ if(X&&!X.done&&document.hidden) violation('Bạn đã chuyển tab / thu nhỏ trình duyệt'); });
 window.addEventListener('blur',()=>{ if(X&&!X.done) setTimeout(()=>{ if(!document.hasFocus()) violation('Bạn đã chuyển sang cửa sổ khác'); },200); });
 
+
+/* ---------- BẢNG CÂU HỎI + GẮN CỜ ---------- */
+const hasAns=v=>v==null?false:Array.isArray(v)?v.length>0:typeof v==='object'?Object.values(v).some(x=>String(x??'').trim()!==''):String(v).trim()!=='';
+function buildNav(){
+  X.nav=[...document.querySelectorAll('#exQs [data-qn]')].map(el=>({n:+el.dataset.qn,id:el.dataset.qid}));
+  $('exNavGrid').innerHTML=X.nav.map(o=>`<button type="button" class="qnb" data-n="${o.n}" onclick="goQ(${o.n})" aria-label="Câu ${o.n}"><span class="qnb-n">${o.n}</span><i class="bi bi-flag-fill qnb-f"></i><span class="qnb-s"></span></button>`).join('');
+  document.querySelectorAll('.qflag').forEach(b=>paintFlag(b.dataset.flagq));
+  if(X.io) X.io.disconnect();
+  const vis=new Set();
+  X.io=new IntersectionObserver(es=>{ es.forEach(e=>{const n=+e.target.dataset.qn; e.isIntersecting?vis.add(n):vis.delete(n);}); if(!vis.size||Date.now()<(X.lockCur||0)) return;
+    const pick=[...vis].sort((a,b)=>a-b).find(n=>{const el=document.getElementById('qn_'+n);return el&&el.getBoundingClientRect().bottom>130;}); X.cur=pick||Math.min(...vis); updNav(); },{threshold:.15});
+  document.querySelectorAll('#exQs [data-qn]').forEach(el=>X.io.observe(el));
+  $('exQs').addEventListener('focusin',e=>{const c=e.target.closest&&e.target.closest('[data-qn]'); if(c&&X){X.cur=+c.dataset.qn;updNav();}});
+  updNav();
+}
+function updNav(){
+  if(!X||!X.nav||!$('exNavGrid')) return;
+  let a=0,f=0;
+  $('exNavGrid').querySelectorAll('.qnb').forEach((b,i)=>{
+    const o=X.nav[i], ans=hasAns(X.ans[o.id]), fl=!!X.flags[o.id];
+    if(ans)a++; if(fl)f++;
+    b.classList.toggle('ans',ans); b.classList.toggle('flg',fl); b.classList.toggle('cur',o.n===X.cur);
+    b.title=`Câu ${o.n}${ans?' – đã trả lời':' – chưa trả lời'}${fl?' – đã gắn cờ':''}`;
+  });
+  $('exNavStat').innerHTML=`Đã trả lời: <b>${a}/${X.nav.length}</b><br>Chưa trả lời: <b>${X.nav.length-a}</b><br>Gắn cờ: <b>${f}</b>`;
+}
+function paintFlag(id){
+  const on=!!X.flags[id];
+  document.querySelectorAll(`.qflag[data-flagq="${id}"]`).forEach(b=>{b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));b.querySelector('i').className='bi bi-flag'+(on?'-fill':'');b.querySelector('span').textContent=on?'Bỏ cờ':'Gắn cờ';});
+}
+function toggleFlag(id){
+  if(!X) return;
+  if(X.flags[id]) delete X.flags[id]; else X.flags[id]=1;
+  sessionStorage.setItem('rt_flag_'+X.sid,JSON.stringify(X.flags));
+  paintFlag(id); updNav();
+}
+function flagNote(){
+  if(!X||!X.nav) return '';
+  const un=X.nav.filter(o=>!hasAns(X.ans[o.id])).map(o=>o.n), fl=X.nav.filter(o=>X.flags[o.id]).map(o=>o.n);
+  let h='';
+  if(un.length) h+=`<p class="text-xs mb-2" style="color:#b45309"><i class="bi bi-exclamation-triangle-fill"></i> Chưa trả lời: câu ${un.slice(0,30).join(', ')}${un.length>30?'…':''}</p>`;
+  if(fl.length) h+=`<p class="text-xs mb-3" style="color:#cf1717"><i class="bi bi-flag-fill"></i> Đang gắn cờ: câu ${fl.join(', ')}</p>`;
+  return h;
+}
+function goQ(n){
+  const el=document.getElementById('qn_'+n); if(!el) return;
+  const fr=el.closest('[data-test-reading-split]'); // điện thoại: bài đọc chia tab → chuyển sang tab câu hỏi
+  if(fr){const tabs=fr.querySelector('.r-reading-tabs'); if(tabs&&getComputedStyle(tabs).display!=='none'){const b=fr.querySelectorAll('.r-reading-tab')[1]; if(b) switchTestReadingTab(b,'questions');}}
+  toggleNav(false);
+  X.cur=n; X.lockCur=Date.now()+1200; updNav();
+  setTimeout(()=>{ el.scrollIntoView({behavior:'smooth',block:'start'}); el.classList.remove('qflash'); void el.offsetWidth; el.classList.add('qflash'); },30);
+}
+function toggleNav(force){
+  const open=typeof force==='boolean'?force:!$('exNav').classList.contains('open');
+  $('exNav').classList.toggle('open',open); $('exNavBk').classList.toggle('open',open);
+}
+
+/* ---------- THU PHÓNG CỠ CHỮ ---------- */
+let ZOOM=(()=>{try{const v=+localStorage.getItem('rt_zoom');return v>=70&&v<=200?v:100;}catch(e){return 100;}})();
+function setZoom(dir){
+  ZOOM=dir===0?100:Math.max(70,Math.min(200,ZOOM+dir*10));
+  try{localStorage.setItem('rt_zoom',ZOOM);}catch(e){}
+  applyZoom();
+}
+function applyZoom(){
+  const z=ZOOM/100;
+  $('exQs').style.zoom=z; $('exDesc').style.zoom=z;
+  $('exam').style.setProperty('--exz',z);
+  $('exZoomVal').textContent=ZOOM+'%';
+}
+
+/* ---------- CHẶN CÔNG CỤ / TIỆN ÍCH CHÈN VÀO TRANG THI ----------
+   Tiện ích AI (QuestionAI, v.v.) chèn nút nổi + khung trả lời vào trang bằng cách thêm phần tử mới
+   vào <html>/<body>. Trong lúc thi, mọi phần tử "lạ" được thêm vào đó đều bị gỡ ngay lập tức. */
+const EXT_COUNT_AS_VIOLATION = true;   // true: mỗi loại phần tử lạ phát hiện lần đầu = 1 cảnh báo; false: chỉ âm thầm gỡ bỏ
+const KEEP_IDS = new Set(['ru-page-loader','toast','app','exam','modal','bgFx']);
+const KEEP_TAGS = new Set(['SCRIPT','STYLE','LINK','META','NOSCRIPT','TITLE','HEAD','BODY']);
+const isForeign = el => el && el.nodeType===1 && !KEEP_TAGS.has(el.tagName) && !KEEP_IDS.has(el.id) && !el.hasAttribute('data-ru-keep');
+let guardObs=null, guardTimer=null;
+function sweepForeign(){
+  if(!X||X.done) return;
+  [document.documentElement,document.body,$('exam')].forEach(root=>{
+    if(!root) return;
+    [...root.children].forEach(el=>{
+      if(!isForeign(el)) return;
+      const sig=(el.tagName+'#'+(el.id||'')+'.'+String(el.className&&el.className.baseVal!==undefined?el.className.baseVal:el.className||'').split(' ')[0]).toLowerCase();
+      try{el.remove();}catch(e){el.style.setProperty('display','none','important');}
+      console.warn('[ReadUp] Đã gỡ phần tử lạ khỏi trang thi:',sig);
+      if(EXT_COUNT_AS_VIOLATION && !X.seen[sig]){ X.seen[sig]=1; violation('Phát hiện công cụ/tiện ích bên ngoài đang chèn vào trang thi (đã bị gỡ bỏ)'); }
+    });
+  });
+}
+function guardStart(){
+  guardStop(); sweepForeign();
+  guardObs=new MutationObserver(sweepForeign);
+  [document.documentElement,document.body,$('exam')].forEach(r=>r&&guardObs.observe(r,{childList:true}));
+  guardTimer=setInterval(sweepForeign,700);
+}
+function guardStop(){ if(guardObs){guardObs.disconnect();guardObs=null;} clearInterval(guardTimer); }
+
 /* ---------- NỘP BÀI ---------- */
 function confirmSubmit(){
   const total=X.q.reduce((s,q)=>s+cnt(q),0), done=Object.values(X.ans).filter(v=>v&&(typeof v!=='object'||Object.values(v).some(Boolean)||v.length)).length;
-  openModal(`<h2 class="text-lg font-extrabold mb-2">Nộp bài?</h2><p class="text-sm text-gray-500 mb-4">Bạn đã trả lời ${done}/${total} questions. Sau khi nộp sẽ không thể sửa.</p>
+  openModal(`<h2 class="text-lg font-extrabold mb-2">Nộp bài?</h2><p class="text-sm text-gray-500 mb-4">Bạn đã trả lời ${done}/${total} questions. Sau khi nộp sẽ không thể sửa.</p>${flagNote()}
     <div class="flex gap-2"><button onclick="closeModal()" class="flex-1 py-2.5 rounded-xl border font-bold text-sm">Làm tiếp</button><button onclick="submit(false)" class="flex-1 py-2.5 rounded-xl bg-[#cf1717] text-white font-extrabold text-sm">Nộp bài</button></div>`);
 }
 const cnt=q=>q.type==='text'?0:q.type==='reading'?(q.sub_blocks||[]).reduce((s,x)=>s+cnt(x),0):1;
@@ -287,7 +387,7 @@ async function submit(auto,msg){
   if(error){ X.done=false; X.timer=setInterval(tick,500); return toast('Nộp lỗi: '+error.message+' (thử lại)','x-circle-fill'); }
   sessionStorage.removeItem(X.key); X.active=false;
   if(document.fullscreenElement) await document.exitFullscreen().catch(()=>{});
-  $('exam').classList.add('hidden'); X=null;
+  guardStop(); if(X.io){X.io.disconnect();X.io=null;} toggleNav(false); $('exam').classList.add('hidden'); X=null;
   openModal(`<div class="text-center"><div class="text-5xl mb-2 text-emerald-500"><i class="bi bi-check-circle-fill"></i></div><h2 class="text-lg font-extrabold mb-2">Đã nộp bài</h2><p class="text-sm text-gray-500 mb-4">${esc(msg||'Bài làm của bạn đã được ghi nhận.')}<br>Your grade appears in the test list. Answers will be shown when the test closes.</p><button onclick="closeModal();pickClass(cls)" class="w-full py-2.5 rounded-xl bg-[#cf1717] text-white font-extrabold">Về danh sách bài thi</button></div>`);
 }
 
