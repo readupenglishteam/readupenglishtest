@@ -21,7 +21,6 @@
 
   <link rel="stylesheet" href="assets/compiled/test.css">
   <link rel="stylesheet" href="assets/css/ru-refined.css">
-<link rel="stylesheet" href="assets/css/ru-finder.css">
 </head>
 <body class="bg-slate-50 dark:bg-zinc-950 text-gray-800 dark:text-gray-100 min-h-screen">
 <!-- Màn hình chờ: kiểm tra phiên trước khi hiển thị giao diện -->
@@ -36,7 +35,7 @@
   </div>
 </div>
 
-<div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none bg-slate-50 dark:bg-zinc-950">
+<div id="bgFx" class="fixed inset-0 -z-10 overflow-hidden pointer-events-none bg-slate-50 dark:bg-zinc-950">
   <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#cf1717]/20 dark:bg-[#cf1717]/15 rounded-full blur-3xl animate-blob"></div>
   <div class="absolute top-1/3 -right-24 w-[30rem] h-[30rem] bg-indigo-500/15 dark:bg-red-900/10 rounded-full blur-3xl animate-blob d2"></div>
   <div class="absolute -bottom-24 left-1/3 w-96 h-96 bg-amber-500/15 dark:bg-amber-600/10 rounded-full blur-3xl animate-blob d4"></div>
@@ -48,17 +47,36 @@
 
 <!-- ===== PHÒNG THI ===== -->
 <div id="exam" class="hidden fixed inset-0 z-[9000] bg-slate-50 dark:bg-zinc-950 overflow-y-auto">
-  <div class="sticky top-0 z-10 bg-white/90 dark:bg-zinc-900/90 backdrop-blur border-b border-[#cf1717]/30 px-4 py-3 flex items-center justify-between gap-3">
+  <div data-ru-keep class="exhead sticky top-0 z-10 bg-white/90 dark:bg-zinc-900/90 backdrop-blur border-b border-[#cf1717]/30 px-4 py-3 flex items-center justify-between gap-3">
     <div class="min-w-0"><div id="exTitle" class="font-extrabold text-[#cf1717] truncate"></div><div id="exWho" class="text-xs text-gray-500 truncate"></div></div>
-    <div class="flex items-center gap-3 flex-shrink-0">
+    <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+      <div class="exzoom" role="group" aria-label="Cỡ chữ">
+        <button type="button" onclick="setZoom(-1)" title="Thu nhỏ chữ" aria-label="Thu nhỏ chữ"><i class="bi bi-zoom-out"></i></button>
+        <button type="button" id="exZoomVal" onclick="setZoom(0)" title="Về 100%" aria-label="Đặt lại cỡ chữ">100%</button>
+        <button type="button" onclick="setZoom(1)" title="Phóng to chữ" aria-label="Phóng to chữ"><i class="bi bi-zoom-in"></i></button>
+      </div>
+      <button type="button" id="exNavBtn" class="exnavbtn" onclick="toggleNav()" aria-label="Mở bảng câu hỏi"><i class="bi bi-grid-3x3-gap-fill"></i><span>Bảng câu hỏi</span></button>
       <span id="exViol" class="text-xs font-bold px-2 py-1 rounded-lg bg-amber-100 text-amber-800">Cảnh báo 0/3</span>
       <span id="exTimer" class="font-mono font-black text-lg px-3 py-1 rounded-xl bg-[#cf1717] text-white">--:--</span>
     </div>
   </div>
-  <div class="xwrap max-w-5xl mx-auto px-4 py-6">
-    <p id="exDesc" class="nrm text-sm text-gray-500 mb-4"></p>
-    <div id="exQs" class="space-y-4"></div>
-    <button onclick="confirmSubmit()" class="nrm block mt-6 w-full py-3.5 rounded-2xl bg-[#cf1717] text-white font-extrabold shadow-lg hover:bg-red-700 transition">Nộp bài</button>
+  <div data-ru-keep class="xlayout">
+    <div class="xwrap py-6">
+      <p id="exDesc" class="nrm text-sm text-gray-500 mb-4"></p>
+      <div id="exQs" class="space-y-4"></div>
+      <button onclick="confirmSubmit()" class="nrm block mt-6 w-full py-3.5 rounded-2xl bg-[#cf1717] text-white font-extrabold shadow-lg hover:bg-red-700 transition">Nộp bài</button>
+    </div>
+    <div id="exNavBk" class="exnav-bk" onclick="toggleNav(false)"></div>
+    <aside id="exNav" class="exnav" aria-label="Bảng câu hỏi">
+      <div class="exnav-head"><h3>Bảng câu hỏi</h3><button type="button" class="exnav-x" onclick="toggleNav(false)" aria-label="Đóng"><i class="bi bi-x-lg"></i></button></div>
+      <div id="exNavGrid" class="exnav-grid"></div>
+      <div class="exnav-legend">
+        <span><i class="lg lg-ans"></i> Đã trả lời</span>
+        <span><i class="lg lg-no"></i> Chưa trả lời</span>
+        <span><i class="bi bi-flag-fill" style="color:#cf1717"></i> Đã gắn cờ</span>
+      </div>
+      <div id="exNavStat" class="exnav-stat"></div>
+    </aside>
   </div>
 </div>
 
@@ -70,6 +88,5 @@
 
 <script src="assets/compiled/test.part1.js"></script>
   <script src="assets/js/ru-navigation.js"></script>
-<script src="assets/js/ru-finder.js"></script>
 </body>
 </html>

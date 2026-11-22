@@ -107,3 +107,12 @@ Hệ thống tự thu nhỏ ảnh lớn, tối đa khoảng **1 MB cho mỗi chu
 - Đã chạy `node --check` các script được sửa và kiểm tra đường dẫn JS/CSS local.
 - Đã thử trên Chromium ở **1280 × 800** và **390 × 800**: mở/đóng nút nổi; tra từ bằng phản hồi API giả lập; nghĩa tiếng Việt + định nghĩa tiếng Anh + links; lưu trạng thái mở; đổi ngôn ngữ Việt/Anh; kiểm tra hộp không ra ngoài viewport; kiểm tra highlight → cửa sổ nổi bằng fixture cô lập.
 - **Chưa kiểm thử với Supabase thật, đăng nhập, toàn bộ nghiệp vụ giáo viên và API bên ngoài trực tiếp trong trình duyệt.** Không cam kết kết quả tra từ/hiệu năng production. Nếu muốn chốt sản phẩm cho học sinh thực dùng cần test sau khi deploy.
+
+---
+
+## Cập nhật 23/11/2026 — Phòng thi (test.html)
+
+- Bỏ từ điển nổi (nút dịch góc dưới + "Lưu ghi chú") khỏi `test.html`.
+- Thêm thu phóng cỡ chữ (70–200%) trên thanh trên cùng của phòng thi, nhớ lựa chọn trên thiết bị.
+- Thêm **Bảng câu hỏi**: nhảy tới câu, đánh dấu đã trả lời / câu hiện tại, **gắn cờ** từng câu; màn hình hẹp mở bằng nút "Bảng câu hỏi".
+- Chặn công cụ/tiện ích chèn vào trang thi: phần tử lạ thêm vào `<html>/<body>` bị gỡ ngay và tính 1 cảnh báo (đổi `EXT_COUNT_AS_VIOLATION` trong `assets/compiled/test.part1.js` thành `false` nếu chỉ muốn gỡ im lặng). Không thể chặn tuyệt đối tiện ích chụp màn hình từ ngoài trang.
