@@ -115,4 +115,5 @@ Hệ thống tự thu nhỏ ảnh lớn, tối đa khoảng **1 MB cho mỗi chu
 - Bỏ từ điển nổi (nút dịch góc dưới + "Lưu ghi chú") khỏi `test.html`.
 - Thêm thu phóng cỡ chữ (70–200%) trên thanh trên cùng của phòng thi, nhớ lựa chọn trên thiết bị.
 - Thêm **Bảng câu hỏi**: nhảy tới câu, đánh dấu đã trả lời / câu hiện tại, **gắn cờ** từng câu; màn hình hẹp mở bằng nút "Bảng câu hỏi".
+- Giáo viên chọn "Kiểu hiển thị câu hỏi" (một dải cuộn / mỗi câu một trang) ở teacher.html; lưu bằng thẻ `[[ru:paged]]` ở cuối trường mô tả (không cần đổi database). Phòng thi không còn hiện phần mô tả/ghi chú.
 - Chặn công cụ/tiện ích chèn vào trang thi: phần tử lạ thêm vào `<html>/<body>` bị gỡ ngay và tính 1 cảnh báo (đổi `EXT_COUNT_AS_VIOLATION` trong `assets/compiled/test.part1.js` thành `false` nếu chỉ muốn gỡ im lặng). Không thể chặn tuyệt đối tiện ích chụp màn hình từ ngoài trang.

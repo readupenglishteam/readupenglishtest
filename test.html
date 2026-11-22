@@ -50,32 +50,38 @@
   <div data-ru-keep class="exhead sticky top-0 z-10 bg-white/90 dark:bg-zinc-900/90 backdrop-blur border-b border-[#cf1717]/30 px-4 py-3 flex items-center justify-between gap-3">
     <div class="min-w-0"><div id="exTitle" class="font-extrabold text-[#cf1717] truncate"></div><div id="exWho" class="text-xs text-gray-500 truncate"></div></div>
     <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-      <div class="exzoom" role="group" aria-label="Cỡ chữ">
-        <button type="button" onclick="setZoom(-1)" title="Thu nhỏ chữ" aria-label="Thu nhỏ chữ"><i class="bi bi-zoom-out"></i></button>
-        <button type="button" id="exZoomVal" onclick="setZoom(0)" title="Về 100%" aria-label="Đặt lại cỡ chữ">100%</button>
-        <button type="button" onclick="setZoom(1)" title="Phóng to chữ" aria-label="Phóng to chữ"><i class="bi bi-zoom-in"></i></button>
+      <div class="exzoom" role="group" aria-label="Text size">
+        <button type="button" onclick="setZoom(-1)" title="Smaller text" aria-label="Smaller text"><i class="bi bi-zoom-out"></i></button>
+        <button type="button" id="exZoomVal" onclick="setZoom(0)" title="Reset to 100%" aria-label="Reset text size">100%</button>
+        <button type="button" onclick="setZoom(1)" title="Larger text" aria-label="Larger text"><i class="bi bi-zoom-in"></i></button>
       </div>
-      <button type="button" id="exNavBtn" class="exnavbtn" onclick="toggleNav()" aria-label="Mở bảng câu hỏi"><i class="bi bi-grid-3x3-gap-fill"></i><span>Bảng câu hỏi</span></button>
-      <span id="exViol" class="text-xs font-bold px-2 py-1 rounded-lg bg-amber-100 text-amber-800">Cảnh báo 0/3</span>
+      <button type="button" id="exNavBtn" class="exnavbtn" onclick="toggleNav()" aria-label="Open quiz navigation"><i class="bi bi-grid-3x3-gap-fill"></i><span>Quiz navigation</span></button>
+      <span id="exViol" class="text-xs font-bold px-2 py-1 rounded-lg bg-amber-100 text-amber-800">Warnings 0/3</span>
       <span id="exTimer" class="font-mono font-black text-lg px-3 py-1 rounded-xl bg-[#cf1717] text-white">--:--</span>
     </div>
   </div>
   <div data-ru-keep class="xlayout">
     <div class="xwrap py-6">
-      <p id="exDesc" class="nrm text-sm text-gray-500 mb-4"></p>
+      <p id="exDesc" class="hidden"></p>
       <div id="exQs" class="space-y-4"></div>
-      <button onclick="confirmSubmit()" class="nrm block mt-6 w-full py-3.5 rounded-2xl bg-[#cf1717] text-white font-extrabold shadow-lg hover:bg-red-700 transition">Nộp bài</button>
+      <div id="exPager" class="nrm hidden mt-5 flex items-center justify-between gap-3">
+        <button type="button" id="exPrev" onclick="gotoPage(X.page-1)" class="pgbtn pgbtn-o"><i class="bi bi-chevron-left"></i> Previous page</button>
+        <span id="exPageInfo" class="text-xs text-gray-500 font-bold"></span>
+        <button type="button" id="exNext" onclick="gotoPage(X.page+1)" class="pgbtn">Next page <i class="bi bi-chevron-right"></i></button>
+      </div>
+      <button id="exSubmit" onclick="confirmSubmit()" class="nrm block mt-6 w-full py-3.5 rounded-2xl bg-[#cf1717] text-white font-extrabold shadow-lg hover:bg-red-700 transition">Finish exam</button>
     </div>
     <div id="exNavBk" class="exnav-bk" onclick="toggleNav(false)"></div>
-    <aside id="exNav" class="exnav" aria-label="Bảng câu hỏi">
-      <div class="exnav-head"><h3>Bảng câu hỏi</h3><button type="button" class="exnav-x" onclick="toggleNav(false)" aria-label="Đóng"><i class="bi bi-x-lg"></i></button></div>
+    <aside id="exNav" class="exnav" aria-label="Quiz navigation">
+      <div class="exnav-head"><h3>Quiz navigation</h3><button type="button" class="exnav-x" onclick="toggleNav(false)" aria-label="Close"><i class="bi bi-x-lg"></i></button></div>
       <div id="exNavGrid" class="exnav-grid"></div>
       <div class="exnav-legend">
-        <span><i class="lg lg-ans"></i> Đã trả lời</span>
-        <span><i class="lg lg-no"></i> Chưa trả lời</span>
-        <span><i class="bi bi-flag-fill" style="color:#cf1717"></i> Đã gắn cờ</span>
+        <span><i class="lg lg-ans"></i> Answered</span>
+        <span><i class="lg lg-no"></i> Not yet answered</span>
+        <span><i class="bi bi-flag-fill" style="color:#cf1717"></i> Flagged</span>
       </div>
       <div id="exNavStat" class="exnav-stat"></div>
+      <button type="button" class="exfinish" onclick="confirmSubmit()">Finish exam ...</button>
     </aside>
   </div>
 </div>

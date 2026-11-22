@@ -2,6 +2,7 @@
 (function(){
  'use strict';
  const entries = [
+ ['Kiểu hiển thị câu hỏi','Question Display'],['Hiển thị một dải (cuộn xuống)','All questions on one scrolling page'],['Mỗi câu hỏi một trang (bấm Trang tiếp)','One question per page (Next page button)'],
  ['Xin chào!','Hello!'],['Chào mừng đến ReadUp','Welcome to ReadUp'],['Trải nghiệm','Explore'],['Hỏi đáp','FAQ'],
  ['✨ Phiên Bản Mới Nâng Cấp 2026','✨ New & Improved for 2026'],['ĐỌC TIN TỨC - LUYỆN','READ THE NEWS – PRACTISE'],['MỞ RỘNG TỪ VỰNG','BUILD YOUR VOCABULARY'],
  ['Đọc các bài báo thực tế được chọn lọc và biên soạn thành bài Reading ngắn gọn, giúp bạn luyện đọc và ghi nhớ từ vựng trong ngữ cảnh. Trải nghiệm giao diện thi thật chuyên nghiệp, tra cứu từ vựng ngữ cảnh thông minh, chấm điểm tự động kèm giải thích chi tiết từng câu.','Practise reading with short, carefully selected news articles and learn vocabulary in context. Enjoy a realistic exam interface, smart vocabulary lookup, automatic scoring and explanations for every question.'],

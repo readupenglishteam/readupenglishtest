@@ -218,3 +218,13 @@ a,button,input,textarea,select{touch-action:manipulation}
   .exnav-x,.exnavbtn,.exnav-bk{display:none!important}
 }
 @media(max-width:520px){.exnavbtn span{display:none}.exzoom #exZoomVal{min-width:2.7rem}}
+
+/* ===== Chế độ mỗi câu một trang ===== */
+.pg-hide{display:none!important}
+.pgbtn{padding:.6rem 1.2rem;border-radius:12px;background:#cf1717;color:#fff;font-weight:800;font-size:.85rem;cursor:pointer;transition:.15s}
+.pgbtn:hover{background:#b01212}.pgbtn[disabled]{opacity:.35;cursor:not-allowed}
+.pgbtn-o{background:transparent;color:#cf1717;border:1.5px solid #cf1717}.pgbtn-o:hover{background:rgba(207,23,23,.08)}
+.qstat{font-size:.7rem;color:#6b7280}.qstat.done{color:#059669;font-weight:700}
+
+.exfinish{display:block;margin-top:.9rem;padding:0;background:none;border:0;color:#cf1717;font-weight:700;font-size:.88rem;cursor:pointer;text-align:left}
+.exfinish:hover{text-decoration:underline}

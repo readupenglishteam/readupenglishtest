@@ -1440,7 +1440,7 @@
   function previewTeacherAssignment(id) {
     const a = currentAssignments.find(x => String(x.id) === String(id));
     if (!a) return notify('⚠️ Không tìm thấy bài để xem thử.');
-    RUPreview.open({ title:a.title, description:a.description, is_test:!!a.is_test,
+    RUPreview.open({ title:a.title, description:stripPaged(a.description), is_test:!!a.is_test,
       questions:(() => { try { const q = typeof a.questions === 'string' ? JSON.parse(a.questions) : a.questions; return Array.isArray(q) ? q : []; } catch(e){ return []; } })(), total_points:a.total_points,
       time_limit:a.time_limit_minutes });
   }
@@ -1718,12 +1718,14 @@
     });
   }
 
+  const PAGED_TAG='[[ru:paged]]', stripPaged=s=>String(s||'').split(PAGED_TAG).join('').trim();
   function toggleTestBox(){ pel('testBox').classList.toggle('hidden', !pel('asIsTest').checked); }
   function openBuilder(assignmentToEdit) {
     pel('editingAssignmentId').value = assignmentToEdit ? assignmentToEdit.id : '';
     pel('builderModeTitle').innerText = assignmentToEdit ? 'Chỉnh Sửa Bài Tập' : 'Tạo Bài Tập Mới';
     pel('asTitle').value = assignmentToEdit?.title || '';
-    pel('asDesc').value = assignmentToEdit?.description || '';
+    pel('asDesc').value = stripPaged(assignmentToEdit?.description);
+    pel('asPaging').value = String(assignmentToEdit?.description||'').includes(PAGED_TAG) ? 'paged' : 'scroll';
     pel('asTimeLimit').value = assignmentToEdit?.time_limit_minutes || '';
     pel('asMaxAttempts').value = assignmentToEdit?.max_attempts || '';
     pel('asDueDate').value = assignmentToEdit?.due_date ? String(assignmentToEdit.due_date).slice(0, 10) : '';
@@ -2077,7 +2079,7 @@
 
     const row = {
       class_id: currentClassForAssignments, teacher_id: currentUser.id, token, title,
-      description: pel('asDesc').value.trim() || null,
+      description: ((pel('asDesc').value.trim() + (pel('asIsTest').checked && pel('asPaging').value==='paged' ? '\n'+PAGED_TAG : '')).trim()) || null,
       time_limit_minutes: pel('asTimeLimit').value ? parseInt(pel('asTimeLimit').value) : null,
       max_attempts: pel('asMaxAttempts').value ? parseInt(pel('asMaxAttempts').value) : null,
       due_date: pel('asDueDate').value || null,
