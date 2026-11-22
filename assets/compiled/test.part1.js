@@ -269,7 +269,7 @@ function violation(reason){
   if(X.viol>MAX_VIOL) return submit(true,`Bạn đã vi phạm quá ${MAX_VIOL} lần — hệ thống tự động nộp bài.`);
   X.lock=true;
   openModal(`<div class="text-center"><div class="text-5xl mb-2 text-amber-500"><i class="bi bi-exclamation-triangle-fill"></i></div><h2 class="text-lg font-extrabold text-[#cf1717] mb-2">Cảnh báo ${X.viol}/${MAX_VIOL}</h2>
-    <p class="text-sm mb-4">${esc(reason)}.<br>Nếu vi phạm thêm ${MAX_VIOL-X.viol+1} lần nữa, bài thi sẽ được <b>tự động nộp</b>.</p>
+    <p class="text-sm mb-4">${reason}.<br>Nếu vi phạm thêm ${MAX_VIOL-X.viol+1} lần nữa, bài thi sẽ được <b>tự động nộp</b>.</p>
     <button onclick="resume()" class="w-full py-3 rounded-xl bg-[#cf1717] text-white font-extrabold">Quay lại làm bài (toàn màn hình)</button></div>`);
   $('modal').style.zIndex=99999;
 }
@@ -390,11 +390,14 @@ const EXT_RE=/grammarly|gramm_|languagetool|lt-toolbar|questionai|quillbot|wordt
 // Phần tử do tiện ích chèn VÀO BÊN TRONG trang (Grammarly, LanguageTool…): thẻ tuỳ biến có dấu "-", iframe, shadow host, hoặc id/class đặc trưng.
 const isForeignDeep = el => el && el.nodeType===1 && !KEEP_TAGS.has(el.tagName) && !el.closest('[data-ru-keep-deep]') && (el.tagName.includes('-') || (el.tagName==='IFRAME'&&!el.closest('.qc')) || !!el.shadowRoot || EXT_RE.test((el.id||'')+' '+String(el.className&&el.className.baseVal!==undefined?el.className.baseVal:el.className||'')));
 let guardObs=null, guardTimer=null;
+/* Nhận diện tên công cụ từ dấu vết chèn vào trang. Muốn nhận thêm công cụ: thêm một dòng [regex, 'Tên'] (đoán từ F12 → Elements khi công cụ đang chạy). */
+const TOOL_NAMES=[[/questionai|question-ai|qai/i,'QuestionAI'],[/grammarly|gramm_/i,'Grammarly'],[/languagetool|^lt-|\blt-/i,'LanguageTool'],[/quillbot/i,'QuillBot'],[/wordtune/i,'Wordtune'],[/chatgpt|openai/i,'ChatGPT'],[/gemini|bard/i,'Google Gemini'],[/copilot/i,'Copilot'],[/claude/i,'Claude'],[/photomath|brainly|quizlet|chegg|socratic/i,'Công cụ giải bài'],[/google-translate|goog-te|translate/i,'Google Dịch'],[/dark-?reader/i,'Dark Reader'],[/lastpass|1password|bitwarden|dashlane/i,'Trình quản lý mật khẩu']];
+function toolName(sig,el){ const txt=sig+' '+(el&&el.outerHTML?el.outerHTML.slice(0,400):''); const f=TOOL_NAMES.find(t=>t[0].test(txt)); return f?f[1]:null; }
 function killForeign(el){
   const sig=(el.tagName+'#'+(el.id||'')+'.'+String(el.className&&el.className.baseVal!==undefined?el.className.baseVal:el.className||'').split(' ')[0]).toLowerCase();
   try{el.remove();}catch(e){el.style.setProperty('display','none','important');}
   console.warn('[ReadUp] Đã gỡ phần tử lạ khỏi trang thi:',sig);
-  if(EXT_COUNT_AS_VIOLATION && !X.seen[sig]){ X.seen[sig]=1; violation('Phát hiện công cụ/tiện ích bên ngoài (VD: Grammarly, AI) đang chạy trong trang thi — đã bị gỡ bỏ'); }
+  if(EXT_COUNT_AS_VIOLATION && !X.seen[sig]){ X.seen[sig]=1; { const tn=toolName(sig,el); violation(tn?`Hệ thống phát hiện bạn đang dùng công cụ: <b>${tn}</b> (đã bị gỡ bỏ)`:`Phát hiện một tiện ích/công cụ lạ chạy trong trang thi (<b>${esc(sig.split('#')[0])}</b>) — đã bị gỡ bỏ`); } }
 }
 function sweepForeign(){
   if(!X||X.done) return;
