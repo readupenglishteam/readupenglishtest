@@ -228,3 +228,6 @@ a,button,input,textarea,select{touch-action:manipulation}
 
 .exfinish{display:block;margin-top:.9rem;padding:0;background:none;border:0;color:#cf1717;font-weight:700;font-size:.88rem;cursor:pointer;text-align:left}
 .exfinish:hover{text-decoration:underline}
+
+/* Ẩn công cụ viết/AI nếu chúng kịp chèn vào (đồng thời bị gỡ bằng JS) */
+grammarly-extension,grammarly-popups,grammarly-desktop-integration,grammarly-card,[data-grammarly-shadow-root],lt-toolbar,lt-div,lt-highlighter,[class*="grammarly" i]{display:none!important;visibility:hidden!important}

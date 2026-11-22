@@ -108,17 +108,17 @@ function testCard(t){
 function askPass(id){
   const t=tests.find(x=>x.id===id);
   openModal(`<h2 class="text-lg font-extrabold text-[#cf1717] mb-1">${esc(t.title)}</h2>
-    <ul class="text-xs text-gray-500 list-disc pl-4 mb-4 space-y-1"><li>The exam runs in <b>full-screen mode</b>.</li><li>Exiting full screen, switching tabs or switching windows counts as a violation. After more than <b>${MAX_VIOL} violations</b> your exam is submitted automatically.</li><li>You cannot copy the questions, right-click or paste content.</li></ul>
-    <div class="relative mb-3"><input id="pw" type="password" class="${inp} pr-11" placeholder="Exam password" onkeydown="if(event.key==='Enter')enter('${id}')"><button type="button" id="pwEye" onmousedown="event.preventDefault()" onclick="togglePw()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#cf1717] text-lg leading-none" aria-label="Show/hide password"><i class="bi bi-eye"></i></button></div>
-    <div class="flex gap-2"><button onclick="closeModal()" class="flex-1 py-2.5 rounded-xl border font-bold text-sm">Cancel</button>
-    <button id="pwBtn" onclick="enter('${id}')" class="flex-1 py-2.5 rounded-xl bg-[#cf1717] text-white font-extrabold text-sm">Start exam</button></div>`);
+    <ul class="text-xs text-gray-500 list-disc pl-4 mb-4 space-y-1"><li>Bài thi chạy ở chế độ <b>toàn màn hình</b>.</li><li>Thoát toàn màn hình / chuyển tab / chuyển cửa sổ bị tính là vi phạm. Quá <b>${MAX_VIOL} lần</b> hệ thống tự động nộp bài.</li><li>Không thể sao chép đề bài, không chuột phải, không dán nội dung. Không được dùng Grammarly, công cụ AI hay tiện ích hỗ trợ khác.</li></ul>
+    <div class="relative mb-3"><input id="pw" type="password" class="${inp} pr-11" placeholder="Mật khẩu vào thi" onkeydown="if(event.key==='Enter')enter('${id}')"><button type="button" id="pwEye" onmousedown="event.preventDefault()" onclick="togglePw()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#cf1717] text-lg leading-none" aria-label="Hiện/ẩn mật khẩu"><i class="bi bi-eye"></i></button></div>
+    <div class="flex gap-2"><button onclick="closeModal()" class="flex-1 py-2.5 rounded-xl border font-bold text-sm">Huỷ</button>
+    <button id="pwBtn" onclick="enter('${id}')" class="flex-1 py-2.5 rounded-xl bg-[#cf1717] text-white font-extrabold text-sm">Vào làm bài</button></div>`);
   setTimeout(()=>$('pw').focus(),50);
 }
 function togglePw(){const i=$('pw'),show=i.type==='password';i.type=show?'text':'password';$('pwEye').innerHTML=`<i class="bi bi-eye${show?'-slash':''}"></i>`;i.focus();}
 async function enter(id){
-  const pw=$('pw').value; if(!pw) return toast('Enter the exam password');
+  const pw=$('pw').value; if(!pw) return toast('Nhập mật khẩu');
   // yêu cầu fullscreen NGAY trong thao tác click của người dùng
-  try{ await document.documentElement.requestFullscreen(); }catch(e){ return toast('Your browser did not allow full-screen mode — please use Chrome, Edge or Firefox on a computer','x-circle-fill'); }
+  try{ await document.documentElement.requestFullscreen(); }catch(e){ return toast('Trình duyệt không cho bật toàn màn hình — hãy dùng Chrome/Edge/Firefox trên máy tính','x-circle-fill'); }
   $('pwBtn').disabled=true;
   const {data,error}=await SB.rpc('test_start',{p_assignment_id:id,p_name:me.name,p_email:me.email,p_password:pw});
   if(error){ if(document.fullscreenElement) document.exitFullscreen(); $('pwBtn').disabled=false; return toast(error.message,'x-circle-fill'); }
@@ -200,6 +200,9 @@ function initTestReadingSplits(root){
 }
 
 const GAPRE=/\{\{(\d+)\}\}/g;
+/* Đáp án Đúng/Sai (câu True/False) hiển thị bằng tiếng Anh */
+const TFMAP={'đúng':'True','dung':'True','true':'True','sai':'False','false':'False'};
+const tfText=(q,t)=>{ if(q&&q.type!=='tf') return t; const k=String(t||'').replace(/<[^>]*>/g,'').trim().toLowerCase().replace(/[.\s]+$/,''); return TFMAP[k]||t; };
 /* --- Chuẩn hoá dữ liệu đề do máy chủ trả về: chịu được JSON dạng chuỗi, tên trường khác (text/html/question...) --- */
 const _s=v=>typeof v==='string'?v:(typeof v==='number'?String(v):'');
 const _pick=(o,ks)=>{ if(!o||typeof o!=='object') return ''; for(const k of ks){ if(_s(o[k]).trim()) return _s(o[k]); } return ''; };
@@ -230,11 +233,11 @@ function qHtml(q,next,sub){
   if(q.type==='reading'){ const a=next.cur()+1, qs=(q.sub_blocks||[]).map(s=>qHtml(s,next,true)).join(''), b=next.cur();
     return rsplitHtml(q.content,qs,a,b); }
   const no=next(); let body='';
-  if(q.type==='mcq'||q.type==='tf') body=(q.options||[]).map(o=>`<label class="opt" data-q="${q.id}" data-o="${o.id}"><input type="radio" name="r_${q.id}" class="mt-1 accent-[#cf1717]" onchange="setAns('${q.id}','${o.id}')"><span class="qc">${o.text}</span></label>`).join('');
+  if(q.type==='mcq'||q.type==='tf') body=(q.options||[]).map(o=>`<label class="opt" data-q="${q.id}" data-o="${o.id}"><input type="radio" name="r_${q.id}" class="mt-1 accent-[#cf1717]" onchange="setAns('${q.id}','${o.id}')"><span class="qc">${tfText(q,o.text)}</span></label>`).join('');
   else if(q.type==='multi') body=(q.options||[]).map(o=>`<label class="opt" data-q="${q.id}" data-o="${o.id}"><input type="checkbox" class="mt-1 accent-[#cf1717]" onchange="setMulti('${q.id}')"><span class="qc">${o.text}</span></label>`).join('');
-  else if(q.type==='essay') body=`<textarea rows="6" class="${inp}" data-essay="${q.id}" oninput="setAns('${q.id}',this.value)" onpaste="return false" placeholder="Type your answer..."></textarea>`;
+  else if(q.type==='essay') body=`<textarea rows="6" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" data-ms-editor="false" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" class="${inp}" data-essay="${q.id}" oninput="setAns('${q.id}',this.value)" onpaste="return false" placeholder="Type your answer..."></textarea>`;
   else if(q.type==='fill') body=''; 
-  const content = q.type==='fill' ? (q.content||'').replace(GAPRE,(m,g)=>`<span contenteditable="true" role="textbox" class="gap" data-fq="${q.id}" data-g="${g}" spellcheck="false" autocapitalize="off" onpaste="return false" ondrop="return false" onkeydown="if(event.key==='Enter')return false" oninput="setGap('${q.id}','${g}',this.textContent)"></span>`) : (q.content||'');
+  const content = q.type==='fill' ? (q.content||'').replace(GAPRE,(m,g)=>`<span contenteditable="true" role="textbox" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" class="gap" data-fq="${q.id}" data-g="${g}" spellcheck="false" autocapitalize="off" onpaste="return false" ondrop="return false" onkeydown="if(event.key==='Enter')return false" oninput="setGap('${q.id}','${g}',this.textContent)"></span>`) : (q.content||'');
   return `<div id="qn_${no}" data-qn="${no}" data-qid="${esc(q.id)}" class="${N}${card} qcard p-5"><div class="flex items-center gap-2 mb-2"><span class="text-xs font-extrabold text-[#cf1717]">Question ${no}</span><span class="text-[11px] text-gray-400">(${q.points||0} ${(+q.points||0)===1?'point':'points'})</span><span class="qstat">Not yet answered</span><button type="button" class="qflag" data-flagq="${esc(q.id)}" onclick="toggleFlag('${esc(q.id)}')" aria-pressed="false"><i class="bi bi-flag"></i><span>Flag question</span></button></div>
     <div class="qc mb-3">${content}</div><div class="space-y-2">${body}</div></div>`;
 }
@@ -254,26 +257,26 @@ function tick(){
   const s=Math.max(0,Math.ceil((X.deadline-nowMs())/1000)), m=Math.floor(s/60);
   $('exTimer').textContent=`${String(m).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
   $('exTimer').style.background = s<=300?'#b45309':'#cf1717';
-  if(s<=0) submit(true,'Time is up — your exam was submitted automatically.');
+  if(s<=0) submit(true,'Hết giờ — hệ thống đã tự động nộp bài.');
 }
-function updViol(){ $('exViol').textContent=`Warnings ${Math.min(X.viol,MAX_VIOL)}/${MAX_VIOL}`; }
+function updViol(){ $('exViol').textContent=`Cảnh báo ${Math.min(X.viol,MAX_VIOL)}/${MAX_VIOL}`; }
 
 /* ---------- PHÁT HIỆN VI PHẠM ---------- */
 function violation(reason){
   if(!X||X.done||!X.active) return;
   const t=Date.now(); if(t-X.last<1500) return; X.last=t;   // gộp các sự kiện đồng thời
   X.viol++; updViol(); SB.rpc('test_violation',{p_session_id:X.sid,p_count:X.viol});
-  if(X.viol>MAX_VIOL) return submit(true,`You have exceeded ${MAX_VIOL} violations — your exam was submitted automatically.`);
+  if(X.viol>MAX_VIOL) return submit(true,`Bạn đã vi phạm quá ${MAX_VIOL} lần — hệ thống tự động nộp bài.`);
   X.lock=true;
-  openModal(`<div class="text-center"><div class="text-5xl mb-2 text-amber-500"><i class="bi bi-exclamation-triangle-fill"></i></div><h2 class="text-lg font-extrabold text-[#cf1717] mb-2">Warning ${X.viol}/${MAX_VIOL}</h2>
-    <p class="text-sm mb-4">${esc(reason)}.<br>If you violate the rules ${MAX_VIOL-X.viol+1} more time(s), your exam will be <b>submitted automatically</b>.</p>
-    <button onclick="resume()" class="w-full py-3 rounded-xl bg-[#cf1717] text-white font-extrabold">Return to exam (full screen)</button></div>`);
+  openModal(`<div class="text-center"><div class="text-5xl mb-2 text-amber-500"><i class="bi bi-exclamation-triangle-fill"></i></div><h2 class="text-lg font-extrabold text-[#cf1717] mb-2">Cảnh báo ${X.viol}/${MAX_VIOL}</h2>
+    <p class="text-sm mb-4">${esc(reason)}.<br>Nếu vi phạm thêm ${MAX_VIOL-X.viol+1} lần nữa, bài thi sẽ được <b>tự động nộp</b>.</p>
+    <button onclick="resume()" class="w-full py-3 rounded-xl bg-[#cf1717] text-white font-extrabold">Quay lại làm bài (toàn màn hình)</button></div>`);
   $('modal').style.zIndex=99999;
 }
-async function resume(){ try{await document.documentElement.requestFullscreen();}catch(e){return toast('Please allow full-screen mode to continue');} X.lock=false; closeModal(); $('modal').style.zIndex=''; }
-document.addEventListener('fullscreenchange',()=>{ if(X&&!X.done&&!document.fullscreenElement) violation('You exited full-screen mode'); });
-document.addEventListener('visibilitychange',()=>{ if(X&&!X.done&&document.hidden) violation('You switched tabs or minimised the browser'); });
-window.addEventListener('blur',()=>{ if(X&&!X.done) setTimeout(()=>{ if(!document.hasFocus()) violation('You switched to another window'); },200); });
+async function resume(){ try{await document.documentElement.requestFullscreen();}catch(e){return toast('Hãy cho phép toàn màn hình để tiếp tục');} X.lock=false; closeModal(); $('modal').style.zIndex=''; }
+document.addEventListener('fullscreenchange',()=>{ if(X&&!X.done&&!document.fullscreenElement) violation('Bạn đã thoát chế độ toàn màn hình'); });
+document.addEventListener('visibilitychange',()=>{ if(X&&!X.done&&document.hidden) violation('Bạn đã chuyển tab / thu nhỏ trình duyệt'); });
+window.addEventListener('blur',()=>{ if(X&&!X.done) setTimeout(()=>{ if(!document.hasFocus()) violation('Bạn đã chuyển sang cửa sổ khác'); },200); });
 
 
 /* ---------- BẢNG CÂU HỎI + GẮN CỜ ---------- */
@@ -382,25 +385,26 @@ function applyZoom(){
 const EXT_COUNT_AS_VIOLATION = true;   // true: mỗi loại phần tử lạ phát hiện lần đầu = 1 cảnh báo; false: chỉ âm thầm gỡ bỏ
 const KEEP_IDS = new Set(['ru-page-loader','toast','app','exam','modal','bgFx']);
 const KEEP_TAGS = new Set(['SCRIPT','STYLE','LINK','META','NOSCRIPT','TITLE','HEAD','BODY']);
-const isForeign = el => el && el.nodeType===1 && !KEEP_TAGS.has(el.tagName) && !KEEP_IDS.has(el.id) && !el.hasAttribute('data-ru-keep');
+const isForeignTop = el => el && el.nodeType===1 && !KEEP_TAGS.has(el.tagName) && !KEEP_IDS.has(el.id) && !el.hasAttribute('data-ru-keep');
+const EXT_RE=/grammarly|gramm_|languagetool|lt-toolbar|questionai|quillbot|wordtune|chatgpt|copilot|gemini|ai-assist/i;
+// Phần tử do tiện ích chèn VÀO BÊN TRONG trang (Grammarly, LanguageTool…): thẻ tuỳ biến có dấu "-", iframe, shadow host, hoặc id/class đặc trưng.
+const isForeignDeep = el => el && el.nodeType===1 && !KEEP_TAGS.has(el.tagName) && !el.closest('[data-ru-keep-deep]') && (el.tagName.includes('-') || (el.tagName==='IFRAME'&&!el.closest('.qc')) || !!el.shadowRoot || EXT_RE.test((el.id||'')+' '+String(el.className&&el.className.baseVal!==undefined?el.className.baseVal:el.className||'')));
 let guardObs=null, guardTimer=null;
+function killForeign(el){
+  const sig=(el.tagName+'#'+(el.id||'')+'.'+String(el.className&&el.className.baseVal!==undefined?el.className.baseVal:el.className||'').split(' ')[0]).toLowerCase();
+  try{el.remove();}catch(e){el.style.setProperty('display','none','important');}
+  console.warn('[ReadUp] Đã gỡ phần tử lạ khỏi trang thi:',sig);
+  if(EXT_COUNT_AS_VIOLATION && !X.seen[sig]){ X.seen[sig]=1; violation('Phát hiện công cụ/tiện ích bên ngoài (VD: Grammarly, AI) đang chạy trong trang thi — đã bị gỡ bỏ'); }
+}
 function sweepForeign(){
   if(!X||X.done) return;
-  [document.documentElement,document.body,$('exam')].forEach(root=>{
-    if(!root) return;
-    [...root.children].forEach(el=>{
-      if(!isForeign(el)) return;
-      const sig=(el.tagName+'#'+(el.id||'')+'.'+String(el.className&&el.className.baseVal!==undefined?el.className.baseVal:el.className||'').split(' ')[0]).toLowerCase();
-      try{el.remove();}catch(e){el.style.setProperty('display','none','important');}
-      console.warn('[ReadUp] Đã gỡ phần tử lạ khỏi trang thi:',sig);
-      if(EXT_COUNT_AS_VIOLATION && !X.seen[sig]){ X.seen[sig]=1; violation('An external tool or browser extension was detected on the exam page (it has been removed)'); }
-    });
-  });
+  [document.documentElement,document.body,$('exam')].forEach(root=>{ if(root) [...root.children].forEach(el=>{ if(isForeignTop(el)) killForeign(el); }); });
+  document.querySelectorAll('body *').forEach(el=>{ if(isForeignDeep(el)) killForeign(el); });
 }
 function guardStart(){
   guardStop(); sweepForeign();
   guardObs=new MutationObserver(sweepForeign);
-  [document.documentElement,document.body,$('exam')].forEach(r=>r&&guardObs.observe(r,{childList:true}));
+  guardObs.observe(document.documentElement,{childList:true,subtree:true});
   guardTimer=setInterval(sweepForeign,700);
 }
 function guardStop(){ if(guardObs){guardObs.disconnect();guardObs=null;} clearInterval(guardTimer); }
@@ -434,7 +438,7 @@ async function showResult(id){
     if(q.type==='text') return `<div class="${N}${card} p-4 qc">${q.content||''}</div>`;
     if(q.type==='reading'){ const a=n+1, qs=(q.sub_blocks||[]).map(x=>rq(x,true)).join(''); return rsplitHtml(q.content,qs,a,n); }
     n++; const g=given[q.id]; let b='';
-    if(['mcq','tf','multi'].includes(q.type)){const ga=Array.isArray(g)?g:(g?[g]:[]);b=(q.options||[]).map(o=>`<div class="opt ${o.correct?'ok':(ga.includes(o.id)?'bad':'')}" style="cursor:default"><span class="qc">${ga.includes(o.id)?'<i class="bi bi-arrow-right-circle-fill text-[#cf1717]"></i> ':''}${o.text}</span></div>`).join('');}
+    if(['mcq','tf','multi'].includes(q.type)){const ga=Array.isArray(g)?g:(g?[g]:[]);b=(q.options||[]).map(o=>`<div class="opt ${o.correct?'ok':(ga.includes(o.id)?'bad':'')}" style="cursor:default"><span class="qc">${ga.includes(o.id)?'<i class="bi bi-arrow-right-circle-fill text-[#cf1717]"></i> ':''}${tfText(q,o.text)}</span></div>`).join('');}
     else if(q.type==='fill'){const go=(g&&typeof g==='object')?g:{};b=(q.blanks||[]).map(bl=>`<div class="text-sm">Blank ${bl.gap}: <b>${esc(go[bl.gap]||'(left blank)')}</b> <span class="text-emerald-600">(answer: ${esc((bl.accepted_answers||[]).join(' / '))})</span></div>`).join('');}
     else b=`<div class="text-sm whitespace-pre-wrap p-3 rounded-xl bg-gray-50 dark:bg-zinc-800">${esc(g||'(left blank)')}</div>${data.comments?.[q.id]?`<div class="text-xs mt-2 text-indigo-600"><i class="bi bi-chat-left-text"></i> ${esc(data.comments[q.id])}</div>`:''}`;
     return `<div class="${N}${card} p-5"><div class="text-xs font-extrabold text-[#cf1717] mb-1">Question ${n}</div><div class="qc mb-2">${q.type==='fill'?(q.content||'').replace(GAPRE,'[$1]'):(q.content||'')}</div><div class="space-y-2">${b}</div>${q.explanation?`<div class="text-xs mt-2 text-gray-500"><i class="bi bi-lightbulb-fill text-amber-500"></i> ${q.explanation}</div>`:''}</div>`;
