@@ -1,9 +1,15 @@
 /* Source: assets/js/pages/index.01.js */
+(function(){
+  var d=document.documentElement; d.classList.add('ri-js');
+  try{
+    var t=localStorage.theme;
+    if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)){d.classList.add('dark');}
+  }catch(e){}
+})();
 
-    tailwind.config = { darkMode: 'class' };
-  
 ;
 /* Source: assets/js/pages/index.02.js */
+
 
   /* Mèo ReadUp: chỉ chào 1 lần mỗi phiên (thêm ?intro=1 vào link để xem lại) */
   (function(){try{

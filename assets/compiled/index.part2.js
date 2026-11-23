@@ -61,154 +61,57 @@
   })();
   
 ;
-/* Source: assets/js/pages/index.04.js */
-
-  const stepsData = [
-    {
-      title: "READ",
-      desc: "Đọc bài báo thực tế mỗi ngày được tinh chỉnh theo đúng chuẩn cấu trúc đề thi IELTS & TOEIC."
-    },
-    {
-      title: "LEARN",
-      desc: "Tra từ trong ngữ cảnh bài đọc, lưu bộ Collocation chuẩn xác kèm giải thích đáp án chi tiết."
-    },
-    {
-      title: "GROW",
-      desc: "Theo dõi sự tăng trưởng tốc độ đọc hiểu và Band điểm qua hệ thống báo cáo trực quan."
-    }
-  ];
-
-  // Tọa độ 3 vị trí trên đường tròn bán kính R = 95px
-  // Vị trí 0 (Đỉnh giữa), Vị trí 1 (Phải dưới), Vị trí 2 (Trái dưới)
-  const slots = [
-    { x: 0, y: -95, scale: 1.25, opacity: 1 },
-    { x: 82, y: 48, scale: 0.85, opacity: 0.5 },
-    { x: -82, y: 48, scale: 0.85, opacity: 0.5 }
-  ];
-
-  let currentActive = 0;
-
-  function updateCircleLayout() {
-    stepsData.forEach((_, index) => {
-      const node = document.getElementById(`step-node-${index}`);
-      // Tính toán vị trí tương đối của node dựa trên nút đang active
-      const slotIndex = (index - currentActive + 3) % 3;
-      const pos = slots[slotIndex];
-
-      // Áp dụng vị trí và hiệu ứng phóng to/thu nhỏ
-      node.style.transform = `translate(${pos.x}px, ${pos.y}px) scale(${pos.scale})`;
-      node.style.opacity = pos.opacity;
-
-      // Nút ở trên cùng sẽ ưu tiên hiển thị đè lên (z-index)
-      if (slotIndex === 0) {
-        node.classList.add("z-10");
-        node.classList.remove("z-0");
-      } else {
-        node.classList.add("z-0");
-        node.classList.remove("z-10");
-      }
-    });
-
-    // Cập nhật text nội dung ở hộp bên dưới
-    const titleEl = document.getElementById("active-title");
-    const descEl = document.getElementById("active-desc");
-    
-    titleEl.innerText = stepsData[currentActive].title;
-    descEl.innerText = stepsData[currentActive].desc;
-  }
-
-  function setActiveStep(index) {
-    currentActive = index;
-    updateCircleLayout();
-  }
-
-  // Khởi tạo vị trí ban đầu
-  updateCircleLayout();
+/* Source: /* Source: assets/js/pages/index.05.js (giao diện sáng/tối, hiện dần khi cuộn) */
+function toggleDarkMode(){
+  var d=document.documentElement.classList.toggle('dark');
+  try{localStorage.theme=d?'dark':'light';}catch(e){}
+  var m=document.querySelector('meta[name="theme-color"]'); if(m)m.setAttribute('content',d?'#09090b':'#cf1717');
+}
+(function(){
+  var els=document.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('active');});return;}
+  var io=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting){en.target.classList.add('active');io.unobserve(en.target);}});},{threshold:.08,rootMargin:'0px 0px -40px 0px'});
+  els.forEach(function(e){io.observe(e);});
+})();
 
 ;
-/* Source: assets/js/pages/index.05.js */
-
-    function toggleDarkMode() {
-      if (document.documentElement.classList.contains('dark')) {
-        document.documentElement.classList.remove('dark');
-        localStorage.theme = 'light';
-      } else {
-        document.documentElement.classList.add('dark');
-        localStorage.theme = 'dark';
-      }
-    }
-
-
-    document.addEventListener("DOMContentLoaded", function () {
-    const reveals = document.querySelectorAll(".reveal");
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("active");
-        }
-      });
-    }, { threshold: 0.1 });
-
-    reveals.forEach((el) => observer.observe(el));
+/* Source: demo tra từ (chạm / bấm đều dùng được) */
+(function(){
+  var words=document.querySelectorAll('.ri-word'), defs=document.querySelectorAll('.ri-def');
+  words.forEach(function(w){
+    w.addEventListener('click',function(){
+      var k=w.getAttribute('data-w');
+      words.forEach(function(x){x.setAttribute('aria-pressed',String(x===w));});
+      defs.forEach(function(d){d.hidden=d.getAttribute('data-d')!==k;});
+    });
   });
-    
-  
+})();
+
 ;
-/* Source: assets/js/pages/index.06.js */
+/* Source: slider đầu trang (vuốt trên điện thoại, không còn chuyển trang khi bấm) */
+(function(){
+  var slider=document.getElementById('ruSlider'), track=document.getElementById('ruTrack');
+  var dots=document.querySelectorAll('#ruDots .ru-dot'), total=dots.length, idx=0, timer=null, DELAY=4500;
+  if(!slider||!track||!total) return;
+  function go(n){ idx=(n+total)%total; track.style.transform='translateX('+(-idx*100)+'%)'; dots.forEach(function(d,i){d.classList.toggle('active',i===idx);}); }
+  function stop(){ if(timer){clearInterval(timer);timer=null;} }
+  function start(){ stop(); if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches) return; timer=setInterval(function(){go(idx+1);},DELAY); }
+  document.getElementById('ruPrev').addEventListener('click',function(){go(idx-1);start();});
+  document.getElementById('ruNext').addEventListener('click',function(){go(idx+1);start();});
+  dots.forEach(function(d,i){d.addEventListener('click',function(){go(i);start();});});
+  slider.addEventListener('mouseenter',stop); slider.addEventListener('mouseleave',start);
+  var sx=0, sy=0;
+  slider.addEventListener('touchstart',function(e){sx=e.touches[0].clientX; sy=e.touches[0].clientY; stop();},{passive:true});
+  slider.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)) go(dx<0?idx+1:idx-1);
+    start();
+  });
+  ['contextmenu','dragstart','selectstart','copy','cut'].forEach(function(ev){slider.addEventListener(ev,function(e){e.preventDefault();});});
+  document.addEventListener('visibilitychange',function(){document.hidden?stop():start();});
+  go(0); start();
+})();
 
-  (function () {
-    var slider = document.getElementById('ruSlider');
-    var track  = document.getElementById('ruTrack');
-    var dots   = document.querySelectorAll('#ruDots .ru-dot');
-    var total  = dots.length, idx = 0, timer = null, DELAY = 4000;
-
-    function go(n) {
-      idx = (n + total) % total;
-      track.style.transform = 'translateX(' + (-idx * 100) + '%)';
-      dots.forEach(function (d, i) { d.classList.toggle('active', i === idx); });
-    }
-    function start() { stop(); timer = setInterval(function () { go(idx + 1); }, DELAY); }
-    function stop()  { if (timer) { clearInterval(timer); timer = null; } }
-
-    document.getElementById('ruPrev').addEventListener('click', function (e) { e.stopPropagation(); go(idx - 1); start(); });
-    document.getElementById('ruNext').addEventListener('click', function (e) { e.stopPropagation(); go(idx + 1); start(); });
-    dots.forEach(function (d, i) { d.addEventListener('click', function () { go(i); start(); }); });
-
-    slider.addEventListener('mouseenter', stop);
-    slider.addEventListener('mouseleave', start);
-
-    // Vuốt trên điện thoại (vuốt = chuyển ảnh, chạm = về index)
-    var sx = 0, moved = false;
-    slider.addEventListener('touchstart', function (e) { sx = e.touches[0].clientX; moved = false; stop(); }, { passive: true });
-    slider.addEventListener('touchend', function (e) {
-      var dx = e.changedTouches[0].clientX - sx;
-      if (Math.abs(dx) > 40) { moved = true; go(dx < 0 ? idx + 1 : idx - 1); }
-      start();
-    });
-
-    // Bấm vào ảnh -> quay về trang index
-    slider.addEventListener('click', function () {
-      if (moved) { moved = false; return; }
-      window.location.href = 'index.html';
-    });
-
-    // Chặn chuột phải, kéo thả, chọn, giữ ảnh
-    ['contextmenu', 'dragstart', 'selectstart', 'copy', 'cut'].forEach(function (ev) {
-      slider.addEventListener(ev, function (e) { e.preventDefault(); });
-    });
-
-    // Tạm dừng khi chuyển tab để tiết kiệm tài nguyên
-    document.addEventListener('visibilitychange', function () { document.hidden ? stop() : start(); });
-
-    go(0);
-    var loaded = 0;
-    document.querySelectorAll('.ru-slide img').forEach(function (im) {
-      function done() { if (++loaded === total) start(); }
-      if (im.complete && im.naturalWidth) done(); else { im.addEventListener('load', done); im.addEventListener('error', done); }
-    });
-  })();
-  
 ;
 /* Source: assets/js/pages/index.07.js */
 
@@ -219,7 +122,7 @@
     var tip=null, tipT=null, idleT=null, running=false, docked=false;
     var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
     var TIPS=['Chào bạn! Hôm nay luyện Reading nhé 📖','Cố lên, bạn làm được mà! 💪','Mỗi ngày một bài, giỏi lên thấy rõ! 🔥',
-              'Gặp từ mới thì ghi lại nha ✍️','Meow~ mình ở đây cổ vũ bạn! 🐾','Sẵn sàng chưa? Bấm "Vào Luyện Tập" nào! 🚀'];
+              'Gặp từ mới thì ghi lại nha ✍️','Meow~ mình ở đây cổ vũ bạn! 🐾','Sẵn sàng chưa? Bấm "Đăng nhập" nào! 🚀'];
 
     function showTip(t,ms){
       if(!tip)return; tip.textContent=t; tip.classList.add('show');

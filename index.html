@@ -1,29 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#cf1717">
+  <meta name="description" content="ReadUp English - luyện IELTS Reading với tin tức thật, tra từ trong ngữ cảnh, chấm điểm tức thì kèm giải thích.">
   <title>ReadUp English - Nền Tảng Luyện Reading Thông Minh</title>
   <link rel="preconnect" href="https://i.ibb.co" crossorigin>
   <link rel="preload" as="image" href="https://i.ibb.co/FLGp4FpT/Secure-Online-Exam-Experience.png" fetchpriority="high">
-  <link rel="preload" as="image" href="https://i.ibb.co/cc3ZGV4H/Read-Up-English-Learning-Dashboard.png">
-  <link rel="preload" as="image" href="https://i.ibb.co/C5wY3dmj/Read-Up-English-Learning-Journey.png">
-  <link rel="preload" as="image" href="https://i.ibb.co/svStdTKW/a5fcdb6f-276f-4d03-ab9c-7e7746597a81.png">
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
-<script src="assets/compiled/index.part1.js"></script>
-  
-
+  <script src="assets/compiled/index.part1.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/css/ru-language.css">
+  <link rel="stylesheet" href="assets/css/ru-finder.css">
   <link rel="stylesheet" href="assets/compiled/index.css">
-<link rel="stylesheet" href="assets/css/ru-language.css">
-<link rel="stylesheet" href="assets/css/ru-finder.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
-<body class="text-gray-900 dark:text-gray-100 min-h-screen flex flex-col justify-between antialiased">
-<!-- Màn hình chờ: kiểm tra phiên trước khi hiển thị giao diện -->
+<body>
+<!-- Màn hình chờ -->
 <div id="ru-page-loader" class="ru-page-loader" role="status" aria-live="polite" aria-label="Đang kiểm tra phiên đăng nhập">
   <div class="ru-page-loader__center">
     <div class="ru-page-loader__brand">
@@ -35,72 +31,20 @@
   </div>
 </div>
 
-
-  <!-- NỀN ĐỘNG -->
-  <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none select-none transition-colors duration-500 bg-slate-50 dark:bg-zinc-950">
-    <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#cf1717]/20 dark:bg-[#cf1717]/15 rounded-full blur-3xl animate-blob"></div>
-    <div class="absolute top-1/3 -right-24 w-[30rem] h-[30rem] bg-indigo-500/15 dark:bg-red-900/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-    <div class="absolute -bottom-24 left-1/3 w-96 h-96 bg-amber-500/15 dark:bg-amber-600/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
-    <!-- DANH SÁCH MÁY BAY BAY KHẮP MÀN HÌNH -->
-<div class="absolute inset-0 pointer-events-none overflow-hidden">
-  
-  <!-- Máy bay 1: Bay chéo lên (Lớn, màu đỏ) -->
-  <div class="absolute animate-plane-1 text-[#cf1717]/35 dark:text-red-500/35">
-    <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
-      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-    </svg>
-  </div>
-
-  <!-- Máy bay 2: Bay chéo xuống (Vừa, màu hổ phách/vàng) -->
-  <div class="absolute animate-plane-2 text-amber-500/30 dark:text-amber-400/30">
-    <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
-      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-    </svg>
-  </div>
-
-  <!-- Máy bay 3: Bay ngược từ phải sang trái (Nhỏ, màu chàm/tím) -->
-  <div class="absolute animate-plane-3 text-indigo-500/30 dark:text-indigo-400/30">
-    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-    </svg>
-  </div>
-
-  <!-- Máy bay 4: Bay ngang màn hình (Màu đỏ nhạt) -->
-  <div class="absolute animate-plane-4 text-[#cf1717]/25 dark:text-red-400/25">
-    <svg class="w-11 h-11" fill="currentColor" viewBox="0 0 24 24">
-      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-    </svg>
-  </div>
-
-  <!-- Máy bay 5: Bay chéo nhanh (Nhỏ, màu xám nhạt) -->
-  <div class="absolute animate-plane-5 text-gray-400/30 dark:text-zinc-500/30">
-    <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-    </svg>
-  </div>
-
+<!-- NỀN: giữ đốm màu + máy bay giấy -->
+<div class="ri-bg" aria-hidden="true">
+  <span class="ri-blob b1"></span><span class="ri-blob b2"></span><span class="ri-blob b3"></span>
+  <span class="ri-plane p1"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></span><span class="ri-plane p2"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></span><span class="ri-plane p3"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></span>
 </div>
-  </div>
 
-  <!-- NAVBAR -->
-<!-- ================= HEADER INDEX HIỆU ỨNG KÍNH MỜ (FROSTED GLASS) ================= -->
-<header class="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/60 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-950/60 transition px-4">
-  <div class="max-w-7xl mx-auto h-16 flex justify-between items-center">
-    
-    <!-- 1. KHU VỰC LOGO TRÒN & TIÊU ĐỀ -->
-    <div class="flex items-center gap-3">
-      <!-- Khung Logo Tròn Đỏ -->
-      <a href="index.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
-        <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
+<!-- ============ HEADER ============ -->
+<header class="ri-header">
+  <div class="ri-header__row">
+    <div class="ri-left">
+      <a class="ri-brand" href="index.html" aria-label="ReadUp English">
+        <span class="ri-brand__logo"><img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="" width="30" height="30"></span>
+        <span class="ri-brand__name" data-ru-i18n-skip>ReadUp<small>English</small></span>
       </a>
-      
-      <!-- Tên Thương Hiệu + Badge English -->
-      <a href="index.html" class="flex items-center gap-2 hover:opacity-90 transition">
-        <span class="text-2xl font-black text-[#cf1717] tracking-tight">ReadUp</span>
-        <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full shadow-sm">English</span>
-      </a>
-
-      <!-- Mèo mascot (thu nhỏ vào header sau lời chào) -->
       <div id="ruCatSlot" class="ru-cat-slot">
       <div id="ruCat" title="ReadUp">
         <svg viewBox="-67 -43 380 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mèo ReadUp">
@@ -132,786 +76,228 @@
       </div>
       </div>
     </div>
-
-    <!-- (MỚI) MENU ĐIỀU HƯỚNG -->
-    <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-600 dark:text-gray-300">
-      <a href="#incontext" class="hover:text-[#cf1717] transition">Trải nghiệm</a>
-      <a href="#dashboard-features" class="hover:text-[#cf1717] transition">Dashboard</a>
-      <a href="#faq" class="hover:text-[#cf1717] transition">Hỏi đáp</a>
+    <nav class="ri-nav" aria-label="Điều hướng">
+      <a href="#tra-tu">Trải nghiệm</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="post.html">Bài đăng</a>
+      <a href="#faq">Hỏi đáp</a>
     </nav>
-
-    <!-- 2. KHU VỰC THAO TÁC & NÚT VÀO LUYỆN TẬP -->
-    <div class="flex items-center gap-2 sm:gap-3">
-      <!-- Nút Chuyển Chế Độ Sáng / Tối -->
-      <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-sm border border-gray-200/50 dark:border-zinc-700/50">
-        <span id="themeIcon">🌙</span>
-      </button>
-
-      <!-- Nút Vào Luyện Tập -->
-      <a href="login.html" class="px-4 py-2 bg-[#cf1717] hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5 flex items-center gap-1">
-        <span>Log in 🚀</span>
-      </a>
+    <div class="ri-actions">
+      <button type="button" class="ri-icon-btn" id="themeBtn" onclick="toggleDarkMode()" aria-label="Đổi giao diện sáng/tối"><i class="bi bi-moon-stars ri-ico-moon"></i><i class="bi bi-sun ri-ico-sun"></i></button>
+      <a class="ri-login" href="login.html"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i><span>Đăng nhập</span></a>
     </div>
-
   </div>
 </header>
 
-
-  <!-- ================= SLIDER ẢNH ĐẦU TRANG (TỰ ĐỘNG LƯỚT) ================= -->
-  <div class="max-w-6xl mx-auto px-4 pt-6">
-    <div class="ru-slider" id="ruSlider" title="ReadUp English">
-      <div class="ru-track" id="ruTrack">
-        <div class="ru-slide"><img src="https://i.ibb.co/FLGp4FpT/Secure-Online-Exam-Experience.png" alt="Secure Online Exam Experience" draggable="false" loading="eager" fetchpriority="high" decoding="async"><div class="ru-shield"></div></div>
-        <div class="ru-slide"><img src="https://i.ibb.co/cc3ZGV4H/Read-Up-English-Learning-Dashboard.png" alt="Read Up English Learning Dashboard" draggable="false" loading="eager" decoding="async"><div class="ru-shield"></div></div>
-        <div class="ru-slide"><img src="https://i.ibb.co/C5wY3dmj/Read-Up-English-Learning-Journey.png" alt="Read Up English Learning Journey" draggable="false" loading="eager" decoding="async"><div class="ru-shield"></div></div>
-        <div class="ru-slide"><img src="https://i.ibb.co/svStdTKW/a5fcdb6f-276f-4d03-ab9c-7e7746597a81.png" alt="ReadUp English" draggable="false" loading="eager" decoding="async"><div class="ru-shield"></div></div>
-      </div>
-      <button class="ru-arrow ru-prev" id="ruPrev" aria-label="Ảnh trước">&#8249;</button>
-      <button class="ru-arrow ru-next" id="ruNext" aria-label="Ảnh sau">&#8250;</button>
-    </div>
-    <div class="ru-dots" id="ruDots">
-        <button class="ru-dot active" aria-label="Ảnh 1"></button>
-        <button class="ru-dot" aria-label="Ảnh 2"></button>
-        <button class="ru-dot" aria-label="Ảnh 3"></button>
-        <button class="ru-dot" aria-label="Ảnh 4"></button>
-    </div>
-  </div>
-
-  
-  <!-- ================= BÀI ĐĂNG MỚI (1 bài/lần, tự động lướt) ================= -->
-  <div class="max-w-6xl mx-auto px-4 pt-6" id="ruPostsWrap" style="display:none">
-    <div class="ru-posts-wrap">
-      <button class="ru-post-arrow ru-post-prev" id="ruPostPrev" aria-label="Bài trước">&#8249;</button>
-      <div class="ru-posts" id="ruPosts"></div>
-      <button class="ru-post-arrow ru-post-next" id="ruPostNext" aria-label="Bài sau">&#8250;</button>
-    </div>
-    <div class="ru-post-dots" id="ruPostDots"></div>
-  </div>
-  
-
-  <main class="max-w-6xl mx-auto px-4 pt-12 pb-20 space-y-24">
-    
-    <!-- HERO SECTION -->
-    <section class="text-center space-y-6 pt-8 reveal">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-100 dark:bg-red-950/60 border border-red-200 dark:border-red-900/50 text-[#cf1717] dark:text-red-400 text-xs font-bold animate-bounce">
-        ✨ Phiên Bản Mới Nâng Cấp 2026
-      </div>
-      
-      <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
-  ĐỌC TIN TỨC - LUYỆN <span class="bg-gradient-to-r from-[#cf1717] to-amber-500 bg-clip-text text-transparent">READING<sup class="relative -top-5 ml-1 inline-block rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-bold leading-none text-white no-underline">
-    NEWS</sup></span><br class="leading-none"><span class="inline-block mt-3">MỞ RỘNG TỪ VỰNG</span></h1>
-
-      <p class="max-w-2xl mx-auto text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
-        Đọc các bài báo thực tế được chọn lọc và biên soạn thành bài Reading ngắn gọn, giúp bạn luyện đọc và ghi nhớ từ vựng trong ngữ cảnh. Trải nghiệm giao diện thi thật chuyên nghiệp, tra cứu từ vựng ngữ cảnh thông minh, chấm điểm tự động kèm giải thích chi tiết từng câu.
-      </p>
-
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-        <a href="#incontext" class="w-full sm:w-auto px-8 py-3.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-2xl shadow-xl shadow-red-500/20 transition transform hover:-translate-y-1 text-sm text-center">
-          Trải Nghiệm Ngay Miễn Phí
-        </a>
-        <a href="#features" class="w-full sm:w-auto px-8 py-3.5 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-800 dark:text-white font-bold rounded-2xl transition text-sm text-center">
-          Khám Phá Tính Năng ↓
-        </a>
-      </div>
-    </section>
-
-    <section id="features" class="py-10 my-6 reveal">
-  <div class="max-w-7xl mx-auto space-y-8">
-    
-    <div class="text-center space-y-3 max-w-3xl mx-auto">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-100 dark:bg-red-950/80 text-[#cf1717] dark:text-red-400 text-xs font-extrabold border border-red-200 dark:border-red-900">
-        <span>🔥 Tính Năng Mới Mắt</span>
-        <span>•</span>
-        <span>AI Pronunciation Check</span>
-      </div>
-      <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white leading-tight">
-        Luyện Phát Âm Chuẩn Xác & Theo Dõi Tiến Bộ
-      </h2>
-      <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-        Công nghệ nhận diện giọng nói AI giúp học sinh sửa lỗi phát âm tức thì và tự tin hơn trong mỗi bài đọc Tiếng Anh.
-      </p>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-      
-      <div class="lg:col-span-5 space-y-4">
-        
-        <div class="p-4 bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 shadow-sm flex items-start gap-3 transition hover:border-[#cf1717]">
-          <div class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-950/80 text-[#cf1717] flex items-center justify-center font-bold text-lg shrink-0">
-            🎙️
-          </div>
-          <div>
-            <h3 class="font-extrabold text-base text-gray-900 dark:text-white">Chấm Điểm Chuẩn Xác Từng Từ</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Hệ thống tự động phát hiện chính xác từ đọc đúng <span class="text-green-600 font-bold">(Xanh)</span> và từ phát âm chưa chuẩn <span class="text-red-600 font-bold">(Đỏ)</span>.
-            </p>
-          </div>
+<main>
+  <!-- ============ HERO ============ -->
+  <section class="ri-hero">
+    <div class="ri-wrap ri-hero__grid">
+      <div>
+        <p class="ri-eyebrow">Luyện Reading cùng tin tức thật</p>
+        <h1><span>Đọc tin tức thật.</span><span class="ri-mark">Học từ vựng trong ngữ cảnh.</span></h1>
+        <p class="ri-lead">Bài Reading ngắn biên soạn từ báo chí thật, giao diện thi như thật, tra từ ngay trong bài và chấm điểm kèm giải thích từng câu.</p>
+        <div class="ri-hero__cta">
+          <a class="ri-btn ri-btn--primary" href="login.html">Đăng nhập để luyện tập <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+          <a class="ri-btn ri-btn--ghost" href="#tra-tu">Thử tra từ ngay <i class="bi bi-arrow-down" aria-hidden="true"></i></a>
         </div>
-
-        <div class="p-4 bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 shadow-sm flex items-start gap-3 transition hover:border-[#cf1717]">
-          <div class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-950/80 text-[#cf1717] flex items-center justify-center font-bold text-lg shrink-0">
-            📊
+        <ul class="ri-facts">
+          <li><i class="bi bi-journal-check" aria-hidden="true"></i><span>Chuẩn đề IELTS &amp; TOEIC</span></li>
+          <li><i class="bi bi-lightning-charge" aria-hidden="true"></i><span>Chấm điểm tức thì</span></li>
+          <li><i class="bi bi-phone" aria-hidden="true"></i><span>Dùng tốt trên điện thoại</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="ru-slider" id="ruSlider">
+          <div class="ru-track" id="ruTrack">
+            <div class="ru-slide"><img src="https://i.ibb.co/FLGp4FpT/Secure-Online-Exam-Experience.png" alt="Secure Online Exam Experience" draggable="false" loading="eager" fetchpriority="high" decoding="async"><div class="ru-shield"></div></div>
+            <div class="ru-slide"><img src="https://i.ibb.co/cc3ZGV4H/Read-Up-English-Learning-Dashboard.png" alt="Read Up English Learning Dashboard" draggable="false" loading="lazy" decoding="async"><div class="ru-shield"></div></div>
+            <div class="ru-slide"><img src="https://i.ibb.co/C5wY3dmj/Read-Up-English-Learning-Journey.png" alt="Read Up English Learning Journey" draggable="false" loading="lazy" decoding="async"><div class="ru-shield"></div></div>
+            <div class="ru-slide"><img src="https://i.ibb.co/svStdTKW/a5fcdb6f-276f-4d03-ab9c-7e7746597a81.png" alt="ReadUp English" draggable="false" loading="lazy" decoding="async"><div class="ru-shield"></div></div>
           </div>
-          <div>
-            <h3 class="font-extrabold text-base text-gray-900 dark:text-white">Biểu Đồ Trực Quan Tiến Bộ</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Tự động lưu lịch sử thực hành, vẽ biểu đồ đường theo dõi chỉ số % cải thiện qua từng ngày.
-            </p>
-          </div>
+          <button class="ru-arrow ru-prev" id="ruPrev" type="button" aria-label="Ảnh trước">&#8249;</button>
+          <button class="ru-arrow ru-next" id="ruNext" type="button" aria-label="Ảnh sau">&#8250;</button>
         </div>
-
-        <div class="p-4 bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 shadow-sm flex items-start gap-3 transition hover:border-[#cf1717]">
-          <div class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-950/80 text-[#cf1717] flex items-center justify-center font-bold text-lg shrink-0">
-            📚
-          </div>
-          <div>
-            <h3 class="font-extrabold text-base text-gray-900 dark:text-white">Kho Câu Mẫu Đa Dạng</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Thầy cô/Admin cập nhật linh hoạt các cụm từ quan trọng bám sát theo nội dung bài học trên lớp.
-            </p>
-          </div>
+        <div class="ru-dots" id="ruDots">
+          <button class="ru-dot active" type="button" aria-label="Ảnh 1"></button>
+          <button class="ru-dot" type="button" aria-label="Ảnh 2"></button>
+          <button class="ru-dot" type="button" aria-label="Ảnh 3"></button>
+          <button class="ru-dot" type="button" aria-label="Ảnh 4"></button>
         </div>
+      </div>
+    </div>
+  </section>
 
-        <div class="pt-2">
-          <a href="login.html" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-[#cf1717] hover:bg-red-700 text-white font-extrabold text-sm rounded-xl transition shadow-lg shadow-red-500/20">
-            <span>🚀 Trải Nghiệm Ngay Trên Dashboard</span>
-            <span>→</span>
-          </a>
+  <!-- ============ BÀI ĐĂNG MỚI (tự ẩn nếu chưa có bài) ============ -->
+  <section class="ri-posts-band" id="ruPostsWrap" style="display:none">
+    <div class="ri-wrap">
+      <div class="ri-posts-head">
+        <h2>Bài đăng mới</h2>
+        <a class="ri-link" href="post.html">Xem tất cả <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+      </div>
+      <div class="ru-posts-wrap">
+        <button class="ru-post-arrow ru-post-prev" id="ruPostPrev" type="button" aria-label="Bài trước">&#8249;</button>
+        <div class="ru-posts" id="ruPosts"></div>
+        <button class="ru-post-arrow ru-post-next" id="ruPostNext" type="button" aria-label="Bài sau">&#8250;</button>
+        <div class="ru-post-dots" id="ruPostDots"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ READ / LEARN / GROW ============ -->
+  <section class="ri-section reveal">
+    <div class="ri-wrap">
+      <p class="ri-eyebrow">Với phương châm</p>
+      <h2 class="ri-h2">Read. Learn. Grow.</h2>
+      <ol class="ri-steps">
+        <li class="ri-step"><span class="ri-step__no">01</span><h3>READ</h3><p>Đọc bài báo thực tế mỗi ngày được tinh chỉnh theo đúng chuẩn cấu trúc đề thi IELTS &amp; TOEIC.</p></li>
+        <li class="ri-step"><span class="ri-step__no">02</span><h3>LEARN</h3><p>Tra từ trong ngữ cảnh bài đọc, lưu bộ Collocation chuẩn xác kèm giải thích đáp án chi tiết.</p></li>
+        <li class="ri-step"><span class="ri-step__no">03</span><h3>GROW</h3><p>Theo dõi sự tăng trưởng tốc độ đọc hiểu và Band điểm qua hệ thống báo cáo trực quan.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ TRA TỪ IN-CONTEXT ============ -->
+  <section class="ri-section reveal" id="tra-tu" style="padding-top:24px">
+    <div class="ri-wrap ri-split">
+      <div>
+        <p class="ri-eyebrow">Thử ngay</p>
+        <h2 class="ri-h2">Chạm vào từ đỏ, hiểu nghĩa ngay trong câu.</h2>
+        <p class="ri-lead">Mỗi từ khó đều có phiên âm, nghĩa theo ngữ cảnh bài đọc và collocation đi kèm. Đây là bản dùng thử.</p>
+      </div>
+      <div class="ri-card ri-demo">
+        <div class="ri-demo__top"><span class="ri-tag">Real News • IELTS Band 7.5</span><span>Thời gian đọc: 1 phút</span></div>
+        <p class="ri-passage">Recent <button type="button" class="ri-word" data-w="0" aria-pressed="true">breakthroughs</button> in artificial intelligence have <button type="button" class="ri-word" data-w="1" aria-pressed="false">unprecedented</button> implications for global <button type="button" class="ri-word" data-w="2" aria-pressed="false">productivity</button> and economic development. Learning through authentic articles helps students build real-world vocabulary effortlessly.</p>
+        <div class="ri-def" data-d="0" aria-live="polite"><div class="ri-def__head"><strong>breakthrough</strong><span>/ˈbreɪk.θruː/ (n)</span></div><p>Bước đột phá, phát minh quan trọng.</p><em>Collocation: major breakthrough, technological breakthrough.</em></div>
+        <div class="ri-def" data-d="1" hidden><div class="ri-def__head"><strong>unprecedented</strong><span>/ʌnˈpres.ɪ.den.tɪd/ (adj)</span></div><p>Chưa từng có tiền lệ, vô tiền khoáng hậu.</p><em>Collocation: unprecedented growth, unprecedented level.</em></div>
+        <div class="ri-def" data-d="2" hidden><div class="ri-def__head"><strong>productivity</strong><span>/ˌprɒd.ʌkˈtɪv.ə.ti/ (n)</span></div><p>Năng suất, hiệu suất lao động.</p><em>Collocation: boost productivity, high productivity.</em></div>
+        <p class="ri-hint"><i class="bi bi-hand-index-thumb" aria-hidden="true"></i><span>Bấm vào các từ tô đỏ để xem nghĩa</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LUYỆN PHÁT ÂM ============ -->
+  <section class="ri-section reveal" style="padding-top:24px">
+    <div class="ri-wrap ri-split ri-split--flip">
+      <div>
+        <p class="ri-eyebrow">Luyện phát âm</p>
+        <h2 class="ri-h2">Nói xong là biết từ nào đúng, từ nào chưa.</h2>
+        <p class="ri-lead">Công nghệ nhận diện giọng nói AI giúp học sinh sửa lỗi phát âm tức thì và tự tin hơn trong mỗi bài đọc Tiếng Anh.</p>
+        <ul class="ri-points">
+          <li><i class="bi bi-mic" aria-hidden="true"></i><b>Chấm điểm từng từ</b><span>Từ đọc đúng tô xanh, từ chưa chuẩn tô đỏ.</span></li>
+          <li><i class="bi bi-graph-up-arrow" aria-hidden="true"></i><b>Biểu đồ tiến bộ</b><span>Lưu lịch sử luyện tập và vẽ biểu đồ cải thiện theo từng ngày.</span></li>
+          <li><i class="bi bi-chat-quote" aria-hidden="true"></i><b>Kho câu mẫu</b><span>Thầy cô cập nhật các cụm từ quan trọng bám sát bài học trên lớp.</span></li>
+        </ul>
+      </div>
+      <div class="ri-card ri-pron">
+        <div class="ri-pron__row"><span>Kết quả lần đọc này</span><span class="ri-score">5/6 từ đúng</span></div>
+        <p class="ri-say">“Reading comprehension is vital for students.”</p>
+        <div class="ri-chips" aria-hidden="true"><span class="ri-chip ok"><i class="bi bi-check2"></i>Reading</span><span class="ri-chip bad"><i class="bi bi-x"></i>comprehension</span><span class="ri-chip ok"><i class="bi bi-check2"></i>is</span><span class="ri-chip ok"><i class="bi bi-check2"></i>vital</span><span class="ri-chip ok"><i class="bi bi-check2"></i>for</span><span class="ri-chip ok"><i class="bi bi-check2"></i>students</span></div>
+        <div class="ri-chart">
+          <div class="ri-pron__row"><span>Biểu đồ tiến bộ</span></div>
+          <svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0 35 Q 20 25, 40 28 T 80 10 T 100 5 L 100 40 L 0 40 Z" stroke-width="0"/><path d="M0 35 Q 20 25, 40 28 T 80 10 T 100 5" fill="none" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>
+          <small>Minh họa: điểm qua 10 lượt đọc gần nhất</small>
         </div>
-
       </div>
+    </div>
+  </section>
 
-      <div class="lg:col-span-7 bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 p-5 shadow-xl relative overflow-hidden">
-        
-        <div class="flex items-center justify-between border-b dark:border-zinc-700 pb-3 mb-4">
-          <div class="flex items-center gap-1.5">
-            <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>
-            <span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>
-            <span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span>
-            <span class="text-xs font-bold text-gray-400 ml-2">Giao diện xem trước Luyện Phát Âm</span>
-          </div>
-          <span class="text-xs bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400 px-2 py-0.5 rounded-full font-bold">Live AI Active</span>
+  <!-- ============ DASHBOARD ============ -->
+  <section class="ri-section reveal" id="dashboard">
+    <div class="ri-wrap ri-dash">
+      <div class="ri-dash__lead">
+        <p class="ri-eyebrow">Bên trong dashboard</p>
+        <h2 class="ri-h2">Mọi công cụ học tập trong một nơi.</h2>
+        <p class="ri-lead">Đăng nhập một lần là có đủ lịch học, bài thi, luyện nói, luyện phát âm và thi đấu cùng bạn bè.</p>
+        <a class="ri-btn ri-btn--primary" href="login.html">Vào dashboard <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+      </div>
+      <div class="ri-feats">
+        <div class="ri-feat"><i class="bi bi-calendar3" aria-hidden="true"></i><h3>Lịch học &amp; bài thi</h3><p>Xem bài thi và thông báo từng ngày ngay trên lịch tháng.</p></div>
+        <div class="ri-feat"><i class="bi bi-collection" aria-hidden="true"></i><h3>Danh sách bài thi</h3><p>Kho bài Reading chia trang gọn gàng, chọn bài là làm ngay.</p></div>
+        <div class="ri-feat"><i class="bi bi-robot" aria-hidden="true"></i><h3>AI Speaking</h3><p>Trò chuyện tiếng Anh với trợ lý AI và nhận góp ý ngay khi luyện nói.</p></div>
+        <div class="ri-feat"><i class="bi bi-people" aria-hidden="true"></i><h3>Thi đấu cùng bạn bè</h3><p>Tạo phòng, gửi mã cho bạn và làm cùng một bài theo thời gian thực. Ai nhanh và đúng hơn lên bảng xếp hạng.</p></div>
+        <div class="ri-feat"><i class="bi bi-clock-history" aria-hidden="true"></i><h3>Lịch sử &amp; kết quả</h3><p>Xem lại điểm số và lời giải thích của mọi bài đã làm.</p></div>
+        <div class="ri-feat"><i class="bi bi-headset" aria-hidden="true"></i><h3>Hỗ trợ &amp; khảo sát</h3><p>Tạo yêu cầu hỗ trợ, theo dõi bằng mã riêng và gửi đánh giá ẩn danh.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ GIAO DIỆN THỰC TẾ ============ -->
+  <section class="ri-section reveal" style="padding-top:24px">
+    <div class="ri-wrap">
+      <p class="ri-eyebrow">Giao diện thực tế</p>
+      <h2 class="ri-h2">Làm bài thoải mái trên máy tính lẫn điện thoại.</h2>
+      <div class="ri-shots">
+        <figure class="ri-shot" style="margin:0"><div class="ri-shot__img"><img src="https://i.ibb.co/q3y9NWYY/Screenshot-2026-08-28-114232.png" alt="Minh họa giao diện làm bài" loading="lazy"></div><div><h3>Giao Diện Thi Chuẩn Máy Tính/Điện thoại</h3><p>Hỗ trợ chia đôi màn hình đọc - trả lời câu hỏi mượt mà, đồng hồ đếm ngược tự động.</p></div></figure>
+        <figure class="ri-shot" style="margin:0"><div class="ri-shot__img"><img src="https://i.ibb.co/cKwJ1DQ6/Screenshot-2026-08-28-124444.png" alt="Minh họa tính năng tra từ" loading="lazy"></div><div><h3>Tra Từ Vựng In-Context &amp; Highlight</h3><p>Bấm tra từ trực tiếp trong bài đọc, lưu từ vựng đắt giá kèm phiên âm IPA chuẩn xác.</p></div></figure>
+        <figure class="ri-shot" style="margin:0"><div class="ri-shot__img"><img src="https://i.ibb.co/gMT1XQ9J/Screenshot-2026-08-28-124513.png" alt="Announcement" loading="lazy"></div><div><h3>Tin Tức &amp; Thông Báo Mới</h3><p>Cập nhật những tin tức, thông báo và nội dung mới nhất từ ReadUp English.</p></div></figure>
+        <figure class="ri-shot" style="margin:0"><div class="ri-shot__img"><img src="https://i.ibb.co/0R90p4wT/Screenshot-2026-08-28-124530.png" alt="Easy to use" loading="lazy"></div><div><h3>Giao diện trực quan – Thao tác dễ dàng</h3><p>ReadUp English được thiết kế với giao diện đơn giản, rõ ràng và thân thiện với người dùng. Các chức năng được bố trí khoa học, giúp người học dễ dàng tìm kiếm và thực hiện các thao tác cần thiết.</p></div></figure>
+      </div>
+      <div class="ri-video">
+        <iframe src="https://www.youtube.com/embed/IcxjDmbcfzo?autoplay=1&amp;mute=1&amp;loop=1&amp;playlist=IcxjDmbcfzo" title="ReadUp English" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HỎI ĐÁP ============ -->
+  <section class="ri-section reveal" id="faq" style="padding-top:24px">
+    <div class="ri-wrap ri-faq">
+      <div>
+        <p class="ri-eyebrow">Hỏi đáp</p>
+        <h2 class="ri-h2">Câu hỏi thường gặp</h2>
+        <p class="ri-lead">Những điều học viên hay hỏi trước khi bắt đầu</p>
+      </div>
+      <div>
+        <details><summary>ReadUp English dành cho ai?<i class="bi bi-plus-lg" aria-hidden="true"></i></summary><p>Dành cho học viên luyện IELTS Reading và những ai muốn mở rộng vốn từ vựng qua các bài báo thực tế.</p></details>
+        <details><summary>Tôi dùng được trên điện thoại không?<i class="bi bi-plus-lg" aria-hidden="true"></i></summary><p>Được. Giao diện làm bài, tra từ và dashboard đều hiển thị tốt trên cả máy tính và điện thoại.</p></details>
+        <details><summary>Luyện phát âm cần chuẩn bị gì?<i class="bi bi-plus-lg" aria-hidden="true"></i></summary><p>Bạn chỉ cần có micro và cho phép trình duyệt truy cập micro khi được hỏi.</p></details>
+        <details><summary>Tôi gặp lỗi thì liên hệ thế nào?<i class="bi bi-plus-lg" aria-hidden="true"></i></summary><p>Mở mục Hỗ trợ trực tuyến trong dashboard để tạo yêu cầu và theo dõi bằng mã riêng, hoặc gửi email về readupenglish.team@gmail.com.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CTA ============ -->
+  <section class="reveal">
+    <div class="ri-wrap">
+      <div class="ri-cta">
+        <div><h2>Bắt Đầu Bài Đọc Đầu Tiên Hôm Nay</h2><p>Đăng nhập và làm ngay một bài Reading chỉ trong vài phút.</p></div>
+        <a class="ri-btn" href="login.html">Đăng nhập <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="ri-footer">
+  <div class="ri-wrap">
+    <div class="ri-footer__grid">
+      <div>
+        <a class="ri-brand" href="index.html"><span class="ri-brand__logo"><img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="" width="30" height="30" loading="lazy"></span><span class="ri-brand__name" data-ru-i18n-skip>ReadUp<small>English</small></span></a>
+        <p class="about">Nền tảng luyện thi IELTS Reading thông minh, tối ưu hóa vốn từ vựng theo ngữ cảnh.</p>
+      </div>
+      <div>
+        <h4>Khám phá</h4>
+        <ul>
+          <li><a href="#tra-tu">Trải nghiệm</a></li>
+          <li><a href="#dashboard">Dashboard</a></li>
+          <li><a href="post.html">Bài đăng</a></li>
+          <li><a href="login.html">Giáo viên / Admin</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Liên hệ</h4>
+        <ul><li><a href="mailto:readupenglish.team@gmail.com">readupenglish.team@gmail.com</a></li></ul>
+        <div class="ri-social" style="margin-top:16px">
+          <a href="https://www.tiktok.com/@readupenglish" target="_blank" rel="noopener" aria-label="TikTok"><svg viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.98-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.82.56-1.32 1.56-1.28 2.55.02.82.42 1.61 1.08 2.1 1.03.82 2.53.87 3.6.13.71-.48 1.18-1.28 1.25-2.13.06-3.81.02-7.63.03-11.44z"/></svg></a>
+          <a href="https://www.youtube.com/@readupenglishteam" target="_blank" rel="noopener" aria-label="YouTube"><svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.376.505A3.016 3.016 0 0 0 .502 6.186C0 8.063 0 12 0 12s0 3.937.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.376-.505a3.016 3.016 0 0 0 2.122-2.136C24 15.937 24 12 24 12s0-3.937-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
         </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          
-          <div class="p-3.5 bg-gray-50 dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-700 space-y-3">
-            <div class="flex justify-between items-center text-xs">
-              <span class="font-bold text-gray-500">Mục tiêu đọc:</span>
-              <span class="font-extrabold text-green-600 bg-green-100 dark:bg-green-950 px-2 py-0.5 rounded-full">85% Đúng</span>
-            </div>
-            <p class="text-xs font-bold text-gray-800 dark:text-gray-200 bg-white dark:bg-zinc-800 p-2.5 rounded-lg border border-gray-100 dark:border-zinc-700">
-              "Reading comprehension is vital for students."
-            </p>
-            <div class="text-xs leading-relaxed font-semibold">
-              <span class="text-green-600 bg-green-100 dark:bg-green-950/60 px-1 py-0.5 rounded">✓ reading</span>
-              <span class="text-green-600 bg-green-100 dark:bg-green-950/60 px-1 py-0.5 rounded">✓ comprehension</span>
-              <span class="text-red-600 bg-red-100 dark:bg-red-950/60 px-1 py-0.5 rounded line-through">✗ is</span>
-              <span class="text-green-600 bg-green-100 dark:bg-green-950/60 px-1 py-0.5 rounded">✓ vital</span>
-            </div>
-          </div>
-
-          <div class="p-3.5 bg-gray-50 dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-700 flex flex-col justify-between">
-            <div class="flex justify-between items-center text-xs">
-              <span class="font-bold text-gray-500">Biểu đồ tiến bộ:</span>
-              <span class="text-xs text-red-600 dark:text-red-400 font-extrabold">📈 Tăng 30%</span>
-            </div>
-            <div class="py-2">
-              <svg class="w-full h-24 stroke-[#cf1717] fill-red-500/10" viewBox="0 0 100 40">
-                <path d="M0 35 Q 20 25, 40 28 T 80 10 T 100 5 L 100 40 L 0 40 Z" stroke-width="0" />
-                <path d="M0 35 Q 20 25, 40 28 T 80 10 T 100 5" fill="none" stroke-width="2.5" />
-                <circle cx="100" cy="5" r="3" class="fill-[#cf1717]" />
-              </svg>
-            </div>
-            <p class="text-[10px] text-gray-400 text-center italic">Đồ thị minh họa điểm số qua 10 lượt đọc gần nhất</p>
-          </div>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-</section>
-
-
-       <!-- ================= KHUNG DEMO INTERACTIVE: TRA TỪ IN-CONTEXT ================= -->
-<section id="incontext" class="space-y-6 reveal">
-  <div class="text-center space-y-2">
-    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold border border-amber-500/20">
-      <span>✨ Trải Nghệm Tương Tác Trực Tiếp</span>
-    </div>
-    <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white">Tính Năng Tra Từ In-Context</h2>
-    <p class="text-xs text-gray-500 dark:text-gray-400">Rê chuột hoặc chạm vào các từ tô đỏ bên dưới để trải nghiệm khả năng dịch từ ngữ cảnh thông minh</p>
-  </div>
-
-  <!-- Khung Bài Đọc Mẫu Demo -->
-  <div class="max-w-3xl mx-auto p-6 sm:p-8 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 shadow-xl space-y-6">
-    
-    <!-- Header Thẻ Báo -->
-    <div class="flex items-center justify-between border-b border-gray-200/60 dark:border-zinc-800 pb-4">
-      <div class="flex items-center gap-2">
-        <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
-        <span class="text-xs font-bold text-[#cf1717] dark:text-red-400 bg-red-500/10 px-3 py-1 rounded-full border border-red-500/20">
-          📰 Real News • IELTS Band 7.5
-        </span>
-      </div>
-      <span class="text-xs font-semibold text-gray-400">⏱️ Reading Time: 1 min</span>
-    </div>
-
-    <!-- Nội dung đoạn văn mẫu chứa từ vựng tương tác -->
-    <p class="text-sm sm:text-base leading-relaxed text-gray-800 dark:text-gray-200">
-      Recent 
-      
-      <!-- TỪ 1: breakthroughs -->
-      <span class="relative inline-block group cursor-pointer">
-        <strong class="text-[#cf1717] dark:text-red-400 underline decoration-red-500/40 decoration-2 underline-offset-4 hover:bg-red-500/10 px-1 rounded transition">breakthroughs</strong>
-        
-        <!-- POPUP TOOLTIP TỪ VỰNG -->
-          <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 hidden group-hover:flex flex-col w-64 p-3.5 bg-zinc-900/95 text-white dark:bg-white/95 dark:text-zinc-900 rounded-2xl shadow-2xl z-50 text-xs space-y-1.5 pointer-events-none transition border border-zinc-700 dark:border-gray-200 backdrop-blur-md">
-          <span class="flex justify-between items-center border-b border-zinc-700/60 dark:border-gray-200/60 pb-1.5">
-          <strong class="text-amber-400 dark:text-[#cf1717] font-black text-sm">breakthrough</strong>
-          <span class="text-[10px] text-gray-400 dark:text-gray-500 font-mono">/ˈbreɪk.θruː/ (n)</span>
-          </span>
-          <span class="block font-bold text-gray-100 dark:text-gray-800">👉 Bước đột phá, phát minh quan trọng.</span>
-          <span class="block text-[11px] text-amber-300 dark:text-amber-700 italic">Collocation: major breakthrough, technological breakthrough.</span>
-        </span>
-      </span> 
-      
-      in artificial intelligence have 
-
-      <!-- TỪ 2: unprecedented -->
-      <span class="relative inline-block group cursor-pointer">
-        <strong class="text-[#cf1717] dark:text-red-400 underline decoration-red-500/40 decoration-2 underline-offset-4 hover:bg-red-500/10 px-1 rounded transition">unprecedented</strong>
-        
-        <!-- POPUP TOOLTIP TỪ VỰNG -->
-        <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 hidden group-hover:flex flex-col w-64 p-3.5 bg-zinc-900/95 text-white dark:bg-white/95 dark:text-zinc-900 rounded-2xl shadow-2xl z-50 text-xs space-y-1.5 pointer-events-none transition border border-zinc-700 dark:border-gray-200 backdrop-blur-md">
-          <span class="flex justify-between items-center border-b border-zinc-700/60 dark:border-gray-200/60 pb-1.5">
-            <strong class="text-amber-400 dark:text-[#cf1717] font-black text-sm">unprecedented</strong>
-            <span class="text-[10px] text-gray-400 dark:text-gray-500 font-mono">/ʌnˈpres.ɪ.den.tɪd/ (adj)</span>
-          </span>
-          <span class="block font-bold text-gray-100 dark:text-gray-800">👉 Chưa từng có tiền lệ, vô tiền khoáng hậu.</span>
-          <span class="block text-[11px] text-amber-300 dark:text-amber-700 italic">Collocation: unprecedented growth, unprecedented level.</span>
-        </span>
-      </span> 
-
-      implications for global 
-
-      <!-- TỪ 3: productivity -->
-      <span class="relative inline-block group cursor-pointer">
-        <strong class="text-[#cf1717] dark:text-red-400 underline decoration-red-500/40 decoration-2 underline-offset-4 hover:bg-red-500/10 px-1 rounded transition">productivity</strong>
-        
-        <!-- POPUP TOOLTIP TỪ VỰNG -->
-        <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 hidden group-hover:flex flex-col w-64 p-3.5 bg-zinc-900/95 text-white dark:bg-white/95 dark:text-zinc-900 rounded-2xl shadow-2xl z-50 text-xs space-y-1.5 pointer-events-none transition border border-zinc-700 dark:border-gray-200 backdrop-blur-md">
-          <span class="flex justify-between items-center border-b border-zinc-700/60 dark:border-gray-200/60 pb-1.5">
-            <strong class="text-amber-400 dark:text-[#cf1717] font-black text-sm">productivity</strong>
-            <span class="text-[10px] text-gray-400 dark:text-gray-500 font-mono">/ˌprɒd.ʌkˈtɪv.ə.ti/ (n)</span>
-          </span>
-          <span class="font-bold text-gray-100 dark:text-gray-800">👉 Năng suất, hiệu suất lao động.</span>
-          <span class="text-[11px] text-amber-300 dark:text-amber-700 italic">Collocation: boost productivity, high productivity.</span>
-        </span>
-      </span> 
-
-      and economic development. Learning through authentic articles helps students build real-world vocabulary effortlessly.
-    </p>
-
-    <!-- Footer Hướng Dẫn Nhanh -->
-    <div class="pt-2 flex items-center justify-between text-[11px] text-gray-400 dark:text-gray-500 italic border-t border-gray-100 dark:border-zinc-800/80">
-      <span>💡 Mẹo: Rê chuột vào các từ tô đỏ để trải nghiệm</span>
-      <span class="text-[#cf1717] dark:text-red-400 font-semibold">ReadUp In-Context Engine</span>
-    </div>
-
-  </div>
-</section>
-    
-    
-  <!-- KHỐI BÀI HỌC READ - LEARN - GROW -->
-    <section class="space-y-8 max-w-4xl mx-auto px-4 py-8 reveal">
-  <div class="text-center space-y-2">
-    <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white">Với phương châm</h2>
-  </div>
-
-  <div class="relative flex flex-col items-center justify-center pt-8">
-    <!-- Khung vòng tròn chứa các Icon -->
-    <div class="relative w-64 h-64 flex items-center justify-center">
-      <!-- Vòng tròn viền trang trí -->
-      <div class="absolute inset-0 rounded-full border-2 border-dashed border-gray-200 dark:border-zinc-800 pointer-events-none"></div>
-
-      <!-- Icon 01: READ -->
-      <button onclick="setActiveStep(0)" id="step-node-0" class="absolute flex flex-col items-center justify-center transition-all duration-700 ease-in-out cursor-pointer focus:outline-none group">
-        <div class="w-14 h-14 rounded-2xl bg-red-100 dark:bg-red-950/60 text-[#cf1717] flex items-center justify-center font-black text-lg shadow-md group-hover:scale-110 transition-transform">01</div>
-        <span id="label-0" class="font-black text-sm mt-1 text-gray-900 dark:text-white tracking-wide">READ</span>
-      </button>
-
-      <!-- Icon 02: LEARN -->
-      <button onclick="setActiveStep(1)" id="step-node-1" class="absolute flex flex-col items-center justify-center transition-all duration-700 ease-in-out cursor-pointer focus:outline-none group">
-        <div class="w-14 h-14 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-500 flex items-center justify-center font-black text-lg shadow-md group-hover:scale-110 transition-transform">02</div>
-        <span id="label-1" class="font-black text-sm mt-1 text-gray-900 dark:text-white tracking-wide">LEARN</span>
-      </button>
-
-      <!-- Icon 03: GROW -->
-      <button onclick="setActiveStep(2)" id="step-node-2" class="absolute flex flex-col items-center justify-center transition-all duration-700 ease-in-out cursor-pointer focus:outline-none group">
-        <div class="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-500 flex items-center justify-center font-black text-lg shadow-md group-hover:scale-110 transition-transform">03</div>
-        <span id="label-2" class="font-black text-sm mt-1 text-gray-900 dark:text-white tracking-wide">GROW</span>
-      </button>
-    </div>
-
-    <!-- Khung hiển thị thông tin chi tiết phía dưới -->
-    <div class="mt-6 w-full max-w-md p-6 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 text-center transition-all duration-300 min-h-[120px] flex flex-col justify-center shadow-sm">
-      <h3 id="active-title" class="font-black text-xl text-gray-900 dark:text-white tracking-wide">READ</h3>
-      <p id="active-desc" class="text-xs text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">Đọc bài báo thực tế mỗi ngày được tinh chỉnh theo đúng chuẩn cấu trúc đề thi IELTS & TOEIC.</p>
-    </div>
-  </div>
-</section>
-
-
-
-    <!-- KHOẢNG TỔNG QUAN / STATS -->
-    <section class="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md rounded-3xl border border-gray-200/50 dark:border-zinc-800/50 text-center reveal">
-      <div class="space-y-1">
-        <div class="text-2xl sm:text-3xl font-black text-[#cf1717]">News</div>
-        <div class="text-xs text-gray-500">Cập nhật tin tức mới</div>
-      </div>
-      <div class="space-y-1">
-        <div class="text-2xl sm:text-3xl font-black text-amber-500">100%</div>
-        <div class="text-xs text-gray-500">Giải Thích Chi Tiết</div>
-      </div>
-      <div class="space-y-1">
-        <div class="text-2xl sm:text-3xl font-black text-indigo-500">Fast</div>
-        <div class="text-xs text-gray-500">Chấm Điểm Tức Thì</div>
-      </div>
-      <div class="space-y-1">
-        <div class="text-2xl sm:text-3xl font-black text-green-500">24/7</div>
-        <div class="text-xs text-gray-500">Hỗ Trợ Trực Tuyến</div>
-      </div>
-    </section>
-
-    <!-- ================= (MỚI) KHÁM PHÁ DASHBOARD ================= -->
-    <section id="dashboard-features" class="space-y-8 max-w-6xl mx-auto px-4 reveal">
-      <div class="text-center space-y-2 max-w-2xl mx-auto">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-100 dark:bg-red-950/80 text-[#cf1717] dark:text-red-400 text-xs font-extrabold border border-red-200 dark:border-red-900">🧭 Bên Trong Dashboard</div>
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">Mọi Công Cụ Học Tập Trong Một Nơi</h2>
-        <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Chỉ cần đăng nhập một lần, học viên có đầy đủ lịch học, bài thi, luyện nói, luyện phát âm và thi đấu cùng bạn bè.</p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
-
-        <!-- Lịch học -->
-        <div class="md:col-span-3 p-5 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] hover:shadow-xl transition group">
-          <div class="flex items-center gap-3">
-            <div class="w-11 h-11 rounded-2xl bg-red-100 dark:bg-red-950/60 flex items-center justify-center text-xl group-hover:scale-110 transition">📅</div>
-            <h3 class="font-extrabold text-base text-gray-900 dark:text-white">Lịch Học & Bài Thi Reading</h3>
-          </div>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Xem bài thi và thông báo của từng ngày ngay trên lịch tháng, bấm vào ngày để xem chi tiết.</p>
-          <div class="mt-4 grid grid-cols-7 gap-1 text-center text-[11px] font-semibold">
-            <span class="text-gray-400">T2</span><span class="text-gray-400">T3</span><span class="text-gray-400">T4</span><span class="text-gray-400">T5</span><span class="text-gray-400">T6</span><span class="text-gray-400">T7</span><span class="text-gray-400">CN</span>
-            <span class="py-1 rounded-lg bg-gray-100 dark:bg-zinc-800">1</span><span class="py-1 rounded-lg bg-red-100 dark:bg-red-950 text-[#cf1717]">2</span><span class="py-1 rounded-lg bg-gray-100 dark:bg-zinc-800">3</span><span class="py-1 rounded-lg bg-gray-100 dark:bg-zinc-800">4</span><span class="py-1 rounded-lg bg-[#cf1717] text-white">5</span><span class="py-1 rounded-lg bg-gray-100 dark:bg-zinc-800">6</span><span class="py-1 rounded-lg bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400">7</span>
-          </div>
-        </div>
-
-        <!-- AI Speaking -->
-        <div class="md:col-span-3 p-5 bg-gradient-to-br from-red-600 to-[#cf1717] text-white rounded-3xl shadow-xl">
-          <div class="flex items-center gap-3">
-            <div class="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center text-xl">🎙️</div>
-            <h3 class="font-extrabold text-base">AI Speaking Assistant</h3>
-          </div>
-          <p class="text-xs text-red-100 mt-2">Trò chuyện bằng tiếng Anh với trợ lý AI và nhận góp ý ngay trong lúc luyện nói.</p>
-          <div class="mt-4 space-y-2 text-xs">
-            <div class="bg-white/15 rounded-2xl rounded-bl-sm px-3 py-2 max-w-[85%]">Describe a news article you read recently.</div>
-            <div class="bg-white text-gray-900 rounded-2xl rounded-br-sm px-3 py-2 max-w-[85%] ml-auto">I read about AI in education. It is very interesting.</div>
-          </div>
-        </div>
-
-        <!-- Phát âm -->
-        <div class="md:col-span-2 p-5 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] hover:shadow-xl transition group">
-          <div class="flex items-center gap-3">
-            <div class="w-11 h-11 rounded-2xl bg-amber-100 dark:bg-amber-950/60 flex items-center justify-center text-xl group-hover:scale-110 transition">🔊</div>
-            <h3 class="font-extrabold text-base text-gray-900 dark:text-white">Luyện Phát Âm</h3>
-          </div>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Từ đọc đúng tô xanh, từ chưa chuẩn tô đỏ, kèm biểu đồ tiến bộ.</p>
-          <p class="mt-3 text-xs font-semibold leading-7">
-            <span class="text-green-600 bg-green-100 dark:bg-green-950/60 px-1 rounded">reading</span>
-            <span class="text-green-600 bg-green-100 dark:bg-green-950/60 px-1 rounded">vital</span>
-            <span class="text-red-600 bg-red-100 dark:bg-red-950/60 px-1 rounded">comprehension</span>
-          </p>
-        </div>
-
-        <!-- Phòng thi đấu -->
-        <div class="md:col-span-4 p-5 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] hover:shadow-xl transition group grid sm:grid-cols-2 gap-5">
-          <div>
-            <div class="flex items-center gap-3">
-              <div class="w-11 h-11 rounded-2xl bg-indigo-100 dark:bg-indigo-950/60 flex items-center justify-center text-xl group-hover:scale-110 transition">👥</div>
-              <h3 class="font-extrabold text-base text-gray-900 dark:text-white">Luyện Tập Cùng Bạn Bè</h3>
-            </div>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Tạo phòng thi đấu, gửi mã cho bạn bè và cùng làm một bài theo thời gian thực. Ai nhanh và đúng hơn sẽ lên bảng xếp hạng.</p>
-            <div class="mt-3 inline-flex items-center gap-2 text-xs font-bold border border-dashed border-[#cf1717] text-[#cf1717] dark:text-red-400 rounded-xl px-3 py-1.5">🔑 Mã phòng: <span class="tracking-widest">K7X2QP</span></div>
-          </div>
-          <ol class="space-y-2 text-xs self-center">
-            <li class="flex items-center gap-2 p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40"><span>🥇</span><b class="flex-1 text-gray-900 dark:text-white">Minh Anh</b><span class="font-extrabold">38/40</span></li>
-            <li class="flex items-center gap-2 p-2 rounded-xl bg-gray-50 dark:bg-zinc-800"><span>🥈</span><b class="flex-1 text-gray-900 dark:text-white">Gia Huy</b><span class="font-extrabold">36/40</span></li>
-            <li class="flex items-center gap-2 p-2 rounded-xl bg-gray-50 dark:bg-zinc-800"><span>🥉</span><b class="flex-1 text-gray-900 dark:text-white">Thu Hà</b><span class="font-extrabold">34/40</span></li>
-          </ol>
-        </div>
-
-        <!-- Các chức năng nhỏ -->
-        <div class="md:col-span-2 p-5 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] hover:shadow-xl transition group"><div class="text-2xl">📚</div><h3 class="font-extrabold text-sm mt-2 text-gray-900 dark:text-white">Danh Sách Bài Thi</h3><p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Kho bài Reading chia trang gọn gàng, chọn bài là làm ngay.</p></div>
-        <div class="md:col-span-2 p-5 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] hover:shadow-xl transition group"><div class="text-2xl">📜</div><h3 class="font-extrabold text-sm mt-2 text-gray-900 dark:text-white">Lịch Sử & Kết Quả</h3><p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Xem lại điểm số và lời giải thích của mọi bài đã làm.</p></div>
-        <div class="md:col-span-2 p-5 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] hover:shadow-xl transition group"><div class="text-2xl">📰</div><h3 class="font-extrabold text-sm mt-2 text-gray-900 dark:text-white">Tin Tức & Thông Báo</h3><p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Thầy cô đăng thông báo, học viên đọc ngay trên dashboard.</p></div>
-        <div class="md:col-span-3 p-5 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] hover:shadow-xl transition group"><div class="text-2xl">🎧</div><h3 class="font-extrabold text-sm mt-2 text-gray-900 dark:text-white">Hỗ Trợ Trực Tuyến</h3><p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Tạo yêu cầu hỗ trợ, nhận mã theo dõi riêng và kiểm tra tình trạng xử lý bất cứ lúc nào.</p></div>
-        <div class="md:col-span-3 p-5 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] hover:shadow-xl transition group"><div class="text-2xl">⭐</div><h3 class="font-extrabold text-sm mt-2 text-gray-900 dark:text-white">Khảo Sát Trải Nghiệm</h3><p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Gửi đánh giá ẩn danh về giao diện và trải nghiệm, không cần nêu tên.</p></div>
-      </div>
-
-      <div class="text-center">
-        <a href="login.html" class="inline-flex items-center gap-2 px-7 py-3 bg-[#cf1717] hover:bg-red-700 text-white font-extrabold text-sm rounded-2xl shadow-xl shadow-red-500/20 transition transform hover:-translate-y-1">Vào Dashboard Ngay →</a>
-      </div>
-    </section>
-
-    <!-- TÍNH NĂNG NỔI BẬT -->
-    <section id="features" class="space-y-10 max-w-6xl mx-auto px-4 reveal">
-  <div class="text-center space-y-2">
-    <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white">Tại Sao Nên Chọn ReadUp English?</h2>
-    <p class="text-xs text-gray-500">Công cụ học tập thiết kế riêng cho học viên luyện thi IELTS Reading.</p>
-  </div>
-
-  <div class="flex flex-col md:flex-row gap-6 w-full">
-    <div class="flex-1 hover:flex-[1.35] transition-all duration-500 ease-in-out p-6 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] group space-y-3">
-      <div class="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-950/60 text-[#cf1717] flex items-center justify-center text-xl font-bold group-hover:scale-110 transition">
-        📖
-      </div>
-      <h3 class="font-bold text-base text-gray-900 dark:text-white">Giao Diện Thi Chuẩn IELTS</h3>
-      <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-        Hỗ trợ Highlight văn bản, đồng hồ đếm ngược tự động nộp bài và tích hợp bộ công cụ hỗ trợ mượt mà trên cả PC lẫn Điện thoại.
-      </p>
-    </div>
-
-    <div class="flex-1 hover:flex-[1.35] transition-all duration-500 ease-in-out p-6 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] group space-y-3">
-      <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-500 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition">
-        💡
-      </div>
-      <h3 class="font-bold text-base text-gray-900 dark:text-white">Từ Vựng In-Context & Collocation</h3>
-      <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-        Không chỉ có nghĩa từ, hệ thống cung cấp IPA chuẩn, giải nghĩa chuẩn ngữ cảnh bài đọc và cụm từ đắt giá giúp tăng vốn từ Writing/Speaking.
-      </p>
-    </div>
-
-    <div class="flex-1 hover:flex-[1.35] transition-all duration-500 ease-in-out p-6 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] group space-y-3">
-      <div class="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-500 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition">
-        🎧
-      </div>
-      <h3 class="font-bold text-base text-gray-900 dark:text-white">Hỗ Trợ & Khảo Sát Nhanh Chóng</h3>
-      <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-        Hệ thống Ticket hỗ trợ trực tuyến có mã theo dõi riêng và mục Khảo sát đánh giá giúp cộng đồng đóng góp cải thiện nền tảng liên tục.
-      </p>
-    </div>
-  </div>
-</section>
-
-    <!-- ================= 1. KHU VỰC HÌNH ẢNH MINH HỌA GIAO DIỆN ================= -->
-<section class="space-y-6 reveal">
-  <div class="text-center space-y-2">
-    <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white">Giao Diện Thực Tế</h2>
-    <p class="text-xs text-gray-500 dark:text-gray-400">Trải nghiệm không gian làm bài hiện đại, tối ưu cho máy tính và thiết bị di động</p>
-  </div>
-
-  <!-- Lưới 2 Ảnh Ngang Tỉ Lệ 16:9 -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    
-    <!-- KHUNG ẢNH 1 (Ngang 16:9) -->
-    <div class="group relative rounded-3xl overflow-hidden border border-gray-200/60 dark:border-zinc-800/60 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md shadow-lg transition hover:shadow-2xl hover:border-[#cf1717]/50">
-      <!-- Tỉ lệ 16:9 ngang (aspect-video) -->
-      <div class="aspect-video w-full overflow-hidden bg-gray-100 dark:bg-zinc-800">
-        <img src="https://i.ibb.co/q3y9NWYY/Screenshot-2026-08-28-114232.png" alt="Minh họa giao diện làm bài" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-      </div>
-      <div class="p-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm border-t border-gray-100 dark:border-zinc-800">
-        <h3 class="font-bold text-sm text-gray-900 dark:text-white">Giao Diện Thi Chuẩn Máy Tính/Điện thoại</h3>
-        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Hỗ trợ chia đôi màn hình đọc - trả lời câu hỏi mượt mà, đồng hồ đếm ngược tự động.</p>
       </div>
     </div>
-
-    <!-- KHUNG ẢNH 2 (Ngang 16:9) -->
-    <div class="group relative rounded-3xl overflow-hidden border border-gray-200/60 dark:border-zinc-800/60 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md shadow-lg transition hover:shadow-2xl hover:border-[#cf1717]/50">
-      <!-- Tỉ lệ 16:9 ngang (aspect-video) -->
-      <div class="aspect-video w-full overflow-hidden bg-gray-100 dark:bg-zinc-800">
-        <img src="https://i.ibb.co/gMT1XQ9J/Screenshot-2026-08-28-124513.png" alt="Announcement" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-      </div>
-      <div class="p-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm border-t border-gray-100 dark:border-zinc-800">
-        <h3 class="font-bold text-sm text-gray-900 dark:text-white">Tin Tức & Thông Báo Mới</h3>
-        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cập nhật những tin tức, thông báo và nội dung mới nhất từ ReadUp English.</p>
-      </div>
-    </div>
-
-    <!-- KHUNG ẢNH 4 (Ngang 16:9) -->
-    <div class="group relative rounded-3xl overflow-hidden border border-gray-200/60 dark:border-zinc-800/60 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md shadow-lg transition hover:shadow-2xl hover:border-[#cf1717]/50">
-      <!-- Tỉ lệ 16:9 ngang (aspect-video) -->
-      <div class="aspect-video w-full overflow-hidden bg-gray-100 dark:bg-zinc-800">
-        <img src="https://i.ibb.co/cKwJ1DQ6/Screenshot-2026-08-28-124444.png" alt="Minh họa tính năng tra từ" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-      </div>
-      <div class="p-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm border-t border-gray-100 dark:border-zinc-800">
-        <h3 class="font-bold text-sm text-gray-900 dark:text-white">Tra Từ Vựng In-Context & Highlight</h3>
-        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Bấm tra từ trực tiếp trong bài đọc, lưu từ vựng đắt giá kèm phiên âm IPA chuẩn xác.</p>
-      </div>
-    </div>
-
-
-
-
-    <!-- KHUNG ẢNH 3 (Ngang 16:9) -->
-    <div class="group relative rounded-3xl overflow-hidden border border-gray-200/60 dark:border-zinc-800/60 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md shadow-lg transition hover:shadow-2xl hover:border-[#cf1717]/50">
-      <!-- Tỉ lệ 16:9 ngang (aspect-video) -->
-      <div class="aspect-video w-full overflow-hidden bg-gray-100 dark:bg-zinc-800">
-        <img src="https://i.ibb.co/0R90p4wT/Screenshot-2026-08-28-124530.png" alt="Easy to use" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-      </div>
-      <div class="p-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm border-t border-gray-100 dark:border-zinc-800">
-        <h3 class="font-bold text-sm text-gray-900 dark:text-white">Giao diện trực quan – Thao tác dễ dàng</h3>
-        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">ReadUp English được thiết kế với giao diện đơn giản, rõ ràng và thân thiện với người dùng. Các chức năng được bố trí khoa học, giúp người học dễ dàng tìm kiếm và thực hiện các thao tác cần thiết.</p>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- 
-    💡 HƯỚNG DẪN CHUYỂN KHUNG ẢNH NẰM DỌC (Ví dụ: Ảnh ứng dụng điện thoại / Poster):
-    - Đổi class `aspect-video` trong thẻ div chứa img thành:
-      + Tỉ lệ 3:4 ngang/dọc vừa phải  => `aspect-[3/4]`
-      + Tỉ lệ 9:16 dọc điện thoại      => `aspect-[9/16]`
-  -->
-</section>
-
-<section class="space-y-6 reveal"><!-- KHUNG VIDEO 3 (Ngang 16:9) -->
-<div class="group relative rounded-3xl overflow-hidden border border-gray-200/60 dark:border-zinc-800/60 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md shadow-lg transition hover:shadow-2xl hover:border-[#cf1717]/50">
-
-  <!-- Tỉ lệ 16:9 ngang -->
-  <div class="aspect-video w-full overflow-hidden bg-gray-100 dark:bg-zinc-800">
-
-    <iframe
-    class="w-full h-full"
-    src="https://www.youtube.com/embed/IcxjDmbcfzo?autoplay=1&mute=1&loop=1&playlist=IcxjDmbcfzo"
-    title="ReadUp English"
-    frameborder="0"
-    allow="autoplay; encrypted-media; picture-in-picture"
-    allowfullscreen>
-  </iframe>
-
-  </div>
-
-  <!------<div class="p-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm border-t border-gray-100 dark:border-zinc-800">------>
-
-    <!-- CHỮ / TIÊU ĐỀ - CÓ THỂ XÓA TOÀN BỘ PHẦN NÀY NẾU KHÔNG MUỐN -->
-    <!-----<h3 class="font-bold text-sm text-gray-900 dark:text-white">----->
-    <!----  Giao diện trực quan – Thao tác dễ dàng  ---->
-    <!-----</h3>----->
-    <!-----<p class="text-xs text-gray-500 dark:text-gray-400 mt-1"> ReadUp English được thiết kế với giao diện đơn giản, rõ ràng và thân thiện với người dùng.</p>----->
-    <!------</div>------>
-</div>
-</section>
-    
-
-<!-- ================= 2. CỤM HASHTAG CHỦ ĐỀ & TỪ KHÓA (WORD CLOUD) ================= -->
-<section class="space-y-6 reveal">
-  <div class="text-center space-y-2">
-    <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white">Chủ Đề & Từ Khóa Nổi Bật</h2>
-    <p class="text-xs text-gray-500 dark:text-gray-400">Lan tỏa tinh thần tự học IELTS Reading hiệu quả cùng cộng đồng ReadUp English</p>
-  </div>
-
-  <div class="p-8 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md rounded-3xl border border-gray-200/60 dark:border-zinc-800/60 shadow-xl flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-center">
-    
-    <!-- HASHTAG BẢN QUYỀN LỚN NHẤT (CÓ GRADIENT ĐỎ-VÀNG) -->
-    <span class="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#cf1717] via-red-600 to-amber-500 text-white font-black text-xl sm:text-3xl shadow-lg shadow-red-500/20 transform hover:scale-105 transition cursor-pointer select-none">
-      #ReadUpEnglish
-    </span>
-
-    <!-- HÀNG HASHTAG NỔI BẬT CẤP 2 -->
-    <span class="px-4 py-2 rounded-xl bg-red-100 dark:bg-red-950/80 text-[#cf1717] dark:text-red-400 font-extrabold text-base sm:text-xl border border-red-200 dark:border-red-900 hover:scale-105 transition cursor-pointer select-none">
-      #10PhutEnglish
-    </span>
-
-    <span class="px-4 py-2 rounded-xl bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 font-extrabold text-base sm:text-xl border border-amber-200 dark:border-amber-800 hover:scale-105 transition cursor-pointer select-none">
-      #IELTSReading
-    </span>
-
-    <span class="px-3.5 py-2 rounded-xl bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 font-bold text-sm sm:text-lg border border-indigo-200 dark:border-indigo-800 hover:scale-105 transition cursor-pointer select-none">
-      #EnglishVocabulary
-    </span>
-
-    <span class="px-3.5 py-2 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 font-bold text-sm sm:text-lg border border-emerald-200 dark:border-emerald-800 hover:scale-105 transition cursor-pointer select-none">
-      #HocIELTS
-    </span>
-
-    <!-- CÁC HASHTAG VỪA & NHỎ VỚI NHIỀU MAU TỰ DO -->
-    <span class="px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 font-semibold text-xs sm:text-sm border border-gray-200/60 dark:border-zinc-700 hover:scale-105 hover:text-[#cf1717] transition cursor-pointer select-none">
-      #EnglishReading
-    </span>
-
-    <span class="px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 font-semibold text-xs sm:text-sm border border-gray-200/60 dark:border-zinc-700 hover:scale-105 hover:text-[#cf1717] transition cursor-pointer select-none">
-      #HocTiengAnh
-    </span>
-
-    <span class="px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 font-semibold text-xs sm:text-sm border border-gray-200/60 dark:border-zinc-700 hover:scale-105 hover:text-[#cf1717] transition cursor-pointer select-none">
-      #LearnEnglish
-    </span>
-
-    <!-- HASHTAG BỔ SUNG THÊM CHO PHONG PHÚ -->
-    <span class="px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 font-semibold text-xs sm:text-sm border border-amber-200/50 dark:border-amber-900/50 hover:scale-105 transition cursor-pointer select-none">
-      #IELTSPrep
-    </span>
-
-    <span class="px-3 py-1.5 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 font-semibold text-xs sm:text-sm border border-red-200/50 dark:border-red-900/50 hover:scale-105 transition cursor-pointer select-none">
-      #IELTSVocabulary
-    </span>
-
-    <span class="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-semibold text-xs sm:text-sm border border-indigo-200/50 dark:border-indigo-900/50 hover:scale-105 transition cursor-pointer select-none">
-      #DailyEnglish
-    </span>
-
-    <span class="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-semibold text-xs sm:text-sm border border-emerald-200/50 dark:border-emerald-900/50 hover:scale-105 transition cursor-pointer select-none">
-      #SelfStudyIELTS
-    </span>
-
-    <span class="px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 font-semibold text-xs sm:text-sm border border-purple-200/50 dark:border-purple-900/50 hover:scale-105 transition cursor-pointer select-none">
-      #IELTS75Plus
-    </span>
-
-    <span class="px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-semibold text-xs sm:text-sm border border-sky-200/50 dark:border-sky-900/50 hover:scale-105 transition cursor-pointer select-none">
-      #SmartLearning
-    </span>
-
-  </div>
-</section>
-
-    
-    <!-- ================= (MỚI) HỎI ĐÁP + CTA ================= -->
-    <section id="faq" class="space-y-6 max-w-3xl mx-auto px-4 reveal">
-      <div class="text-center space-y-2">
-        <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white">Câu Hỏi Thường Gặp</h2>
-        <p class="text-xs text-gray-500 dark:text-gray-400">Những điều học viên hay hỏi trước khi bắt đầu</p>
-      </div>
-      <div class="space-y-3">
-      <details class="group p-4 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-2xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] transition">
-        <summary class="flex justify-between items-center gap-3 cursor-pointer font-bold text-sm text-gray-900 dark:text-white" style="list-style:none">ReadUp English dành cho ai?<span class="text-[#cf1717] transition group-open:rotate-45 text-lg leading-none">+</span></summary>
-        <p class="mt-3 text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Dành cho học viên luyện IELTS Reading và những ai muốn mở rộng vốn từ vựng qua các bài báo thực tế.</p>
-      </details>
-      <details class="group p-4 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-2xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] transition">
-        <summary class="flex justify-between items-center gap-3 cursor-pointer font-bold text-sm text-gray-900 dark:text-white" style="list-style:none">Tôi dùng được trên điện thoại không?<span class="text-[#cf1717] transition group-open:rotate-45 text-lg leading-none">+</span></summary>
-        <p class="mt-3 text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Được. Giao diện làm bài, tra từ và dashboard đều hiển thị tốt trên cả máy tính và điện thoại.</p>
-      </details>
-      <details class="group p-4 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-2xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] transition">
-        <summary class="flex justify-between items-center gap-3 cursor-pointer font-bold text-sm text-gray-900 dark:text-white" style="list-style:none">Luyện phát âm cần chuẩn bị gì?<span class="text-[#cf1717] transition group-open:rotate-45 text-lg leading-none">+</span></summary>
-        <p class="mt-3 text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Bạn chỉ cần có micro và cho phép trình duyệt truy cập micro khi được hỏi.</p>
-      </details>
-      <details class="group p-4 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-2xl border border-gray-200/60 dark:border-zinc-800/60 hover:border-[#cf1717] transition">
-        <summary class="flex justify-between items-center gap-3 cursor-pointer font-bold text-sm text-gray-900 dark:text-white" style="list-style:none">Tôi gặp lỗi thì liên hệ thế nào?<span class="text-[#cf1717] transition group-open:rotate-45 text-lg leading-none">+</span></summary>
-        <p class="mt-3 text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Mở mục Hỗ trợ trực tuyến trong dashboard để tạo yêu cầu và theo dõi bằng mã riêng, hoặc gửi email về readupenglish.team@gmail.com.</p>
-      </details>
-      </div>
-    </section>
-
-    <section class="max-w-4xl mx-auto px-4 reveal">
-      <div class="rounded-3xl bg-gradient-to-r from-red-600 to-[#cf1717] text-white text-center p-8 sm:p-12 shadow-2xl shadow-red-500/20 space-y-4">
-        <h2 class="text-2xl sm:text-3xl font-black">Bắt Đầu Bài Đọc Đầu Tiên Hôm Nay</h2>
-        <p class="text-sm text-red-100">Đăng nhập và làm ngay một bài Reading chỉ trong vài phút.</p>
-        <a href="login.html" class="inline-block px-8 py-3.5 bg-white text-[#cf1717] hover:bg-red-50 font-extrabold text-sm rounded-2xl transition transform hover:-translate-y-1">Vào Luyện Tập 🚀</a>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- SỬ DỤNG LẠI FOOTER BẠN ĐÃ CÓ Ở BÀI TRƯỚC -->
-<footer class="bg-zinc-900 text-gray-300 pt-10 pb-8 border-t border-zinc-800 text-xs">
-  <div class="max-w-6xl mx-auto px-4 text-center space-y-3">
-
-    <!-- 1. THÔNG TIN LIÊN HỆ -->
-    <div class="space-y-3 flex flex-col items-center">
-
-      <!-- Logo + tên -->
-      <div class="flex items-center justify-center gap-2">
-        <a href="index.html"
-           class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
-          <img
-            src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png"
-            alt="ReadUp Logo"
-            class="h-9 w-auto object-contain">
-        </a>
-
-        <span class="text-xl font-black text-[#cf1717]">ReadUp</span>
-
-        <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full">
-          English
-        </span>
-      </div>
-
-      <!-- Mô tả -->
-      <p class="text-gray-400 leading-relaxed">
-        Nền tảng luyện thi IELTS Reading thông minh, tối ưu hóa vốn từ vựng theo ngữ cảnh.
-      </p>
-
-      <!-- Email -->
-      <div class="space-y-1">
-        <p>
-          📧 Email:
-          <a href="mailto:readupenglish.team@gmail.com"
-             class="text-white hover:underline">
-            readupenglish.team@gmail.com
-          </a>
-        </p>
-      </div>
-
-      <!-- Mạng xã hội tiktok -->
-      <div class="flex items-center justify-center gap-3 pt-2">
-        <a href="https://www.tiktok.com/@readupenglish?"
-           target="_blank"
-           class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-gray-300 hover:bg-[#cf1717] hover:text-white transition">
-          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-            <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.98-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.82.56-1.32 1.56-1.28 2.55.02.82.42 1.61 1.08 2.1 1.03.82 2.53.87 3.6.13.71-.48 1.18-1.28 1.25-2.13.06-3.81.02-7.63.03-11.44z"/>
-          </svg>
-        </a>
-      <!-- Mạng xã hội youtube -->
-        <a href="https://www.youtube.com/@readupenglishteam"
-           target="_blank"
-           class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-gray-300 hover:bg-[#cf1717] hover:text-white transition">
-          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.376.505A3.016 3.016 0 0 0 .502 6.186C0 8.063 0 12 0 12s0 3.937.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.376-.505a3.016 3.016 0 0 0 2.122-2.136C24 15.937 24 12 24 12s0-3.937-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-          </svg>
-        </a>
-      </div>
-    </div>
-
-    <!-- Copyright -->
-    <p class="text-gray-400">
-      ReadUp English © 2026 - Nền tảng luyện thi IELTS Reading thông minh.
-    </p>
-
-    <!-- Navigation -->
-    <div class="flex justify-center gap-4 text-gray-500">
-      <a href="login.html" class="hover:text-white transition">
-        Dashboard
-      </a>
-
-      <a href="login.html" class="hover:text-white transition">
-        Quản Trị Admin
-      </a>
-    </div>
-
+    <div class="ri-footer__bottom"><button type="button" class="ri-theme-foot" onclick="toggleDarkMode()"><i class="bi bi-moon-stars ri-ico-moon"></i><i class="bi bi-sun ri-ico-sun"></i><span>Đổi giao diện sáng/tối</span></button><span>ReadUp English © 2026 - Nền tảng luyện thi IELTS Reading thông minh.</span><span>#ReadUpEnglish · #10PhutEnglish · #IELTSReading</span></div>
   </div>
 </footer>
 
-
-  
-  
-
-  <!-- ================= DẢI "BÀI ĐĂNG" CẠNH PHẢI + NÚT EMAIL & TIKTOK NỔI ================= -->
-  
-  <a id="postSideTab" href="post.html" aria-label="Xem Bài Đăng"><span class="side-text">Bài Đăng</span></a>
-  <a id="emailFloat" class="float-btn" href="mailto:readupenglish.team@gmail.com" aria-label="Gửi email cho ReadUp English">
-    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
-  </a>
-  <a id="tiktokFloat" class="float-btn" href="https://www.tiktok.com/@readupenglish" target="_blank" rel="noopener" aria-label="TikTok ReadUp English">
-    <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.98-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.82.56-1.32 1.56-1.28 2.55.02.82.42 1.61 1.08 2.1 1.03.82 2.53.87 3.6.13.71-.48 1.18-1.28 1.25-2.13.06-3.81.02-7.63.03-11.44z"/></svg>
-  </a>
-
-  <!-- ===== LỚP MỜ CHÀO MỪNG ===== -->
-  <div id="ruIntro" aria-hidden="true"><div class="ru-skip">Bấm để bỏ qua</div></div>
-  
+<div id="ruIntro" aria-hidden="true"><div class="ru-skip">Bấm để bỏ qua</div></div>
 <script src="assets/compiled/index.part2.js"></script>
 <script src="assets/js/ru-language.js"></script>
 <script src="assets/js/ru-finder.js"></script>
