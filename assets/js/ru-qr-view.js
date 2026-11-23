@@ -34,8 +34,7 @@
           <div class="rqv-qrbox"><div class="rqv-qr" data-r="qr"></div><div class="rqv-veil" data-r="veil"></div></div>
           <div class="rqv-bar" data-r="barwrap"><span data-r="bar"></span></div>
           <div class="rqv-timer" data-r="timer"></div>
-          <div class="rqv-code" data-r="code"></div>
-          <div class="rqv-hint">${esc(T('Học sinh quét QR hoặc nhập mã 6 số tại trang Điểm danh.', 'Students scan the QR or type the 6-digit code on the check-in page.'))}</div>
+          <div class="rqv-hint">${esc(T('Học sinh chỉ cần quét QR bằng nút “Điểm danh QR” hoặc camera điện thoại.', 'Students just scan the QR with “QR Check-in” or their phone camera.'))}</div>
         </div>
         <div class="rqv-side">
           <div class="rqv-stat"><b data-r="done">0</b><span>/ <span data-r="total">0</span> ${esc(T('đã điểm danh', 'checked in'))}</span></div>
@@ -62,7 +61,6 @@
       } else v.style.display = 'none';
 
       if (d.code !== lastCode) { lastCode = d.code; $('qr').innerHTML = qrSvg(checkinUrl(sid, d.code)); }
-      $('code').textContent = d.code.replace(/^(\d{3})(\d{3})$/, '$1 $2');
       $('barwrap').style.display = (rotate > 0 && live) ? 'block' : 'none';
       $('timer').textContent = rotate > 0 ? '' : T('Mã cố định trong suốt buổi học', 'Static code for the whole session');
       expiresAt = rotate > 0 && d.seconds_left != null ? performance.now() + d.seconds_left * 1000 : 0;

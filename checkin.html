@@ -53,14 +53,6 @@
       <p id="camMsg" class="text-xs text-center text-gray-500" data-t="camHint">Point the camera at the QR code on the teacher's screen.</p>
       <button id="camStart" class="hidden w-full py-3 rounded-xl bg-gray-900 text-white font-bold"><i class="bi bi-camera-video-fill"></i> <span data-t="camOn">Turn on camera</span></button>
 
-      <div class="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm space-y-2">
-        <div class="text-xs font-bold uppercase text-gray-500" data-t="manual">Or enter the 6-digit code</div>
-        <div id="openList" class="space-y-2"></div>
-        <div class="flex gap-2">
-          <input id="codeInput" inputmode="numeric" maxlength="7" autocomplete="off" placeholder="000 000" class="flex-1 min-w-0 p-3 rounded-xl border border-gray-300 text-xl font-bold tracking-widest text-center">
-          <button id="codeGo" class="px-5 rounded-xl bg-[#cf1717] text-white font-extrabold" data-t="go">Go</button>
-        </div>
-      </div>
     </section>
 
     <p id="statusLine" class="text-xs text-center text-gray-500"></p>
@@ -74,7 +66,7 @@
     const D = {
       back: ['Quay lại', 'Back'], title: ['Điểm danh lớp học', 'Class check-in'], pwLabel: ['Mật khẩu điểm danh', 'Class password'], pwGo: ['Điểm danh', 'Check in'],
       camHint: ['Đưa camera vào mã QR trên màn hình của giáo viên.', "Point the camera at the QR code on the teacher's screen."],
-      camOn: ['Bật camera', 'Turn on camera'], manual: ['Hoặc nhập mã 6 số', 'Or enter the 6-digit code'], go: ['Gửi', 'Go']
+      camOn: ['Bật camera', 'Turn on camera'], 
     };
     const t = (vi, en) => lang() === 'vi' ? vi : en;
     document.querySelectorAll('[data-t]').forEach(e => { const d = D[e.dataset.t]; if (d) e.textContent = d[lang() === 'vi' ? 0 : 1]; });
@@ -156,7 +148,7 @@
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
         const v = $('video'); v.srcObject = stream; await v.play(); scanning = true; requestAnimationFrame(scanLoop);
       } catch (e) {
-        $('camMsg').textContent = t('Không mở được camera — hãy cho phép Máy ảnh trong Cài đặt, hoặc nhập mã 6 số bên dưới.', 'Camera unavailable — allow Camera in Settings, or use the 6-digit code below.');
+        $('camMsg').textContent = t('Không mở được camera — hãy cho phép Máy ảnh trong Cài đặt, hoặc dùng app Camera của điện thoại để quét QR.', 'Camera unavailable — allow Camera in Settings, or use your phone camera app to scan the QR instead.');
         $('camStart').classList.remove('hidden');
       }
     }
@@ -177,11 +169,16 @@
       }
       requestAnimationFrame(scanLoop);
     }
+    function flashScan() {
+      try { if (navigator.vibrate) navigator.vibrate([80, 40, 80]); } catch (e) {}
+      const f = $('camBox'); f.style.transition = 'box-shadow .15s'; f.style.boxShadow = '0 0 0 6px #22c55e';
+      f.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(-4px)' }, { transform: 'translateX(0)' }], { duration: 260 });
+    }
     function handleScanned(text) {
       let u; try { u = new URL(text, location.href); } catch (e) { return false; }
       const s = u.searchParams.get('s'), c = u.searchParams.get('c');
       if (!s || !c || !/checkin\.html$/i.test(u.pathname) || u.origin !== location.origin) return false;
-      stopCamera(); if (navigator.vibrate) navigator.vibrate(60);
+      flashScan(); stopCamera();
       sessionId = s; code = c; begin(); return true;
     }
 
@@ -204,16 +201,6 @@
     async function showScanner() {
       hideAll(); $('infoCard').classList.add('hidden'); $('scanCard').classList.remove('hidden');
       startCamera();
-      const { data } = await sb.rpc('qr_student_open_sessions');
-      const list = Array.isArray(data) ? data : [];
-      $('openList').innerHTML = list.length
-        ? list.map((s, i) => `<label class="flex items-center gap-2 p-2 rounded-xl border text-sm cursor-pointer"><input type="radio" name="osess" value="${esc(s.session_id)}" ${i === 0 ? 'checked' : ''}> <span class="min-w-0 truncate"><b>${esc(s.class_code || '')}</b> ${esc(s.subject_name || '')} <span class="text-gray-400">${esc(s.session_time || '')}</span></span></label>`).join('')
-        : `<p class="text-xs text-gray-400 italic">${esc(t('Hiện chưa có buổi nào đang mở điểm danh QR.', 'No session is open for QR check-in right now.'))}</p>`;
-      $('codeGo').onclick = () => {
-        const c = $('codeInput').value.replace(/\D/g, ''); if (c.length !== 6) { $('statusLine').textContent = t('Mã gồm 6 chữ số.', 'The code has 6 digits.'); return; }
-        const sel = document.querySelector('input[name=osess]:checked'); if (!sel) { $('statusLine').textContent = t('Chưa có buổi nào mở điểm danh.', 'No open session.'); return; }
-        stopCamera(); sessionId = sel.value; code = c; begin();
-      };
       $('camStart').onclick = startCamera;
     }
 

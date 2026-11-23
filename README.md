@@ -129,11 +129,11 @@ Hệ thống tự thu nhỏ ảnh lớn, tối đa khoảng **1 MB cho mỗi chu
 ### Điểm danh QR (giáo viên / trợ giảng)
 - Teacher → **Điểm danh** → trên đầu cột ngày có nút **QR** (chỉ hiện cho buổi hôm nay trở đi, chưa chốt). Điểm danh thủ công P/L/E/A, ✔ và 🔒 **giữ nguyên**.
 - Cấu hình: khung giờ hiệu lực (tự đọc từ “Ca học”, ví dụ `18:00 - 20:30`, sửa được; **bắt buộc nằm trong ngày của buổi học**, giờ Việt Nam) · đổi mã mỗi **10/20/30/60 giây** hoặc cố định · **mật khẩu** (bật/tắt, như Moodle) · **vị trí** (lấy GPS của giáo viên + bán kính, mặc định 100 m) · tùy chọn “quét sau X phút tính Muộn (L)”.
-- Hiển thị mã ngay trong cửa sổ, hoặc bấm **Mở trang chiếu mã (tab mới)** → `qr-display.html?s=<buổi>` (QR lớn + mã 6 số + đếm ngược + số người đã quét + danh sách vừa quét, có toàn màn hình, nút Đóng mã). Bảng điểm danh tự tải lại khi có người quét.
+- Hiển thị mã ngay trong cửa sổ, hoặc bấm **Mở trang chiếu mã (tab mới)** → `qr-display.html?s=<buổi>` (QR lớn + đếm ngược + số người đã quét + danh sách vừa quét, có toàn màn hình, nút Đóng mã). Bảng điểm danh tự tải lại khi có người quét.
 - Giáo viên vẫn sửa tay mọi ô như cũ; QR **không ghi đè** ô đã có dữ liệu.
 
 ### Học sinh
-- Nút **Điểm danh QR** ở header `assignment.html` → `checkin.html`: bật camera quét QR (hoặc quét bằng camera điện thoại → mở thẳng trang), hoặc **nhập mã 6 số**. Chưa đăng nhập sẽ được chuyển qua `login.html` rồi quay lại.
+- Nút **Điểm danh QR** ở header `assignment.html` → `checkin.html`: bật camera quét QR (hoặc quét bằng camera điện thoại → mở thẳng trang). **Không có ô nhập mã** — luồng: quét → rung → (nhập mật khẩu nếu giáo viên bật) → xong. Chưa đăng nhập sẽ được chuyển qua `login.html` rồi quay lại.
 - Không đặt mật khẩu: quét là điểm danh luôn. Có mật khẩu: hiện ô nhập. Có yêu cầu vị trí: trình duyệt hỏi quyền Vị trí.
 
 ### Bảo mật (kiểm tra ở SERVER, không tin trình duyệt)
