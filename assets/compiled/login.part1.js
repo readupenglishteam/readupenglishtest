@@ -222,6 +222,31 @@ async function handleAuth(e) {
   }
   return null;
 }
+
+/* Ô chọn năm cho lịch ngày sinh: danh sách 100 năm gần nhất, chọn xong lịch nhảy tới năm đó */
+function ruBuildYearSelect(fp) {
+  try {
+    const box = fp.calendarContainer.querySelector('.flatpickr-current-month');
+    if (!box || box.querySelector('.ru-year-select')) return;
+    const sel = document.createElement('select');
+    sel.className = 'ru-year-select';
+    sel.setAttribute('aria-label', 'Năm');
+    const now = new Date().getFullYear();
+    for (let y = now; y >= now - 100; y--) {
+      const o = document.createElement('option');
+      o.value = y; o.textContent = y; sel.appendChild(o);
+    }
+    sel.value = fp.currentYear;
+    sel.addEventListener('change', function () { fp.changeYear(parseInt(sel.value, 10)); });
+    sel.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+    box.appendChild(sel);
+    fp._ruYearSelect = sel;
+  } catch (e) { console.warn('Không tạo được ô chọn năm:', e); }
+}
+function ruSyncYearSelect(fp) {
+  const sel = fp && fp._ruYearSelect;
+  if (sel && String(sel.value) !== String(fp.currentYear)) sel.value = fp.currentYear;
+}
   let phoneInputIti;
 document.addEventListener("DOMContentLoaded", () => {
   const phoneInputField = document.getElementById("phone");
@@ -241,7 +266,12 @@ document.addEventListener("DOMContentLoaded", () => {
     dateFormat: "Y-m-d",   // Giá trị thực tế lấy gửi Supabase: YYYY-MM-DD
     disableMobile: true,
     allowInput: true,
-    maxDate: "today"
+    maxDate: "today",
+    // Thêm ô chọn NĂM (không đổi định dạng hay giá trị gửi đi)
+    onReady: function (selectedDates, dateStr, fp) { ruBuildYearSelect(fp); },
+    onOpen: function (selectedDates, dateStr, fp) { ruSyncYearSelect(fp); },
+    onMonthChange: function (selectedDates, dateStr, fp) { ruSyncYearSelect(fp); },
+    onYearChange: function (selectedDates, dateStr, fp) { ruSyncYearSelect(fp); }
   });
 });
 

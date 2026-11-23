@@ -1,0 +1,130 @@
+/* ReadUp English — lớp giao diện mới cho Login & Dashboard.
+   Chỉ đổi cách hiển thị: không đụng vào id, hàm JS hay dữ liệu. */
+.ru-login,.ru-dash{--ru-red:#cf1717;--ru-red-d:#a80f0f;--ru-ink:#16171b;--ru-muted:#5d6272;--ru-line:rgba(22,23,27,.12);--ru-card:#fff;--ru-soft:#f1f3f6}
+.dark .ru-login,.dark .ru-dash{--ru-ink:#f4f4f5;--ru-muted:#a3a3ad;--ru-line:rgba(255,255,255,.13);--ru-card:#17171a;--ru-soft:#202024}
+.ru-login{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;background:#f8fafc!important}
+.dark .ru-login{background:#09090b!important}
+.ru-login>main{flex:1 0 auto;width:100%}
+
+/* ===== header dùng cho trang Login ===== */
+.ru-hd{position:sticky;top:0;z-index:40;background:rgba(248,250,252,.78);-webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--ru-line)}
+.dark .ru-hd{background:rgba(9,9,11,.78)}
+.ru-hd__row{max-width:1160px;margin:0 auto;height:62px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ru-hd__brand{display:flex;align-items:center;gap:10px;min-width:0}
+.ru-hd__logo{width:40px;height:40px;border-radius:50%;background:var(--ru-red);display:grid;place-items:center;overflow:hidden;flex:none;box-shadow:0 2px 8px rgba(207,23,23,.35)}
+.ru-hd__logo img{height:30px;width:auto}
+.ru-hd__name{display:flex;align-items:baseline;gap:7px;font-weight:800;font-size:21px;letter-spacing:-.03em;color:var(--ru-red);line-height:1}
+.ru-hd__name small{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ru-muted)}
+.ru-hd__actions{display:flex;align-items:center;gap:8px;flex:none}
+.ru-hd__btn,.ru-hd__icon{height:38px;border-radius:12px;border:1px solid var(--ru-line);background:var(--ru-card);color:var(--ru-ink);display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:13px;font-weight:700;cursor:pointer;transition:border-color .2s,color .2s}
+.ru-hd__btn{padding:0 14px}.ru-hd__icon{width:38px;font-size:16px;padding:0}
+.ru-hd__btn:hover,.ru-hd__icon:hover{border-color:var(--ru-red);color:var(--ru-red)}
+.ru-hd__actions #ru-lang-switch{margin:0}
+@media(max-width:600px){
+  .ru-hd__row{height:56px;padding:0 12px}
+  .ru-hd__logo{width:34px;height:34px}.ru-hd__logo img{height:25px}
+  .ru-hd__name{font-size:18px}.ru-hd__name small{display:none}
+  .ru-hd__actions{gap:6px}
+  .ru-hd__btn span{display:none}.ru-hd__btn{width:34px;height:34px;padding:0}.ru-hd__icon{width:34px;height:34px}
+  .ru-hd__actions #ru-lang-switch{padding:2px;gap:0}
+  .ru-hd__actions #ru-lang-switch button{width:26px;height:26px;padding:3px}
+  .ru-hd__actions #ru-lang-switch button svg{width:18px;height:18px}
+}
+
+/* ===== thẻ đăng nhập ===== */
+.ru-login .ru-card{max-width:440px!important;border-radius:22px!important;padding:30px 28px 28px!important;background:var(--ru-card)!important;border:1px solid var(--ru-line)!important;box-shadow:0 30px 60px -34px rgba(22,23,27,.45)!important}
+.ru-login .ru-card>.flex.border-b{margin-bottom:22px!important;border-color:var(--ru-line)!important}
+.ru-login #tabLogin,.ru-login #tabRegister{font-size:14px;letter-spacing:.01em;padding:12px 0!important;border-bottom-width:3px!important;margin-bottom:-1px}
+.ru-login #tabLogin:not(.border-b-2),.ru-login #tabRegister:not(.border-b-2){border-bottom:3px solid transparent}
+.ru-login #authForm{display:grid;gap:16px}
+.ru-login #authForm>*{margin:0!important}
+.ru-login #authForm label{font-size:11.5px!important;font-weight:700;letter-spacing:.08em;color:var(--ru-muted)!important;margin-bottom:7px!important}
+.ru-login #authForm input:not([type=checkbox]),.ru-login #dob+input,.ru-login .flatpickr-input{height:48px;padding:0 14px!important;border-radius:12px!important;border:1px solid var(--ru-line)!important;background:var(--ru-card)!important;color:var(--ru-ink);font-size:14.5px;transition:border-color .2s,box-shadow .2s}
+.ru-login #authForm input::placeholder{color:#9a9fae;font-weight:500}
+.ru-login #authForm input:focus{outline:none;border-color:var(--ru-red)!important;box-shadow:0 0 0 4px rgba(207,23,23,.12)!important}
+.ru-login #password{padding-right:46px!important}
+.ru-login #phone{padding-left:90px!important}
+.ru-login .iti__selected-flag{border-radius:12px 0 0 12px}
+#submitBtn{height:50px;border-radius:12px!important;font-size:15px;letter-spacing:.01em;box-shadow:0 12px 24px -12px rgba(207,23,23,.7)!important}
+.ru-login button[onclick^="loginWith"]{height:46px;padding:0 14px!important;border-radius:12px!important;font-size:13px!important;box-shadow:none!important}
+.ru-login button[onclick="loginWithGoogle()"]{border-color:var(--ru-line)!important;color:var(--ru-ink)}
+.ru-login #authForm>.pt-2.text-center{padding-top:0!important}
+.ru-login #authForm>.pt-2 span{font-size:12px}
+.ru-login #authMsg:empty{display:none}
+#vipShortcut{border:1px solid rgba(217,119,6,.45)!important;border-style:solid!important;border-radius:14px!important;box-shadow:none!important;max-width:440px}
+
+/* ===== chân trang chung ===== */
+.ru-foot{background:#141416;color:#a8a8b3;font-size:13.5px;margin-top:64px;width:100%}
+.ru-login .ru-foot{margin-top:28px}
+.ru-foot a{color:inherit}.ru-foot a:hover{color:#fff}
+.ru-foot__wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+.ru-foot__grid{display:grid;gap:30px;padding:46px 0 32px}
+.ru-foot__brand{display:flex;align-items:center;gap:10px}
+.ru-foot__brand .ru-hd__name{color:#fff}.ru-foot__brand .ru-hd__name small{color:#8b8b97}
+.ru-foot p.about{margin:14px 0 0;max-width:36ch;line-height:1.7}
+.ru-foot h4{margin:0 0 12px;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#fff}
+.ru-foot ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.ru-foot .ru-foot__txt{margin:0 0 14px;line-height:1.7}
+.ru-foot__act{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 18px;border-radius:12px;border:0;font:inherit;font-weight:700;color:#fff;background:var(--ru-red,#cf1717);cursor:pointer;width:100%;transition:background .2s}
+.ru-foot__act:hover{background:#a80f0f}
+.ru-foot__act--ghost{background:#232327;border:1px solid #33333a}.ru-foot__act--ghost:hover{background:#2b2b30}
+.ru-foot__social{display:flex;gap:10px;margin-top:16px}
+.ru-foot__social a{width:38px;height:38px;border-radius:50%;background:#232327;display:grid;place-items:center;color:#d4d4dc;transition:background .2s}
+.ru-foot__social a:hover{background:#cf1717;color:#fff}
+.ru-foot__bottom{border-top:1px solid #26262b;padding:18px 0 26px;display:flex;flex-wrap:wrap;gap:8px 20px;justify-content:space-between;font-size:12.5px;color:#7c7c88}
+@media(min-width:760px){.ru-foot__grid--3{grid-template-columns:1.5fr 1fr 1fr;gap:48px}.ru-foot__grid--2{grid-template-columns:1.6fr 1fr;gap:48px}}
+
+/* ===== lịch chọn ngày sinh (flatpickr) có chọn NĂM ===== */
+.flatpickr-calendar{font-family:'Montserrat',sans-serif!important;border-radius:16px!important;border:1px solid rgba(22,23,27,.12)!important;box-shadow:0 24px 50px -20px rgba(22,23,27,.45)!important;width:316px!important}
+.flatpickr-calendar.arrowTop::before,.flatpickr-calendar.arrowTop::after{display:none}
+.flatpickr-months{padding:8px 6px 0;align-items:center}
+.flatpickr-months .flatpickr-month{height:40px;overflow:visible}
+.flatpickr-current-month{display:flex!important;align-items:center;justify-content:center;gap:8px;width:calc(100% - 70px)!important;left:35px!important;padding:0!important;height:36px!important;font-size:14px!important}
+.flatpickr-current-month .flatpickr-monthDropdown-months{flex:0 1 auto;width:auto!important;height:34px;padding:0 24px 0 10px;border:1px solid rgba(22,23,27,.14);border-radius:9px;font:700 13.5px 'Montserrat',sans-serif;background-color:#fff;cursor:pointer}
+.flatpickr-current-month .numInputWrapper{display:none!important}
+.ru-year-select{flex:none;height:34px;min-width:84px;padding:0 8px;border:1px solid rgba(22,23,27,.14);border-radius:9px;font:700 13.5px 'Montserrat',sans-serif;color:#16171b;background:#fff;cursor:pointer}
+.ru-year-select:focus,.flatpickr-current-month .flatpickr-monthDropdown-months:focus{outline:2px solid rgba(207,23,23,.5);outline-offset:1px}
+.flatpickr-weekdays{height:30px}
+span.flatpickr-weekday{font-weight:700;font-size:12px;color:#7a7f8e}
+.flatpickr-day{border-radius:10px;font-weight:500;max-width:40px;height:38px;line-height:38px}
+.flatpickr-day:hover{background:rgba(207,23,23,.1);border-color:transparent}
+.flatpickr-day.today{border-color:#cf1717}.flatpickr-day.today:hover{background:rgba(207,23,23,.12);color:#16171b}
+.flatpickr-day.selected,.flatpickr-day.selected:hover{background:#cf1717!important;border-color:#cf1717!important;color:#fff!important}
+.flatpickr-months .flatpickr-prev-month:hover svg,.flatpickr-months .flatpickr-next-month:hover svg{fill:#cf1717}
+.dark .flatpickr-calendar{background:#1c1c20!important;border-color:rgba(255,255,255,.13)!important}
+.dark .flatpickr-months .flatpickr-month,.dark .flatpickr-months .flatpickr-prev-month,.dark .flatpickr-months .flatpickr-next-month{color:#f4f4f5;fill:#f4f4f5}
+.dark .flatpickr-months .flatpickr-prev-month svg,.dark .flatpickr-months .flatpickr-next-month svg{fill:#f4f4f5}
+.dark .flatpickr-current-month .flatpickr-monthDropdown-months,.dark .ru-year-select{background-color:#27272c;color:#f4f4f5;border-color:rgba(255,255,255,.16)}
+.dark .flatpickr-current-month .flatpickr-monthDropdown-months .flatpickr-monthDropdown-month{background:#27272c;color:#f4f4f5}
+.dark span.flatpickr-weekday{color:#a3a3ad;background:transparent}
+.dark .flatpickr-day{color:#e8e8ec}.dark .flatpickr-day.prevMonthDay,.dark .flatpickr-day.nextMonthDay,.dark .flatpickr-day.flatpickr-disabled{color:rgba(232,232,236,.28)}
+.dark .flatpickr-day:hover{background:rgba(207,23,23,.28)}.dark .flatpickr-day.today:hover{color:#fff}
+@media(max-width:360px){.flatpickr-calendar{width:292px!important}.flatpickr-day{height:35px;line-height:35px}}
+
+/* ===== DASHBOARD ===== */
+.ru-dash{background:#f8fafc!important}.dark .ru-dash{background:#09090b!important}
+.ru-dash>header{border-color:var(--ru-line)!important}
+.ru-dash>header .ru-brand a:first-child{width:40px!important;height:40px!important}
+.ru-dash>header .ru-brand a:first-child img{height:30px!important}
+.ru-dash>header .ru-brand a:nth-child(2) span:first-child{font-size:21px!important;letter-spacing:-.03em}
+.ru-dash>header .ru-brand a:nth-child(2) span:last-child{background:transparent!important;color:var(--ru-muted)!important;box-shadow:none!important;padding:0!important;font-size:11px!important;letter-spacing:.08em;text-transform:uppercase}
+.ru-dash #welcomeUser{font-weight:700;color:var(--ru-muted)!important}
+@media(max-width:520px){.ru-dash>header .ru-brand a:nth-child(2) span:last-child{display:none}.ru-dash>header .ru-brand a:nth-child(2) span:first-child{font-size:18px!important}.ru-dash>header .ru-brand a:first-child{width:34px!important;height:34px!important}}
+/* tiêu đề từng mục: bỏ vạch trái, dùng đường kẻ mảnh */
+.ru-dash main>section>div[class*="border-l-4"],.ru-dash main>section>a[class*="border-l-4"]{border-left-width:0!important;padding-left:0!important;padding-bottom:12px!important;border-bottom:1px solid var(--ru-line);border-radius:0!important}
+.ru-dash main>section>a[class*="border-l-4"]:hover{background:transparent!important}
+.ru-dash main h2{letter-spacing:-.02em}
+.ru-dash main .rounded-3xl{border-radius:18px}
+.ru-dash main .shadow-xl,.ru-dash main .shadow-2xl{box-shadow:0 18px 38px -26px rgba(22,23,27,.4)}
+.ru-dash main .bg-white\/70,.ru-dash main .bg-white\/65,.ru-dash main .bg-white\/60{background-color:var(--ru-card)}
+.ru-dash main :is(.bg-white\/70,.bg-white\/65,.bg-white\/60){-webkit-backdrop-filter:none;backdrop-filter:none}
+/* nút "Vào học ngay": gọn, không nảy */
+.ru-dash #btnLearnNow{background:#cf1717!important;background-image:none!important;border-radius:16px!important;max-width:420px!important;padding:14px 20px!important;box-shadow:0 16px 30px -16px rgba(207,23,23,.75)!important;animation:none!important}
+.ru-dash #btnLearnNow .learn-icon{animation:none;font-size:30px!important}
+.ru-dash #btnLearnNow::after{display:none}
+.ru-dash .learn-shadow{display:none}
+.ru-dash #btnLearnNow:hover{background:#a80f0f!important}
+.ru-dash #section-nhom{background-image:none!important;background-color:#cf1717!important;border-radius:20px!important}
+@media(max-width:640px){.ru-dash main{padding-left:14px;padding-right:14px}}
+.ru-hd a,.ru-foot a{text-decoration:none}
+.ru-login{overflow-x:hidden}

@@ -26,10 +26,11 @@
 
   <link rel="stylesheet" href="assets/compiled/dashboard.css">
   <link rel="stylesheet" href="assets/css/ru-refined.css">
+  <link rel="stylesheet" href="assets/css/ru-refresh.css">
 <link rel="stylesheet" href="assets/css/ru-language.css">
 <link rel="stylesheet" href="assets/css/ru-finder.css">
 </head>
-  <body class="bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 min-h-screen transition-colors duration-300">
+  <body class="ru-dash dark:text-gray-100 min-h-screen transition-colors duration-300">
 <!-- Màn hình chờ: kiểm tra phiên trước khi hiển thị giao diện -->
 <div id="ru-page-loader" class="ru-page-loader" role="status" aria-live="polite" aria-label="Đang kiểm tra phiên đăng nhập">
   <div class="ru-page-loader__center">
@@ -771,61 +772,31 @@
 </div>
 
 <!-- ================= FOOTER CHUẨN TÔNG ĐỎ READUP ================= -->
-<footer class="bg-zinc-900 text-gray-300 pt-10 pb-8 mt-16 border-t border-zinc-800 text-xs">
-  <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-
-    <!-- 1. THÔNG TIN LIÊN HỆ -->
-    <div class="space-y-3">
-      <div class="flex items-center gap-2">
-        <a href="index.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
-          <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
-        </a>
-        <span class="text-xl font-black text-[#cf1717]">ReadUp</span>
-        <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full">English</span>
+<footer class="ru-foot">
+  <div class="ru-foot__wrap">
+    <div class="ru-foot__grid ru-foot__grid--3">
+      <div>
+        <a class="ru-foot__brand" href="index.html"><span class="ru-hd__logo"><img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="" width="30" height="30" loading="lazy"></span><span class="ru-hd__name" data-ru-i18n-skip>ReadUp<small>English</small></span></a>
+        <p class="about">Nền tảng luyện thi IELTS Reading thông minh, tối ưu hóa vốn từ vựng theo ngữ cảnh.</p>
+        <p style="margin:12px 0 0"><i class="bi bi-envelope-fill"></i> Email: <a href="mailto:readupenglish.team@gmail.com" style="color:#fff">readupenglish.team@gmail.com</a></p>
+        <div class="ru-foot__social">
+          <a href="https://www.tiktok.com/@readupenglish" target="_blank" rel="noopener" aria-label="TikTok"><i class="bi bi-tiktok"></i></a>
+          <a href="https://www.youtube.com/@readupenglishteam" target="_blank" rel="noopener" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+        </div>
       </div>
-      <p class="text-gray-400 leading-relaxed">Nền tảng luyện thi IELTS Reading thông minh, tối ưu hóa vốn từ vựng theo ngữ cảnh.</p>
-      <div class="space-y-1">
-        <p><i class="bi bi-envelope-fill"></i> Email: <a href="mailto:readupenglish.team@gmail.com" class="text-white hover:underline">readupenglish.team@gmail.com</a></p>
+      <div>
+        <h4>Hỗ Trợ Trực Tuyến</h4>
+        <p class="ru-foot__txt">Gặp sự cố khi làm bài hoặc cần giải đáp thắc mắc? Đội ngũ ReadUp luôn sẵn sàng hỗ trợ bạn.</p>
+        <button type="button" onclick="openSupportModal()" class="ru-foot__act"><i class="bi bi-headset"></i><span>Gửi Yêu Cầu Hỗ Trợ</span></button>
       </div>
-      <!-- Mạng xã hội -->
-      <div class="flex items-center gap-3 pt-2">
-        <a href="https://www.tiktok.com/@readupenglish" target="_blank" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-gray-300 hover:bg-[#cf1717] hover:text-white transition">
-          <i class="bi bi-tiktok"></i>
-        </a>
-        <!-- Mạng xã hội youtube -->
-        <a href="https://www.youtube.com/@readupenglishteam"
-        target="_blank"
-        class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-gray-300 hover:bg-[#cf1717] hover:text-white transition">
-        <i class="bi bi-youtube"></i>
-      </a>
+      <div>
+        <h4>Khảo Sát &amp; Góp Ý</h4>
+        <p class="ru-foot__txt">Đánh giá của bạn giúp ReadUp English cải thiện chất lượng bộ đề và giao diện ngày một tốt hơn.</p>
+        <button type="button" onclick="openFeedbackModal()" class="ru-foot__act ru-foot__act--ghost"><i class="bi bi-star-fill"></i><span>Đánh Giá Trải Nghiệm Website</span></button>
+      </div>
     </div>
+    <div class="ru-foot__bottom"><span>ReadUp English © 2026 - Nền tảng luyện thi IELTS Reading thông minh.</span><span>#ReadUpEnglish · #10PhutEnglish · #IELTSReading</span></div>
   </div>
-
-  <!-- 2. HỖ TRỢ TRỰC TUYẾN -->
-  <div class="space-y-3">
-    <h4 class="font-bold text-white text-sm">Hỗ Trợ Trực Tuyến <i class="bi bi-headset"></i></h4>
-    <p class="text-gray-400">Gặp sự cố khi làm bài hoặc cần giải đáp thắc mắc? Đội ngũ ReadUp luôn sẵn sàng hỗ trợ bạn.</p>
-    <button onclick="openSupportModal()" class="w-full py-2.5 bg-[#cf1717] hover:bg-red-700 text-white font-bold rounded-xl transition shadow-lg flex items-center justify-center gap-2">
-      <span><i class="bi bi-headset"></i></span>
-      <span>Gửi Yêu Cầu Hỗ Trợ</span>
-    </button>
-  </div>
-
-  <!-- 3. KHẢO SÁT DỊCH VỤ -->
-  <div class="space-y-3">
-    <h4 class="font-bold text-white text-sm">Khảo Sát & Góp Ý <i class="bi bi-pencil-square"></i></h4>
-    <p class="text-gray-400">Đánh giá của bạn giúp ReadUp English cải thiện chất lượng bộ đề và giao diện ngày một tốt hơn.</p>
-    <button onclick="openFeedbackModal()" class="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition border border-zinc-700 flex items-center justify-center gap-2">
-      <span><i class="bi bi-star-fill"></i></span>
-      <span>Đánh Giá Trải Nghiệm Website</span>
-    </button>
-  </div>
-
-</div>
-
-<div class="max-w-6xl mx-auto px-4 pt-4 border-t border-zinc-800 text-center text-gray-500 text-[11px]">
-  © 2026 ReadUp English. All rights reserved.
-</div>
 </footer>
 
 <!-- ================= MODAL HỖ TRỢ TRỰC TUYẾN ================= -->
