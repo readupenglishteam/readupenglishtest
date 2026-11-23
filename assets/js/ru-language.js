@@ -60,6 +60,7 @@
  ['Xóa bộ lọc cột','Clear Column Filters'],['Chưa ôn','Not Reviewed'],['Cần ôn lại','Needs Review'],['Đã thuộc','Mastered'],['Mới nhất','Newest'],['Hay sai nhất','Most Frequently Missed'],['Trạng thái','Status'],['Ôn từ vựng','Review Vocabulary'],['Học từ mới','Learn New Words'],['Sửa từ vựng','Edit Vocabulary']
  ];
  entries.push(...remainingUI);
+ entries.push(['Điểm danh QR','QR Check-in'],['Quét mã QR điểm danh','Scan attendance QR code']);
 
  const toEnglish=new Map(entries),toVietnamese=new Map(entries.map(([vi,en])=>[en,vi]));
  let lang;try{lang=localStorage.getItem('readup-language')==='vi'?'vi':'en';}catch{lang='en';}

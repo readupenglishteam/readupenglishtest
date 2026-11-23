@@ -117,3 +117,31 @@ Hệ thống tự thu nhỏ ảnh lớn, tối đa khoảng **1 MB cho mỗi chu
 - Thêm **Bảng câu hỏi**: nhảy tới câu, đánh dấu đã trả lời / câu hiện tại, **gắn cờ** từng câu; màn hình hẹp mở bằng nút "Bảng câu hỏi".
 - Giáo viên chọn "Kiểu hiển thị câu hỏi" (một dải cuộn / mỗi câu một trang) ở teacher.html; lưu bằng thẻ `[[ru:paged]]` ở cuối trường mô tả (không cần đổi database). Phòng thi không còn hiện phần mô tả/ghi chú.
 - Chặn công cụ/tiện ích chèn vào trang thi: phần tử lạ thêm vào `<html>/<body>` bị gỡ ngay và tính 1 cảnh báo (đổi `EXT_COUNT_AS_VIOLATION` trong `assets/compiled/test.part1.js` thành `false` nếu chỉ muốn gỡ im lặng). Không thể chặn tuyệt đối tiện ích chụp màn hình từ ngoài trang.
+
+---
+
+## Cập nhật 23/11/2026 (2) — Điểm danh bằng mã QR + sửa Assignment
+
+### Việc cần làm sau khi chép file
+1. **Chạy `2_qr_attendance.sql` một lần** trong Supabase → SQL Editor (an toàn khi chạy lại; không cần extension; không đụng dữ liệu điểm danh cũ).
+2. Tải lại cứng trình duyệt (Ctrl+Shift+R). Các thẻ `<script>/<link>` đã thêm `?v=20261123` nên bản cũ trong cache sẽ tự bị bỏ.
+
+### Điểm danh QR (giáo viên / trợ giảng)
+- Teacher → **Điểm danh** → trên đầu cột ngày có nút **QR** (chỉ hiện cho buổi hôm nay trở đi, chưa chốt). Điểm danh thủ công P/L/E/A, ✔ và 🔒 **giữ nguyên**.
+- Cấu hình: khung giờ hiệu lực (tự đọc từ “Ca học”, ví dụ `18:00 - 20:30`, sửa được; **bắt buộc nằm trong ngày của buổi học**, giờ Việt Nam) · đổi mã mỗi **10/20/30/60 giây** hoặc cố định · **mật khẩu** (bật/tắt, như Moodle) · **vị trí** (lấy GPS của giáo viên + bán kính, mặc định 100 m) · tùy chọn “quét sau X phút tính Muộn (L)”.
+- Hiển thị mã ngay trong cửa sổ, hoặc bấm **Mở trang chiếu mã (tab mới)** → `qr-display.html?s=<buổi>` (QR lớn + mã 6 số + đếm ngược + số người đã quét + danh sách vừa quét, có toàn màn hình, nút Đóng mã). Bảng điểm danh tự tải lại khi có người quét.
+- Giáo viên vẫn sửa tay mọi ô như cũ; QR **không ghi đè** ô đã có dữ liệu.
+
+### Học sinh
+- Nút **Điểm danh QR** ở header `assignment.html` → `checkin.html`: bật camera quét QR (hoặc quét bằng camera điện thoại → mở thẳng trang), hoặc **nhập mã 6 số**. Chưa đăng nhập sẽ được chuyển qua `login.html` rồi quay lại.
+- Không đặt mật khẩu: quét là điểm danh luôn. Có mật khẩu: hiện ô nhập. Có yêu cầu vị trí: trình duyệt hỏi quyền Vị trí.
+
+### Bảo mật (kiểm tra ở SERVER, không tin trình duyệt)
+- Mã = SHA-256(`secret + buổi + cửa sổ thời gian`) rút gọn 6 số; học sinh không đọc được `secret`/mật khẩu (bảng bật RLS, không có policy; chỉ gọi hàm `qr_*`). Chấp nhận mã hiện tại và mã liền trước (bù trễ mạng).
+- Chỉ nhận khi: đã đăng nhập, thuộc lớp, mã bật, **đúng khung giờ + ngày**, buổi chưa chốt, mã/mật khẩu/vị trí đúng. Sai mã/mật khẩu quá 10 lần/10 phút → khóa tạm. Mọi lần quét ghi vào `attendance_qr_log`.
+- Giới hạn thực tế: không có cách web nào chống tuyệt đối việc bạn bè gửi mã/ảnh trong vài giây hoặc giả GPS; đổi mã 10 giây + vị trí + mật khẩu làm việc đó khó hơn nhiều. Đã chạy thử toàn bộ hàm SQL trên PostgreSQL 16 giả lập, nhưng **chưa thử với Supabase thật** — hãy thử 1 buổi với 1–2 tài khoản trước.
+
+### Sửa Assignment
+- **Ô điền khuyết cùng chiều rộng** (16rem, tự co trên điện thoại); gõ dài thì chỉ cao thêm theo số dòng. Áp dụng cho `assignment.html` và `lml.html`.
+- **Kiểu hiển thị câu hỏi không giữ lựa chọn:** mã lưu/đọc đã đúng (thẻ `[[ru:paged]]` trong `description`), nên đã làm chắc hơn: chọn bằng `selectedIndex`, **đọc lại từ server sau khi lưu** và cảnh báo nếu server không giữ thẻ (khi đó nguyên nhân là trigger/ràng buộc cột `assignments.description` trong Supabase), cộng với `?v=` chống cache cũ — nguyên nhân hay gặp nhất là trình duyệt còn chạy `teacher.part2.js` bản cũ.
+- Thư mục `compiled/` ở gốc là bản thừa (HTML chỉ dùng `assets/compiled/`), có thể xóa.

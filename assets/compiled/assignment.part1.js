@@ -898,10 +898,8 @@
     if (q.blanks && q.blanks.length) {
       contentHtml = (q.content || '').replace(/\{\{(\d+)\}\}/g, (m, n) => {
         const bl = q.blanks.find(b => String(b.gap) === n);
-        const hintLen = (bl && bl.accepted_answers && bl.accepted_answers.length)
-          ? Math.max(...bl.accepted_answers.map(a => String(a).length)) : 6;
-        const chWidth = Math.min(Math.max(hintLen + 3, 5), 28);
-        return `<textarea id="ans-${q.id}-${n}" data-gap="${n}" placeholder="…" rows="1" oninput="autoGrowFillInput(this)" style="width:${chWidth}ch"
+        // Mọi ô điền khuyết có CÙNG chiều rộng (đặt ở CSS .fillbox) — không phụ thuộc độ dài đáp án / nội dung gõ
+        return `<textarea id="ans-${q.id}-${n}" data-gap="${n}" placeholder="…" rows="1" oninput="autoGrowFillInput(this)"
           class="fillbox mx-1 px-2 py-1 rounded-lg border-2 border-[#cf1717]/40 dark:bg-zinc-800 dark:border-red-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#cf1717]"></textarea>`;
       });
     } else {
@@ -917,9 +915,7 @@
   // Ô điền khuyết tự nới rộng theo độ dài học sinh đang gõ: rộng ra tới một mức rồi tự xuống hàng như văn bản thường,
   // và tự cao lên theo số dòng — không còn giới hạn 1 đoạn ngắn như trước.
   function autoGrowFillInput(el) {
-    const lines = el.value.split('\n');
-    const longest = Math.max(...lines.map(l => l.length), 5);
-    el.style.width = Math.min(Math.max(longest + 3, 5), 34) + 'ch';
+    // Chiều rộng cố định (CSS) → chỉ cao lên theo số dòng khi gõ dài
     el.style.height = 'auto';
     el.style.height = el.scrollHeight + 'px';
   }

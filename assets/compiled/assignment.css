@@ -266,7 +266,7 @@ a,button,input,textarea,select{touch-action:manipulation}
     -webkit-user-select: text !important;
     user-select: text !important;
   }
-  .fillbox{display:inline-block;vertical-align:middle;resize:none;overflow:hidden;line-height:1.4}
+  .fillbox{display:inline-block;vertical-align:middle;resize:none;overflow:hidden;line-height:1.4;box-sizing:border-box;width:16rem!important;max-width:100%}
   /* ===== Lịch học của học sinh ===== */
   .sc-card { position: relative; overflow: hidden; }
   .sc-ribbon { position: absolute; top: 40px; right: -70px; width: 240px; transform: rotate(45deg); background: #e53528; color: #fff;

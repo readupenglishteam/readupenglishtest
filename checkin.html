@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>ReadUp English - Check-in</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+  <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <style>
+    body{font-family:'Montserrat',system-ui,sans-serif;background:#f1f5ff}
+    .cam{position:relative;width:100%;aspect-ratio:1/1;border-radius:22px;overflow:hidden;background:#0b1220}
+    .cam video{width:100%;height:100%;object-fit:cover}
+    .cam .frame{position:absolute;inset:14%;border:3px solid rgba(255,255,255,.9);border-radius:22px;box-shadow:0 0 0 999px rgba(0,0,0,.35)}
+    .cam .scanline{position:absolute;left:14%;right:14%;height:2px;background:#ff4d4d;box-shadow:0 0 10px #ff4d4d;animation:sl 2s ease-in-out infinite}
+    @keyframes sl{0%{top:16%}50%{top:82%}100%{top:16%}}
+    .pop{animation:pop .35s ease-out}@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+  </style>
+</head>
+<body class="min-h-screen text-gray-900">
+  <header class="px-4 h-14 flex items-center justify-between bg-white/80 backdrop-blur border-b border-gray-200">
+    <a href="assignment.html" class="font-bold text-sm text-gray-700"><i class="bi bi-arrow-left"></i> <span data-t="back">Back</span></a>
+    <div class="font-black text-[#cf1717]">ReadUp <span class="text-[10px] bg-[#cf1717] text-white px-2 py-0.5 rounded-full align-middle">English</span></div>
+    <div class="w-12"></div>
+  </header>
+
+  <main class="max-w-md mx-auto p-4 space-y-4">
+    <h1 class="text-xl font-black" data-t="title">Class check-in</h1>
+
+    <!-- Thông tin buổi học (khi mở bằng QR) -->
+    <section id="infoCard" class="hidden bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
+      <div id="infoClass" class="font-extrabold"></div>
+      <div id="infoMeta" class="text-xs text-gray-500 mt-1"></div>
+    </section>
+
+    <!-- Kết quả -->
+    <section id="resultCard" class="hidden text-center bg-white rounded-3xl border border-gray-200 p-8 shadow-sm"></section>
+
+    <!-- Mật khẩu -->
+    <section id="pwCard" class="hidden bg-white rounded-2xl border border-gray-200 p-4 shadow-sm space-y-3">
+      <label class="block text-xs font-bold uppercase text-gray-500" data-t="pwLabel">Class password</label>
+      <input id="pwInput" type="password" autocomplete="off" class="w-full p-3 rounded-xl border border-gray-300 text-lg tracking-widest" placeholder="••••">
+      <button id="pwGo" class="w-full py-3 rounded-xl bg-[#cf1717] text-white font-extrabold" data-t="pwGo">Check in</button>
+    </section>
+
+    <!-- Máy quét + nhập mã -->
+    <section id="scanCard" class="hidden space-y-3">
+      <div class="cam" id="camBox"><video id="video" playsinline muted></video><div class="frame"></div><div class="scanline"></div></div>
+      <p id="camMsg" class="text-xs text-center text-gray-500" data-t="camHint">Point the camera at the QR code on the teacher's screen.</p>
+      <button id="camStart" class="hidden w-full py-3 rounded-xl bg-gray-900 text-white font-bold"><i class="bi bi-camera-video-fill"></i> <span data-t="camOn">Turn on camera</span></button>
+
+      <div class="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm space-y-2">
+        <div class="text-xs font-bold uppercase text-gray-500" data-t="manual">Or enter the 6-digit code</div>
+        <div id="openList" class="space-y-2"></div>
+        <div class="flex gap-2">
+          <input id="codeInput" inputmode="numeric" maxlength="7" autocomplete="off" placeholder="000 000" class="flex-1 min-w-0 p-3 rounded-xl border border-gray-300 text-xl font-bold tracking-widest text-center">
+          <button id="codeGo" class="px-5 rounded-xl bg-[#cf1717] text-white font-extrabold" data-t="go">Go</button>
+        </div>
+      </div>
+    </section>
+
+    <p id="statusLine" class="text-xs text-center text-gray-500"></p>
+  </main>
+
+  <script>
+    const sb = supabase.createClient("https://klovtvjfvfenhkvifujy.supabase.co", "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-");
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const lang = () => { try { return localStorage.getItem('readup-language') === 'vi' ? 'vi' : 'en'; } catch (e) { return 'en'; } };
+    const D = {
+      back: ['Quay lại', 'Back'], title: ['Điểm danh lớp học', 'Class check-in'], pwLabel: ['Mật khẩu điểm danh', 'Class password'], pwGo: ['Điểm danh', 'Check in'],
+      camHint: ['Đưa camera vào mã QR trên màn hình của giáo viên.', "Point the camera at the QR code on the teacher's screen."],
+      camOn: ['Bật camera', 'Turn on camera'], manual: ['Hoặc nhập mã 6 số', 'Or enter the 6-digit code'], go: ['Gửi', 'Go']
+    };
+    const t = (vi, en) => lang() === 'vi' ? vi : en;
+    document.querySelectorAll('[data-t]').forEach(e => { const d = D[e.dataset.t]; if (d) e.textContent = d[lang() === 'vi' ? 0 : 1]; });
+
+    const ERR = {
+      not_logged_in: ['Bạn chưa đăng nhập.', 'You are not signed in.'],
+      not_open: ['Buổi này chưa mở điểm danh QR hoặc đã đóng.', 'QR check-in is not open (or has been closed) for this session.'],
+      not_member: ['Bạn không thuộc lớp của buổi học này.', 'You are not enrolled in this class.'],
+      too_early: ['Chưa tới giờ điểm danh.', 'Check-in has not started yet.'],
+      too_late: ['Đã hết giờ điểm danh.', 'Check-in time is over.'],
+      locked: ['Buổi này đã được giáo viên chốt điểm danh.', 'The teacher has already finalized attendance for this session.'],
+      bad_code: ['Mã không đúng hoặc đã hết hạn. Hãy quét lại mã đang hiển thị.', 'Wrong or expired code. Scan the code currently on screen.'],
+      need_password: ['Buổi này yêu cầu mật khẩu.', 'This session requires a password.'],
+      bad_password: ['Sai mật khẩu.', 'Wrong password.'],
+      need_location: ['Buổi này yêu cầu vị trí của bạn.', 'This session requires your location.'],
+      blocked: ['Bạn nhập sai quá nhiều lần. Hãy đợi vài phút rồi thử lại.', 'Too many wrong attempts. Please wait a few minutes.']
+    };
+    const errText = (code, extra) => {
+      if (code === 'too_far') return t(`Bạn đang cách lớp học khoảng ${extra.distance_m} m (cho phép ${extra.radius_m} m). Hãy vào đúng phòng học rồi thử lại.`, `You are about ${extra.distance_m} m from the classroom (allowed ${extra.radius_m} m). Please be in the room and try again.`);
+      const e = ERR[code]; return e ? e[lang() === 'vi' ? 0 : 1] : t('Không điểm danh được: ', 'Could not check in: ') + code;
+    };
+
+    const params = new URLSearchParams(location.search);
+    let sessionId = params.get('s'), code = params.get('c');
+    let info = null, busy = false, stream = null, scanning = false;
+
+    function hideAll() { ['pwCard', 'scanCard', 'resultCard'].forEach(i => $(i).classList.add('hidden')); }
+    function showResult(ok, title, text, extra) {
+      stopCamera(); hideAll();
+      const r = $('resultCard'); r.classList.remove('hidden');
+      r.innerHTML = `<div class="pop mx-auto w-20 h-20 rounded-full flex items-center justify-center text-4xl ${ok ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}"><i class="bi ${ok ? 'bi-check-lg' : 'bi-x-lg'}"></i></div>
+        <div class="mt-4 text-xl font-black">${esc(title)}</div><p class="mt-1 text-sm text-gray-600">${esc(text)}</p>${extra || ''}
+        <div class="mt-5 flex gap-2 justify-center">
+          ${ok ? '' : `<button onclick="location.href='checkin.html'" class="px-4 py-2 rounded-xl bg-[#cf1717] text-white font-bold text-sm">${esc(t('Quét lại', 'Scan again'))}</button>`}
+          <a href="assignment.html" class="px-4 py-2 rounded-xl border font-bold text-sm">${esc(t('Về trang học', 'Back to class page'))}</a>
+        </div>`;
+    }
+
+    function getPosition() {
+      return new Promise((res, rej) => {
+        if (!navigator.geolocation) return rej(new Error('no_geo'));
+        navigator.geolocation.getCurrentPosition(p => res({ lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy }), rej, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+      });
+    }
+
+    async function submit(pw) {
+      if (busy) return; busy = true;
+      $('statusLine').textContent = t('Đang điểm danh…', 'Checking in…');
+      try {
+        let pos = { lat: null, lng: null, acc: null };
+        if (!info || info.needs_location) {
+          try { pos = await getPosition(); }
+          catch (e) {
+            if (info && info.needs_location) {
+              busy = false; $('statusLine').textContent = '';
+              return showResult(false, t('Cần quyền vị trí', 'Location permission needed'), t('Hãy bật Vị trí cho trình duyệt (Cài đặt → Quyền → Vị trí) rồi quét lại.', 'Allow Location for your browser (Settings → Permissions → Location), then scan again.'));
+            }
+          }
+        }
+        const { data, error } = await sb.rpc('qr_student_check_in', { p_session_id: sessionId, p_code: code, p_password: pw || null, p_lat: pos.lat, p_lng: pos.lng, p_accuracy: pos.acc });
+        if (error) { showResult(false, t('Lỗi', 'Error'), error.message + (/function|schema cache/i.test(error.message) ? ' — ' + t('quản trị chưa chạy 2_qr_attendance.sql.', 'admin has not run 2_qr_attendance.sql yet.') : '')); return; }
+        if (data.ok) {
+          const st = data.status;
+          const label = st === 'L' ? t('Có mặt (Muộn)', 'Present (Late)') : t('Có mặt', 'Present');
+          showResult(true, data.already ? t('Bạn đã được điểm danh', 'Already checked in') : t('Điểm danh thành công!', 'Checked in!'), t('Trạng thái: ', 'Status: ') + label + (data.distance_m != null ? ` · ${data.distance_m} m` : ''));
+        } else if (data.error === 'need_password' || data.error === 'bad_password') {
+          hideAll(); $('pwCard').classList.remove('hidden'); $('pwInput').focus();
+          $('statusLine').textContent = data.error === 'bad_password' ? errText('bad_password') : '';
+          if (data.error === 'need_password') $('statusLine').textContent = errText('need_password');
+        } else { showResult(false, t('Chưa điểm danh được', 'Check-in failed'), errText(data.error, data)); }
+      } catch (e) { showResult(false, t('Lỗi', 'Error'), e.message || String(e)); }
+      finally { busy = false; if (!$('pwCard').classList.contains('hidden')) return; $('statusLine').textContent = ''; }
+    }
+
+    // ---------- Máy quét QR ----------
+    async function startCamera() {
+      $('camStart').classList.add('hidden');
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+        const v = $('video'); v.srcObject = stream; await v.play(); scanning = true; requestAnimationFrame(scanLoop);
+      } catch (e) {
+        $('camMsg').textContent = t('Không mở được camera — hãy cho phép Máy ảnh trong Cài đặt, hoặc nhập mã 6 số bên dưới.', 'Camera unavailable — allow Camera in Settings, or use the 6-digit code below.');
+        $('camStart').classList.remove('hidden');
+      }
+    }
+    function stopCamera() { scanning = false; if (stream) { stream.getTracks().forEach(tr => tr.stop()); stream = null; } }
+    const cv = document.createElement('canvas'), cx = cv.getContext('2d', { willReadFrequently: true });
+    let lastScan = 0;
+    function scanLoop(ts) {
+      if (!scanning) return;
+      const v = $('video');
+      if (v.readyState >= 2 && ts - lastScan > 120) {
+        lastScan = ts;
+        const w = Math.min(640, v.videoWidth), h = Math.round(w * v.videoHeight / v.videoWidth);
+        cv.width = w; cv.height = h; cx.drawImage(v, 0, 0, w, h);
+        try {
+          const r = window.jsQR && jsQR(cx.getImageData(0, 0, w, h).data, w, h, { inversionAttempts: 'dontInvert' });
+          if (r && r.data && handleScanned(r.data)) return;
+        } catch (e) {}
+      }
+      requestAnimationFrame(scanLoop);
+    }
+    function handleScanned(text) {
+      let u; try { u = new URL(text, location.href); } catch (e) { return false; }
+      const s = u.searchParams.get('s'), c = u.searchParams.get('c');
+      if (!s || !c || !/checkin\.html$/i.test(u.pathname) || u.origin !== location.origin) return false;
+      stopCamera(); if (navigator.vibrate) navigator.vibrate(60);
+      sessionId = s; code = c; begin(); return true;
+    }
+
+    // ---------- Luồng chính ----------
+    async function begin() {
+      hideAll();
+      const ir = await sb.rpc('qr_student_session_info', { p_session_id: sessionId });
+      if (ir.error) return showResult(false, t('Lỗi', 'Error'), ir.error.message + (/function|schema cache/i.test(ir.error.message) ? ' — ' + t('quản trị chưa chạy 2_qr_attendance.sql.', 'admin has not run 2_qr_attendance.sql yet.') : ''));
+      info = ir.data;
+      if (!info || !info.ok) return showResult(false, t('Không tìm thấy buổi học', 'Session not found'), errText('not_open'));
+      $('infoCard').classList.remove('hidden');
+      $('infoClass').textContent = (info.class_code ? info.class_code + ' — ' : '') + (info.class_title || '');
+      $('infoMeta').textContent = [info.subject_name, String(info.session_date).slice(0, 10).split('-').reverse().join('/'), info.session_time].filter(Boolean).join(' · ') +
+        (info.needs_location ? ' · 📍' : '') + (info.needs_password ? ' · 🔑' : '');
+      if (!info.in_window) return showResult(false, t('Ngoài khung giờ điểm danh', 'Outside check-in time'), errText('not_open'));
+      if (info.needs_password) { $('pwCard').classList.remove('hidden'); $('pwInput').focus(); $('pwGo').onclick = () => submit($('pwInput').value); $('pwInput').onkeydown = e => { if (e.key === 'Enter') submit($('pwInput').value); }; return; }
+      submit();
+    }
+
+    async function showScanner() {
+      hideAll(); $('infoCard').classList.add('hidden'); $('scanCard').classList.remove('hidden');
+      startCamera();
+      const { data } = await sb.rpc('qr_student_open_sessions');
+      const list = Array.isArray(data) ? data : [];
+      $('openList').innerHTML = list.length
+        ? list.map((s, i) => `<label class="flex items-center gap-2 p-2 rounded-xl border text-sm cursor-pointer"><input type="radio" name="osess" value="${esc(s.session_id)}" ${i === 0 ? 'checked' : ''}> <span class="min-w-0 truncate"><b>${esc(s.class_code || '')}</b> ${esc(s.subject_name || '')} <span class="text-gray-400">${esc(s.session_time || '')}</span></span></label>`).join('')
+        : `<p class="text-xs text-gray-400 italic">${esc(t('Hiện chưa có buổi nào đang mở điểm danh QR.', 'No session is open for QR check-in right now.'))}</p>`;
+      $('codeGo').onclick = () => {
+        const c = $('codeInput').value.replace(/\D/g, ''); if (c.length !== 6) { $('statusLine').textContent = t('Mã gồm 6 chữ số.', 'The code has 6 digits.'); return; }
+        const sel = document.querySelector('input[name=osess]:checked'); if (!sel) { $('statusLine').textContent = t('Chưa có buổi nào mở điểm danh.', 'No open session.'); return; }
+        stopCamera(); sessionId = sel.value; code = c; begin();
+      };
+      $('camStart').onclick = startCamera;
+    }
+
+    (async function init() {
+      let { data: { session } } = await sb.auth.getSession();
+      if (!session) { await new Promise(r => setTimeout(r, 700)); ({ data: { session } } = await sb.auth.getSession()); }
+      if (!session) { location.replace('login.html?next=' + encodeURIComponent('checkin.html' + location.search)); return; }
+      if (sessionId && code) begin(); else showScanner();
+    })();
+    window.addEventListener('pagehide', stopCamera);
+  </script>
+</body>
+</html>

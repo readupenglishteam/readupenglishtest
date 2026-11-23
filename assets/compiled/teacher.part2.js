@@ -1722,13 +1722,20 @@
   const PAGED_TAG='[[ru:paged]]';
   const metaOf=s=>{ const o={paged:false,dueTime:''}; String(s||'').replace(/\[\[ru:([a-z]+)(?:=([^\]]*))?\]\]/g,(x,k,v)=>{ if(k==='paged')o.paged=true; if(k==='due'&&/^\d{2}:\d{2}$/.test(v||''))o.dueTime=v; return x; }); return o; };
   const stripPaged=s=>String(s||'').replace(/\[\[ru:[a-z]+(?:=[^\]]*)?\]\]/g,'').trim();
+  // Đặt ô "Kiểu hiển thị câu hỏi" theo selectedIndex (chắc chắn hơn gán .value khi dropdown bị dịch/vẽ lại)
+  function setPagingSelect(paged){
+    const sel=pel('asPaging'); if(!sel) return;
+    const want=paged?'paged':'scroll';
+    const i=[...sel.options].findIndex(o=>o.value===want);
+    sel.selectedIndex=i>=0?i:0;
+  }
   function toggleTestBox(){ pel('testBox').classList.toggle('hidden', !pel('asIsTest').checked); }
   function openBuilder(assignmentToEdit) {
     pel('editingAssignmentId').value = assignmentToEdit ? assignmentToEdit.id : '';
     pel('builderModeTitle').innerText = assignmentToEdit ? 'Chỉnh Sửa Bài Tập' : 'Tạo Bài Tập Mới';
     pel('asTitle').value = assignmentToEdit?.title || '';
     pel('asDesc').value = stripPaged(assignmentToEdit?.description);
-    { const mt=metaOf(assignmentToEdit?.description); pel('asPaging').value = mt.paged ? 'paged' : 'scroll'; pel('asDueTime').value = mt.dueTime || ''; }
+    { const mt=metaOf(assignmentToEdit?.description); setPagingSelect(mt.paged); pel('asDueTime').value = mt.dueTime || ''; }
     pel('asTimeLimit').value = assignmentToEdit?.time_limit_minutes || '';
     pel('asMaxAttempts').value = assignmentToEdit?.max_attempts || '';
     pel('asDueDate').value = assignmentToEdit?.due_date ? String(assignmentToEdit.due_date).slice(0, 10) : '';
@@ -2099,6 +2106,14 @@
     // Supabase/RLS có thể "im lặng" không cập nhật dòng nào → báo rõ thay vì hiện "Đã lưu"
     if (!saveRes.data || !saveRes.data.length) return notify('❌ Không lưu được: tài khoản này không có quyền sửa bài này (bị chặn bởi RLS). Chưa có thay đổi nào được ghi.');
     if (saveRes.data[0].is_test !== row.is_test) return notify('⚠️ Máy chủ vẫn giữ is_test = ' + saveRes.data[0].is_test + ' dù bạn đã ' + (row.is_test ? 'tích' : 'bỏ tích') + ' — có trigger/ràng buộc trong Supabase đang ghi đè.');
+    // Đọc lại từ máy chủ để chắc chắn "Kiểu hiển thị" thật sự đã được ghi (thẻ [[ru:paged]] nằm trong cột description)
+    try {
+      const wantPaged = pel('asPaging').value === 'paged';
+      const chk = await sbClient.from('assignments').select('description').eq('id', saveRes.data[0].id).maybeSingle();
+      if (!chk.error && chk.data && metaOf(chk.data.description).paged !== wantPaged) {
+        notify('⚠️ Bài đã lưu nhưng máy chủ KHÔNG giữ "Kiểu hiển thị câu hỏi" (cột description bị trigger/ràng buộc ghi đè hoặc cắt bớt). Hãy kiểm tra cột assignments.description trong Supabase.');
+      }
+    } catch (e) { console.warn('Không kiểm tra lại được kiểu hiển thị:', e); }
     notify('🎉 Đã lưu bài tập! Đường dẫn: assignment.html?token=' + token);
     closeBuilder(); cacheDel('assign:' + currentClassForAssignments); loadAssignmentsForClass();
   }
@@ -2518,6 +2533,7 @@
       let tools = '';
       if (!susp) {
         if (attCanEdit(s.id)) tools += `<button type="button" onclick="markAllPresent('${s.id}')" title="Đánh dấu P cho các bạn chưa điểm danh" style="${bs}">✔</button>`;
+        if (!locked && String(s.session_date).slice(0, 10) >= new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }) && typeof openQrAttendance === 'function') tools += ` <button type="button" onclick="openQrAttendance('${s.id}')" title="Điểm danh bằng mã QR (mã chỉ có hiệu lực trong khung giờ + ngày của buổi này)" style="${bs}"><i class="bi bi-qr-code"></i></button>`;
         if (!locked) tools += ` <button type="button" onclick="toggleAttendanceLock('${s.id}')" title="Chốt điểm danh buổi này — học sinh sẽ thấy trạng thái, sau đó chỉ teacher mới sửa được" style="${bs}"><i class="bi bi-unlock-fill"></i></button>`;
         else if (isOwnerRole()) tools += ` <button type="button" onclick="toggleAttendanceLock('${s.id}')" title="Đã chốt — bấm để mở chốt (chỉ teacher)" style="${bs}"><i class="bi bi-lock-fill"></i></button>`;
         else tools += ` <span title="Đã chốt — chỉ giáo viên (teacher) mới sửa được" style="${bs};display:inline-block"><i class="bi bi-lock-fill"></i></span>`;

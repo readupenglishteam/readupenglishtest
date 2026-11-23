@@ -193,7 +193,7 @@
         c = (q.content || '').replace(/\{\{(\d+)\}\}/g, (m, g) => {
           const bl = q.blanks.find(b => String(b.gap) === g);
           const len = (bl && bl.accepted_answers && bl.accepted_answers.length) ? Math.max(...bl.accepted_answers.map(a => String(a).length)) : 6;
-          return `<textarea id="ans-${q.id}-${g}" rows="1" placeholder="…" oninput="growFill(this)" style="width:${Math.min(Math.max(len + 3, 5), 28)}ch" class="fillbox mx-1 px-2 py-1 rounded-lg border-2 border-[#cf1717]/40 dark:bg-zinc-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#cf1717]"></textarea>`;
+          return `<textarea id="ans-${q.id}-${g}" rows="1" placeholder="…" oninput="growFill(this)" class="fillbox mx-1 px-2 py-1 rounded-lg border-2 border-[#cf1717]/40 dark:bg-zinc-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#cf1717]"></textarea>`;
         });
       } else c = `${q.content || ''}<div class="mt-3"><textarea id="ans-${q.id}" rows="2" class="w-full p-2.5 rounded-xl border dark:bg-zinc-800 dark:border-zinc-700 text-sm" placeholder="Nhập câu trả lời..."></textarea></div>`;
       return card(q, n, `<div class="qcontent text-sm leading-loose">${c}</div>`);
@@ -205,7 +205,7 @@
     return card(q, n, `<div class="qcontent text-sm">${q.content || ''}</div><div class="space-y-2">${body}</div>`);
   }
   const card = (q, n, inner, extra) => `<div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm" data-q="${q.id}"><div class="flex items-center justify-between"><p class="text-xs font-bold text-[#cf1717]">Câu ${n} · ${q.points} điểm</p>${extra || ''}</div>${inner}</div>`;
-  function growFill(el) { const l = Math.max(...el.value.split('\n').map(x => x.length), 5); el.style.width = Math.min(Math.max(l + 3, 5), 34) + 'ch'; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
+  function growFill(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
 
   function flatQs(list) { const out = []; (list || []).forEach(q => { if (q.type === 'reading') (q.sub_blocks || []).forEach(s => out.push(s)); else out.push(q); }); return out; }
   const norm = x => String(x ?? '').toLowerCase().trim();
