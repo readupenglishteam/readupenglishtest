@@ -7,6 +7,42 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;',
 let me = JSON.parse(sessionStorage.getItem('rt_me')||'null'), cls = null, tests = [], offset = 0, ticker = null;
 let X = null; // trạng thái phòng thi
 
+/* ---------- LƯU TIẾN ĐỘ BÀI THI (mất mạng / đóng tab / tắt trình duyệt vẫn giữ được) ----------
+   Lưu trong localStorage của máy: đáp án, cờ, số cảnh báo và THỜI GIAN CÒN LẠI.
+   Khi học sinh quay lại, đồng hồ chạy tiếp từ đúng số giây còn lại lúc thoát (thời gian ngoài phòng thi không bị tính),
+   nhưng không bao giờ vượt quá giờ đóng bài (close_at) của đề. */
+const SAVE_PREFIX='rt_exam_', SAVE_TTL=3*24*3600*1000;
+const lsGet=k=>{try{return localStorage.getItem(k);}catch(e){return null;}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,v);return true;}catch(e){return false;}};
+const lsDel=k=>{try{localStorage.removeItem(k);}catch(e){}};
+const mailKey=e=>String(e||'').trim().toLowerCase();
+function loadSaved(sid){
+  try{ const r=JSON.parse(lsGet(SAVE_PREFIX+sid)||'null');
+    if(r&&r.v===1&&String(r.sid)===String(sid)&&me&&r.email===mailKey(me.email)) return r; }catch(e){}
+  return null;
+}
+const snapshot=()=>({v:1,sid:X.sid,email:mailKey(me&&me.email),remainMs:Math.max(0,X.deadline-nowMs()),ans:X.ans,flags:X.flags,viol:X.viol,page:X.page||0,savedAt:Date.now()});
+function persist(){
+  if(!X||X.done||!X.sid) return;
+  lsSet(SAVE_PREFIX+X.sid,JSON.stringify(snapshot()));
+}
+/* Đồng bộ tiến độ lên server (bảng test_progress) → đổi máy / đổi trình duyệt vẫn làm tiếp được.
+   Nếu chưa chạy sql/test_progress.sql thì tự động bỏ qua, vẫn lưu trên máy như cũ. */
+async function pushProgress(){
+  if(!X||X.done||X.pushing||X.noSrv||navigator.onLine===false) return;
+  X.pushing=true;
+  try{
+    const {error}=await SB.rpc('test_save_progress',{p_session_id:String(X.sid),p_email:mailKey(me.email),p_state:snapshot()});
+    if(error){ if(error.code==='PGRST202'||error.code==='42883'||/could not find|does not exist/i.test(error.message||'')){ X.noSrv=true; console.warn('[ReadUp] Chưa cài sql/test_progress.sql — chỉ lưu trên máy này.'); } else console.warn('[ReadUp] Lưu tiến độ lên server lỗi:',error.message); }
+  }catch(e){}
+  if(X) X.pushing=false;
+}
+function sweepOldSaves(){
+  try{ Object.keys(localStorage).filter(k=>k.startsWith(SAVE_PREFIX)).forEach(k=>{
+    let r=null; try{r=JSON.parse(localStorage.getItem(k));}catch(e){}
+    if(!r||!r.savedAt||Date.now()-r.savedAt>SAVE_TTL) lsDel(k); }); }catch(e){}
+}
+
 function toast(m,ic){const d=document.createElement('div');d.className='pointer-events-auto bg-white dark:bg-zinc-800 border-l-4 border-[#cf1717] shadow-xl rounded-xl px-4 py-3 text-sm font-bold flex items-start gap-2';if(ic){const i=document.createElement('i');i.className='bi bi-'+ic+' text-[#cf1717] mt-0.5';d.appendChild(i);}const t=document.createElement('span');t.textContent=m;d.appendChild(t);$('toast').appendChild(d);setTimeout(()=>d.remove(),4500);}
 const nowMs = () => Date.now() + offset;
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'], DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -108,7 +144,7 @@ function testCard(t){
 function askPass(id){
   const t=tests.find(x=>x.id===id);
   openModal(`<h2 class="text-lg font-extrabold text-[#cf1717] mb-1">${esc(t.title)}</h2>
-    <ul class="text-xs text-gray-500 list-disc pl-4 mb-4 space-y-1"><li>Bài thi chạy ở chế độ <b>toàn màn hình</b>.</li><li>Thoát toàn màn hình / chuyển tab / chuyển cửa sổ bị tính là vi phạm. Quá <b>${MAX_VIOL} lần</b> hệ thống tự động nộp bài.</li><li>Không thể sao chép đề bài, không chuột phải, không dán nội dung. Không được dùng Grammarly, công cụ AI hay tiện ích hỗ trợ khác.</li></ul>
+    <ul class="text-xs text-gray-500 list-disc pl-4 mb-4 space-y-1"><li>Bài thi chạy ở chế độ <b>toàn màn hình</b>.</li><li>Thoát toàn màn hình / chuyển tab / chuyển cửa sổ bị tính là vi phạm. Quá <b>${MAX_VIOL} lần</b> hệ thống tự động nộp bài.</li><li>Nếu bị mất mạng hoặc thoát giữa chừng, bài làm được <b>lưu tự động</b> (cả trên máy lẫn trên hệ thống, đổi máy/trình duyệt vẫn làm tiếp được — chỉ cần đăng nhập lại và bấm "Tiếp tục làm bài"); khi vào lại bạn làm tiếp với thời gian còn lại (thời gian lúc thoát không bị tính, trừ khi đã quá giờ đóng bài).</li><li>Không thể sao chép đề bài, không chuột phải, không dán nội dung. Không được dùng Grammarly, công cụ AI hay tiện ích hỗ trợ khác.</li></ul>
     <div class="relative mb-3"><input id="pw" type="password" class="${inp} pr-11" placeholder="Mật khẩu vào thi" onkeydown="if(event.key==='Enter')enter('${id}')"><button type="button" id="pwEye" onmousedown="event.preventDefault()" onclick="togglePw()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#cf1717] text-lg leading-none" aria-label="Hiện/ẩn mật khẩu"><i class="bi bi-eye"></i></button></div>
     <div class="flex gap-2"><button onclick="closeModal()" class="flex-1 py-2.5 rounded-xl border font-bold text-sm">Huỷ</button>
     <button id="pwBtn" onclick="enter('${id}')" class="flex-1 py-2.5 rounded-xl bg-[#cf1717] text-white font-extrabold text-sm">Vào làm bài</button></div>`);
@@ -122,14 +158,32 @@ async function enter(id){
   $('pwBtn').disabled=true;
   const {data,error}=await SB.rpc('test_start',{p_assignment_id:id,p_name:me.name,p_email:me.email,p_password:pw});
   if(error){ if(document.fullscreenElement) document.exitFullscreen(); $('pwBtn').disabled=false; return toast(error.message,'x-circle-fill'); }
-  closeModal(); startExam(data);
+  let srv=null;
+  try{ const r=await SB.rpc('test_load_progress',{p_session_id:String(data.session_id),p_email:mailKey(me.email)}); if(!r.error&&r.data&&r.data.v===1) srv=r.data; }catch(e){}
+  closeModal(); startExam(data,id,srv);
 }
 
 /* ---------- PHÒNG THI ---------- */
-function startExam(d){
+function startExam(d,aid,srv){
   offset=new Date(d.now).getTime()-Date.now();
-  const key='rt_ans_'+d.session_id;
-  X={sid:d.session_id,q:normQs(d.questions),deadline:new Date(d.deadline).getTime(),viol:d.violations||0,ans:JSON.parse(sessionStorage.getItem(key)||'{}'),key,active:true,lock:false,last:0,done:false,flags:JSON.parse(sessionStorage.getItem('rt_flag_'+d.session_id)||'{}'),nav:[],cur:1,seen:{}};
+  sweepOldSaves();
+  const key='rt_ans_'+d.session_id, loc=loadSaved(d.session_id), t=tests.find(x=>x.id===aid);
+  // gộp bản lưu trên máy và trên server: lấy đáp án của bản MỚI hơn, thời gian còn lại là số NHỎ hơn
+  let sv=loc;
+  if(srv&&(!loc||(+srv.savedAt||0)>=(+loc.savedAt||0))) sv={...srv};
+  if(sv&&srv&&loc) sv.remainMs=Math.min(+srv.remainMs||0,+loc.remainMs||0);
+  const closeAt=t&&t.close_at?new Date(t.close_at).getTime():Infinity;
+  let deadline=new Date(d.deadline).getTime(), ans, flags, viol=d.violations||0;
+  if(sv){   // quay lại sau khi thoát: chạy tiếp từ số giây còn lại đã lưu
+    const lim=t&&+t.time_limit>0?t.time_limit*60000:Infinity;
+    deadline=nowMs()+Math.min(Math.max(0,+sv.remainMs||0),lim);
+    ans=sv.ans||{}; flags=sv.flags||{}; viol=Math.max(viol,+sv.viol||0);
+  } else {
+    try{ans=JSON.parse(sessionStorage.getItem(key)||'{}');}catch(e){ans={};}
+    try{flags=JSON.parse(sessionStorage.getItem('rt_flag_'+d.session_id)||'{}');}catch(e){flags={};}
+  }
+  if(isFinite(closeAt)) deadline=Math.min(deadline,closeAt);   // không bao giờ vượt quá giờ đóng bài
+  X={sid:d.session_id,aid,closeAt,q:normQs(d.questions),deadline,viol,ans,key,active:true,lock:false,last:0,done:false,flags,nav:[],cur:1,seen:{},lastSave:-1};
   $('exTitle').textContent=d.title; $('exWho').textContent=`${me.name} • ${me.email}`; $('exDesc').textContent='';
   let n=0; const nx=()=>++n; nx.cur=()=>n; $('exQs').innerHTML=X.q.map(q=>qHtml(q,nx)).join('');
   $('exam').classList.toggle('reading-mode',X.q.some(q=>q.type==='reading'));
@@ -137,7 +191,10 @@ function startExam(d){
   initTestReadingSplits($('exQs'));
   examEmptyNotice(typeof d.questions==='string'?(()=>{try{return JSON.parse(d.questions);}catch(e){return [];}})():d.questions);
   X.paged=String(d.description||'').includes('[[ru:paged]]'); X.page=0;
-  restoreAnswers(); buildNav(); applyZoom(); setupPages(); guardStart(); tick(); X.timer=setInterval(tick,500);
+  restoreAnswers(); buildNav(); applyZoom(); setupPages();
+  if(sv&&X.paged&&+sv.page>0) gotoPage(+sv.page,true);
+  persist(); guardStart(); tick(); X.timer=setInterval(tick,500); X.push=setInterval(pushProgress,8000);
+  if(sv) toast(`Đã khôi phục bài làm đã lưu. Thời gian còn lại: ${$('exTimer').textContent} (thời gian lúc thoát không bị tính).`,'arrow-counterclockwise');
 }
 const rng=(a,b)=>b<a?'Questions':(a===b?`Question ${a}`:`Questions ${a}–${b}`);
 // Khung kéo chia cột bài đọc: dùng chung lúc làm bài và khi xem kết quả.
@@ -241,7 +298,7 @@ function qHtml(q,next,sub){
   return `<div id="qn_${no}" data-qn="${no}" data-qid="${esc(q.id)}" class="${N}${card} qcard p-5"><div class="flex items-center gap-2 mb-2"><span class="text-xs font-extrabold text-[#cf1717]">Question ${no}</span><span class="text-[11px] text-gray-400">(${q.points||0} ${(+q.points||0)===1?'point':'points'})</span><span class="qstat">Not yet answered</span><button type="button" class="qflag" data-flagq="${esc(q.id)}" onclick="toggleFlag('${esc(q.id)}')" aria-pressed="false"><i class="bi bi-flag"></i><span>Flag question</span></button></div>
     <div class="qc mb-3">${content}</div><div class="space-y-2">${body}</div></div>`;
 }
-function save(){ sessionStorage.setItem(X.key,JSON.stringify(X.ans)); updNav(); }
+function save(){ persist(); updNav(); if(X){clearTimeout(X.pt);X.pt=setTimeout(pushProgress,1500);} }
 function setAns(q,v){ X.ans[q]=v; if(document.querySelector(`[data-q="${q}"]`)) document.querySelectorAll(`[data-q="${q}"]`).forEach(l=>l.classList.toggle('sel',l.dataset.o===v)); save(); }
 function setMulti(q){ const v=[...document.querySelectorAll(`[data-q="${q}"]`)].filter(l=>l.querySelector('input').checked).map(l=>(l.classList.add('sel'),l.dataset.o)); document.querySelectorAll(`[data-q="${q}"]`).forEach(l=>l.classList.toggle('sel',l.querySelector('input').checked)); X.ans[q]=v; save(); }
 function setGap(q,g,v){ if(typeof X.ans[q]!=='object'||Array.isArray(X.ans[q])) X.ans[q]={}; X.ans[q][g]=v; save(); }
@@ -257,6 +314,7 @@ function tick(){
   const s=Math.max(0,Math.ceil((X.deadline-nowMs())/1000)), m=Math.floor(s/60);
   $('exTimer').textContent=`${String(m).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
   $('exTimer').style.background = s<=300?'#b45309':'#cf1717';
+  if(s!==X.lastSave){ X.lastSave=s; persist(); }
   if(s<=0) submit(true,'Hết giờ — hệ thống đã tự động nộp bài.');
 }
 function updViol(){ $('exViol').textContent=`Cảnh báo ${Math.min(X.viol,MAX_VIOL)}/${MAX_VIOL}`; }
@@ -265,7 +323,7 @@ function updViol(){ $('exViol').textContent=`Cảnh báo ${Math.min(X.viol,MAX_V
 function violation(reason){
   if(!X||X.done||!X.active) return;
   const t=Date.now(); if(t-X.last<1500) return; X.last=t;   // gộp các sự kiện đồng thời
-  X.viol++; updViol(); SB.rpc('test_violation',{p_session_id:X.sid,p_count:X.viol});
+  X.viol++; updViol(); persist(); SB.rpc('test_violation',{p_session_id:X.sid,p_count:X.viol});
   if(X.viol>MAX_VIOL) return submit(true,`Bạn đã vi phạm quá ${MAX_VIOL} lần — hệ thống tự động nộp bài.`);
   X.lock=true;
   openModal(`<div class="text-center"><div class="text-5xl mb-2 text-amber-500"><i class="bi bi-exclamation-triangle-fill"></i></div><h2 class="text-lg font-extrabold text-[#cf1717] mb-2">Cảnh báo ${X.viol}/${MAX_VIOL}</h2>
@@ -312,8 +370,7 @@ function paintFlag(id){
 function toggleFlag(id){
   if(!X) return;
   if(X.flags[id]) delete X.flags[id]; else X.flags[id]=1;
-  sessionStorage.setItem('rt_flag_'+X.sid,JSON.stringify(X.flags));
-  paintFlag(id); updNav();
+  persist(); pushProgress(); paintFlag(id); updNav();
 }
 function flagNote(){
   if(!X||!X.nav) return '';
@@ -361,6 +418,7 @@ function gotoPage(i,silent){
   $('exNext').classList.toggle('hidden',i===X.pages.length-1);
   $('exPageInfo').textContent=`Page ${i+1} of ${X.pages.length}`;
   $('exSubmit').classList.toggle('hidden',i!==X.pages.length-1);
+  persist();
   const first=X.pages[i].qns[0]; if(first){X.cur=first;X.lockCur=Date.now()+800;updNav();}
   if(!silent||i>0) $('exam').scrollTo({top:0,behavior:'auto'});
 }
@@ -420,10 +478,18 @@ function confirmSubmit(){
 }
 const cnt=q=>q.type==='text'?0:q.type==='reading'?(q.sub_blocks||[]).reduce((s,x)=>s+cnt(x),0):1;
 async function submit(auto,msg){
-  if(!X||X.done) return; X.done=true; clearInterval(X.timer);
-  const {error}=await SB.rpc('test_submit',{p_session_id:X.sid,p_answers:X.ans,p_violations:X.viol,p_auto:!!auto});
-  if(error){ X.done=false; X.timer=setInterval(tick,500); return toast('Submit failed: '+error.message+' (please try again)','x-circle-fill'); }
-  sessionStorage.removeItem(X.key); X.active=false;
+  if(!X||X.done) return;
+  if(auto&&X.retryAt&&Date.now()<X.retryAt) return;   // đang chờ thử nộp lại (mất mạng)
+  X.done=true; clearInterval(X.timer); persist();
+  let error=null;
+  try{ ({error}=await SB.rpc('test_submit',{p_session_id:X.sid,p_answers:X.ans,p_violations:X.viol,p_auto:!!auto})); }catch(e){ error=e; }
+  if(error){
+    X.done=false; X.retryAt=Date.now()+5000; X.timer=setInterval(tick,500);
+    if(!auto||!X.failShown){ X.failShown=true; toast(navigator.onLine===false?'Mất kết nối mạng — bài làm đã được lưu trên máy. Hệ thống sẽ tự nộp lại khi có mạng.':'Submit failed: '+(error.message||error)+' (please try again)','x-circle-fill'); }
+    return;
+  }
+  clearInterval(X.push); clearTimeout(X.pt); try{SB.rpc('test_save_progress',{p_session_id:String(X.sid),p_email:mailKey(me.email),p_state:null}).then(()=>{},()=>{});}catch(e){}
+  lsDel(SAVE_PREFIX+X.sid); sessionStorage.removeItem(X.key); sessionStorage.removeItem('rt_flag_'+X.sid); X.active=false;
   if(document.fullscreenElement) await document.exitFullscreen().catch(()=>{});
   guardStop(); if(X.io){X.io.disconnect();X.io=null;} toggleNav(false); $('exam').classList.add('hidden'); X=null;
   openModal(`<div class="text-center"><div class="text-5xl mb-2 text-emerald-500"><i class="bi bi-check-circle-fill"></i></div><h2 class="text-lg font-extrabold mb-2">Exam submitted</h2><p class="text-sm text-gray-500 mb-4">${esc(msg||'Your answers have been recorded.')}<br>Your grade appears in the test list. Answers will be shown when the test closes.</p><button onclick="closeModal();pickClass(cls)" class="w-full py-2.5 rounded-xl bg-[#cf1717] text-white font-extrabold">Back to exam list</button></div>`);
@@ -466,7 +532,11 @@ document.addEventListener('keydown',e=>{
     e.preventDefault(); if(e.key==='PrintScreen') navigator.clipboard?.writeText('').catch(()=>{});
   }
 });
-window.addEventListener('beforeunload',e=>{ if(X&&!X.done){e.preventDefault();e.returnValue='';} });
+window.addEventListener('beforeunload',e=>{ if(X&&!X.done){persist();e.preventDefault();e.returnValue='';} });
+window.addEventListener('pagehide',()=>{persist();pushProgress();});
+document.addEventListener('visibilitychange',()=>{ if(document.hidden){persist();pushProgress();} });
+window.addEventListener('offline',()=>{ if(X&&!X.done) toast('Mất kết nối mạng — bài làm vẫn được lưu trên máy. Hãy tiếp tục làm bài, đừng tải lại trang.','wifi-off'); });
+window.addEventListener('online',()=>{ if(X&&!X.done){ X.retryAt=0; X.failShown=false; persist(); pushProgress(); toast('Đã có mạng trở lại.','wifi'); } });
 
 /* ---------- KHÔI PHỤC MÀN HÌNH KHI TẢI LẠI TRANG ---------- */
 (function restore(){
