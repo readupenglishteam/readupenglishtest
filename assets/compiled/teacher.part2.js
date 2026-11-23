@@ -1422,7 +1422,7 @@
         </div>
         <h4 class="font-bold text-sm text-gray-900 dark:text-white">${esc(a.title)}</h4>
         ${a.is_test ? '<span class="inline-block text-[10px] font-bold rounded-full px-2 py-0.5 bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200">BÀI TEST · Phòng thi</span>' : ''}
-        ${dueBadgeHtml(a.due_date)}
+        ${dueBadgeHtml(a.due_date, a.description)}
         <p class="text-[11px] text-gray-400 truncate flex items-center gap-1">token: ${esc(a.token)}
           <button onclick="copyTokenOf('${esc(a.token)}')" title="Sao chép token" class="text-blue-400 hover:text-blue-600"><i class="bi bi-clipboard"></i></button>
         </p>
@@ -1469,16 +1469,17 @@
     renderAssignmentList();
   }
 
-  function dueBadgeHtml(dueDate) {
+  function dueBadgeHtml(dueDate, desc) {
     if (!dueDate) return '';
+    const hh = metaOf(desc).dueTime ? ' ' + metaOf(desc).dueTime : '';
     const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
     const dd = String(dueDate).slice(0, 10);
     const [y, m, d] = dd.split('-');
     const diffDays = Math.round((new Date(dd) - new Date(todayStr)) / 86400000);
-    let tone = 'bg-gray-100 text-gray-600 dark:bg-zinc-700 dark:text-gray-300', label = `Hạn nộp: ${d}/${m}/${y}`;
-    if (diffDays < 0) { tone = 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400'; label = `<i class="bi bi-alarm"></i> Đã quá hạn (${d}/${m}/${y})`; }
-    else if (diffDays === 0) { tone = 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400'; label = `<i class="bi bi-alarm"></i> Hạn hôm nay (${d}/${m}/${y})`; }
-    else if (diffDays <= 3) { tone = 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400'; label = `<i class="bi bi-alarm"></i> Còn ${diffDays} ngày (hạn ${d}/${m}/${y})`; }
+    let tone = 'bg-gray-100 text-gray-600 dark:bg-zinc-700 dark:text-gray-300', label = `Hạn nộp: ${d}/${m}/${y}${hh}`;
+    if (diffDays < 0) { tone = 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400'; label = `<i class="bi bi-alarm"></i> Đã quá hạn (${d}/${m}/${y}${hh})`; }
+    else if (diffDays === 0) { tone = 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400'; label = `<i class="bi bi-alarm"></i> Hạn hôm nay (${d}/${m}/${y}${hh})`; }
+    else if (diffDays <= 3) { tone = 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400'; label = `<i class="bi bi-alarm"></i> Còn ${diffDays} ngày (hạn ${d}/${m}/${y}${hh})`; }
     return `<p class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full ${tone}">${label}</p>`;
   }
 
@@ -1718,14 +1719,16 @@
     });
   }
 
-  const PAGED_TAG='[[ru:paged]]', stripPaged=s=>String(s||'').split(PAGED_TAG).join('').trim();
+  const PAGED_TAG='[[ru:paged]]';
+  const metaOf=s=>{ const o={paged:false,dueTime:''}; String(s||'').replace(/\[\[ru:([a-z]+)(?:=([^\]]*))?\]\]/g,(x,k,v)=>{ if(k==='paged')o.paged=true; if(k==='due'&&/^\d{2}:\d{2}$/.test(v||''))o.dueTime=v; return x; }); return o; };
+  const stripPaged=s=>String(s||'').replace(/\[\[ru:[a-z]+(?:=[^\]]*)?\]\]/g,'').trim();
   function toggleTestBox(){ pel('testBox').classList.toggle('hidden', !pel('asIsTest').checked); }
   function openBuilder(assignmentToEdit) {
     pel('editingAssignmentId').value = assignmentToEdit ? assignmentToEdit.id : '';
     pel('builderModeTitle').innerText = assignmentToEdit ? 'Chỉnh Sửa Bài Tập' : 'Tạo Bài Tập Mới';
     pel('asTitle').value = assignmentToEdit?.title || '';
     pel('asDesc').value = stripPaged(assignmentToEdit?.description);
-    pel('asPaging').value = String(assignmentToEdit?.description||'').includes(PAGED_TAG) ? 'paged' : 'scroll';
+    { const mt=metaOf(assignmentToEdit?.description); pel('asPaging').value = mt.paged ? 'paged' : 'scroll'; pel('asDueTime').value = mt.dueTime || ''; }
     pel('asTimeLimit').value = assignmentToEdit?.time_limit_minutes || '';
     pel('asMaxAttempts').value = assignmentToEdit?.max_attempts || '';
     pel('asDueDate').value = assignmentToEdit?.due_date ? String(assignmentToEdit.due_date).slice(0, 10) : '';
@@ -2079,7 +2082,7 @@
 
     const row = {
       class_id: currentClassForAssignments, teacher_id: currentUser.id, token, title,
-      description: ((pel('asDesc').value.trim() + (pel('asIsTest').checked && pel('asPaging').value==='paged' ? '\n'+PAGED_TAG : '')).trim()) || null,
+      description: ((pel('asDesc').value.trim() + (pel('asPaging').value==='paged' ? '\n'+PAGED_TAG : '') + (pel('asDueDate').value && pel('asDueTime').value ? '\n[[ru:due='+pel('asDueTime').value+']]' : '')).trim()) || null,
       time_limit_minutes: pel('asTimeLimit').value ? parseInt(pel('asTimeLimit').value) : null,
       max_attempts: pel('asMaxAttempts').value ? parseInt(pel('asMaxAttempts').value) : null,
       due_date: pel('asDueDate').value || null,

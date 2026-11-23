@@ -209,6 +209,15 @@
   <!-- ============ CHẾ ĐỘ 0: CHỌN LỚP ============ -->
   <div id="classPickView" class="hidden space-y-5">
 
+    <!-- ===== LỊCH SỬ HOẠT ĐỘNG (bài tập mới, chốt điểm danh, lớp tạm ngưng, lớp học hôm nay) ===== -->
+    <section id="activitySection" class="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border dark:border-zinc-800 shadow-sm space-y-3">
+      <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
+        <h2 class="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white"><i class="bi bi-clock-history"></i> Lịch Sử Hoạt Động</h2>
+        <span id="actCount" class="text-[11px] font-bold text-gray-400"></span>
+      </div>
+      <div id="actWrap" class="act-wrap"><div id="actList" class="act-list"><p class="text-xs text-gray-400 italic"><i class="bi bi-hourglass-split"></i> ...</p></div></div>
+      <p id="actHint" class="hidden text-[11px] text-gray-400 text-center"><i class="bi bi-chevron-double-down"></i></p>
+    </section>
     <!-- ===== LỊCH HỌC CỦA TÔI (gộp mọi lớp, hiện ngay ngoài màn hình) ===== -->
     <section id="studentCalendarSection" class="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border dark:border-zinc-800 shadow-sm space-y-4">
       <div class="flex items-center justify-between border-l-4 border-[#cf1717] pl-3">
@@ -302,22 +311,30 @@
   </div>
 
   <!-- ============ CHẾ ĐỘ 2: LÀM BÀI TẬP ============ -->
-  <div id="attemptView" class="hidden space-y-5">
-    <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 shadow-sm space-y-2 sticky top-16 z-20">
-      <div class="flex items-start justify-between gap-3">
-        <div>
-          <h2 id="atTitle" class="text-lg font-extrabold text-gray-900 dark:text-white"></h2>
-          <p id="atDesc" class="text-xs text-gray-500 mt-1"></p>
+  <div id="attemptView" class="hidden">
+    <div class="at-layout">
+      <div class="at-main space-y-5">
+        <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 shadow-sm space-y-2 sticky top-16 z-20">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <h2 id="atTitle" class="text-lg font-extrabold text-gray-900 dark:text-white"></h2>
+              <p id="atDesc" class="text-xs text-gray-500 mt-1"></p>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+              <div id="atTools" class="flex items-center gap-2"></div>
+              <div id="atTimer" class="hidden flex-shrink-0 text-sm font-extrabold text-[#cf1717] bg-red-50 dark:bg-red-950/40 px-3 py-1.5 rounded-xl"><i class="bi bi-stopwatch"></i> --:--</div>
+            </div>
+          </div>
+          <a href="assignment.html" id="backToListLink1" class="inline-block text-xs font-bold text-gray-400 hover:text-[#cf1717]">← Quay lại danh sách bài tập</a>
         </div>
-        <div id="atTimer" class="hidden flex-shrink-0 text-sm font-extrabold text-[#cf1717] bg-red-50 dark:bg-red-950/40 px-3 py-1.5 rounded-xl"><i class="bi bi-stopwatch"></i> --:--</div>
+        <div id="questionArea" class="space-y-4"></div>
+        <div id="atPager" class="hidden at-pager"></div>
+        <div class="flex justify-end pt-2">
+          <button id="submitBtn" onclick="atFinish()" class="bg-[#cf1717] hover:bg-red-700 text-white font-extrabold px-8 py-3 rounded-2xl text-sm shadow-lg transition"><i class="bi bi-check-circle-fill"></i> Nộp Bài</button>
+        </div>
       </div>
-      <a href="assignment.html" id="backToListLink1" class="inline-block text-xs font-bold text-gray-400 hover:text-[#cf1717]">← Quay lại danh sách bài tập</a>
-    </div>
-
-    <div id="questionArea" class="space-y-4"></div>
-
-    <div class="flex justify-end pt-2">
-      <button id="submitBtn" onclick="submitAssignment()" class="bg-[#cf1717] hover:bg-red-700 text-white font-extrabold px-8 py-3 rounded-2xl text-sm shadow-lg transition"><i class="bi bi-check-circle-fill"></i> Nộp Bài</button>
+      <div id="atNavBk" class="at-nav-bk" onclick="atToggleNav(false)"></div>
+      <aside id="atNav" class="at-nav hidden" aria-label="Bảng câu hỏi"></aside>
     </div>
   </div>
 

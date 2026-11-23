@@ -7,6 +7,16 @@
   const SUPABASE_KEY = "sb_publishable_WevQJCkdgfwbgnUoNu1SfA_Ec9hT49-";
   const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   function pel(id) { return document.getElementById(id); }
+  // Ngôn ngữ giao diện (đồng bộ với bộ chuyển ngôn ngữ ru-language.js)
+  const RL = () => { try { return localStorage.getItem('readup-language') === 'vi' ? 'vi' : 'en'; } catch { return 'en'; } };
+  const T = (vi, en) => RL() === 'vi' ? vi : en;
+  // Thông tin phụ giáo viên cài đặt, lưu cuối mô tả bài tập: [[ru:paged]] (mỗi câu một trang), [[ru:due=HH:MM]] (giờ hạn nộp)
+  function parseMeta(desc) {
+    const m = { paged: false, dueTime: null };
+    const text = String(desc || '').replace(/\[\[ru:([a-z]+)(?:=([^\]]*))?\]\]/g, (x, k, v) => { if (k === 'paged') m.paged = true; if (k === 'due' && /^\d{2}:\d{2}$/.test(v || '')) m.dueTime = v; return ''; }).trim();
+    return { text, ...m };
+  }
+  const tfLabel = (q, t) => { if (!q || q.type !== 'tf') return t; const k = String(t || '').replace(/<[^>]*>/g, '').trim().toLowerCase().replace(/[.\s]+$/, ''); return ({ 'đúng': 'True', 'dung': 'True', 'true': 'True', 'sai': 'False', 'false': 'False' })[k] || t; };
   function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
   // =====================================================================
@@ -294,7 +304,7 @@
       if (!classIds.length) {
         scalSessions = []; scalAssign = []; scalLocked = new Set(); scalAtt = {};
         cacheSet(cacheKey, { sessions: [], assign: [], locked: [], att: {}, classMap: {} });
-        scalRenderReminder(); scalRender();
+        scalRenderReminder(); scalRender(); actRender([]);
         if (!cached) box.innerHTML = '<p class="text-xs text-gray-400 italic">Bạn chưa tham gia lớp nào nên chưa có lịch học.</p>';
         return;
       }
@@ -319,6 +329,7 @@
       cacheSet(cacheKey, { sessions: scalSessions, assign: scalAssign, locked: [...scalLocked], att: scalAtt, classMap: scalClassMap });
       scalRenderReminder();
       scalRender();
+      actLoad(classIds).catch(e => console.warn('Lịch sử hoạt động lỗi:', e));
     } catch (err) {
       if (!cached) box.innerHTML = `<p class="text-red-500 text-xs">Lỗi tải lịch học: ${esc(err.message || err)}<br><span class="text-gray-400">Đã chạy file <b>3_student_calendar.sql</b> trong Supabase chưa?</span></p>`;
       else console.warn('Làm mới lịch học thất bại, đang dùng bản đã lưu:', err);
@@ -759,8 +770,8 @@
           ${a._attempt ? `<span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 rounded-full">Đã nộp: ${Math.round(((a._attempt.auto_score||0)+sumManualScores(a._attempt.manual_scores))*100)/100}/${a._attempt.total_points}</span>` : `<span class="text-[10px] font-bold px-2 py-0.5 bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-full">Chưa làm</span>`.replace(/^(?=.*)/, '') && (isAssignmentExpired(a) ? `<span class="text-[10px] font-bold px-2 py-0.5 bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-gray-300 rounded-full">Đã hết hạn · Chỉ xem</span>` : `<span class="text-[10px] font-bold px-2 py-0.5 bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-full">Chưa làm</span>`)}
         </div>
         <h4 class="font-bold text-sm text-gray-900 dark:text-white line-clamp-2">${esc(a.title)}</h4>
-        <p class="text-xs text-gray-400 line-clamp-2">${esc(a.description || '')}</p>
-        <p class="text-[10px] text-gray-400">${a.total_points} điểm · ${new Date(a.created_at).toLocaleDateString('vi-VN')}${a.due_date ? ' · Hạn: ' + fmtDueDate(a.due_date) : ''}</p>
+        <p class="text-xs text-gray-400 line-clamp-2">${esc(parseMeta(a.description).text)}</p>
+        <p class="text-[10px] text-gray-400">${a.total_points} điểm · ${new Date(a.created_at).toLocaleDateString('vi-VN')}${a.due_date ? ' · ' + T('Hạn: ', 'Due: ') + fmtDueDate(a.due_date, a) : ''}</p>
       </a>`).join('');
 
     let pagerHtml = '';
@@ -795,20 +806,20 @@
     if (latest) {
       // Đã từng làm: luôn mở lại bài gần nhất KÈM điểm + nhận xét của giáo viên.
       // Còn hạn -> sửa trực tiếp trên bài đó; hết hạn -> chỉ xem.
-      if (expired) notify(`⏰ Bài tập đã hết hạn (${fmtDueDate(a.due_date)}) — đây là bài làm gần nhất của bạn.`);
+      if (expired) notify(`⏰ Bài tập đã hết hạn (${fmtDueDate(a.due_date, a)}) — đây là bài làm gần nhất của bạn.`);
       showResult(a, latest, { expired, used: attemptsUsedOf(allAttempts) });
       return;
     }
     if (expired) {
       // Hết hạn mà chưa làm: vẫn cho XEM lại đề (kèm đáp án + giải thích) nhưng KHÔNG cho làm / nộp.
-      notify(`⏰ Bài tập đã hết hạn (${fmtDueDate(a.due_date)}) — bạn chỉ có thể xem lại, không thể làm bài này nữa.`);
+      notify(`⏰ Bài tập đã hết hạn (${fmtDueDate(a.due_date, a)}) — bạn chỉ có thể xem lại, không thể làm bài này nữa.`);
       showResult(a, { answers: {}, auto_score: 0, total_points: a.total_points, manual_scores: {}, _empty: true }, { expired: true, used: 0 });
       return;
     }
 
     currentAssignment = a;
     pel('atTitle').innerText = a.title;
-    pel('atDesc').innerText = a.description || '';
+    pel('atDesc').innerText = parseMeta(a.description).text;
     pel('backToListLink1').href = 'assignment.html?class=' + a.class_id;
     pel('attemptView').classList.remove('hidden');
 
@@ -816,6 +827,7 @@
     pel('questionArea').innerHTML = (a.questions || []).map(q => renderTopLevelBlock(q, counter, 'attempt')).join('');
     pel('questionArea').querySelectorAll('img').forEach(im => { im.loading = 'lazy'; im.decoding = 'async'; });
     initReadingHighlighting();
+    atSetup(a);
 
     if (a.time_limit_minutes) startTimer(a.time_limit_minutes * 60);
   }
@@ -861,7 +873,7 @@
     if (q.type === 'mcq' || q.type === 'tf') {
       inputHtml = (q.options || []).map(o => `
         <label class="flex items-center gap-2 p-2.5 border dark:border-zinc-700 rounded-xl cursor-pointer hover:border-[#cf1717] transition">
-          <input type="radio" name="ans-${q.id}" value="${esc(o.id)}"> <span class="text-sm">${esc(o.text)}</span>
+          <input type="radio" name="ans-${q.id}" value="${esc(o.id)}"> <span class="text-sm">${esc(tfLabel(q, o.text))}</span>
         </label>`).join('');
     } else if (q.type === 'multi') {
       inputHtml = (q.options || []).map(o => `
@@ -872,8 +884,8 @@
       inputHtml = `<textarea id="ans-${q.id}" rows="5" placeholder="Viết câu trả lời của bạn..." class="w-full p-2.5 rounded-xl border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></textarea>`;
     }
     return `
-      <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm" data-q="${q.id}">
-        <p class="text-xs font-bold text-[#cf1717]">Câu ${qNo} · ${q.points} điểm</p>
+      <div id="qn_${qNo}" data-qn="${qNo}" data-qid="${q.id}" class="atq bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm" data-q="${q.id}">
+        <div class="flex items-center gap-2"><p class="text-xs font-bold text-[#cf1717]">Câu ${qNo} · ${q.points} điểm</p><span class="atstat">${T('Chưa trả lời', 'Not yet answered')}</span><button type="button" class="atflag" data-flagq="${q.id}" onclick="atToggleFlag('${q.id}')" aria-pressed="false"><i class="bi bi-flag"></i><span>${T('Gắn cờ', 'Flag question')}</span></button></div>
         <div class="qcontent text-sm text-gray-900 dark:text-white">${q.content || ''}</div>
         <div class="space-y-2">${inputHtml}</div>
       </div>`;
@@ -896,8 +908,8 @@
       contentHtml = `${q.content || ''}<div class="mt-3"><textarea id="ans-${q.id}" rows="2" oninput="autoGrowFillInput(this)" placeholder="Nhập câu trả lời..." class="w-full p-2.5 rounded-xl border dark:bg-zinc-800 dark:border-zinc-700 text-sm resize-none overflow-hidden"></textarea></div>`;
     }
     return `
-      <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm" data-q="${q.id}">
-        <p class="text-xs font-bold text-[#cf1717]">Câu ${qNo} · ${q.points} điểm</p>
+      <div id="qn_${qNo}" data-qn="${qNo}" data-qid="${q.id}" class="atq bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm" data-q="${q.id}">
+        <div class="flex items-center gap-2"><p class="text-xs font-bold text-[#cf1717]">Câu ${qNo} · ${q.points} điểm</p><span class="atstat">${T('Chưa trả lời', 'Not yet answered')}</span><button type="button" class="atflag" data-flagq="${q.id}" onclick="atToggleFlag('${q.id}')" aria-pressed="false"><i class="bi bi-flag"></i><span>${T('Gắn cờ', 'Flag question')}</span></button></div>
         <div class="qcontent text-sm text-gray-900 dark:text-white leading-loose">${contentHtml}</div>
       </div>`;
   }
@@ -960,12 +972,186 @@
     tick(); timerInterval = setInterval(tick, 1000);
   }
 
+
+  // =====================================================================
+  // LÀM BÀI: dải cuộn hoặc mỗi câu một trang, Bảng câu hỏi, gắn cờ, thu phóng (không chặn gì)
+  // =====================================================================
+  let AT = null;
+  let atZoom = (() => { try { const v = +localStorage.getItem('ru_at_zoom'); return v >= 70 && v <= 200 ? v : 100; } catch { return 100; } })();
+  const atAnswered = card => !!card.querySelector('input[type=radio]:checked,input[type=checkbox]:checked') || [...card.querySelectorAll('textarea')].some(t => t.value.trim() !== '');
+  function atSetup(a) {
+    const area = pel('questionArea');
+    AT = { a, paged: parseMeta(a.description).paged, page: 0, pages: [], nav: [], cur: 1, flags: {}, lockCur: 0,
+           fkey: 'ru_aflag_' + a.id + '_' + (currentUser ? currentUser.id : '') };
+    try { AT.flags = JSON.parse(sessionStorage.getItem(AT.fkey) || '{}'); } catch { AT.flags = {}; }
+    const main = document.querySelector('main'); if (main) { main.classList.remove('max-w-5xl'); main.classList.add('max-w-7xl'); }
+    // công cụ thu phóng + nút mở bảng câu hỏi (điện thoại)
+    pel('atTools').innerHTML = `<div class="at-zoom" role="group" aria-label="${T('Cỡ chữ', 'Text size')}"><button type="button" onclick="atSetZoom(-1)" title="${T('Thu nhỏ chữ', 'Smaller text')}"><i class="bi bi-zoom-out"></i></button><button type="button" class="zv" id="atZoomVal" onclick="atSetZoom(0)" title="${T('Về 100%', 'Reset to 100%')}">100%</button><button type="button" onclick="atSetZoom(1)" title="${T('Phóng to chữ', 'Larger text')}"><i class="bi bi-zoom-in"></i></button></div><button type="button" class="at-navbtn" onclick="atToggleNav()"><i class="bi bi-grid-3x3-gap-fill"></i><span>${T('Bảng câu hỏi', 'Question navigation')}</span></button>`;
+    pel('submitBtn').innerHTML = `<i class="bi bi-check-circle-fill"></i> ${T('Nộp Bài', 'Submit')}`;
+    // bảng câu hỏi
+    AT.nav = [...area.querySelectorAll('[data-qn]')].map(el => ({ n: +el.dataset.qn, id: el.dataset.qid, el }));
+    const nav = pel('atNav'); nav.classList.remove('hidden');
+    nav.innerHTML = `<div class="at-nav-head"><h3>${T('Bảng câu hỏi', 'Question navigation')}</h3><button type="button" class="at-nav-x" onclick="atToggleNav(false)" aria-label="${T('Đóng', 'Close')}"><i class="bi bi-x-lg"></i></button></div>
+      <div id="atNavGrid" class="at-nav-grid">${AT.nav.map(o => `<button type="button" class="qnb" data-n="${o.n}" onclick="atGoQ(${o.n})" aria-label="${T('Câu', 'Question')} ${o.n}"><span class="qnb-n">${o.n}</span><i class="bi bi-flag-fill qnb-f"></i><span class="qnb-s"></span></button>`).join('')}</div>
+      <div class="at-nav-legend"><span><i class="lg lg-ans"></i> ${T('Đã trả lời', 'Answered')}</span><span><i class="lg lg-no"></i> ${T('Chưa trả lời', 'Not yet answered')}</span><span><i class="bi bi-flag-fill" style="color:#cf1717"></i> ${T('Đã gắn cờ', 'Flagged')}</span></div>
+      <div id="atNavStat" class="at-nav-stat"></div>
+      <button type="button" class="at-finish" onclick="atFinish()">${T('Nộp bài ...', 'Finish attempt ...')}</button>`;
+    AT.nav.forEach(o => atPaintFlag(o.id));
+    area.addEventListener('input', atUpd); area.addEventListener('change', atUpd);
+    area.addEventListener('focusin', e => { const c = e.target.closest && e.target.closest('[data-qn]'); if (c && AT) { AT.cur = +c.dataset.qn; atUpd(); } });
+    const vis = new Set();
+    AT.io = new IntersectionObserver(es => {
+      es.forEach(e => { const n = +e.target.dataset.qn; e.isIntersecting ? vis.add(n) : vis.delete(n); });
+      if (!vis.size || Date.now() < AT.lockCur) return;
+      const pick = [...vis].sort((x, y) => x - y).find(n => { const el = pel('qn_' + n); return el && el.getBoundingClientRect().bottom > 190; });
+      AT.cur = pick || Math.min(...vis); atUpd();
+    }, { threshold: .15 });
+    AT.nav.forEach(o => AT.io.observe(o.el));
+    atApplyZoom(); atSetupPages(); atUpd();
+  }
+  function atUpd() {
+    if (!AT || !pel('atNavGrid')) return;
+    let ans = 0, fl = 0;
+    pel('atNavGrid').querySelectorAll('.qnb').forEach((b, i) => {
+      const o = AT.nav[i], done = atAnswered(o.el), f = !!AT.flags[o.id];
+      if (done) ans++; if (f) fl++;
+      b.classList.toggle('ans', done); b.classList.toggle('flg', f); b.classList.toggle('cur', o.n === AT.cur);
+      const st = o.el.querySelector('.atstat'); if (st) { st.textContent = done ? T('Đã trả lời', 'Answered') : T('Chưa trả lời', 'Not yet answered'); st.classList.toggle('done', done); }
+    });
+    pel('atNavStat').innerHTML = `${T('Đã trả lời', 'Answered')}: <b>${ans}/${AT.nav.length}</b><br>${T('Chưa trả lời', 'Not yet answered')}: <b>${AT.nav.length - ans}</b><br>${T('Gắn cờ', 'Flagged')}: <b>${fl}</b>`;
+  }
+  function atPaintFlag(id) {
+    const on = !!AT.flags[id];
+    document.querySelectorAll(`.atflag[data-flagq="${id}"]`).forEach(b => { b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); b.querySelector('i').className = 'bi bi-flag' + (on ? '-fill' : ''); b.querySelector('span').textContent = on ? T('Bỏ cờ', 'Remove flag') : T('Gắn cờ', 'Flag question'); });
+  }
+  function atToggleFlag(id) {
+    if (!AT) return;
+    if (AT.flags[id]) delete AT.flags[id]; else AT.flags[id] = 1;
+    try { sessionStorage.setItem(AT.fkey, JSON.stringify(AT.flags)); } catch {}
+    atPaintFlag(id); atUpd();
+  }
+  function atToggleNav(force) {
+    const nav = pel('atNav'), open = typeof force === 'boolean' ? force : !nav.classList.contains('open');
+    nav.classList.toggle('open', open); pel('atNavBk').classList.toggle('open', open);
+  }
+  function atGoQ(n) {
+    if (!AT) return;
+    const el = pel('qn_' + n); if (!el) return;
+    atToggleNav(false);
+    if (AT.paged) { const pi = AT.pages.findIndex(p => p.qns.includes(n)); if (pi >= 0 && pi !== AT.page) atGotoPage(pi, true); }
+    // điện thoại: bài đọc chia tab → mở tab câu hỏi
+    const pane = el.closest('.rd-questions');
+    if (pane && getComputedStyle(pane).display === 'none') { const wrap = pane.closest('.space-y-2'); const btn = wrap && wrap.querySelectorAll('.rd-tab-btn')[1]; if (btn) btn.click(); }
+    AT.cur = n; AT.lockCur = Date.now() + 1200; atUpd();
+    setTimeout(() => { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); el.classList.remove('qflash'); void el.offsetWidth; el.classList.add('qflash'); }, 30);
+  }
+  // ----- Mỗi câu một trang (giáo viên bật): câu lẻ = 1 trang; khối Reading = 1 trang; khối văn bản đi cùng trang câu kế tiếp
+  function atSetupPages() {
+    const pager = pel('atPager');
+    if (!AT.paged) { pager.classList.add('hidden'); pel('submitBtn').parentElement.classList.remove('hidden'); return; }
+    const kids = [...pel('questionArea').children], pages = []; let pend = [];
+    kids.forEach((el, i) => {
+      const q = (AT.a.questions || [])[i]; pend.push(el);
+      if (q && q.type === 'text') return;
+      pages.push({ els: pend, qns: [...el.querySelectorAll('[data-qn]'), ...(el.matches('[data-qn]') ? [el] : [])].map(e => +e.dataset.qn) }); pend = [];
+    });
+    if (pend.length) { if (pages.length) pages[pages.length - 1].els.push(...pend); else pages.push({ els: pend, qns: [] }); }
+    AT.pages = pages;
+    pager.classList.remove('hidden');
+    pager.innerHTML = `<button type="button" id="atPrev" class="at-pg o" onclick="atGotoPage(AT.page-1)"><i class="bi bi-chevron-left"></i> ${T('Trang trước', 'Previous page')}</button><span id="atPageInfo" class="at-pginfo"></span><button type="button" id="atNext" class="at-pg" onclick="atGotoPage(AT.page+1)">${T('Trang tiếp', 'Next page')} <i class="bi bi-chevron-right"></i></button>`;
+    atGotoPage(0, true);
+  }
+  function atGotoPage(i, silent) {
+    if (!AT || !AT.paged || !AT.pages.length) return;
+    i = Math.max(0, Math.min(AT.pages.length - 1, i)); AT.page = i;
+    AT.pages.forEach((p, k) => p.els.forEach(el => el.classList.toggle('pg-hide', k !== i)));
+    pel('atPrev').disabled = i === 0; pel('atNext').classList.toggle('hidden', i === AT.pages.length - 1);
+    pel('atPageInfo').textContent = T(`Trang ${i + 1} / ${AT.pages.length}`, `Page ${i + 1} of ${AT.pages.length}`);
+    pel('submitBtn').parentElement.classList.toggle('hidden', i !== AT.pages.length - 1);
+    const first = AT.pages[i].qns[0]; if (first) { AT.cur = first; AT.lockCur = Date.now() + 800; atUpd(); }
+    if (!silent || i > 0) window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+  // ----- Thu phóng cỡ chữ
+  function atSetZoom(dir) { atZoom = dir === 0 ? 100 : Math.max(70, Math.min(200, atZoom + dir * 10)); try { localStorage.setItem('ru_at_zoom', atZoom); } catch {} atApplyZoom(); }
+  function atApplyZoom() { const z = atZoom / 100, qa = pel('questionArea'); qa.style.zoom = z; qa.style.setProperty('--atz', z); const v = pel('atZoomVal'); if (v) v.textContent = atZoom + '%'; }
+  // ----- Nộp bài (nhắc câu chưa làm / gắn cờ trước khi nộp)
+  function atFinish() {
+    if (!AT) return submitAssignment();
+    const un = AT.nav.filter(o => !atAnswered(o.el)).map(o => o.n), fl = AT.nav.filter(o => AT.flags[o.id]).map(o => o.n);
+    let msg = '';
+    if (un.length) msg += T(`Bạn chưa trả lời: câu ${un.slice(0, 30).join(', ')}${un.length > 30 ? '…' : ''}.\n`, `Not yet answered: question(s) ${un.slice(0, 30).join(', ')}${un.length > 30 ? '…' : ''}.\n`);
+    if (fl.length) msg += T(`Đang gắn cờ: câu ${fl.join(', ')}.\n`, `Flagged: question(s) ${fl.join(', ')}.\n`);
+    if (msg && !confirm(msg + T('\nVẫn nộp bài?', '\nSubmit anyway?'))) return;
+    submitAssignment();
+  }
+
+  // =====================================================================
+  // LỊCH SỬ HOẠT ĐỘNG (bài tập mới, chốt điểm danh, lớp tạm ngưng, hôm nay có lớp)
+  // =====================================================================
+  const fmtDMY = d => { const p = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d).split('-'); return `${p[2]}-${p[1]}-${p[0]}`; };
+  const tsOf = v => { if (!v) return null; const s = String(v); const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(s) ? s + 'T00:00:00+07:00' : s); return isNaN(d) ? null : d; };
+  function actRender(events) {
+    const box = pel('actList'); if (!box) return;
+    const list = (events || []).slice().sort((a, b) => b.ts - a.ts).slice(0, 60);
+    pel('actCount').textContent = list.length ? T(`${list.length} hoạt động`, `${list.length} updates`) : '';
+    if (!list.length) { box.innerHTML = `<p class="text-xs text-gray-400 italic">${T('Chưa có hoạt động nào.', 'No activity yet.')}</p>`; pel('actHint').classList.add('hidden'); return; }
+    const icons = { as: 'bi-journal-text', lock: 'bi-check2-square', stop: 'bi-pause-circle-fill', today: 'bi-calendar-event-fill' };
+    box.innerHTML = list.map(e => `<div class="act-row ${e.kind === 'today' ? 'act-today' : ''}"><span class="act-ico t-${e.kind}"><i class="bi ${icons[e.kind] || 'bi-bell-fill'}"></i></span><div><span class="act-date">[${fmtDMY(new Date(e.ts))}]</span>${e.html}</div></div>`).join('');
+    pel('actHint').classList.toggle('hidden', list.length <= 5);
+    pel('actHint').innerHTML = `<i class="bi bi-chevron-double-down"></i> ${T('Kéo xuống để xem thêm', 'Scroll down for more')}`;
+  }
+  async function actLoad(classIds) {
+    const ckey = 'act:' + currentUser.id + ':' + RL();
+    const cached = cacheGet(ckey); if (cached) actRender(cached.map(e => ({ ...e, ts: +e.ts })));
+    const events = [], today = scalTodayStr(), cname = id => esc((scalClassMap[id] && scalClassMap[id].class_code) || T('lớp', 'class'));
+    let rows = [];
+    try { const r = await sbClient.from('assignments').select('id, token, title, created_at, teacher_id, class_id, is_test').in('class_id', classIds).eq('is_published', true).order('created_at', { ascending: false }).limit(40); rows = r.data || []; } catch (e) { console.warn('Lịch sử: không tải được bài tập', e); }
+    const ids = [...new Set(rows.map(r => r.teacher_id).filter(Boolean))], names = {};
+    if (ids.length) { try { const r = await sbClient.from('profiles').select('id, full_name').in('id', ids); (r.data || []).forEach(p => names[p.id] = p.full_name); } catch (e) {} }
+    const who = id => `<b>${esc(names[id] || T('Giáo viên', 'Your teacher'))}</b>`;
+    rows.forEach(r => { const ts = tsOf(r.created_at); if (!ts) return;
+      const link = r.is_test ? `<b>${esc(r.title)}</b>` : `<a href="assignment.html?token=${encodeURIComponent(r.token)}" class="hover:underline"><b>${esc(r.title)}</b></a>`;
+      events.push({ kind: 'as', ts, html: T(`${who(r.teacher_id)} đã thêm ${r.is_test ? 'một bài kiểm tra' : 'một bài tập'} mới (${cname(r.class_id)}): ${link}`, `${who(r.teacher_id)} added a new ${r.is_test ? 'test' : 'assignment'} (${cname(r.class_id)}): ${link}`) }); });
+    // chốt điểm danh
+    try {
+      const r = await sbClient.from('class_attendance_locks').select('*').in('class_id', classIds).limit(200);
+      const sMap = {}; scalSessions.forEach(s => sMap[s.id] = s);
+      (r.data || []).forEach(l => { const s = sMap[l.session_id]; if (!s) return;
+        const ts = tsOf(l.locked_at || l.created_at || l.updated_at) || tsOf(s.session_date); if (!ts) return;
+        const d = String(s.session_date).slice(0, 10).split('-').reverse().join('/');
+        events.push({ kind: 'lock', ts, html: T(`${who(l.locked_by || l.teacher_id)} đã chốt điểm danh lớp <b>${cname(s.class_id)}</b> buổi ngày <b>${d}</b>`, `${who(l.locked_by || l.teacher_id)} finalized attendance for <b>${cname(s.class_id)}</b> on <b>${d}</b>`) }); });
+    } catch (e) { console.warn('Lịch sử: không tải được điểm danh', e); }
+    // lớp tạm ngưng + hôm nay có lớp
+    const nowTs = new Date();
+    scalSessions.forEach(s => {
+      const sd = String(s.session_date).slice(0, 10), d = sd.split('-').reverse().join('/'), tm = s.session_time ? String(s.session_time).slice(0, 5) : '', sub = s.subject_name ? ` · ${esc(s.subject_name)}` : '';
+      if (s.status === 'suspended') {
+        const ts = tsOf(s.updated_at || s.created_at) || tsOf(sd); const old = (new Date(today) - new Date(sd)) / 86400000 > 30; if (!ts || old) return;
+        events.push({ kind: 'stop', ts, html: T(`Lớp <b>${cname(s.class_id)}</b> tạm ngưng học ngày <b>${d}</b>${sub}`, `Class <b>${cname(s.class_id)}</b> is suspended on <b>${d}</b>${sub}`) });
+      } else if (sd === today) {
+        events.push({ kind: 'today', ts: nowTs, html: T(`Hôm nay có lớp học: <b>${cname(s.class_id)}</b>${tm ? ' lúc <b>' + tm + '</b>' : ''}${sub}`, `You have a class today: <b>${cname(s.class_id)}</b>${tm ? ' at <b>' + tm + '</b>' : ''}${sub}`) });
+      }
+    });
+    actRender(events);
+    cacheSet(ckey, events.map(e => ({ ...e, ts: +e.ts })));
+  }
+
   // =====================================================================
   // NỘP BÀI & CHẤM ĐIỂM TỰ ĐỘNG
   // =====================================================================
   // ===== Hạn nộp bài =====
-  function isAssignmentExpired(a) { const d = a && a.due_date ? String(a.due_date).slice(0, 10) : null; return !!d && scalTodayStr() > d; }
-  function fmtDueDate(v) { const [y, m, d] = String(v).slice(0, 10).split('-'); return `${d}/${m}/${y}`; }
+  // Hạn nộp = NGÀY (+ GIỜ nếu giáo viên đặt, giờ Việt Nam). Không đặt giờ = hết ngày hôm đó.
+  function nowVN() {
+    const p = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date()).reduce((o, x) => (o[x.type] = x.value, o), {});
+    return { date: `${p.year}-${p.month}-${p.day}`, time: `${p.hour === '24' ? '00' : p.hour}:${p.minute}` };
+  }
+  function isAssignmentExpired(a) {
+    const d = a && a.due_date ? String(a.due_date).slice(0, 10) : null; if (!d) return false;
+    const n = nowVN(), t = parseMeta(a.description).dueTime;
+    if (n.date > d) return true; if (n.date < d) return false;
+    return !!t && n.time > t;
+  }
+  function fmtDueDate(v, a) { const [y, m, d] = String(v).slice(0, 10).split('-'); const t = a ? parseMeta(a.description).dueTime : null; return `${d}/${m}/${y}${t ? ' ' + t : ''}`; }
   // Số lượt đã dùng = số dòng bài làm (dữ liệu cũ) + số lần đã lưu chỉnh sửa trên bài gần nhất
   function attemptsUsedOf(list) { const l = list || []; return l.length + ((l[0] && l[0].edit_count) || 0); }
 
@@ -1065,7 +1251,7 @@
     const allEssayGraded = essayQs.length > 0 && essayQs.every(q => attempt.manual_scores && attempt.manual_scores[q.id] !== undefined);
     pel('rsEssayNote').classList.toggle('hidden', !(attempt.has_essay && !allEssayGraded));
 
-    const due = a.due_date ? fmtDueDate(a.due_date) : null;
+    const due = a.due_date ? fmtDueDate(a.due_date, a) : null;
     let msg, tone;
     if (attempt._empty) { msg = `Bài tập đã hết hạn (${due}) và bạn chưa nộp bài. Bạn chỉ có thể xem lại đề, đáp án và giải thích bên dưới — không thể làm hoặc nộp bài nữa.`; tone = 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-300'; }
     else if (expired) { msg = `<i class="bi bi-alarm"></i> Bài tập đã hết hạn (${due}). Bạn không thể làm hoặc sửa nữa — bên dưới là bài làm gần nhất, kèm điểm và nhận xét của giáo viên nếu đã chấm.`; tone = 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-300'; }

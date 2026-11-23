@@ -504,8 +504,16 @@
         <input id="asMaxAttempts" type="number" min="1" placeholder="Để trống = không giới hạn" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
       </div>
       <div>
-        <label class="block font-bold uppercase mb-1">Hạn nộp bài</label>
-        <input id="asDueDate" type="date" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
+        <label class="block font-bold uppercase mb-1">Hạn nộp bài (ngày + giờ)</label>
+        <div class="flex gap-2">
+          <input id="asDueDate" type="date" class="flex-1 min-w-0 p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
+          <input id="asDueTime" type="time" class="w-32 p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm">
+        </div>
+        <p class="text-[10px] text-gray-400 mt-1">Để trống giờ = hết ngày hôm đó (23:59). Giờ Việt Nam.</p>
+      </div>
+      <div>
+        <label class="block font-bold uppercase mb-1">Kiểu hiển thị câu hỏi</label>
+        <select id="asPaging" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm"><option value="scroll">Hiển thị một dải (cuộn xuống)</option><option value="paged">Mỗi câu hỏi một trang (bấm Trang tiếp)</option></select>
       </div>
       <div class="sm:col-span-2">
         <label class="block font-bold uppercase mb-1">Mô tả / hướng dẫn làm bài</label>
@@ -517,7 +525,6 @@
           <div><label class="block font-bold uppercase mb-1">Ngày giờ mở đề</label><input id="asOpenAt" type="datetime-local" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></div>
           <div><label class="block font-bold uppercase mb-1">Ngày giờ đóng đề</label><input id="asCloseAt" type="datetime-local" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></div>
           <div class="sm:col-span-2"><label class="block font-bold uppercase mb-1">Mật khẩu vào làm bài</label><input id="asTestPass" placeholder="Để trống = dùng tiêu đề bài thi làm mật khẩu" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm"></div>
-          <div class="sm:col-span-2"><label class="block font-bold uppercase mb-1">Kiểu hiển thị câu hỏi</label><select id="asPaging" class="w-full p-2.5 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 text-sm"><option value="scroll">Hiển thị một dải (cuộn xuống)</option><option value="paged">Mỗi câu hỏi một trang (bấm Trang tiếp)</option></select></div>
           <label class="flex items-center gap-2 font-bold"><input type="checkbox" id="asShowResult" checked> Hiển thị kết quả + đáp án (khi đến giờ đóng)</label>
           <label class="flex items-center gap-2 font-bold"><input type="checkbox" id="asAllowReview" checked> Cho phép học viên xem lại bài</label>
         </div>

@@ -92,7 +92,7 @@ function testCard(t){
   else if(n>=cl){ act='<span class="badge" style="color:#ef4444"><i class="bi bi-x-octagon-fill"></i> Bạn chưa nộp bài — đề đã đóng</span>'; }
   else act=`<button onclick="askPass('${t.id}')" class="btn">${t.started?'Tiếp tục làm bài':'Vào làm bài'}</button>`;
   const attTxt=!hasAtt?'':(max?`Attempts: <b>${used} / ${max}</b>`:`Attempts: <b>${used}</b> · Unlimited — highest grade counts`);
-  const note=String(t.note??t.description??'').split('[[ru:paged]]').join('').trim();
+  const note=String(t.note??t.description??'').replace(/\[\[ru:[a-z]+(?:=[^\]]*)?\]\]/g,'').trim();
   return `<div class="${card} p-5 flex flex-wrap items-center gap-4">
     <div class="w-12 h-12 rounded-xl bg-pink-500 flex items-center justify-center text-white text-2xl flex-shrink-0"><i class="bi bi-ui-checks"></i></div>
     <div class="flex-1 min-w-[12rem]"><div class="text-lg font-semibold">${esc(t.title)}</div>
