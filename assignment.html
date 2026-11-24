@@ -17,7 +17,7 @@
 
 
   
-  <link rel="stylesheet" href="assets/compiled/assignment.css?v=20261123">
+  <link rel="stylesheet" href="assets/compiled/assignment.css?v=20261124">
   <link rel="stylesheet" href="assets/css/ru-refined.css">
 <link rel="stylesheet" href="assets/css/ru-language.css">
 <link rel="stylesheet" href="assets/css/ru-finder.css">
@@ -63,21 +63,21 @@
 
 <!-- ================= HEADER HỌC SINH ================= -->
 <header class="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/60 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-950/60 transition px-4">
-  <div class="max-w-7xl mx-auto h-16 flex justify-between items-center">
-    <div class="flex items-center gap-3">
-      <a href="dashboard.html" class="w-12 h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
-        <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-9 w-auto object-contain">
+  <div class="max-w-7xl mx-auto h-14 sm:h-16 flex justify-between items-center gap-2">
+    <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+      <a href="dashboard.html" class="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#cf1717] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md hover:scale-105 transition">
+        <img src="https://i.ibb.co/9m1LMnz3/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo-1.png" alt="ReadUp Logo" class="h-7 sm:h-9 w-auto object-contain">
       </a>
       <a href="assignment.html" class="flex items-center gap-2 hover:opacity-90 transition">
-        <span class="text-2xl font-black text-[#cf1717] tracking-tight">ReadUp</span>
-        <span class="text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full shadow-sm">English</span>
+        <span class="text-xl sm:text-2xl font-black text-[#cf1717] tracking-tight">ReadUp</span>
+        <span class="hidden min-[430px]:inline text-xs font-bold text-white bg-[#cf1717] px-2 py-0.5 rounded-full shadow-sm">English</span>
       </a>
     </div>
-    <div class="flex items-center gap-3 relative">
-      <a href="checkin.html" class="px-3 py-2 text-xs font-bold text-white bg-[#cf1717] hover:bg-red-700 rounded-xl transition flex items-center gap-1.5 shadow-sm" title="Quét mã QR điểm danh">
+    <div class="flex items-center gap-1.5 sm:gap-3 relative flex-none">
+      <a href="checkin.html" class="w-9 h-9 sm:w-auto sm:h-auto justify-center sm:px-3 sm:py-2 text-xs font-bold text-white bg-[#cf1717] hover:bg-red-700 rounded-full sm:rounded-xl transition flex items-center gap-1.5 shadow-sm" title="Quét mã QR điểm danh">
         <span><i class="bi bi-qr-code-scan"></i></span> <span class="hidden sm:inline">Điểm danh QR</span>
       </a>
-      <a href="dashboard.html" class="px-3 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-xl transition flex items-center gap-1.5">
+      <a href="dashboard.html" class="hidden sm:flex px-3 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-xl transition items-center gap-1.5">
         <span><i class="bi bi-house-door-fill"></i></span> <span class="hidden sm:inline">Trang chủ</span>
       </a>
 
@@ -99,7 +99,7 @@
 
       <!-- Nút Avatar / Trang cá nhân -->
       <div id="headerUserArea" class="relative">
-        <button onclick="toggleUserDropdown(event)" class="relative p-1.5 rounded-full bg-red-50 dark:bg-zinc-800 border-2 border-[#cf1717] text-[#cf1717] dark:text-red-400 hover:scale-105 transition shadow-md flex items-center justify-center w-11 h-11">
+        <button onclick="toggleUserDropdown(event)" class="relative p-1.5 rounded-full bg-red-50 dark:bg-zinc-800 border-2 border-[#cf1717] text-[#cf1717] dark:text-red-400 hover:scale-105 transition shadow-md flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11">
         <!-- Div bọc Avatar riêng để xử lý ẩn phần thừa của ảnh (thay vì dùng overflow-hidden trên button) -->
         <div class="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
         <!-- Icon bi-person-circle (mặc định khi chưa có ảnh đại diện) -->
@@ -317,19 +317,23 @@
   <div id="attemptView" class="hidden">
     <div class="at-layout">
       <div class="at-main space-y-5">
-        <div class="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 sm:p-6 shadow-sm space-y-2 sticky top-16 z-20">
-          <div class="flex items-start justify-between gap-3">
-            <div class="min-w-0">
-              <h2 id="atTitle" class="text-lg font-extrabold text-gray-900 dark:text-white"></h2>
-              <p id="atDesc" class="text-xs text-gray-500 mt-1"></p>
+        <div class="at-head bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-2.5 sm:p-6 shadow-sm space-y-2 sticky top-14 sm:top-16 z-20">
+          <div class="flex items-center sm:items-start justify-between gap-2 sm:gap-3">
+            <div class="min-w-0 flex-1 flex items-center gap-2 sm:block">
+              <a href="assignment.html" id="backToListLink1m" class="sm:hidden flex-none w-8 h-8 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 flex items-center justify-center" aria-label="Back"><i class="bi bi-arrow-left"></i></a>
+              <div class="min-w-0">
+                <h2 id="atTitle" class="text-sm sm:text-lg font-extrabold text-gray-900 dark:text-white truncate sm:whitespace-normal"></h2>
+                <p id="atDesc" class="hidden sm:block text-xs text-gray-500 mt-1"></p>
+              </div>
             </div>
-            <div class="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
-              <div id="atTools" class="flex items-center gap-2"></div>
-              <div id="atTimer" class="hidden flex-shrink-0 text-sm font-extrabold text-[#cf1717] bg-red-50 dark:bg-red-950/40 px-3 py-1.5 rounded-xl"><i class="bi bi-stopwatch"></i> --:--</div>
+            <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 justify-end">
+              <div id="atTools" class="flex items-center gap-1.5 sm:gap-2"></div>
+              <div id="atTimer" class="hidden flex-shrink-0 text-xs sm:text-sm font-extrabold text-[#cf1717] bg-red-50 dark:bg-red-950/40 px-2.5 sm:px-3 py-1.5 rounded-xl"><i class="bi bi-stopwatch"></i> --:--</div>
             </div>
           </div>
-          <a href="assignment.html" id="backToListLink1" class="inline-block text-xs font-bold text-gray-400 hover:text-[#cf1717]">← Quay lại danh sách bài tập</a>
+          <a href="assignment.html" id="backToListLink1" class="hidden sm:inline-block text-xs font-bold text-gray-400 hover:text-[#cf1717]">← Quay lại danh sách bài tập</a>
         </div>
+        <p id="atDescM" class="sm:hidden hidden text-xs text-gray-600 dark:text-gray-300 bg-white/70 dark:bg-zinc-900/60 border dark:border-zinc-800 rounded-xl px-3 py-2"></p>
         <div id="questionArea" class="space-y-4"></div>
         <div id="atPager" class="hidden at-pager"></div>
         <div class="flex justify-end pt-2">
@@ -368,7 +372,7 @@
 
 
 
-<script src="assets/compiled/assignment.part1.js?v=20261123"></script>
+<script src="assets/compiled/assignment.part1.js?v=20261124"></script>
   <script src="assets/js/ru-navigation.js"></script>
 <script src="assets/js/ru-language.js"></script>
 <script src="assets/js/ru-finder.js"></script>

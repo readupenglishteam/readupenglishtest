@@ -19,8 +19,11 @@
 
   function qrSvg(text) {
     if (!w.qrcode) return '<p style="color:#b91c1c;font-size:12px">' + esc(T('Chưa tải được thư viện tạo QR (kiểm tra mạng).', 'QR library failed to load (check your connection).')) + '</p>';
-    const q = w.qrcode(0, 'M'); q.addData(text); q.make();
-    return q.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+    const q = w.qrcode(0, 'L'); q.addData(text); q.make();
+    const n = q.getModuleCount(), m = 4, size = n + m * 2;
+    let d = '';
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += 'M' + (c + m) + ',' + (r + m) + 'h1v1h-1z';
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + size + ' ' + size + '" shape-rendering="crispEdges" role="img" aria-label="QR"><rect width="' + size + '" height="' + size + '" fill="#fff"/><path d="' + d + '" fill="#000"/></svg>';
   }
 
   /* mount(root, { sb, sessionId, compact, onCount, onClosed }) → { stop(), refresh() } */
@@ -118,11 +121,11 @@
   @media(max-width:760px){.rqv-full,.rqv-compact{grid-template-columns:1fr}}
   .rqv-main{display:flex;flex-direction:column;align-items:center;gap:10px}
   .rqv-qrbox{position:relative;width:100%;max-width:520px;aspect-ratio:1/1;background:#fff;border:3px solid #cf1717;border-radius:18px;padding:10px;box-sizing:border-box}
-  .rqv-compact .rqv-qrbox{max-width:260px}
+  .rqv-compact .rqv-qrbox{max-width:300px}
   .rqv-qr,.rqv-qr svg{width:100%;height:100%;display:block}
   .rqv-veil{display:none;position:absolute;inset:0;background:rgba(255,255,255,.95);border-radius:15px;align-items:center;justify-content:center;text-align:center;padding:16px;font-weight:800;color:#b91c1c}
   .rqv-bar{display:none;width:100%;max-width:520px;height:8px;background:#eadede;border-radius:99px;overflow:hidden}
-  .rqv-compact .rqv-bar{max-width:260px}
+  .rqv-compact .rqv-bar{max-width:300px}
   .rqv-bar span{display:block;height:100%;width:100%;background:#cf1717;border-radius:99px;transition:width .25s linear}
   .rqv-timer{font-size:13px;font-weight:700;color:#6b7280;min-height:18px}
   .rqv-code{font-size:56px;line-height:1;font-weight:900;letter-spacing:.08em;color:#cf1717;font-variant-numeric:tabular-nums}

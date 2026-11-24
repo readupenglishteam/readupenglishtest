@@ -7,7 +7,7 @@
   <title>ReadUp English - Check-in</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js" onerror="window.__jsqrFail=1"></script>
   <link rel="icon" type="image/png" href="https://i.ibb.co/wrPLDMMH/Xanh-Tr-ng-n-Gi-n-Bi-u-T-ng-Logo.png">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
@@ -18,6 +18,8 @@
     .cam .frame{position:absolute;inset:14%;border:3px solid rgba(255,255,255,.9);border-radius:22px;box-shadow:0 0 0 999px rgba(0,0,0,.35)}
     .cam .scanline{position:absolute;left:14%;right:14%;height:2px;background:#ff4d4d;box-shadow:0 0 10px #ff4d4d;animation:sl 2s ease-in-out infinite}
     @keyframes sl{0%{top:16%}50%{top:82%}100%{top:16%}}
+    body{padding-bottom:env(safe-area-inset-bottom);-webkit-text-size-adjust:100%}
+    .cam{max-height:min(86vw,60vh);margin-inline:auto}
     .pop{animation:pop .35s ease-out}@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
   </style>
 </head>
@@ -52,6 +54,11 @@
       <div class="cam" id="camBox"><video id="video" playsinline muted></video><div class="frame"></div><div class="scanline"></div></div>
       <p id="camMsg" class="text-xs text-center text-gray-500" data-t="camHint">Point the camera at the QR code on the teacher's screen.</p>
       <button id="camStart" class="hidden w-full py-3 rounded-xl bg-gray-900 text-white font-bold"><i class="bi bi-camera-video-fill"></i> <span data-t="camOn">Turn on camera</span></button>
+      <label class="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-gray-300 bg-white text-sm font-bold text-gray-700 active:bg-gray-100">
+        <i class="bi bi-image"></i> <span data-t="pickImg">Take / choose a photo of the QR</span>
+        <input id="qrFile" type="file" accept="image/*" capture="environment" class="hidden">
+      </label>
+      <p class="text-[11px] text-center text-gray-400 leading-relaxed" data-t="altHint">Tip: you can also scan the QR with your phone's built-in Camera app — it opens this page and checks you in.</p>
 
     </section>
 
@@ -66,7 +73,10 @@
     const D = {
       back: ['Quay lại', 'Back'], title: ['Điểm danh lớp học', 'Class check-in'], pwLabel: ['Mật khẩu điểm danh', 'Class password'], pwGo: ['Điểm danh', 'Check in'],
       camHint: ['Đưa camera vào mã QR trên màn hình của giáo viên.', "Point the camera at the QR code on the teacher's screen."],
-      camOn: ['Bật camera', 'Turn on camera'], 
+      camOn: ['Bật camera', 'Turn on camera'],
+      pickImg: ['Chụp / chọn ảnh chứa mã QR', 'Take / choose a photo of the QR'],
+      altHint: ['Mẹo: bạn cũng có thể dùng app Camera có sẵn của điện thoại để quét QR — nó mở trang này và điểm danh luôn.', "Tip: you can also scan the QR with your phone's built-in Camera app — it opens this page and checks you in."],
+      
     };
     const t = (vi, en) => lang() === 'vi' ? vi : en;
     document.querySelectorAll('[data-t]').forEach(e => { const d = D[e.dataset.t]; if (d) e.textContent = d[lang() === 'vi' ? 0 : 1]; });
@@ -142,44 +152,93 @@
     }
 
     // ---------- Máy quét QR ----------
+    // Nạp jsQR từ CDN dự phòng nếu CDN đầu bị chặn (mạng trường học hay chặn cdnjs)
+    function loadScript(src) { return new Promise(res => { const el = document.createElement('script'); el.src = src; el.onload = () => res(true); el.onerror = () => res(false); document.head.appendChild(el); }); }
+    async function ensureJsQR() {
+      if (window.jsQR) return true;
+      for (const u of ['https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js', 'https://unpkg.com/jsqr@1.4.0/dist/jsQR.js']) { if (await loadScript(u) && window.jsQR) return true; }
+      return !!window.jsQR;
+    }
     async function startCamera() {
+      await ensureJsQR();
       $('camStart').classList.add('hidden');
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
-        const v = $('video'); v.srcObject = stream; await v.play(); scanning = true; requestAnimationFrame(scanLoop);
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+        const v = $('video'); v.srcObject = stream; await v.play();
+        // lấy nét liên tục nếu máy hỗ trợ
+        try { const tr = stream.getVideoTracks()[0]; const caps = tr.getCapabilities ? tr.getCapabilities() : {}; if (caps.focusMode && caps.focusMode.includes('continuous')) await tr.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }); } catch (e) {}
+        if (!detector && 'BarcodeDetector' in window) { try { detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch (e) { detector = null; } }
+        if (!detector && !window.jsQR) $('camMsg').textContent = t('Chưa tải được bộ đọc QR — kiểm tra mạng rồi tải lại trang, hoặc dùng nút chọn ảnh / app Camera của máy.', 'QR reader failed to load — check your connection and reload, or use the photo button / your phone Camera app.');
+        else $('camMsg').textContent = t('Đang quét… giữ mã QR trong khung, cách khoảng 20–30 cm.', 'Scanning… keep the QR inside the frame, about 20–30 cm away.');
+        scanning = true; requestAnimationFrame(scanLoop);
       } catch (e) {
-        $('camMsg').textContent = t('Không mở được camera — hãy cho phép Máy ảnh trong Cài đặt, hoặc dùng app Camera của điện thoại để quét QR.', 'Camera unavailable — allow Camera in Settings, or use your phone camera app to scan the QR instead.');
+        $('camMsg').textContent = t('Không mở được camera — hãy cho phép Máy ảnh trong Cài đặt, hoặc dùng app Camera của điện thoại để quét QR.', 'Camera unavailable — allow Camera in Settings, or use your phone camera app to scan the QR.');
         $('camStart').classList.remove('hidden');
       }
     }
     function stopCamera() { scanning = false; if (stream) { stream.getTracks().forEach(tr => tr.stop()); stream = null; } }
     const cv = document.createElement('canvas'), cx = cv.getContext('2d', { willReadFrequently: true });
-    let lastScan = 0;
-    function scanLoop(ts) {
+    let lastScan = 0, detector = null, detecting = false, lastBad = '';
+    async function decodeFrame(v) {
+      if (detector) { try { const r = await detector.detect(v); if (r && r.length && r[0].rawValue) return r[0].rawValue; } catch (e) {} }
+      if (!window.jsQR) return null;
+      // giữ độ phân giải cao (tối đa 1280px) để QR dày vẫn đọc được
+      const w = Math.min(1280, v.videoWidth), h = Math.round(w * v.videoHeight / v.videoWidth);
+      cv.width = w; cv.height = h; cx.drawImage(v, 0, 0, w, h);
+      const r = jsQR(cx.getImageData(0, 0, w, h).data, w, h, { inversionAttempts: 'attemptBoth' });
+      return r && r.data ? r.data : null;
+    }
+    async function scanLoop(ts) {
       if (!scanning) return;
       const v = $('video');
-      if (v.readyState >= 2 && ts - lastScan > 120) {
-        lastScan = ts;
-        const w = Math.min(640, v.videoWidth), h = Math.round(w * v.videoHeight / v.videoWidth);
-        cv.width = w; cv.height = h; cx.drawImage(v, 0, 0, w, h);
+      if (v.readyState >= 2 && v.videoWidth && ts - lastScan > 100 && !detecting) {
+        lastScan = ts; detecting = true;
         try {
-          const r = window.jsQR && jsQR(cx.getImageData(0, 0, w, h).data, w, h, { inversionAttempts: 'dontInvert' });
-          if (r && r.data && handleScanned(r.data)) return;
+          const text = await decodeFrame(v);
+          if (text && scanning) {
+            if (handleScanned(text)) { detecting = false; return; }
+            if (text !== lastBad) { lastBad = text; $('camMsg').textContent = t('Đã thấy một mã QR nhưng không phải mã điểm danh — hãy quét mã trên màn hình giáo viên.', 'Found a QR code, but it is not an attendance code — scan the one on the teacher screen.'); }
+          }
         } catch (e) {}
+        detecting = false;
       }
       requestAnimationFrame(scanLoop);
     }
+    // Đọc mã từ ảnh chụp/chọn (dự phòng khi quét trực tiếp không nhận)
+    $('qrFile').addEventListener('change', async e => {
+      const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return;
+      $('camMsg').textContent = t('Đang đọc ảnh…', 'Reading photo…');
+      try {
+        await ensureJsQR();
+        const bmp = await createImageBitmap(f);
+        const sc = Math.min(1, 1600 / Math.max(bmp.width, bmp.height)), w = Math.round(bmp.width * sc), h = Math.round(bmp.height * sc);
+        cv.width = w; cv.height = h; cx.drawImage(bmp, 0, 0, w, h);
+        let text = null;
+        if (!detector && 'BarcodeDetector' in window) { try { detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch (er) {} }
+        if (detector) { try { const r = await detector.detect(cv); if (r.length) text = r[0].rawValue; } catch (er) {} }
+        if (!text && window.jsQR) { const r = jsQR(cx.getImageData(0, 0, w, h).data, w, h, { inversionAttempts: 'attemptBoth' }); if (r) text = r.data; }
+        if (text && handleScanned(text)) return;
+        $('camMsg').textContent = text ? t('Ảnh có mã QR nhưng không phải mã điểm danh.', 'That QR is not a check-in code.') : t('Không thấy mã QR trong ảnh — chụp gần và rõ hơn rồi thử lại.', 'No QR found in the photo — take a closer, sharper photo.');
+      } catch (er) { $('camMsg').textContent = t('Không đọc được ảnh: ', 'Could not read the photo: ') + (er.message || er); }
+    });
     function flashScan() {
       try { if (navigator.vibrate) navigator.vibrate([80, 40, 80]); } catch (e) {}
       const f = $('camBox'); f.style.transition = 'box-shadow .15s'; f.style.boxShadow = '0 0 0 6px #22c55e';
       f.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(-4px)' }, { transform: 'translateX(0)' }], { duration: 260 });
     }
+    // Chấp nhận mọi dạng: URL đầy đủ (bất kể tên miền / có hay không đuôi .html) hoặc chuỗi "s=...&c=..."
+    function parseScan(text) {
+      text = String(text || '').trim();
+      let qs = '';
+      try { qs = new URL(text).search; } catch (e) { const i = text.indexOf('?'); qs = i >= 0 ? text.slice(i) : text; }
+      const sp = new URLSearchParams(qs.replace(/^\?/, ''));
+      const s = sp.get('s'), c = sp.get('c');
+      return s && c ? { s, c } : null;
+    }
     function handleScanned(text) {
-      let u; try { u = new URL(text, location.href); } catch (e) { return false; }
-      const s = u.searchParams.get('s'), c = u.searchParams.get('c');
-      if (!s || !c || !/checkin\.html$/i.test(u.pathname) || u.origin !== location.origin) return false;
+      const r = parseScan(text); if (!r) return false;
       flashScan(); stopCamera();
-      sessionId = s; code = c; begin(); return true;
+      sessionId = r.s; code = r.c; begin(); return true;
     }
 
     // ---------- Luồng chính ----------

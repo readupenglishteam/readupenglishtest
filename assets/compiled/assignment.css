@@ -341,3 +341,37 @@ a,button,input,textarea,select{touch-action:manipulation}
   .at-nav-x,.at-navbtn,.at-nav-bk{display:none!important}
 }
 @media(max-width:520px){.at-navbtn span{display:none}}
+
+
+/* ===== Giao diện điện thoại (≤640px): header gọn, thanh làm bài gọn, không tràn ngang ===== */
+html,body{max-width:100%;overflow-x:hidden}
+@media(max-width:640px){
+  main{padding-left:.75rem!important;padding-right:.75rem!important;padding-top:.75rem!important}
+  header{padding-left:.75rem!important;padding-right:.75rem!important}
+  #ru-lang-switch{padding:2px!important;gap:0!important}
+  #ru-lang-switch button{width:26px!important;height:26px!important;padding:3px!important}
+  #ru-lang-switch button svg{width:18px!important;height:18px!important}
+  .at-head .at-zoom{display:none}                       /* nút chỉnh cỡ chữ: ẩn trên điện thoại cho gọn */
+  .at-head .at-navbtn{padding:.3rem .5rem}
+  .at-layout{display:block}
+  .atq{padding:.85rem!important}
+  .atq label{min-height:44px}                            /* vùng chạm đủ lớn cho ngón tay */
+  .atq input[type=radio],.atq input[type=checkbox]{width:1.15rem;height:1.15rem;flex:none}
+  .atq textarea,.atq input[type=text]{font-size:16px}    /* tránh iOS tự phóng to khi bấm vào ô nhập */
+  .fillbox{width:min(14rem,100%)!important}
+  .at-pager{position:sticky;bottom:0;z-index:15;margin:.75rem -.75rem 0;padding:.6rem .75rem calc(.6rem + env(safe-area-inset-bottom));background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-top:1px solid #e5e7eb}
+  .dark .at-pager{background:rgba(24,24,27,.92);border-color:#3f3f46}
+  #submitBtn{width:100%}
+  #questionArea img,.qcontent img,.qcontent table{max-width:100%;height:auto}
+  .qcontent{overflow-wrap:anywhere}
+  .qcontent table{display:block;overflow-x:auto}
+  #resultView .grid{grid-template-columns:1fr}
+  .atq>div:first-child{flex-wrap:nowrap;gap:.4rem}
+  .atq>div:first-child p,.atq .atstat,.atq .atflag{white-space:nowrap}
+  .atq>div:first-child p{font-size:.7rem}
+  .atq .atstat{font-size:.65rem;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .atq .atflag{padding:.2rem .5rem;font-size:.65rem;flex:none}
+  .at-head #atTitle{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal;line-height:1.25}
+  /* nút từ điển nổi: nhỏ hơn và nằm TRÊN thanh Trang trước/sau để không che nút */
+  body .ru-dict-fab{width:44px!important;height:44px!important;right:12px!important;bottom:calc(env(safe-area-inset-bottom) + 78px)!important}
+}

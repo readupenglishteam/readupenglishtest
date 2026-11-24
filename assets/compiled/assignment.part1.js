@@ -821,6 +821,7 @@
     pel('atTitle').innerText = a.title;
     pel('atDesc').innerText = parseMeta(a.description).text;
     pel('backToListLink1').href = 'assignment.html?class=' + a.class_id;
+    { const bm = pel('backToListLink1m'); if (bm) bm.href = 'assignment.html?class=' + a.class_id; const dm = pel('atDescM'), tx = parseMeta(a.description).text; if (dm) { dm.innerText = tx || ''; dm.classList.toggle('hidden', !tx); } }
     pel('attemptView').classList.remove('hidden');
 
     const counter = { n: 0 };

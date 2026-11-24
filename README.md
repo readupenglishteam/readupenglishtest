@@ -145,3 +145,18 @@ Hệ thống tự thu nhỏ ảnh lớn, tối đa khoảng **1 MB cho mỗi chu
 - **Ô điền khuyết cùng chiều rộng** (16rem, tự co trên điện thoại); gõ dài thì chỉ cao thêm theo số dòng. Áp dụng cho `assignment.html` và `lml.html`.
 - **Kiểu hiển thị câu hỏi không giữ lựa chọn:** mã lưu/đọc đã đúng (thẻ `[[ru:paged]]` trong `description`), nên đã làm chắc hơn: chọn bằng `selectedIndex`, **đọc lại từ server sau khi lưu** và cảnh báo nếu server không giữ thẻ (khi đó nguyên nhân là trigger/ràng buộc cột `assignments.description` trong Supabase), cộng với `?v=` chống cache cũ — nguyên nhân hay gặp nhất là trình duyệt còn chạy `teacher.part2.js` bản cũ.
 - Thư mục `compiled/` ở gốc là bản thừa (HTML chỉ dùng `assets/compiled/`), có thể xóa.
+
+---
+
+## Cập nhật 24/11/2026 — Sửa quét QR trên điện thoại + giao diện di động
+
+**Quét QR (`checkin.html`)**
+- Nhận mã bằng 2 đường: `BarcodeDetector` có sẵn của trình duyệt (Android/Chrome) và `jsQR` (iPhone/Safari). jsQR tự đổi sang CDN dự phòng (jsdelivr, unpkg) nếu cdnjs bị mạng chặn; đọc ở độ phân giải cao, thử cả mã đảo màu.
+- Chấp nhận mọi dạng đường dẫn trong QR (không còn kiểm tra tên miền / đuôi `.html`).
+- Thêm nút **Chụp / chọn ảnh chứa QR** (dự phòng khi quét trực tiếp không nhận) và dòng trạng thái “Đang quét…”.
+- QR bên giáo viên vẽ bằng ma trận module (nền trắng, vùng yên tĩnh 4 ô, mức sửa lỗi L → ít ô hơn, dễ đọc hơn); đã kiểm tra giải mã được bằng OpenCV.
+- Học sinh cũng có thể dùng **app Camera có sẵn** của điện thoại: QR là một đường dẫn, mở ra là điểm danh luôn.
+
+**Giao diện điện thoại (`assignment.html`)**
+- Header không còn tràn ngang (trước đây tràn ~96px làm mất nút menu/avatar): logo + chữ nhỏ lại, ẩn nhãn “English” và nút Trang chủ (có trong menu 3 gạch), nút QR thành nút tròn.
+- Màn hình làm bài: thanh tiêu đề dính gọn (nút quay lại + tên bài tối đa 2 dòng + đồng hồ + nút bảng câu hỏi), mô tả bài hiển thị dưới thanh thay vì chiếm chỗ; hàng “Câu n · điểm / Chưa trả lời / Gắn cờ” gọn 1 dòng; ô chọn đáp án cao ≥ 44px; ô nhập chữ 16px (iOS không tự phóng to); thanh Trang trước/sau dính đáy; nút từ điển nổi dời lên trên thanh này để không che nút “Next page”.
