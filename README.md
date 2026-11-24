@@ -160,3 +160,8 @@ Hệ thống tự thu nhỏ ảnh lớn, tối đa khoảng **1 MB cho mỗi chu
 **Giao diện điện thoại (`assignment.html`)**
 - Header không còn tràn ngang (trước đây tràn ~96px làm mất nút menu/avatar): logo + chữ nhỏ lại, ẩn nhãn “English” và nút Trang chủ (có trong menu 3 gạch), nút QR thành nút tròn.
 - Màn hình làm bài: thanh tiêu đề dính gọn (nút quay lại + tên bài tối đa 2 dòng + đồng hồ + nút bảng câu hỏi), mô tả bài hiển thị dưới thanh thay vì chiếm chỗ; hàng “Câu n · điểm / Chưa trả lời / Gắn cờ” gọn 1 dòng; ô chọn đáp án cao ≥ 44px; ô nhập chữ 16px (iOS không tự phóng to); thanh Trang trước/sau dính đáy; nút từ điển nổi dời lên trên thanh này để không che nút “Next page”.
+
+**Hiệu ứng quét / kết quả (`checkin.html`, 24/11 buổi tối)**
+- Thanh quét chạy bằng `transform` (GPU) thay vì `top`, bỏ viền tối `box-shadow 999px` nặng; bộ đọc nhẹ hơn (khung 720px mỗi lượt, cứ 4 lượt mới thử lượt kỹ 1280px + đảo màu; dùng `BarcodeDetector` nếu máy có) nên không còn giật.
+- Điểm danh xong: vòng tròn xanh bung ra, dấu tích tự vẽ nét, vòng lan, pháo giấy + rung nhẹ, huy hiệu “Có mặt / đi muộn”.
+- Đã điểm danh từ trước: màn hình xanh dương “Bạn đã điểm danh rồi ✓ — hệ thống đã ghi nhận, không cần quét lại”.
