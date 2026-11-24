@@ -165,3 +165,5 @@ Hệ thống tự thu nhỏ ảnh lớn, tối đa khoảng **1 MB cho mỗi chu
 - Thanh quét chạy bằng `transform` (GPU) thay vì `top`, bỏ viền tối `box-shadow 999px` nặng; bộ đọc nhẹ hơn (khung 720px mỗi lượt, cứ 4 lượt mới thử lượt kỹ 1280px + đảo màu; dùng `BarcodeDetector` nếu máy có) nên không còn giật.
 - Điểm danh xong: vòng tròn xanh bung ra, dấu tích tự vẽ nét, vòng lan, pháo giấy + rung nhẹ, huy hiệu “Có mặt / đi muộn”.
 - Đã điểm danh từ trước: màn hình xanh dương “Bạn đã điểm danh rồi ✓ — hệ thống đã ghi nhận, không cần quét lại”.
+
+**Mã hết hiệu lực:** mã đúng trong cửa sổ hiện tại và cửa sổ liền trước (≈10–20 giây với chu kỳ 10 giây). Quét mã cũ hơn → server trả `code_expired`, trang học sinh báo “Mã QR này đã hết hiệu lực… hãy quét lại mã đang hiển thị”, không tính vào giới hạn sai mã (10 lần/10 phút). Cần chạy lại `2_qr_attendance.sql` (chỉ cập nhật hàm, an toàn).
