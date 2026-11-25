@@ -2980,6 +2980,11 @@
       const on = pubSet.has(String(a.id)), dis = isOwnerRole() ? '' : 'disabled';
       return `<div onclick="event.stopPropagation()" style="font-size:10px;font-weight:700;margin-top:2px;white-space:nowrap">${role} · <label title="Tích để chốt: hiển thị cột điểm này cho học sinh" style="cursor:pointer"><input type="checkbox" ${on ? 'checked' : ''} ${dis} onchange="gbTogglePublish('${String(a.id).replace(/'/g, '')}', this.checked)" style="vertical-align:-2px"> Chốt</label></div>`;
     };
+    // Ô "Chốt" cho cột tổng hợp (ĐQT / ĐCK / Tổng kết): tổng kết chỉ hiện với học sinh khi chốt đủ ĐQT + ĐCK + Tổng kết
+    const sumCtl = key => {
+      const on = pubSet.has(key), dis = isOwnerRole() ? '' : 'disabled';
+      return `<div onclick="event.stopPropagation()" style="font-size:10px;font-weight:700;margin-top:2px;white-space:nowrap"><label title="Tích để chốt: hiển thị điểm này cho học sinh" style="cursor:pointer"><input type="checkbox" ${on ? 'checked' : ''} ${dis} onchange="gbTogglePublish('${key}', this.checked)" style="vertical-align:-2px"> Chốt</label></div>`;
+    };
     const asH = g.asList.map(a => th('g-h-as', hd(esc(a.title), 'as_' + a.id, 'num') + pubCtl(a), `title="${esc(a.title)}" style="min-width:90px;max-width:140px;overflow:hidden;text-overflow:ellipsis"`)).join('');
     const teH = g.testList.map(a => th('g-h-test', hd('<i class="bi bi-lock-fill"></i> ' + esc(a.title), 'te_' + a.id, 'num') + pubCtl(a), `title="${esc(a.title)} (bài Test)" style="min-width:90px;max-width:140px;overflow:hidden;text-overflow:ellipsis"`)).join('');
     const nAs = g.asList.length, nTe = g.testList.length;
@@ -2997,11 +3002,6 @@
     </tr>`;
     const head2 = (nAs || nTe) ? `<tr class="g2">${asH}${teH}</tr>` : '';
     const cell = (v, on) => `<td>${gFmt(v)}</td>`;
-    // Ô "Chốt" cho cột tổng hợp (ĐQT / ĐCK / Tổng kết): tổng kết chỉ hiện với học sinh khi chốt đủ ĐQT + ĐCK + Tổng kết
-    const sumCtl = key => {
-      const on = pubSet.has(key), dis = isOwnerRole() ? '' : 'disabled';
-      return `<div onclick="event.stopPropagation()" style="font-size:10px;font-weight:700;margin-top:2px;white-space:nowrap"><label title="Tích để chốt: hiển thị điểm này cho học sinh" style="cursor:pointer"><input type="checkbox" ${on ? 'checked' : ''} ${dis} onchange="gbTogglePublish('${key}', this.checked)" style="vertical-align:-2px"> Chốt</label></div>`;
-    };
     const shown = cfRun('gb', g.rows, gbGet);
     const body = shown.map((r, i) => {
       const asC = g.asList.map(a => cell(r.sc(a.id), g.qtIds.has(a.id) || g.ckIds.has(a.id))).join('');
