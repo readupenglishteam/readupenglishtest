@@ -491,12 +491,13 @@ async function submit(auto,msg){
   clearInterval(X.push); clearTimeout(X.pt); try{SB.rpc('test_save_progress',{p_session_id:String(X.sid),p_email:mailKey(me.email),p_state:null}).then(()=>{},()=>{});}catch(e){}
   lsDel(SAVE_PREFIX+X.sid); sessionStorage.removeItem(X.key); sessionStorage.removeItem('rt_flag_'+X.sid); X.active=false;
   if(document.fullscreenElement) await document.exitFullscreen().catch(()=>{});
-  guardStop(); if(X.io){X.io.disconnect();X.io=null;} toggleNav(false); $('exam').classList.add('hidden'); X=null;
+  guardStop(); if(X.io){X.io.disconnect();X.io=null;} toggleNav(false); if(window.RUAudioGuard) RUAudioGuard.stopAll($('exam'),{frames:true}); $('exam').classList.add('hidden'); X=null;
   openModal(`<div class="text-center"><div class="text-5xl mb-2 text-emerald-500"><i class="bi bi-check-circle-fill"></i></div><h2 class="text-lg font-extrabold mb-2">Exam submitted</h2><p class="text-sm text-gray-500 mb-4">${esc(msg||'Your answers have been recorded.')}<br>Your grade appears in the test list. Answers will be shown when the test closes.</p><button onclick="closeModal();pickClass(cls)" class="w-full py-2.5 rounded-xl bg-[#cf1717] text-white font-extrabold">Back to exam list</button></div>`);
 }
 
 /* ---------- KẾT QUẢ (chỉ sau giờ đóng) ---------- */
 async function showResult(id){
+  if(window.RUAudioGuard) RUAudioGuard.stopAll(document,{frames:true});   // thoát bài thi -> tắt âm thanh bài nghe
   const {data,error}=await SB.rpc('test_result',{p_assignment_id:id,p_name:me.name,p_email:me.email});
   if(error) return toast(error.message,'exclamation-triangle-fill');
   if(data.hidden) return toast('The teacher has not released the grade for this test yet');

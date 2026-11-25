@@ -106,6 +106,26 @@
   // TRẠNG THÁI CHUNG
   // =====================================================================
   let currentUser = null, myProfile = null;
+
+  // ===== GIÁO VIÊN / TRỢ GIẢNG (teacher, assistant): vào trang này như HỌC SINH VIP nhưng CHỈ với lớp mình quản lý =====
+  // - teacher: lớp có classes.teacher_id = mình;  assistant: lớp được gán trong bảng class_assistants
+  // - Làm bài bình thường, có thêm nút "Điền đáp án" (tự điền đáp án đúng). Bài nộp của họ chỉ để XEM THỬ, không lưu vào hệ thống.
+  const isStaffRole = () => ['teacher', 'assistant'].includes(String((myProfile && myProfile.role) || '').trim().toLowerCase());
+  const canUseAssignments = () => !!myProfile && (String(myProfile.role || '').trim().toLowerCase() === 'vip' || isStaffRole());
+  let _staffClassCache = null;
+  async function staffClassRows(force) {
+    if (_staffClassCache && !force) return _staffClassCache;
+    const [own, asst] = await Promise.all([
+      sbClient.from('classes').select('id, title, class_code, info').eq('teacher_id', currentUser.id),
+      sbClient.from('class_assistants').select('classes(id, title, class_code, info)').eq('teacher_id', currentUser.id)
+    ]);
+    if (own.error && asst.error) throw own.error;
+    const map = new Map();
+    (own.data || []).forEach(c => map.set(String(c.id), c));
+    (asst.data || []).forEach(r => { if (r.classes) map.set(String(r.classes.id), r.classes); });
+    _staffClassCache = [...map.values()].sort((x, y) => String(x.class_code || '').localeCompare(String(y.class_code || '')));
+    return _staffClassCache;
+  }
   let allAssignments = [];
   let currentPage = 1;
   const PAGE_SIZE = 6;
@@ -161,7 +181,7 @@
       const { data: prof } = await sbClient.from('profiles').select('role').eq('id', data.user.id).single();
       const role = (prof && prof.role ? String(prof.role) : '').trim().toLowerCase();
       if (role === 'admin') { window.location.href = 'admin.html'; return; }
-      if (role === 'teacher' || role === 'assistant') { window.location.href = 'teacher.html'; return; }
+      // teacher / assistant: ở lại trang Assignment (xem như HS VIP với lớp mình quản lý)
       pel('loginPassword').value = '';
       await init();   // học sinh: vào thẳng danh sách lớp / bài tập (hoặc đúng bài đang mở theo ?token=)
     } catch (err) {
@@ -677,14 +697,38 @@
   // =====================================================================
   async function loadClassPicker() {
     pel('classPickView').classList.remove('hidden');
-    loadStudentCalendar();   // lịch học hiện cho mọi học sinh (không cần VIP, không cần chọn lớp)
-    grLoadClasses();         // Kết quả học tập: học sinh chọn lớp rồi xem bảng điểm của mình
-    if (myProfile.role !== 'vip') {
+    if (isStaffRole()) {
+      // Giáo viên / trợ giảng không có lịch học & bảng điểm của học sinh -> ẩn các phần đó
+      ['activitySection', 'studentCalendarSection', 'gradeReportSection'].forEach(id => pel(id)?.classList.add('hidden'));
+    } else {
+      loadStudentCalendar();   // lịch học hiện cho mọi học sinh (không cần VIP, không cần chọn lớp)
+      grLoadClasses();         // Kết quả học tập: học sinh chọn lớp rồi xem bảng điểm của mình
+    }
+    if (!canUseAssignments()) {
       pel('classPickLoading').classList.add('hidden');
       pel('vipLockBox0').classList.remove('hidden');
       return;
     }
     pel('vipBadge0').classList.remove('hidden');
+    if (isStaffRole()) {
+      pel('vipBadge0').innerHTML = '<i class="bi bi-person-badge-fill"></i> ' + (String(myProfile.role).toLowerCase() === 'assistant' ? 'Trợ giảng' : 'Giáo viên') + ' · xem như VIP';
+      try {
+        const rows = (await staffClassRows(true)).map(c => ({ classes: c }));
+        pel('classPickLoading').classList.add('hidden');
+        pel('classPickEmpty').classList.toggle('hidden', !!rows.length);
+        pel('classPickGrid').innerHTML = rows.map(r => `
+        <a href="assignment.html?class=${r.classes.id}" class="block bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 space-y-2 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition">
+          <span class="text-[10px] font-bold px-2 py-0.5 bg-red-100 dark:bg-red-950 text-[#cf1717] rounded-full">${esc(r.classes.class_code)}</span>
+          <h4 class="font-bold text-sm text-gray-900 dark:text-white">${esc(r.classes.title)}</h4>
+          ${r.classes.info ? `<p class="text-xs text-gray-400 line-clamp-2">${esc(r.classes.info)}</p>` : ''}
+          <p class="text-[11px] font-bold text-[#cf1717]">Xem bài tập →</p>
+        </a>`).join('');
+      } catch (err) {
+        pel('classPickLoading').classList.add('hidden');
+        notify('❌ Lỗi tải danh sách lớp: ' + (err.message || err));
+      }
+      return;
+    }
     const cacheKey = 'classpicker:' + currentUser.id;
     const cached = cacheGet(cacheKey);
     function paintClassPicker(myClassRows) {
@@ -712,7 +756,7 @@
   // =====================================================================
   async function loadList(classId) {
     pel('listView').classList.remove('hidden');
-    if (myProfile.role !== 'vip') {
+    if (!canUseAssignments()) {
       pel('loadingMsg').classList.add('hidden');
       pel('vipLockBox').classList.remove('hidden');
       return;
@@ -720,9 +764,16 @@
     pel('vipBadge').classList.remove('hidden');
 
     // Xác nhận học sinh có thuộc lớp này không, đồng thời lấy tên lớp để hiển thị tiêu đề
-    const { data: membership } = await sbClient.from('class_students').select('id, classes(title, class_code)').eq('class_id', classId).eq('student_id', currentUser.id).maybeSingle();
+    let membership;
+    if (isStaffRole()) {
+      let mine = []; try { mine = await staffClassRows(); } catch (e) { console.warn(e); }
+      const c = mine.find(x => String(x.id) === String(classId));
+      membership = c ? { id: c.id, classes: c } : null;
+    } else {
+      ({ data: membership } = await sbClient.from('class_students').select('id, classes(title, class_code)').eq('class_id', classId).eq('student_id', currentUser.id).maybeSingle());
+    }
     if (!membership || !membership.classes) {
-      notify('❌ Bạn không thuộc lớp này.');
+      notify(isStaffRole() ? '❌ Bạn không quản lý lớp này.' : '❌ Bạn không thuộc lớp này.');
       pel('listView').classList.add('hidden');
       loadClassPicker();
       return;
@@ -745,7 +796,15 @@
     pel('emptyMsg').classList.toggle('hidden', !!allAssignments.length);
     if (!allAssignments.length) { cacheSet(cacheKey, []); return; }
 
-    // Kiểm tra bài nào học sinh đã nộp
+    // Kiểm tra bài nào học sinh đã nộp (giáo viên / trợ giảng: bài xem thử không lưu nên bỏ qua)
+    if (isStaffRole()) {
+      allAssignments.forEach(a => a._attempt = null);
+      cacheSet(cacheKey, allAssignments);
+      pel('assignGridWrap').classList.remove('hidden');
+      currentPage = 1;
+      renderPage();
+      return;
+    }
     const { data: myAttempts, error: attErr } = await sbClient.from('assignment_attempts').select('assignment_id, auto_score, total_points, manual_scores').eq('student_id', currentUser.id).order('submitted_at', { ascending: true });
     if (attErr) notify('⚠️ Không tải được trạng thái bài đã nộp: ' + attErr.message);
     const attemptMap = {}; (myAttempts || []).forEach(a => attemptMap[a.assignment_id] = a);
@@ -786,7 +845,7 @@
   // CHẾ ĐỘ LÀM BÀI (theo token)
   // =====================================================================
   async function loadAttempt(token) {
-    if (myProfile.role !== 'vip') {
+    if (!canUseAssignments()) {
       pel('listView').classList.remove('hidden');
       pel('loadingMsg').classList.add('hidden');
       pel('vipLockBox').classList.remove('hidden');
@@ -796,12 +855,19 @@
     if (error || !a) { notify('❌ Không tìm thấy bài tập hoặc bài chưa được xuất bản.'); pel('listView').classList.remove('hidden'); pel('loadingMsg').classList.add('hidden'); pel('emptyMsg').classList.remove('hidden'); return; }
 
     // Kiểm tra học sinh có thuộc lớp này không
-    const { data: membership } = await sbClient.from('class_students').select('id').eq('class_id', a.class_id).eq('student_id', currentUser.id).maybeSingle();
-    if (!membership) { notify('❌ Bạn không thuộc lớp học của bài tập này.'); pel('listView').classList.remove('hidden'); pel('loadingMsg').classList.add('hidden'); pel('emptyMsg').classList.remove('hidden'); return; }
+    const staff = isStaffRole();
+    let membership;
+    if (staff) {
+      let mine = []; try { mine = await staffClassRows(); } catch (e) { console.warn(e); }
+      membership = mine.find(x => String(x.id) === String(a.class_id)) || null;
+    } else {
+      ({ data: membership } = await sbClient.from('class_students').select('id').eq('class_id', a.class_id).eq('student_id', currentUser.id).maybeSingle());
+    }
+    if (!membership) { notify(staff ? '❌ Bạn không quản lý lớp học của bài tập này.' : '❌ Bạn không thuộc lớp học của bài tập này.'); pel('listView').classList.remove('hidden'); pel('loadingMsg').classList.add('hidden'); pel('emptyMsg').classList.remove('hidden'); return; }
 
     // Hạn nộp tính theo NGÀY (hết ngày hạn, giờ Việt Nam). Hết hạn -> không làm / không sửa nữa.
-    const expired = isAssignmentExpired(a);
-    const { data: allAttempts } = await sbClient.from('assignment_attempts').select('*').eq('assignment_id', a.id).eq('student_id', currentUser.id).order('submitted_at', { ascending: false });
+    const expired = staff ? false : isAssignmentExpired(a);   // giáo viên/trợ giảng: không giới hạn hạn nộp
+    const { data: allAttempts } = staff ? { data: [] } : await sbClient.from('assignment_attempts').select('*').eq('assignment_id', a.id).eq('student_id', currentUser.id).order('submitted_at', { ascending: false });
     const latest = (allAttempts || [])[0] || null;
     if (latest) {
       // Đã từng làm: luôn mở lại bài gần nhất KÈM điểm + nhận xét của giáo viên.
@@ -829,6 +895,7 @@
     pel('questionArea').querySelectorAll('img').forEach(im => { im.loading = 'lazy'; im.decoding = 'async'; });
     initReadingHighlighting();
     atSetup(a);
+    if (staff) atStaffSetup();
 
     if (a.time_limit_minutes) startTimer(a.time_limit_minutes * 60);
   }
@@ -956,6 +1023,41 @@
 
   // Highlight & dictionary interactions are owned exclusively by assets/js/ru-highlight.js.
   // Keeping the old listeners would reopen and reposition the menu after the new code runs.
+
+  // ===== Công cụ riêng cho giáo viên / trợ giảng =====
+  function atStaffSetup() {
+    const tools = pel('atTools');
+    if (tools) tools.insertAdjacentHTML('afterbegin', `<button type="button" id="atFillBtn" onclick="atAutoFillAnswers()" title="${T('Tự động điền đáp án đúng', 'Auto-fill the correct answers')}" class="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-extrabold bg-amber-500 hover:bg-amber-600 text-white shadow transition"><i class="bi bi-magic"></i> <span>${T('Điền đáp án', 'Fill answers')}</span></button>`);
+    const qa = pel('questionArea');
+    if (qa && !pel('atStaffNote')) qa.insertAdjacentHTML('beforebegin', `<div id="atStaffNote" class="text-xs font-semibold rounded-xl px-3 py-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 text-amber-700 dark:text-amber-300"><i class="bi bi-person-badge-fill"></i> ${T('Chế độ giáo viên / trợ giảng: bấm “Điền đáp án” rồi “Nộp Bài” để xem kết quả. Bài nộp chỉ để xem thử, không được lưu vào hệ thống.', 'Teacher / assistant mode: press “Fill answers” then “Submit” to preview the result. Your attempt is a preview only and is not saved.')}</div>`);
+  }
+  function atAutoFillAnswers() {
+    if (!isStaffRole() || !currentAssignment) return;
+    const flat = [];
+    (currentAssignment.questions || []).forEach(q => { if (q.type === 'reading') (q.sub_blocks || []).forEach(sb => flat.push(sb)); else flat.push(q); });
+    let filled = 0;
+    flat.forEach(q => {
+      if (q.type === 'mcq' || q.type === 'tf') {
+        const c = (q.options || []).find(o => o.correct); if (!c) return;
+        document.querySelectorAll(`input[name="ans-${q.id}"]`).forEach(i => { i.checked = (i.value === String(c.id)); });
+        filled++;
+      } else if (q.type === 'multi') {
+        const ids = (q.options || []).filter(o => o.correct).map(o => String(o.id)); if (!ids.length) return;
+        document.querySelectorAll(`input[name="ans-${q.id}"]`).forEach(i => { i.checked = ids.includes(i.value); });
+        filled++;
+      } else if (q.type === 'fill') {
+        if (q.blanks && q.blanks.length) {
+          q.blanks.forEach(bl => { const el = pel(`ans-${q.id}-${bl.gap}`), v = (bl.accepted_answers || [])[0]; if (el && v != null) { el.value = v; autoGrowFillInput(el); } });
+          filled++;
+        } else {
+          const el = pel('ans-' + q.id), v = (q.accepted_answers || [])[0];
+          if (el && v != null) { el.value = v; autoGrowFillInput(el); filled++; }
+        }
+      }
+    });
+    atUpd();   // cập nhật trạng thái "Đã trả lời" + bảng câu hỏi
+    notify(`✅ Đã điền đáp án cho ${filled} câu. Câu tự luận cần tự làm. Bấm “Nộp Bài” để xem kết quả.`);
+  }
 
   function startTimer(seconds) {
     let remain = seconds;
@@ -1154,7 +1256,8 @@
 
   async function submitAssignment() {
     if (!currentAssignment) return;
-    if (isAssignmentExpired(currentAssignment)) { notify('⛔ Bài tập đã hết hạn, không thể nộp bài.'); return; }
+    const staffPreview = isStaffRole();
+    if (!staffPreview && isAssignmentExpired(currentAssignment)) { notify('⛔ Bài tập đã hết hạn, không thể nộp bài.'); return; }
     if (timerInterval) clearInterval(timerInterval);
     const btn = pel('submitBtn'); btn.disabled = true; btn.innerText = 'Đang nộp bài...';
 
@@ -1210,6 +1313,12 @@
       assignment_id: currentAssignment.id, student_id: currentUser.id, answers,
       auto_score, total_points: currentAssignment.total_points || 0, has_essay
     };
+    if (staffPreview) {
+      // Giáo viên / trợ giảng: chấm & hiện kết quả để xem thử, KHÔNG ghi vào bảng assignment_attempts
+      notify('👁️ Đã nộp (xem thử) — kết quả này không được lưu.');
+      showResult(currentAssignment, { ...row, manual_scores: {}, manual_comments: {} }, { expired: false, used: 1, staff: true });
+      return;
+    }
     const { data: saved, error } = await sbClient.from('assignment_attempts').insert([row]).select().single();
     if (error) { notify('❌ Lỗi nộp bài: ' + error.message); btn.disabled = false; btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Nộp Bài'; return; }
     notify('🎉 Nộp bài thành công!');
@@ -1228,11 +1337,14 @@
   function showResult(a, attempt, opts) {
     opts = opts || {};
     const expired = !!opts.expired, used = opts.used || 1;
-    const canEdit = !expired && (!a.max_attempts || used < a.max_attempts);
-    // Chỉ hiện đáp án đúng + giải thích khi bài HẾT HẠN (bài không đặt hạn thì hiện khi đã hết lượt)
-    const reveal = expired || (!a.due_date && !canEdit);
+    const staff = !!opts.staff;
+    const canEdit = !staff && !expired && (!a.max_attempts || used < a.max_attempts);
+    // Chỉ hiện đáp án đúng + giải thích khi bài HẾT HẠN (bài không đặt hạn thì hiện khi đã hết lượt). Giáo viên/trợ giảng: luôn hiện.
+    const reveal = staff || expired || (!a.due_date && !canEdit);
     rv = { a, attempt, answers: JSON.parse(JSON.stringify(attempt.answers || {})), dirty: new Set(), canEdit, expired, used, reveal };
 
+    // Thoát khỏi màn làm bài -> tắt mọi âm thanh / video đang phát (bài nghe)
+    if (window.RUAudioGuard) window.RUAudioGuard.stopAll(pel('attemptView'), { frames: true });
     pel('classPickView').classList.add('hidden');
     pel('listView').classList.add('hidden');
     pel('attemptView').classList.add('hidden');
@@ -1254,6 +1366,12 @@
     else if (expired) { msg = `<i class="bi bi-alarm"></i> Bài tập đã hết hạn (${due}). Bạn không thể làm hoặc sửa nữa — bên dưới là bài làm gần nhất, kèm điểm và nhận xét của giáo viên nếu đã chấm.`; tone = 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-300'; }
     else if (canEdit) { msg = `<i class="bi bi-pencil"></i> ${due ? 'Bài còn hạn đến ' + due + '. ' : ''}Bên dưới là điểm của từng câu. Đáp án đúng và giải thích sẽ hiện sau khi bài hết hạn. Câu nào chưa đạt điểm tối đa, bấm “Sửa câu này” để làm lại rồi bấm “Lưu chỉnh sửa”.${a.max_attempts ? ' Còn ' + (a.max_attempts - used) + ' lượt lưu.' : ''}`; tone = 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'; }
     else { msg = `<i class="bi bi-info-circle-fill"></i> Bạn đã dùng hết ${a.max_attempts} lượt làm/sửa bài — đây là kết quả gần nhất.${rv.reveal ? '' : ' Đáp án đúng và giải thích sẽ hiện khi bài hết hạn' + (due ? ' (' + due + ')' : '') + '.'}`; tone = 'bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-300'; }
+    if (staff) {
+      pel('rsTitle').innerHTML = '<i class="bi bi-person-badge-fill"></i> Kết quả xem thử (giáo viên / trợ giảng)';
+      pel('rsEssayNote').classList.add('hidden');
+      msg = '<i class="bi bi-eye-fill"></i> Đây là bản xem thử: kết quả <b>không được lưu</b> và không ảnh hưởng đến học sinh. Đáp án đúng + giải thích hiển thị bên dưới (câu tự luận không chấm tự động). <button type="button" onclick="location.reload()" class="ml-1 underline font-extrabold">Làm lại bài này</button>';
+      tone = 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300';
+    }
     const bn = pel('rsBanner'); bn.className = 'text-xs font-semibold rounded-xl p-3 text-left ' + tone; bn.innerHTML = msg;
 
     rvRenderAll();
