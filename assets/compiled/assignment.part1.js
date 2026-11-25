@@ -632,7 +632,8 @@
     const pubSet = new Set((cfg.published || []).map(String)), isPub = a => pubSet.has(String(a.id));
     const qtAll = assigns.filter(a => qtIds.has(a.id)), ckAll = assigns.filter(a => ckIds.has(a.id));
     const asList = qtAll.filter(isPub), testList = ckAll.filter(isPub);
-    const qtDone = qtAll.every(isPub), ckDone = ckAll.every(isPub);
+    // Điểm tổng hợp chỉ hiện khi giáo viên chốt: ĐQT, ĐCK; Tổng kết cần chốt đủ cả ĐQT + ĐCK + chính cột Tổng kết
+    const qtDone = pubSet.has('sum_qt'), ckDone = pubSet.has('sum_ck'), finDone = pubSet.has('sum_fin') && qtDone && ckDone;
     const totalOf = Object.fromEntries(assigns.map(a => [a.id, a.total_points]));
     const best = {};
     attempts.forEach(r => {
@@ -646,8 +647,9 @@
     const qtArr = pool(qtAll, qtIds);
     const attInQt = !aw && !!cfg.attInQt && att10 != null;
     if (attInQt) qtArr.push(att10);
-    const qt = qtDone ? grAvg(qtArr) : null, ck = ckDone ? grAvg(pool(ckAll, ckIds)) : null;
-    const finRaw = (qt != null && ck != null && (!aw || att10 != null)) ? ((aw ? att10 * aw : 0) + qt * cfg.qtPct + ck * cfg.ckPct) / 100 : null;
+    const qtV = grAvg(qtArr), ckV = grAvg(pool(ckAll, ckIds));
+    const qt = qtDone ? qtV : null, ck = ckDone ? ckV : null;
+    const finRaw = (finDone && qtV != null && ckV != null && (!aw || att10 != null)) ? ((aw ? att10 * aw : 0) + qtV * cfg.qtPct + ckV * cfg.ckPct) / 100 : null;
     const fin = finRaw == null ? null : Math.round(finRaw * 100) / 100;
     const rank = grRank(fin);
 
@@ -704,7 +706,7 @@
           <tr><td class="font-extrabold">Xếp loại</td><td></td><td class="kq-c">${rankHtml}</td></tr>
           <tr><td class="font-extrabold">Đạt</td><td></td><td class="kq-c">${passHtml}</td></tr>
         </tbody></table></div>
-        ${fin == null ? `<p class="text-[11px] text-amber-600"><i class="bi bi-info-circle"></i> ${(!qtDone || !ckDone) ? 'Giáo viên chưa chốt hết các cột điểm nên chưa hiển thị điểm tổng kết.' : 'Chưa đủ điểm để tính tổng kết (cần có điểm quá trình và điểm cuối kỳ).'}</p>` : ''}
+        ${fin == null ? `<p class="text-[11px] text-amber-600"><i class="bi bi-info-circle"></i> ${!finDone ? 'Giáo viên chưa chốt điểm quá trình, cuối kỳ và tổng kết nên chưa hiển thị điểm tổng kết.' : 'Chưa đủ điểm để tính tổng kết (cần có điểm quá trình và điểm cuối kỳ).'}</p>` : ''}
         <p class="text-[11px] text-gray-400"><i class="bi bi-info-circle"></i> Điểm các bài quy về thang 10, nếu làm nhiều lần thì lấy lần cao nhất. Chuyên cần chỉ tính các buổi giáo viên đã chốt điểm danh. Đạt khi điểm tổng kết ≥ 7,0.</p>
       </div>`;
   }

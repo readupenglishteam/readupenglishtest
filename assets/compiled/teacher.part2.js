@@ -2929,8 +2929,9 @@
     const presentOf = {};
     attRows.forEach(r => { if (heldIds.has(r.session_id) && (r.status === 'P' || r.status === 'L')) presentOf[r.student_id] = (presentOf[r.student_id] || 0) + 1; });
 
-    const asList = assigns.filter(a => !a.is_test), testList = assigns.filter(a => a.is_test);
     const { qtIds, ckIds } = gradeGroups(assigns, gbCfg);
+    // Chỉ lấy các cột ĐÃ CHỌN: cột chọn cho ĐQT nằm nhóm ĐQT, cột chọn cho ĐCK nằm nhóm ĐCK (dù là Assignment hay Test)
+    const asList = assigns.filter(a => qtIds.has(a.id)), testList = assigns.filter(a => ckIds.has(a.id));
 
     // điểm tốt nhất của từng học sinh cho từng bài (thang 10)
     const best = {};
@@ -2975,8 +2976,7 @@
     // Ô tích "Chốt" dưới mỗi cột điểm: chỉ cột đã được chọn tính điểm VÀ đã chốt mới hiện ở bảng điểm của học sinh
     const pubSet = new Set((gbCfg.published || []).map(String));
     const pubCtl = a => {
-      const role = g.qtIds.has(a.id) ? 'ĐQT' : g.ckIds.has(a.id) ? 'ĐCK' : null;
-      if (!role) return '<div style="font-size:10px;font-weight:600;opacity:.8;margin-top:2px">Không tính</div>';
+      const role = g.qtIds.has(a.id) ? 'ĐQT' : 'ĐCK';
       const on = pubSet.has(String(a.id)), dis = isOwnerRole() ? '' : 'disabled';
       return `<div onclick="event.stopPropagation()" style="font-size:10px;font-weight:700;margin-top:2px;white-space:nowrap">${role} · <label title="Tích để chốt: hiển thị cột điểm này cho học sinh" style="cursor:pointer"><input type="checkbox" ${on ? 'checked' : ''} ${dis} onchange="gbTogglePublish('${String(a.id).replace(/'/g, '')}', this.checked)" style="vertical-align:-2px"> Chốt</label></div>`;
     };
@@ -2987,16 +2987,21 @@
       ${th('g-h-fix g-s1', 'STT', 'rowspan="2"')}${th('g-h-fix g-s2', hd('Họ và tên', 'name', 'text'), 'rowspan="2"')}
       ${th('g-h-att', hd('Chuyên cần', 'pres', 'num'), 'rowspan="2" style="min-width:90px"')}
       ${th('g-h-att', hd('Điểm danh<div style="font-size:10px;font-weight:600">(thang 10)</div>', 'att', 'num'), 'rowspan="2" style="min-width:90px"')}
-      ${nAs ? th('g-h-as', 'Điểm Assignment', `colspan="${nAs}"`) : ''}
-      ${nTe ? th('g-h-test', 'Điểm Test', `colspan="${nTe}"`) : ''}
-      ${th('g-h-qt', hd('Điểm quá trình', 'qt', 'num'), 'rowspan="2" style="min-width:80px"')}
-      ${th('g-h-ck', hd('Điểm cuối kỳ', 'ck', 'num'), 'rowspan="2" style="min-width:80px"')}
-      ${th('g-h-fin', hd(`Điểm tổng kết<div style="font-size:10px;font-weight:600">${gbPctLabel()}</div>`, 'fin', 'num'), 'rowspan="2" style="min-width:100px"')}
+      ${nAs ? th('g-h-as', 'Điểm quá trình (bài đã chọn)', `colspan="${nAs}"`) : ''}
+      ${nTe ? th('g-h-test', 'Điểm cuối kỳ (bài đã chọn)', `colspan="${nTe}"`) : ''}
+      ${th('g-h-qt', hd('Điểm quá trình', 'qt', 'num') + sumCtl('sum_qt'), 'rowspan="2" style="min-width:90px"')}
+      ${th('g-h-ck', hd('Điểm cuối kỳ', 'ck', 'num') + sumCtl('sum_ck'), 'rowspan="2" style="min-width:90px"')}
+      ${th('g-h-fin', hd(`Điểm tổng kết<div style="font-size:10px;font-weight:600">${gbPctLabel()}</div>`, 'fin', 'num') + sumCtl('sum_fin'), 'rowspan="2" style="min-width:110px"')}
       ${th('g-h-fin', hd('Xếp loại', 'rank', 'enum', ['Xuất sắc', 'Giỏi', 'Khá', 'Trung bình', 'Yếu', 'Kém', '—'].map(x => [x, x])), 'rowspan="2" style="min-width:100px"')}
       ${th('g-h-fin', hd('Đạt', 'pass', 'enum', [['Đạt', 'Đạt'], ['Không đạt', 'Không đạt'], ['Chưa có', 'Chưa có điểm']]), 'rowspan="2" style="min-width:60px"')}
     </tr>`;
     const head2 = (nAs || nTe) ? `<tr class="g2">${asH}${teH}</tr>` : '';
-    const cell = (v, on) => `<td class="${on ? '' : 'g-off'}" title="${on ? '' : 'Không nằm trong cách tính'}">${gFmt(v)}</td>`;
+    const cell = (v, on) => `<td>${gFmt(v)}</td>`;
+    // Ô "Chốt" cho cột tổng hợp (ĐQT / ĐCK / Tổng kết): tổng kết chỉ hiện với học sinh khi chốt đủ ĐQT + ĐCK + Tổng kết
+    const sumCtl = key => {
+      const on = pubSet.has(key), dis = isOwnerRole() ? '' : 'disabled';
+      return `<div onclick="event.stopPropagation()" style="font-size:10px;font-weight:700;margin-top:2px;white-space:nowrap"><label title="Tích để chốt: hiển thị điểm này cho học sinh" style="cursor:pointer"><input type="checkbox" ${on ? 'checked' : ''} ${dis} onchange="gbTogglePublish('${key}', this.checked)" style="vertical-align:-2px"> Chốt</label></div>`;
+    };
     const shown = cfRun('gb', g.rows, gbGet);
     const body = shown.map((r, i) => {
       const asC = g.asList.map(a => cell(r.sc(a.id), g.qtIds.has(a.id) || g.ckIds.has(a.id))).join('');
@@ -3017,8 +3022,8 @@
     renderGbCharts(shown);
     wrap.scrollLeft = sl; wrap.scrollTop = st;
     const passN = g.rows.filter(r => r.fin != null && r.fin >= 7).length, graded = g.rows.filter(r => r.fin != null).length;
-    pel('gradeSummaryLine').innerHTML = `${shown.length === g.rows.length ? g.rows.length : shown.length + '/' + g.rows.length} học sinh · ${g.totalDays} buổi đã học · ${nAs} bài Assignment · ${nTe} bài Test · đã có điểm tổng kết: ${graded} · đạt (≥ 7,0): <b>${passN}</b>` +
-      (!nTe ? ' · <span class="text-amber-600">Lớp chưa có bài Test nên chưa tính được điểm tổng kết.</span>' : '');
+    pel('gradeSummaryLine').innerHTML = `${shown.length === g.rows.length ? g.rows.length : shown.length + '/' + g.rows.length} học sinh · ${g.totalDays} buổi đã học · ${nAs} bài tính ĐQT · ${nTe} bài tính ĐCK · đã có điểm tổng kết: ${graded} · đạt (≥ 7,0): <b>${passN}</b>` +
+      (!nTe ? ' · <span class="text-amber-600">Chưa chọn bài nào cho điểm cuối kỳ nên chưa tính được điểm tổng kết.</span>' : '');
   }
 
   // ---- Màn hình setup cách tính điểm ----
@@ -3094,7 +3099,7 @@
     try { await RUAssets.load('xlsx'); } catch(e) { return notify('❌ Chưa tải được thư viện Excel.'); }
     const g = gbRows, c = myClasses.find(x => x.id === gbClassId);
     const n = v => v == null ? '' : Math.round(v * 100) / 100;
-    const header = ['STT', 'Họ và tên', 'Email', 'Chuyên cần (có mặt/tổng)', 'Điểm danh (thang 10)', ...g.asList.map(a => a.title), ...g.testList.map(a => '[Test] ' + a.title),
+    const header = ['STT', 'Họ và tên', 'Email', 'Chuyên cần (có mặt/tổng)', 'Điểm danh (thang 10)', ...g.asList.map(a => a.title), ...g.testList.map(a => '[ĐCK] ' + a.title),
       'Điểm quá trình', 'Điểm cuối kỳ', `Điểm tổng kết (${gbPctLabel()})`, 'Xếp loại', 'Đạt'];
     const data = g.rows.map((r, i) => [i + 1, r.stu.full_name || '', r.stu.email || '', `${r.pres}/${r.totalDays}`, n(r.att10),
       ...g.asList.map(a => n(r.sc(a.id))), ...g.testList.map(a => n(r.sc(a.id))), n(r.qt), n(r.ck), n(r.fin), r.rank ? r.rank.t : '', r.fin == null ? '' : (r.fin >= 7 ? 'Đạt' : 'Không đạt')]);
