@@ -534,7 +534,21 @@
   // Cách tính giống trang teacher (Quản lý điểm): lấy cấu hình từ bảng class_grade_config
   // Cần: file 4_student_grades.sql (cho học sinh quyền ĐỌC cách tính điểm của lớp mình)
   // =====================================================================
-  const GR_DEFAULT_CFG = { qtMode: 'all', qtIds: [], ckMode: 'all', ckIds: [], attPct: 0, qtPct: 40, ckPct: 60, missingZero: true, attInQt: false };
+  const GR_DEFAULT_CFG = { qtMode: 'all', qtIds: [], ckMode: 'all', ckIds: [], attPct: 0, qtPct: 40, ckPct: 60, missingZero: true, attInQt: false, published: [] };
+  // Phân nhóm cột điểm: mỗi bài thuộc đúng 1 phần (ĐQT hoặc ĐCK). Chế độ "Tất cả" như cũ (Assignment -> ĐQT, Test -> ĐCK);
+  // chế độ "Chọn một số bài" cho phép chọn BẤT KỲ bài nào (Assignment hoặc Test) cho phần đó.
+  function grGroups(assigns, cfg) {
+    const norm = x => new Set((x || []).map(String));
+    const qtPick = cfg.qtMode === 'pick' ? norm(cfg.qtIds) : null, ckPick = cfg.ckMode === 'pick' ? norm(cfg.ckIds) : null;
+    const qtIds = new Set(), ckIds = new Set();
+    assigns.forEach(a => {
+      const id = String(a.id);
+      if (qtPick ? qtPick.has(id) : (!a.is_test && !(ckPick && ckPick.has(id)))) qtIds.add(a.id);
+      else if (ckPick ? ckPick.has(id) : !!a.is_test) ckIds.add(a.id);
+    });
+    return { qtIds, ckIds };
+  }
+
   let grClasses = {}, grSeq = 0;
 
   const grNum = v => { if (v == null) return '—'; const r = Math.round(v * 100) / 100; return Number.isInteger(r) ? r.toFixed(1) : String(r); };
@@ -613,9 +627,12 @@
     const att10 = totalDays ? pres / totalDays * 10 : null;
 
     // ---- Điểm từng bài (thang 10, lấy lần làm cao nhất)
-    const asList = assigns.filter(a => !a.is_test), testList = assigns.filter(a => a.is_test);
-    const qtIds = new Set(cfg.qtMode === 'pick' ? cfg.qtIds : asList.map(a => a.id));
-    const ckIds = new Set(cfg.ckMode === 'pick' ? cfg.ckIds : testList.map(a => a.id));
+    // Chỉ hiện các cột giáo viên ĐÃ CHỌN tính điểm VÀ ĐÃ CHỐT. Điểm quá trình / cuối kỳ / tổng kết chỉ hiện khi mọi cột của phần đó đã được chốt.
+    const { qtIds, ckIds } = grGroups(assigns, cfg);
+    const pubSet = new Set((cfg.published || []).map(String)), isPub = a => pubSet.has(String(a.id));
+    const qtAll = assigns.filter(a => qtIds.has(a.id)), ckAll = assigns.filter(a => ckIds.has(a.id));
+    const asList = qtAll.filter(isPub), testList = ckAll.filter(isPub);
+    const qtDone = qtAll.every(isPub), ckDone = ckAll.every(isPub);
     const totalOf = Object.fromEntries(assigns.map(a => [a.id, a.total_points]));
     const best = {};
     attempts.forEach(r => {
@@ -626,10 +643,10 @@
     });
     const pool = (list, ids) => { const arr = []; list.forEach(a => { if (!ids.has(a.id)) return; const v = best[a.id]; if (v !== undefined) arr.push(v); else if (cfg.missingZero) arr.push(0); }); return arr; };
     const aw = cfg.attPct || 0;
-    const qtArr = pool(asList, qtIds);
+    const qtArr = pool(qtAll, qtIds);
     const attInQt = !aw && !!cfg.attInQt && att10 != null;
     if (attInQt) qtArr.push(att10);
-    const qt = grAvg(qtArr), ck = grAvg(pool(testList, ckIds));
+    const qt = qtDone ? grAvg(qtArr) : null, ck = ckDone ? grAvg(pool(ckAll, ckIds)) : null;
     const finRaw = (qt != null && ck != null && (!aw || att10 != null)) ? ((aw ? att10 * aw : 0) + qt * cfg.qtPct + ck * cfg.ckPct) / 100 : null;
     const fin = finRaw == null ? null : Math.round(finRaw * 100) / 100;
     const rank = grRank(fin);
@@ -642,13 +659,13 @@
       return `<tr><td class="kq-c">${i + 1}</td><td class="font-semibold">${esc(a.title)}</td><td class="kq-c">${scoreCell(v)}</td><td>${st}</td></tr>`;
     });
     if (attInQt) asRows.push(`<tr><td class="kq-c">${asList.length + 1}</td><td class="font-semibold">Chuyên cần (${pres}/${totalDays} buổi)</td><td class="kq-c">${scoreCell(att10)}</td><td><span class="kq-badge kq-b-qt">Lấy điểm QT</span></td></tr>`);
-    const asBody = asRows.join('') || '<tr><td colspan="4" class="text-gray-400 italic">Lớp chưa có bài Assignment nào.</td></tr>';
+    const asBody = asRows.join('') || '<tr><td colspan="4" class="text-gray-400 italic">Giáo viên chưa chốt cột điểm quá trình nào.</td></tr>';
 
     const teBody = testList.map((a, i) => {
       const v = best[a.id], on = ckIds.has(a.id);
       const st = v === undefined ? `<span class="kq-badge kq-b-miss">Chưa làm${on && cfg.missingZero ? ' · tính 0 điểm' : ''}</span>` : (on ? '<span class="kq-badge kq-b-ck">Lấy điểm CK</span>' : '');
       return `<tr><td class="kq-c">${i + 1}</td><td class="font-semibold">${esc(a.title)}</td><td class="kq-c">${scoreCell(v)}</td><td>${st}</td></tr>`;
-    }).join('') || '<tr><td colspan="4" class="text-gray-400 italic">Lớp chưa có bài Test nào.</td></tr>';
+    }).join('') || '<tr><td colspan="4" class="text-gray-400 italic">Giáo viên chưa chốt cột điểm cuối kỳ nào.</td></tr>';
 
     const attWeight = aw ? aw + '%' : (attInQt ? 'Tính trong ĐQT' : '0%');
     const rankHtml = rank ? `<span class="kq-badge" style="background:${rank.bg};color:${rank.fg};font-size:13px;padding:3px 14px"><i class="bi bi-circle-fill" style="font-size:10px"></i> ${rank.t}</span>` : '<span class="text-gray-400">—</span>';
@@ -666,13 +683,13 @@
       </div>
 
       <div class="space-y-2 pt-2">
-        <h3 class="kq-sub text-sky-700 dark:text-sky-400"><i class="bi bi-journal-bookmark-fill"></i> 1. ĐIỂM ASSIGNMENT</h3>
+        <h3 class="kq-sub text-sky-700 dark:text-sky-400"><i class="bi bi-journal-bookmark-fill"></i> 1. ĐIỂM QUÁ TRÌNH</h3>
         <div class="kq-wrap"><table class="kq-table">${thead(['<th class="kq-th-as kq-c" style="width:60px">STT</th>', '<th class="kq-th-as">Bài tập</th>', '<th class="kq-th-as kq-c" style="width:110px">Điểm</th>', '<th class="kq-th-as">Trạng thái</th>'])}<tbody>${asBody}</tbody></table></div>
         <span class="kq-sumline bg-sky-100 dark:bg-sky-950/50 text-sky-800 dark:text-sky-300"><i class="bi bi-bar-chart-fill"></i> Điểm quá trình: ${qt == null ? '—' : grNum(qt) + '/10'}</span>
       </div>
 
       <div class="space-y-2 pt-3">
-        <h3 class="kq-sub text-violet-700 dark:text-violet-400"><i class="bi bi-pencil-square"></i> 2. ĐIỂM TEST / KIỂM TRA</h3>
+        <h3 class="kq-sub text-violet-700 dark:text-violet-400"><i class="bi bi-pencil-square"></i> 2. ĐIỂM CUỐI KỲ</h3>
         <div class="kq-wrap"><table class="kq-table">${thead(['<th class="kq-th-te kq-c" style="width:60px">STT</th>', '<th class="kq-th-te">Bài kiểm tra</th>', '<th class="kq-th-te kq-c" style="width:110px">Điểm</th>', '<th class="kq-th-te">Trạng thái</th>'])}<tbody>${teBody}</tbody></table></div>
         <span class="kq-sumline bg-violet-100 dark:bg-violet-950/50 text-violet-800 dark:text-violet-300"><i class="bi bi-award-fill"></i> Điểm cuối kỳ: ${ck == null ? '—' : grNum(ck) + '/10'}</span>
       </div>
@@ -687,7 +704,7 @@
           <tr><td class="font-extrabold">Xếp loại</td><td></td><td class="kq-c">${rankHtml}</td></tr>
           <tr><td class="font-extrabold">Đạt</td><td></td><td class="kq-c">${passHtml}</td></tr>
         </tbody></table></div>
-        ${fin == null ? '<p class="text-[11px] text-amber-600"><i class="bi bi-info-circle"></i> Chưa đủ điểm để tính tổng kết (cần có điểm quá trình và điểm cuối kỳ).</p>' : ''}
+        ${fin == null ? `<p class="text-[11px] text-amber-600"><i class="bi bi-info-circle"></i> ${(!qtDone || !ckDone) ? 'Giáo viên chưa chốt hết các cột điểm nên chưa hiển thị điểm tổng kết.' : 'Chưa đủ điểm để tính tổng kết (cần có điểm quá trình và điểm cuối kỳ).'}</p>` : ''}
         <p class="text-[11px] text-gray-400"><i class="bi bi-info-circle"></i> Điểm các bài quy về thang 10, nếu làm nhiều lần thì lấy lần cao nhất. Chuyên cần chỉ tính các buổi giáo viên đã chốt điểm danh. Đạt khi điểm tổng kết ≥ 7,0.</p>
       </div>`;
   }

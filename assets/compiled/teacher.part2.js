@@ -2845,7 +2845,21 @@
     gbCharts.push(new Chart(pel('gbChartAvg'), { type: 'bar', data: { labels: ['Điểm danh', 'ĐQT', 'ĐCK', 'Tổng kết'], datasets: [{ label: 'Điểm TB (thang 10)', data: [av('att10'), av('qt'), av('ck'), av('fin')], backgroundColor: ['#0d9488', '#0284c7', '#7c3aed', '#cf1717'] }] }, options: { ...opt, scales: { y: { beginAtZero: true, max: 10 } } } }));
   }
 
-  const GRADE_DEFAULT_CFG = { qtMode: 'all', qtIds: [], ckMode: 'all', ckIds: [], attPct: 0, qtPct: 40, ckPct: 60, missingZero: true, attInQt: false };
+  const GRADE_DEFAULT_CFG = { qtMode: 'all', qtIds: [], ckMode: 'all', ckIds: [], attPct: 0, qtPct: 40, ckPct: 60, missingZero: true, attInQt: false, published: [] };
+  // Phân nhóm cột điểm: mỗi bài thuộc đúng 1 phần (ĐQT hoặc ĐCK). Chế độ "Tất cả" như cũ (Assignment -> ĐQT, Test -> ĐCK);
+  // chế độ "Chọn một số bài" cho phép chọn BẤT KỲ bài nào (Assignment hoặc Test) cho phần đó.
+  function gradeGroups(assigns, cfg) {
+    const norm = x => new Set((x || []).map(String));
+    const qtPick = cfg.qtMode === 'pick' ? norm(cfg.qtIds) : null, ckPick = cfg.ckMode === 'pick' ? norm(cfg.ckIds) : null;
+    const qtIds = new Set(), ckIds = new Set();
+    assigns.forEach(a => {
+      const id = String(a.id);
+      if (qtPick ? qtPick.has(id) : (!a.is_test && !(ckPick && ckPick.has(id)))) qtIds.add(a.id);
+      else if (ckPick ? ckPick.has(id) : !!a.is_test) ckIds.add(a.id);
+    });
+    return { qtIds, ckIds };
+  }
+
   let gbClassId = '', gbData = null, gbCfg = { ...GRADE_DEFAULT_CFG }, gbRows = [];
 
   function gradeRank(s) {
@@ -2916,8 +2930,7 @@
     attRows.forEach(r => { if (heldIds.has(r.session_id) && (r.status === 'P' || r.status === 'L')) presentOf[r.student_id] = (presentOf[r.student_id] || 0) + 1; });
 
     const asList = assigns.filter(a => !a.is_test), testList = assigns.filter(a => a.is_test);
-    const qtIds = new Set(gbCfg.qtMode === 'pick' ? gbCfg.qtIds : asList.map(a => a.id));
-    const ckIds = new Set(gbCfg.ckMode === 'pick' ? gbCfg.ckIds : testList.map(a => a.id));
+    const { qtIds, ckIds } = gradeGroups(assigns, gbCfg);
 
     // điểm tốt nhất của từng học sinh cho từng bài (thang 10)
     const best = {};
@@ -2940,10 +2953,10 @@
         list.forEach(a => { if (!ids.has(a.id)) return; const v = sc(a.id); if (v !== undefined) arr.push(v); else if (gbCfg.missingZero) arr.push(0); });
         return arr;
       };
-      const qtArr = pool(asList, qtIds);
+      const qtArr = pool(assigns, qtIds);
       const aw = gbCfg.attPct || 0;
       if (gbCfg.attInQt && !aw && att10 != null) qtArr.push(att10);
-      const qt = gAvg(qtArr), ck = gAvg(pool(testList, ckIds));
+      const qt = gAvg(qtArr), ck = gAvg(pool(assigns, ckIds));
       const fin = (qt != null && ck != null && (!aw || att10 != null)) ? ((aw ? att10 * aw : 0) + qt * gbCfg.qtPct + ck * gbCfg.ckPct) / 100 : null;
       const finR = fin == null ? null : Math.round(fin * 100) / 100;
       return { stu, pres, totalDays, att10, sc, qt, ck, fin: finR, rank: gradeRank(finR) };
@@ -2959,8 +2972,16 @@
     const sl = wrap.scrollLeft, st = wrap.scrollTop;
     const th = (cls, txt, extra = '') => `<th class="${cls}" ${extra}>${txt}</th>`;
     const hd = (txt, key, type, opts) => `<div style="display:flex;align-items:center;justify-content:center;gap:2px"><span style="overflow:hidden;text-overflow:ellipsis">${txt}</span>${cfBtn('gb', key, type, opts)}</div>`;
-    const asH = g.asList.map(a => th('g-h-as', hd(esc(a.title), 'as_' + a.id, 'num'), `title="${esc(a.title)}" style="min-width:90px;max-width:140px;overflow:hidden;text-overflow:ellipsis"`)).join('');
-    const teH = g.testList.map(a => th('g-h-test', hd('<i class="bi bi-lock-fill"></i> ' + esc(a.title), 'te_' + a.id, 'num'), `title="${esc(a.title)} (bài Test)" style="min-width:90px;max-width:140px;overflow:hidden;text-overflow:ellipsis"`)).join('');
+    // Ô tích "Chốt" dưới mỗi cột điểm: chỉ cột đã được chọn tính điểm VÀ đã chốt mới hiện ở bảng điểm của học sinh
+    const pubSet = new Set((gbCfg.published || []).map(String));
+    const pubCtl = a => {
+      const role = g.qtIds.has(a.id) ? 'ĐQT' : g.ckIds.has(a.id) ? 'ĐCK' : null;
+      if (!role) return '<div style="font-size:10px;font-weight:600;opacity:.8;margin-top:2px">Không tính</div>';
+      const on = pubSet.has(String(a.id)), dis = isOwnerRole() ? '' : 'disabled';
+      return `<div onclick="event.stopPropagation()" style="font-size:10px;font-weight:700;margin-top:2px;white-space:nowrap">${role} · <label title="Tích để chốt: hiển thị cột điểm này cho học sinh" style="cursor:pointer"><input type="checkbox" ${on ? 'checked' : ''} ${dis} onchange="gbTogglePublish('${String(a.id).replace(/'/g, '')}', this.checked)" style="vertical-align:-2px"> Chốt</label></div>`;
+    };
+    const asH = g.asList.map(a => th('g-h-as', hd(esc(a.title), 'as_' + a.id, 'num') + pubCtl(a), `title="${esc(a.title)}" style="min-width:90px;max-width:140px;overflow:hidden;text-overflow:ellipsis"`)).join('');
+    const teH = g.testList.map(a => th('g-h-test', hd('<i class="bi bi-lock-fill"></i> ' + esc(a.title), 'te_' + a.id, 'num') + pubCtl(a), `title="${esc(a.title)} (bài Test)" style="min-width:90px;max-width:140px;overflow:hidden;text-overflow:ellipsis"`)).join('');
     const nAs = g.asList.length, nTe = g.testList.length;
     const head1 = `<tr>
       ${th('g-h-fix g-s1', 'STT', 'rowspan="2"')}${th('g-h-fix g-s2', hd('Họ và tên', 'name', 'text'), 'rowspan="2"')}
@@ -2978,8 +2999,8 @@
     const cell = (v, on) => `<td class="${on ? '' : 'g-off'}" title="${on ? '' : 'Không nằm trong cách tính'}">${gFmt(v)}</td>`;
     const shown = cfRun('gb', g.rows, gbGet);
     const body = shown.map((r, i) => {
-      const asC = g.asList.map(a => cell(r.sc(a.id), g.qtIds.has(a.id))).join('');
-      const teC = g.testList.map(a => cell(r.sc(a.id), g.ckIds.has(a.id))).join('');
+      const asC = g.asList.map(a => cell(r.sc(a.id), g.qtIds.has(a.id) || g.ckIds.has(a.id))).join('');
+      const teC = g.testList.map(a => cell(r.sc(a.id), g.qtIds.has(a.id) || g.ckIds.has(a.id))).join('');
       const pass = r.fin == null ? '<span class="text-gray-400">—</span>'
         : r.fin >= 7 ? '<i class="bi bi-check-circle-fill" title="Đạt" style="color:#166534;font-size:19px"></i>'
                      : '<i class="bi bi-x-circle-fill" title="Không đạt" style="color:#991b1b;font-size:19px"></i>';
@@ -3006,21 +3027,47 @@
     if (!gbData) return notify('⚠️ Hãy chọn lớp trước.');
     const c = myClasses.find(x => x.id === gbClassId);
     pel('gcClassTitle').textContent = c ? c.class_code + ' — ' + c.title : '';
-    const asList = gbData.assigns.filter(a => !a.is_test), teList = gbData.assigns.filter(a => a.is_test);
-    const list = (arr, ids, name) => arr.map(a => `<label class="flex items-center gap-2 text-xs"><input type="checkbox" data-${name}="${a.id}" ${ids.includes(a.id) ? 'checked' : ''}> <span class="truncate">${esc(a.title)}</span></label>`).join('') || '<p class="text-xs text-gray-400 italic">Chưa có bài nào.</p>';
-    pel('gcQtList').innerHTML = list(asList, gbCfg.qtIds, 'qt');
-    pel('gcCkList').innerHTML = list(teList, gbCfg.ckIds, 'ck');
+    // Cả 2 danh sách đều liệt kê TẤT CẢ bài (Assignment + Test) để giáo viên chọn bài bất kỳ cho ĐQT hoặc ĐCK
+    const all = gbData.assigns;
+    const list = (ids, name) => all.map(a => `<label class="flex items-center gap-2 text-xs"><input type="checkbox" data-${name}="${a.id}" onchange="gcExclusive(this)" ${ids.map(String).includes(String(a.id)) ? 'checked' : ''}> <span class="truncate" title="${esc(a.title)}">${a.is_test ? '<i class="bi bi-lock-fill"></i> ' : ''}${esc(a.title)}${a.is_test ? ' <em class="text-[10px] text-amber-600 not-italic font-bold">(Test)</em>' : ''}</span></label>`).join('') || '<p class="text-xs text-gray-400 italic">Chưa có bài nào.</p>';
+    pel('gcQtList').innerHTML = list(gbCfg.qtIds || [], 'qt');
+    pel('gcCkList').innerHTML = list(gbCfg.ckIds || [], 'ck');
     document.querySelectorAll('input[name=gcQtMode]').forEach(r => r.checked = r.value === gbCfg.qtMode);
     document.querySelectorAll('input[name=gcCkMode]').forEach(r => r.checked = r.value === gbCfg.ckMode);
     pel('gcAttPct').value = gbCfg.attPct || 0; pel('gcQtPct').value = gbCfg.qtPct; pel('gcCkPct').value = gbCfg.ckPct;
     pel('gcAttInQt').checked = !!gbCfg.attInQt; pel('gcMissingZero').checked = !!gbCfg.missingZero;
     pel('gradeCfgModal').classList.remove('hidden'); pel('gradeCfgModal').classList.add('flex');
   }
+  // Mỗi bài chỉ thuộc 1 phần: tích ở ĐQT thì tự bỏ tích ở ĐCK và ngược lại
+  function gcExclusive(el) {
+    if (!el.checked) return;
+    const other = el.hasAttribute('data-qt') ? 'ck' : 'qt', id = el.getAttribute('data-qt') || el.getAttribute('data-ck');
+    document.querySelectorAll(`[data-${other}]`).forEach(x => { if (x.getAttribute('data-' + other) === id) x.checked = false; });
+  }
   function closeGradeCfg() { pel('gradeCfgModal').classList.add('hidden'); pel('gradeCfgModal').classList.remove('flex'); }
   function gcSyncPct(which) {
     const g = id => { const v = parseFloat(pel(id).value); return isNaN(v) ? 0 : Math.max(0, Math.min(100, v)); };
     if (which === 'ck') pel('gcQtPct').value = Math.max(0, Math.round((100 - g('gcAttPct') - g('gcCkPct')) * 100) / 100);
     else pel('gcCkPct').value = Math.max(0, Math.round((100 - g('gcAttPct') - g('gcQtPct')) * 100) / 100);
+  }
+  async function persistGradeCfg(cfg) {
+    let saved = false;
+    try {
+      const { error } = await sbClient.from('class_grade_config').upsert({ class_id: gbClassId, config: cfg, updated_by: currentUser.id, updated_at: new Date().toISOString() }, { onConflict: 'class_id' });
+      if (!error) saved = true; else console.warn('Lưu cách tính điểm lên Supabase thất bại:', error.message);
+    } catch (e) { console.warn(e); }
+    try { localStorage.setItem('gradecfg:' + gbClassId, JSON.stringify(cfg)); } catch (e) {}
+    return saved;
+  }
+  // Chốt / bỏ chốt 1 cột điểm: chốt rồi học sinh mới thấy cột đó trong bảng "Kết quả học tập"
+  async function gbTogglePublish(id, on) {
+    if (!isOwnerRole()) return notify('⚠️ Chỉ giáo viên (teacher) mới chốt được điểm.');
+    const s = new Set((gbCfg.published || []).map(String));
+    if (on) s.add(String(id)); else s.delete(String(id));
+    gbCfg = { ...gbCfg, published: [...s] };
+    const saved = await persistGradeCfg(gbCfg);
+    renderGradebook();
+    notify((on ? '✅ Đã chốt — học sinh sẽ thấy cột điểm này.' : '↩️ Đã bỏ chốt — cột điểm này được ẩn với học sinh.') + (saved ? '' : ' (mới lưu trên trình duyệt này — cần bảng class_grade_config trong Supabase để học sinh thấy)'));
   }
   async function saveGradeCfg() {
     const attPct = parseFloat(pel('gcAttPct').value) || 0, qtPct = parseFloat(pel('gcQtPct').value), ckPct = parseFloat(pel('gcCkPct').value);
@@ -3031,15 +3078,11 @@
       qtIds: [...document.querySelectorAll('[data-qt]:checked')].map(x => x.dataset.qt),
       ckIds: [...document.querySelectorAll('[data-ck]:checked')].map(x => x.dataset.ck),
       attPct, qtPct, ckPct, missingZero: pel('gcMissingZero').checked, attInQt: attPct > 0 ? false : pel('gcAttInQt').checked,
+      published: gbCfg.published || [],   // giữ nguyên các cột đã chốt
     };
     if (cfg.qtMode === 'pick' && !cfg.qtIds.length) return notify('⚠️ Chọn ít nhất 1 bài cho điểm quá trình (hoặc chọn "Tất cả").');
     if (cfg.ckMode === 'pick' && !cfg.ckIds.length) return notify('⚠️ Chọn ít nhất 1 bài cho điểm cuối kỳ (hoặc chọn "Tất cả").');
-    let saved = false;
-    try {
-      const { error } = await sbClient.from('class_grade_config').upsert({ class_id: gbClassId, config: cfg, updated_by: currentUser.id, updated_at: new Date().toISOString() }, { onConflict: 'class_id' });
-      if (!error) saved = true; else console.warn('Lưu cách tính điểm lên Supabase thất bại:', error.message);
-    } catch (e) { console.warn(e); }
-    try { localStorage.setItem('gradecfg:' + gbClassId, JSON.stringify(cfg)); } catch (e) {}
+    const saved = await persistGradeCfg(cfg);
     gbCfg = { ...GRADE_DEFAULT_CFG, ...cfg };
     closeGradeCfg(); renderGradebook();
     notify(saved ? '✅ Đã lưu cách tính điểm.' : '⚠️ Mới lưu trên trình duyệt này — hãy chạy file 2_grades.sql trong Supabase để lưu cho mọi thiết bị.');

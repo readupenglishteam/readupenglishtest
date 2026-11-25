@@ -2,6 +2,8 @@
 (function(){
  'use strict';
  const entries = [
+ ['Điểm quá trình (ĐQT) — chọn từ bất kỳ bài Assignment / Test','Coursework Score – from any Assignment / Test'],['Điểm cuối kỳ (ĐCK) — chọn từ bất kỳ bài Assignment / Test','Final Exam Score – from any Assignment / Test'],
+ ['Mỗi bài chỉ thuộc 1 phần (ĐQT hoặc ĐCK). Chỉ những cột được chọn ở đây mới hiện trong bảng điểm của học sinh, và chỉ hiện sau khi bạn tích “Chốt” dưới cột đó trong bảng điểm.','Each assessment belongs to one part only (Coursework or Final Exam). Only columns selected here appear in the student grade table, and only after you tick “Publish” under that column in the gradebook.'],
  ['Hạn nộp bài (ngày + giờ)','Due Date & Time'],['Để trống giờ = hết ngày hôm đó (23:59). Giờ Việt Nam.','Leave the time empty = end of that day (23:59). Vietnam time.'],
  ['Lịch Sử Hoạt Động','Activity History'],
  ['Kiểu hiển thị câu hỏi','Question Display'],['Hiển thị một dải (cuộn xuống)','All questions on one scrolling page'],['Mỗi câu hỏi một trang (bấm Trang tiếp)','One question per page (Next page button)'],

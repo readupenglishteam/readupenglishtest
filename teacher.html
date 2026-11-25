@@ -277,8 +277,9 @@
       <button onclick="closeGradeCfg()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-2xl">&times;</button>
     </div>
 
+    <p class="text-[11px] text-gray-500 dark:text-gray-400 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-xl px-3 py-2"><i class="bi bi-info-circle"></i> Mỗi bài chỉ thuộc 1 phần (ĐQT hoặc ĐCK). Chỉ những cột được chọn ở đây mới hiện trong bảng điểm của học sinh, và chỉ hiện sau khi bạn tích “Chốt” dưới cột đó trong bảng điểm.</p>
     <div class="space-y-2">
-      <p class="font-extrabold text-sm text-sky-600"><i class="bi bi-1-circle-fill"></i> Điểm quá trình (ĐQT) — lấy từ các bài Assignment</p>
+      <p class="font-extrabold text-sm text-sky-600"><i class="bi bi-1-circle-fill"></i> Điểm quá trình (ĐQT) — chọn từ bất kỳ bài Assignment / Test</p>
       <label class="flex items-center gap-2 text-sm"><input type="radio" name="gcQtMode" value="all"> Tất cả bài Assignment (cộng lại chia số bài — bài mới tạo tự được tính)</label>
       <label class="flex items-center gap-2 text-sm"><input type="radio" name="gcQtMode" value="pick"> Chỉ chọn một số bài:</label>
       <div id="gcQtList" class="grid grid-cols-1 sm:grid-cols-2 gap-1 pl-6 max-h-40 overflow-y-auto"></div>
@@ -286,7 +287,7 @@
     </div>
 
     <div class="space-y-2 border-t dark:border-zinc-800 pt-4">
-      <p class="font-extrabold text-sm text-violet-600"><i class="bi bi-2-circle-fill"></i> Điểm cuối kỳ (ĐCK) — lấy từ các bài ở chế độ Test</p>
+      <p class="font-extrabold text-sm text-violet-600"><i class="bi bi-2-circle-fill"></i> Điểm cuối kỳ (ĐCK) — chọn từ bất kỳ bài Assignment / Test</p>
       <label class="flex items-center gap-2 text-sm"><input type="radio" name="gcCkMode" value="all"> Tất cả bài Test (cộng lại chia số bài)</label>
       <label class="flex items-center gap-2 text-sm"><input type="radio" name="gcCkMode" value="pick"> Chỉ chọn một số bài:</label>
       <div id="gcCkList" class="grid grid-cols-1 sm:grid-cols-2 gap-1 pl-6 max-h-40 overflow-y-auto"></div>
@@ -653,7 +654,7 @@
 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
-<script src="assets/compiled/teacher.part2.js?v=20261124"></script>
+<script src="assets/compiled/teacher.part2.js?v=20261125"></script>
 <script src="assets/js/ru-qr-view.js?v=20261124"></script>
 <script src="assets/js/ru-qr-attendance.js?v=20261124"></script>
   <script src="assets/js/ru-navigation.js"></script>
